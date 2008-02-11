@@ -1,0 +1,166 @@
+#include "buffer.h"
+
+// analogous to *ptr++
+int block_iter_next_byte(struct block_iter *i, uchar *byte)
+{
+	if (i->offset == i->blk->size) {
+		if (i->blk->node.next == i->head)
+			return 0;
+		i->blk = BLOCK(i->blk->node.next);
+		i->offset = 0;
+	}
+	*byte = (unsigned char)i->blk->data[i->offset];
+	i->offset++;
+	return 1;
+}
+
+// analogous to *--ptr
+int block_iter_prev_byte(struct block_iter *i, uchar *byte)
+{
+	if (!i->offset) {
+		if (i->blk->node.prev == i->head)
+			return 0;
+		i->blk = BLOCK(i->blk->node.prev);
+		i->offset = i->blk->size;
+	}
+	i->offset--;
+	*byte = (unsigned char)i->blk->data[i->offset];
+	return 1;
+}
+
+// analogous to *ptr++
+int block_iter_next_uchar(struct block_iter *i, uchar *up)
+{
+	struct block_iter save;
+	int c, len;
+	uchar ch, u;
+
+	if (!block_iter_next_byte(i, &ch))
+		return 0;
+
+	*up = ch;
+	if (likely(ch < 0x80)) {
+		// ascii
+		return 1;
+	}
+
+	*up = ch | U_INVALID_MASK;
+	len = u_len_tab[ch];
+	if (len < 1) {
+		// invalid first byte
+		return 1;
+	}
+
+	save = *i;
+	u = ch & u_first_byte_mask[len - 1];
+	for (c = 1; c < len; c++) {
+		if (!block_iter_next_byte(i, &ch))
+			goto crap;
+		if (u_len_tab[ch])
+			goto crap;
+
+		u = (u << 6) | (ch & 0x3f);
+	}
+	if (u < u_min_val[len - 1] || u > u_max_val[len - 1])
+		goto crap;
+	*up = u;
+	return 1;
+crap:
+	// *up set to the first byte and marked invalid
+	*i = save;
+	return 1;
+}
+
+// analogous to *--ptr
+int block_iter_prev_uchar(struct block_iter *i, uchar *up)
+{
+	struct block_iter save;
+	int c, len;
+	uchar ch, u;
+	unsigned int shift;
+
+	if (!block_iter_prev_byte(i, &ch))
+		return 0;
+
+	*up = ch;
+	if (likely(ch < 0x80)) {
+		// ascii
+		return 1;
+	}
+
+	*up = ch | U_INVALID_MASK;
+	save = *i;
+	u = 0;
+	shift = 0;
+	for (c = 1; c < 4; c++) {
+		len = u_len_tab[ch];
+		if (len)
+			break;
+
+		u |= (ch & 0x3f) << shift;
+		shift += 6;
+		if (!block_iter_prev_byte(i, &ch))
+			goto crap;
+	}
+	if (len != c)
+		goto crap;
+	u |= (ch & u_first_byte_mask[len - 1]) << shift;
+	if (u < u_min_val[len - 1] || u > u_max_val[len - 1])
+		goto crap;
+	*up = u;
+	return 1;
+crap:
+	// *up set to the first byte we read and marked invalid
+	*i = save;
+	return 1;
+}
+
+int block_iter_next_line(struct block_iter *bi)
+{
+	while (1) {
+		uchar u;
+
+		if (!block_iter_next_byte(bi, &u))
+			return 0;
+		if (u == '\n')
+			return 1;
+	}
+}
+
+int block_iter_prev_line(struct block_iter *bi)
+{
+	while (1) {
+		uchar u;
+
+		if (!block_iter_prev_byte(bi, &u))
+			return 0;
+		if (u == '\n')
+			return 1;
+	}
+}
+
+void block_iter_bol(struct block_iter *bi)
+{
+	while (1) {
+		uchar u;
+
+		if (!block_iter_prev_byte(bi, &u))
+			break;
+		if (u == '\n') {
+			block_iter_next_byte(bi, &u);
+			break;
+		}
+	}
+}
+
+int block_iter_get_byte(struct block_iter *bi, uchar *up)
+{
+	struct block_iter save = *bi;
+	return block_iter_next_byte(&save, up);
+}
+
+int block_iter_get_uchar(struct block_iter *bi, uchar *up)
+{
+	struct block_iter save = *bi;
+	return block_iter_next_uchar(&save, up);
+}

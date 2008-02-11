@@ -1,0 +1,7 @@
+.*
+*.o
+config.mk
+editor
+tags
+
+!.gitignore
