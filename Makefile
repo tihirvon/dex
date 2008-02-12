@@ -9,8 +9,9 @@ INSTALL_LOG	:=
 
 CFLAGS	+= -g -I.
 
-objs	:= buffer.o edit.o editor.o iter.o obuf.o term.o termcap.o terminfo.o \
-	uchar.o util.o window.o xmalloc.o
+objs	:= buffer.o commands.o config.o edit.o editor.o iter.o obuf.o \
+	parse-command.o term.o termcap.o terminfo.o uchar.o util.o \
+	window.o xmalloc.o
 
 editor: $(objs)
 	$(call cmd,ld,)

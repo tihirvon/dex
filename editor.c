@@ -9,8 +9,8 @@
 static enum {
 	INPUT_NORMAL,
 } input_mode;
+int running = 1;
 
-static int running = 1;
 static int received_signal;
 
 static int add_status_str(char *buf, int size, int *posp, const char *str)
@@ -342,19 +342,6 @@ static void debug_blocks(void)
 	}
 }
 
-static void debug_contents(void)
-{
-	struct block *blk;
-
-	write(2, "\n--\n", 4);
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		write(2, blk->data, blk->size);
-		if (blk->node.next != &buffer->blocks)
-			write(2, "-X-", 3);
-	}
-	write(2, "--\n", 3);
-}
-
 void ui_start(void)
 {
 	term_raw();
@@ -394,58 +381,6 @@ void ui_end(void)
 	term_cooked();
 }
 
-static void handle_special(int key)
-{
-	if (key == SKEY_DELETE) {
-		delete_ch();
-		return;
-	}
-	if (key == SKEY_BACKSPACE) {
-		backspace();
-		return;
-	}
-
-	undo_merge = UNDO_MERGE_NONE;
-	switch (key) {
-	case SKEY_LEFT:
-		move_left(1);
-		break;
-	case SKEY_RIGHT:
-		move_right(1);
-		break;
-	case SKEY_HOME:
-		move_bol();
-		break;
-	case SKEY_END:
-		move_eol();
-		break;
-	case SKEY_UP:
-		move_up(1);
-		break;
-	case SKEY_DOWN:
-		move_down(1);
-		break;
-	case SKEY_PAGE_UP:
-		move_up(window->h - 1);
-		break;
-	case SKEY_PAGE_DOWN:
-		move_down(window->h - 1);
-		break;
-	case SKEY_F2:
-		save_buffer();
-		break;
-	case SKEY_F9:
-		running = 0;
-		break;
-	case SKEY_F5:
-		prev_buffer();
-		break;
-	case SKEY_F6:
-		next_buffer();
-		break;
-	}
-}
-
 static void handle_key(enum term_key_type type, unsigned int key)
 {
 	struct change_head *save_change_head = buffer->save_change_head;
@@ -454,49 +389,38 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vx = window->vx;
 	int vy = window->vy;
 
-	switch (input_mode) {
-	case INPUT_NORMAL:
-		switch (type) {
-		case KEY_NORMAL:
-			if (key < 0x20 && key != '\t' && key != '\r') {
-				switch (key) {
-				case 0x03: // ^C
-					debug_contents();
-					break;
-				case 0x04: // ^D
-					delete_ch();
-					break;
-				case 0x05: // ^E
-					undo();
-					break;
-				case 0x12: // ^R
-					redo();
-					break;
-				case 0x10: // ^P
-					paste();
-					break;
-				case 0x19: // ^Y
-					copy_line();
-					break;
-				case 0x0b: // ^K
-					cut_line();
-					break;
-				}
-			} else {
-				if (key == '\r') {
-					insert_ch('\n');
+	if (uncompleted_binding) {
+		handle_binding(type, key);
+	} else {
+		switch (input_mode) {
+		case INPUT_NORMAL:
+			switch (type) {
+			case KEY_NORMAL:
+				if (key < 0x20 && key != '\t' && key != '\r') {
+					handle_binding(type, key);
 				} else {
-					insert_ch(key);
+					if (key == '\r') {
+						insert_ch('\n');
+					} else {
+						insert_ch(key);
+					}
 				}
+				break;
+			case KEY_META:
+				handle_binding(type, key);
+				break;
+			case KEY_SPECIAL:
+				if (key == SKEY_DELETE) {
+					delete_ch();
+				} else if (key == SKEY_BACKSPACE) {
+					backspace();
+				} else {
+					handle_binding(type, key);
+				}
+				break;
 			}
 			break;
-		case KEY_META:
-			break;
-		case KEY_SPECIAL:
-			handle_special(key);
-			break;
 		}
-		break;
 	}
 
 	debug_blocks();
@@ -623,7 +547,10 @@ int main(int argc, char *argv[])
 	obuf.buf = xmalloc(obuf.alloc);
 	obuf.width = 80;
 	obuf.bg = -1;
+
+	read_config();
 	ui_start();
+
 	while (running) {
 		if (received_signal) {
 			handle_signal();

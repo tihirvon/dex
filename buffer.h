@@ -3,6 +3,7 @@
 
 #include "list.h"
 #include "uchar.h"
+#include "term.h"
 #include "xmalloc.h"
 
 #include <stdlib.h>
@@ -128,6 +129,12 @@ struct window {
 	int preferred_x;
 };
 
+struct command {
+	const char *name;
+	const char *short_name;
+	void (*cmd)(char **);
+};
+
 enum undo_merge {
 	UNDO_MERGE_NONE,
 	UNDO_MERGE_INSERT,
@@ -145,6 +152,9 @@ extern struct buffer *buffer;
 extern struct window *window;
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
+extern struct command commands[];
+extern struct binding *uncompleted_binding;
+extern int running;
 
 // options
 extern int move_wraps;
@@ -207,8 +217,12 @@ unsigned int copy_count_nl(char *dst, const char *src, unsigned int len);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 
+void read_config(void);
 void ui_start(void);
 void ui_end(void);
+
+void handle_command(const char *cmd);
+void handle_binding(enum term_key_type type, unsigned int key);
 
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
 void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);
