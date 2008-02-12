@@ -6,6 +6,10 @@
 #include <langinfo.h>
 #include <signal.h>
 
+static enum {
+	INPUT_NORMAL,
+} input_mode;
+
 static int running = 1;
 static int received_signal;
 
@@ -431,44 +435,48 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vx = window->vx;
 	int vy = window->vy;
 
-	switch (type) {
-	case KEY_NORMAL:
-		if (key < 0x20 && key != '\t' && key != '\r') {
-			switch (key) {
-			case 0x03: // ^C
-				debug_contents();
-				break;
-			case 0x04: // ^D
-				delete_ch();
-				break;
-			case 0x05: // ^E
-				undo();
-				break;
-			case 0x12: // ^R
-				redo();
-				break;
-			case 0x10: // ^P
-				paste();
-				break;
-			case 0x19: // ^Y
-				copy_line();
-				break;
-			case 0x0b: // ^K
-				cut_line();
-				break;
-			}
-		} else {
-			if (key == '\r') {
-				insert_ch('\n');
+	switch (input_mode) {
+	case INPUT_NORMAL:
+		switch (type) {
+		case KEY_NORMAL:
+			if (key < 0x20 && key != '\t' && key != '\r') {
+				switch (key) {
+				case 0x03: // ^C
+					debug_contents();
+					break;
+				case 0x04: // ^D
+					delete_ch();
+					break;
+				case 0x05: // ^E
+					undo();
+					break;
+				case 0x12: // ^R
+					redo();
+					break;
+				case 0x10: // ^P
+					paste();
+					break;
+				case 0x19: // ^Y
+					copy_line();
+					break;
+				case 0x0b: // ^K
+					cut_line();
+					break;
+				}
 			} else {
-				insert_ch(key);
+				if (key == '\r') {
+					insert_ch('\n');
+				} else {
+					insert_ch(key);
+				}
 			}
+			break;
+		case KEY_META:
+			break;
+		case KEY_SPECIAL:
+			handle_special(key);
+			break;
 		}
-		break;
-	case KEY_META:
-		break;
-	case KEY_SPECIAL:
-		handle_special(key);
 		break;
 	}
 
