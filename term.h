@@ -26,13 +26,6 @@ struct term_cap {
 };
 
 enum term_key_type {
-	/* invalid key, ignore */
-	KEY_INVALID = -1,
-
-	/* no keys pressed
-	 * usually interrupted by signal SIGWINCH (terminal was resized) */
-	KEY_NONE,
-
 	/* key is character encoded in the current locale's encoding */
 	KEY_NORMAL,
 
@@ -41,13 +34,6 @@ enum term_key_type {
 
 	/* key is one of SKEY_* */
 	KEY_SPECIAL
-};
-
-/* some normal keys (these are ASCII) */
-enum {
-	NKEY_ESC	= 0x1b,
-	NKEY_TAB	= 0x09,
-	NKEY_ENTER	= 0x0a,
 };
 
 /* special keys */
@@ -125,7 +111,7 @@ int term_init(const char *term, unsigned int flags);
 void term_raw(void);
 void term_cooked(void);
 
-enum term_key_type term_read_key(unsigned int *key);
+int term_read_key(unsigned int *key, enum term_key_type *type);
 
 int term_get_size(int *w, int *h);
 

@@ -432,10 +432,6 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vy = window->vy;
 
 	switch (type) {
-	case KEY_INVALID:
-		break;
-	case KEY_NONE:
-		break;
 	case KEY_NORMAL:
 		if (key < 0x20 && key != '\t' && key != '\r') {
 			switch (key) {
@@ -607,8 +603,8 @@ int main(int argc, char *argv[])
 		} else {
 			unsigned int key;
 			enum term_key_type type;
-			type = term_read_key(&key);
-			handle_key(type, key);
+			if (term_read_key(&key, &type))
+				handle_key(type, key);
 		}
 	}
 	ui_end();

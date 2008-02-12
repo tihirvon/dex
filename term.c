@@ -120,7 +120,7 @@ static int input_get_byte(char *buf, int buf_size, unsigned char *ch)
 	return 1;
 }
 
-enum term_key_type term_read_key(unsigned int *key)
+int term_read_key(unsigned int *key, enum term_key_type *type)
 {
 	const int buf_size = 32;
 	static char buf[32 + 1] = { 0, };
@@ -139,10 +139,8 @@ enum term_key_type term_read_key(unsigned int *key)
 	 */
 	if (buf_fill == 0) {
 		buf_fill = input_read(buf, buf_size);
-		if (buf_fill == 0) {
-			*key = 0;
-			return KEY_NONE;
-		}
+		if (buf_fill == 0)
+			return 0;
 	}
 
 	if (buf_fill > 1) {
@@ -151,15 +149,17 @@ enum term_key_type term_read_key(unsigned int *key)
 		for (i = 0; i < NR_SKEYS; i++) {
 			if (term_keycodes[i] && strcmp(term_keycodes[i], buf) == 0) {
 				*key = i;
+				*type = KEY_SPECIAL;
 				buf[0] = 0;
-				return KEY_SPECIAL;
+				return 1;
 			}
 		}
 		if (buf_fill == 2 && buf[0] == '\033') {
 			/* 'esc key' or 'alt-key' */
 			*key = buf[1];
+			*type = KEY_META;
 			buf[0] = 0;
-			return KEY_META;
+			return 1;
 		}
 	}
 	/* > 0 bytes in buf */
@@ -167,7 +167,8 @@ enum term_key_type term_read_key(unsigned int *key)
 
 	if (ch == 0x7f || ch == 0x08) {
 		*key = SKEY_BACKSPACE;
-		return KEY_SPECIAL;
+		*type = KEY_SPECIAL;
+		return 1;
 	}
 
 	/* normal key */
@@ -188,26 +189,22 @@ enum term_key_type term_read_key(unsigned int *key)
 		}
 		if (count == 0 || count > 3) {
 			/* invalid first byte */
-			*key = 0;
-			return KEY_INVALID;
+			return 0;
 		}
 		u = ch & (bit - 1);
 		do {
-			if (!input_get_byte(buf, buf_size, &ch)) {
-				*key = 0;
-				return KEY_INVALID;
-			}
-			if (ch >> 6 != 2) {
-				*key = 0;
-				return KEY_INVALID;
-			}
+			if (!input_get_byte(buf, buf_size, &ch))
+				return 0;
+			if (ch >> 6 != 2)
+				return 0;
 			u = (u << 6) | (ch & 0x3f);
 		} while (--count);
 		*key = u;
 	} else {
 		*key = ch;
 	}
-	return KEY_NORMAL;
+	*type = KEY_NORMAL;
+	return 1;
 }
 
 int term_get_size(int *w, int *h)
