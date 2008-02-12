@@ -40,6 +40,24 @@ static const char *ssprintf(const char *format, ...)
 	return buf;
 }
 
+static int add_status_pos(char *buf, int size, int *posp)
+{
+	int h = window->h - 2;
+	int pos = window->vy;
+
+	if (buffer->nl <= h) {
+		if (pos)
+			return add_status_str(buf, size, posp, "Bot");
+		return add_status_str(buf, size, posp, "All");
+	}
+	if (pos == 0)
+		return add_status_str(buf, size, posp, "Top");
+	pos += h - 1;
+	if (pos >= buffer->nl)
+		return add_status_str(buf, size, posp, "Bot");
+	return add_status_str(buf, size, posp, ssprintf("%2d%%", pos * 100 / buffer->nl));
+}
+
 static int format_status(char *buf, int size, const char *format)
 {
 	int pos = 0;
@@ -84,6 +102,7 @@ static int format_status(char *buf, int size, const char *format)
 					w += add_status_str(buf, size, &pos, ssprintf("0x%02x", u));
 				break;
 			case 'p':
+				w += add_status_pos(buf, size, &pos);
 				break;
 			case '%':
 				buf[pos++] = '%';
