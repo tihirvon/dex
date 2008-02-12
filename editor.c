@@ -42,7 +42,7 @@ static const char *ssprintf(const char *format, ...)
 
 static int add_status_pos(char *buf, int size, int *posp)
 {
-	int h = window->h - 2;
+	int h = window->h;
 	int pos = window->vy;
 
 	if (buffer->nl <= h) {
@@ -127,7 +127,7 @@ static void print_status_line(void)
 	char rbuf[256];
 	int lw, rw;
 
-	buf_move_cursor(0, window->h - 2);
+	buf_move_cursor(0, window->h);
 	buf_set_colors(-1, 7);
 	lw = format_status(lbuf, sizeof(lbuf), lformat);
 	rw = format_status(rbuf, sizeof(rbuf), rformat);
@@ -137,14 +137,14 @@ static void print_status_line(void)
 		buf_add_bytes(rbuf, strlen(rbuf));
 	} else {
 		buf_add_bytes(lbuf, strlen(lbuf));
-		buf_move_cursor(window->w - rw, window->h - 2);
+		buf_move_cursor(window->w - rw, window->h);
 		buf_add_bytes(rbuf, strlen(rbuf));
 	}
 }
 
 static void print_command_line(void)
 {
-	buf_move_cursor(0, window->h - 1);
+	buf_move_cursor(0, window->h + 1);
 	buf_set_colors(-1, -1);
 	buf_clear_eol();
 }
@@ -251,19 +251,19 @@ static void update_full(void)
 		block_iter_prev_line(&bi);
 	block_iter_bol(&bi);
 
-	for (i = 0; i < window->h - 2; i++) {
+	for (i = 0; i < window->h; i++) {
 		if (bi.offset == bi.blk->size && bi.blk->node.next == bi.head)
 			break;
 		buf_move_cursor(0, i);
 		print_line(&bi);
 	}
-	if (i < window->h - 2) {
+	if (i < window->h) {
 		// dummy empty line
 		buf_move_cursor(0, i++);
 		buf_clear_eol();
 	}
 
-	for (; i < window->h - 2; i++) {
+	for (; i < window->h; i++) {
 		buf_move_cursor(0, i);
 		buf_ch('~');
 		buf_clear_eol();
@@ -313,7 +313,7 @@ static void update_window_sizes(void)
 
 	if (!term_get_size(&w, &h) && w > 2 && h > 2) {
 		window->w = w;
-		window->h = h;
+		window->h = h - 2;
 		obuf.width = w;
 	}
 }
@@ -381,7 +381,7 @@ void ui_end(void)
 	if (term_cap.te)
 		buf_escape(term_cap.te);
 
-	buf_move_cursor(0, window->h - 1);
+	buf_move_cursor(0, window->h + 1);
 	buf_ch('\n');
 	buf_clear_eol();
 	buf_show_cursor();
@@ -426,10 +426,10 @@ static void handle_special(int key)
 		move_down(1);
 		break;
 	case SKEY_PAGE_UP:
-		move_up(window->h - 3);
+		move_up(window->h - 1);
 		break;
 	case SKEY_PAGE_DOWN:
-		move_down(window->h - 3);
+		move_down(window->h - 1);
 		break;
 	case SKEY_F2:
 		save_buffer();

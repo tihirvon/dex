@@ -106,6 +106,6 @@ void update_cursor(struct window *w)
 		w->vx = w->cx / c * c;
 	if (window->cy < window->vy)
 		window->vy = window->cy;
-	if (window->cy > window->vy + window->h - 3)
-		window->vy = window->cy - window->h + 3;
+	if (window->cy > window->vy + window->h - 1)
+		window->vy = window->cy - window->h + 1;
 }
