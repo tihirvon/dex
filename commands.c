@@ -71,11 +71,16 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 	return 0;
 }
 
-#define ARGC(n) \
+#define ARGC(min, max) \
 	int argc = 0; \
 	while (args[argc]) \
 		argc++; \
-	if (argc != n) { \
+	if (argc < min) { \
+		d_print("not enough arguments\n"); \
+		return; \
+	} \
+	if (max >= 0 && argc > max) { \
+		d_print("too many arguments\n"); \
 		return; \
 	}
 
@@ -87,7 +92,7 @@ static void cmd_bind(char **args)
 	int count = 0;
 	int i = 0;
 
-	ARGC(2);
+	ARGC(2, 2);
 
 	keys = xstrdup(args[0]);
 	while (keys[i]) {
