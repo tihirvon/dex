@@ -8,7 +8,9 @@ enum undo_merge undo_merge;
 struct block *block_new(int alloc)
 {
 	struct block *blk = xnew0(struct block, 1);
-	blk->data = xnew(char, alloc);
+
+	if (alloc)
+		blk->data = xnew(char, alloc);
 	blk->alloc = alloc;
 	return blk;
 }
