@@ -74,20 +74,29 @@ static void alloc_for_insert(unsigned int len)
 		xrenew(l->data, l->alloc);
 		window->cblk = r;
 		window->coffset = 0;
+	} else if (!lsize) {
+		// don't split, add new block before l
+		struct block *m = block_new(len);
+		list_add_before(&m->node, &l->node);
+		window->cblk = m;
+		window->coffset = 0;
 	} else {
-		// insert new block between l and r
-		struct block *r, *m;
+		struct block *m;
 
-		r = block_new(ALLOC_ROUND(rsize));
-		r->size = rsize;
-		r->nl = copy_count_nl(r->data, l->data + lsize, rsize);
-		list_add_after(&r->node, &l->node);
+		if (rsize) {
+			// split (and add new block between l and r)
+			struct block *r = block_new(ALLOC_ROUND(rsize));
+			r->size = rsize;
+			r->nl = copy_count_nl(r->data, l->data + lsize, rsize);
+			list_add_after(&r->node, &l->node);
 
-		l->nl -= r->nl;
-		l->size = lsize;
-		l->alloc = ALLOC_ROUND(lsize);
-		xrenew(l->data, l->alloc);
+			l->nl -= r->nl;
+			l->size = lsize;
+			l->alloc = ALLOC_ROUND(lsize);
+			xrenew(l->data, l->alloc);
+		}
 
+		// add new block after l
 		m = block_new(len);
 		list_add_after(&m->node, &l->node);
 		window->cblk = m;
