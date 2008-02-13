@@ -233,12 +233,22 @@ static void cmd_cancel(char **args)
 
 static void cmd_copy(char **args)
 {
-	copy_line();
+	unsigned int len;
+
+	undo_merge = UNDO_MERGE_NONE;
+	len = prepare_selection();
+	copy(len, window->sel_is_lines);
+	select_end();
 }
 
 static void cmd_cut(char **args)
 {
-	cut_line();
+	unsigned int len;
+
+	undo_merge = UNDO_MERGE_NONE;
+	len = prepare_selection();
+	cut(len, window->sel_is_lines);
+	select_end();
 }
 
 static void cmd_bol(char **args)

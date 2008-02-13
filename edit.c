@@ -201,6 +201,8 @@ void select_start(int is_lines)
 
 void select_end(void)
 {
+	if (window->sel_is_lines)
+		move_preferred_x();
 	window->sel_blk = NULL;
 	window->sel_offset = 0;
 	window->sel_is_lines = 0;
@@ -215,7 +217,7 @@ static void record_copy(char *buf, unsigned int len, int is_lines)
 	copy_is_lines = is_lines;
 }
 
-static void cut(unsigned int len, int is_lines)
+void cut(unsigned int len, int is_lines)
 {
 	char *buf;
 
@@ -227,7 +229,7 @@ static void cut(unsigned int len, int is_lines)
 	}
 }
 
-static void copy(unsigned int len, int is_lines)
+void copy(unsigned int len, int is_lines)
 {
 	char *buf;
 
@@ -249,38 +251,57 @@ static unsigned int count_bytes_eol(struct block_iter *bi)
 	return count;
 }
 
-void cut_line(void)
+unsigned int prepare_selection(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
-	unsigned int len;
+	if (window->sel_blk) {
+		// there is a selection
+		struct block_iter bi;
+		unsigned int so, co, len;
 
-	undo_merge = UNDO_MERGE_NONE;
-	block_iter_bol(&bi);
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+		so = buffer_get_offset(window->sel_blk, window->sel_offset);
+		co = buffer_offset();
+		if (co > so) {
+			unsigned int to;
+			struct block *tb;
 
-	len = count_bytes_eol(&bi);
-	cut(len, 1);
+			to = co;
+			co = so;
+			so = to;
 
-	move_preferred_x();
-}
+			tb = window->cblk;
+			window->cblk = window->sel_blk;
+			window->sel_blk = tb;
 
-void copy_line(void)
-{
-	BLOCK_ITER_CURSOR(bi, window);
-	struct block_iter save = bi;
-	unsigned int len;
+			to = window->coffset;
+			window->coffset = window->sel_offset;
+			window->sel_offset = to;
+		}
 
-	undo_merge = UNDO_MERGE_NONE;
-	block_iter_bol(&bi);
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+		len = so - co;
+		if (window->sel_is_lines) {
+			bi.head = &window->buffer->blocks;
+			bi.blk = window->sel_blk;
+			bi.offset = window->sel_offset;
+			len += count_bytes_eol(&bi);
 
-	len = count_bytes_eol(&bi);
-	copy(len, 1);
+			init_block_iter_cursor(&bi, window);
+			len += block_iter_bol(&bi);
+			window->cblk = bi.blk;
+			window->coffset = bi.offset;
+		} else {
+			len++;
+		}
+		return len;
+	} else {
+		// current line is the selection
+		BLOCK_ITER_CURSOR(bi, window);
 
-	window->cblk = save.blk;
-	window->coffset = save.offset;
+		block_iter_bol(&bi);
+		window->cblk = bi.blk;
+		window->coffset = bi.offset;
+
+		return count_bytes_eol(&bi);
+	}
 }
 
 void paste(void)

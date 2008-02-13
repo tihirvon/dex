@@ -166,6 +166,13 @@ extern int running;
 // options
 extern int move_wraps;
 
+static inline void init_block_iter_cursor(struct block_iter *bi, struct window *w)
+{
+	bi->head = &w->buffer->blocks;
+	bi->blk = w->cblk;
+	bi->offset = w->coffset;
+}
+
 struct block *block_new(int size);
 void delete_block(struct block *blk);
 
@@ -203,11 +210,12 @@ void update_preferred_x(void);
 void do_insert(const char *buf, unsigned int len);
 void do_delete(unsigned int len);
 void insert(const char *buf, unsigned int len);
+void cut(unsigned int len, int is_lines);
+void copy(unsigned int len, int is_lines);
+unsigned int prepare_selection(void);
 
 void select_start(int is_lines);
 void select_end(void);
-void cut_line(void);
-void copy_line(void);
 void paste(void);
 void delete_ch(void);
 void backspace(void);
