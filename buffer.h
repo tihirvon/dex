@@ -93,8 +93,8 @@ struct buffer {
 
 	int tab_width;
 
-	int (*next_char)(struct block_iter *i, uchar *up);
-	int (*prev_char)(struct block_iter *i, uchar *up);
+	unsigned int (*next_char)(struct block_iter *i, uchar *up);
+	unsigned int (*prev_char)(struct block_iter *i, uchar *up);
 	int (*get_char)(struct block_iter *i, uchar *up);
 };
 
@@ -176,12 +176,12 @@ static inline void init_block_iter_cursor(struct block_iter *bi, struct window *
 struct block *block_new(int size);
 void delete_block(struct block *blk);
 
-int block_iter_next_byte(struct block_iter *i, uchar *byte);
-int block_iter_prev_byte(struct block_iter *i, uchar *byte);
-int block_iter_next_uchar(struct block_iter *i, uchar *up);
-int block_iter_prev_uchar(struct block_iter *i, uchar *up);
-int block_iter_next_line(struct block_iter *bi);
-int block_iter_prev_line(struct block_iter *bi);
+unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte);
+unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte);
+unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up);
+unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up);
+unsigned int block_iter_next_line(struct block_iter *bi);
+unsigned int block_iter_prev_line(struct block_iter *bi);
 unsigned int block_iter_bol(struct block_iter *bi);
 int block_iter_get_byte(struct block_iter *bi, uchar *up);
 int block_iter_get_uchar(struct block_iter *bi, uchar *up);

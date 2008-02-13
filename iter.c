@@ -1,7 +1,7 @@
 #include "buffer.h"
 
 // analogous to *ptr++
-int block_iter_next_byte(struct block_iter *i, uchar *byte)
+unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte)
 {
 	if (i->offset == i->blk->size) {
 		if (i->blk->node.next == i->head)
@@ -15,7 +15,7 @@ int block_iter_next_byte(struct block_iter *i, uchar *byte)
 }
 
 // analogous to *--ptr
-int block_iter_prev_byte(struct block_iter *i, uchar *byte)
+unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte)
 {
 	if (!i->offset) {
 		if (i->blk->node.prev == i->head)
@@ -29,7 +29,7 @@ int block_iter_prev_byte(struct block_iter *i, uchar *byte)
 }
 
 // analogous to *ptr++
-int block_iter_next_uchar(struct block_iter *i, uchar *up)
+unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up)
 {
 	struct block_iter save;
 	int c, len;
@@ -64,7 +64,7 @@ int block_iter_next_uchar(struct block_iter *i, uchar *up)
 	if (u < u_min_val[len - 1] || u > u_max_val[len - 1])
 		goto crap;
 	*up = u;
-	return 1;
+	return len;
 crap:
 	// *up set to the first byte and marked invalid
 	*i = save;
@@ -72,7 +72,7 @@ crap:
 }
 
 // analogous to *--ptr
-int block_iter_prev_uchar(struct block_iter *i, uchar *up)
+unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up)
 {
 	struct block_iter save;
 	int c, len;
@@ -108,34 +108,40 @@ int block_iter_prev_uchar(struct block_iter *i, uchar *up)
 	if (u < u_min_val[len - 1] || u > u_max_val[len - 1])
 		goto crap;
 	*up = u;
-	return 1;
+	return len;
 crap:
 	// *up set to the first byte we read and marked invalid
 	*i = save;
 	return 1;
 }
 
-int block_iter_next_line(struct block_iter *bi)
+unsigned int block_iter_next_line(struct block_iter *bi)
 {
+	unsigned int count = 0;
+
 	while (1) {
 		uchar u;
 
 		if (!block_iter_next_byte(bi, &u))
 			return 0;
+		count++;
 		if (u == '\n')
-			return 1;
+			return count;
 	}
 }
 
-int block_iter_prev_line(struct block_iter *bi)
+unsigned int block_iter_prev_line(struct block_iter *bi)
 {
+	unsigned int count = 0;
+
 	while (1) {
 		uchar u;
 
 		if (!block_iter_prev_byte(bi, &u))
 			return 0;
+		count++;
 		if (u == '\n')
-			return 1;
+			return count;
 	}
 }
 
