@@ -168,7 +168,7 @@ int block_iter_next_uchar(struct block_iter *i, uchar *up);
 int block_iter_prev_uchar(struct block_iter *i, uchar *up);
 int block_iter_next_line(struct block_iter *bi);
 int block_iter_prev_line(struct block_iter *bi);
-void block_iter_bol(struct block_iter *bi);
+unsigned int block_iter_bol(struct block_iter *bi);
 int block_iter_get_byte(struct block_iter *bi, uchar *up);
 int block_iter_get_uchar(struct block_iter *bi, uchar *up);
 

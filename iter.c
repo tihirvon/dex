@@ -139,8 +139,10 @@ int block_iter_prev_line(struct block_iter *bi)
 	}
 }
 
-void block_iter_bol(struct block_iter *bi)
+unsigned int block_iter_bol(struct block_iter *bi)
 {
+	unsigned int count = 0;
+
 	while (1) {
 		uchar u;
 
@@ -150,7 +152,9 @@ void block_iter_bol(struct block_iter *bi)
 			block_iter_next_byte(bi, &u);
 			break;
 		}
+		count++;
 	}
+	return count;
 }
 
 int block_iter_get_byte(struct block_iter *bi, uchar *up)
