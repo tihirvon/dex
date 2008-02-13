@@ -50,17 +50,22 @@ char *buffer_get_bytes(unsigned int *lenp)
 	return buf;
 }
 
-unsigned int buffer_offset(void)
+unsigned int buffer_get_offset(struct block *stop_blk, unsigned int stop_offset)
 {
 	struct block *blk;
 	unsigned int offset = 0;
 
 	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (blk == window->cblk)
+		if (blk == stop_blk)
 			break;
 		offset += blk->size;
 	}
-	return offset + window->coffset;
+	return offset + stop_offset;
+}
+
+unsigned int buffer_offset(void)
+{
+	return buffer_get_offset(window->cblk, window->coffset);
 }
 
 static void add_change(struct change *change, struct change_head *head)
