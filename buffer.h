@@ -212,6 +212,7 @@ void do_delete(unsigned int len);
 void insert(const char *buf, unsigned int len);
 void cut(unsigned int len, int is_lines);
 void copy(unsigned int len, int is_lines);
+unsigned int count_bytes_eol(struct block_iter *bi);
 unsigned int prepare_selection(void);
 
 void select_start(int is_lines);

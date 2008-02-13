@@ -206,6 +206,7 @@ void select_start(int is_lines)
 	window->sel_blk = window->cblk;
 	window->sel_offset = window->coffset;
 	window->sel_is_lines = is_lines;
+	update_flags |= UPDATE_CURSOR_LINE;
 }
 
 void select_end(void)
@@ -215,6 +216,7 @@ void select_end(void)
 	window->sel_blk = NULL;
 	window->sel_offset = 0;
 	window->sel_is_lines = 0;
+	update_flags |= UPDATE_FULL;
 }
 
 static void record_copy(char *buf, unsigned int len, int is_lines)
@@ -247,7 +249,7 @@ void copy(unsigned int len, int is_lines)
 		record_copy(buf, len, is_lines);
 }
 
-static unsigned int count_bytes_eol(struct block_iter *bi)
+unsigned int count_bytes_eol(struct block_iter *bi)
 {
 	unsigned int count = 0;
 	uchar u;

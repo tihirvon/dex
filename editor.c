@@ -149,6 +149,79 @@ static void print_command_line(void)
 	buf_clear_eol();
 }
 
+// selection start / end buffer byte offsets
+static unsigned int sel_so, sel_eo;
+static unsigned int cur_offset;
+static int sel_started;
+static int sel_ended;
+
+static void selection_check(void)
+{
+	if (window->sel_blk) {
+		if (!sel_started && cur_offset >= sel_so) {
+			buf_set_colors(-1, 7);
+			sel_started = 1;
+		}
+		if (!sel_ended && cur_offset >= sel_eo) {
+			buf_set_colors(-1, -1);
+			sel_ended = 1;
+		}
+	}
+}
+
+static void selection_init(struct block_iter *cur)
+{
+	if (window->sel_blk) {
+		struct block_iter si, ei;
+
+		sel_started = 0;
+		sel_ended = 0;
+		cur_offset = buffer_get_offset(cur->blk, cur->offset);
+
+		si.head = &buffer->blocks;
+		si.blk = window->sel_blk;
+		si.offset = window->sel_offset;
+
+		ei.head = &buffer->blocks;
+		ei.blk = window->cblk;
+		ei.offset = window->coffset;
+
+		sel_so = buffer_get_offset(si.blk, si.offset);
+		sel_eo = buffer_get_offset(ei.blk, ei.offset);
+		if (sel_so > sel_eo) {
+			unsigned int to = sel_eo;
+			sel_eo = sel_so;
+			sel_so = to;
+			if (window->sel_is_lines) {
+				sel_so -= block_iter_bol(&ei);
+				sel_eo += count_bytes_eol(&si);
+			}
+		} else if (window->sel_is_lines) {
+			sel_so -= block_iter_bol(&si);
+			sel_eo += count_bytes_eol(&ei);
+		}
+		selection_check();
+	}
+}
+
+static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
+{
+	unsigned int count = buffer->next_char(bi, u);
+
+	selection_check();
+	cur_offset += count;
+	return count;
+}
+
+static unsigned int screen_next_line(struct block_iter *bi)
+{
+	unsigned int count = block_iter_next_line(bi);
+
+	cur_offset += count;
+	selection_check();
+	return count;
+}
+
 static void print_line(struct block_iter *bi)
 {
 	int n, tw = buffer->tab_width;
@@ -156,7 +229,7 @@ static void print_line(struct block_iter *bi)
 	uchar u;
 
 	while (obuf.x < obuf.scroll_x) {
-		if (!buffer->next_char(bi, &u) || u == '\n') {
+		if (!screen_next_char(bi, &u) || u == '\n') {
 			buf_clear_eol();
 			return;
 		}
@@ -198,10 +271,10 @@ static void print_line(struct block_iter *bi)
 
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		if (!space) {
-			block_iter_next_line(bi);
+			screen_next_line(bi);
 			return;
 		}
-		if (!buffer->next_char(bi, &u) || u == '\n')
+		if (!screen_next_char(bi, &u) || u == '\n')
 			break;
 		if (obuf.alloc - obuf.count < 8)
 			buf_flush();
@@ -251,12 +324,15 @@ static void update_full(void)
 		block_iter_prev_line(&bi);
 	block_iter_bol(&bi);
 
+	selection_init(&bi);
 	for (i = 0; i < window->h; i++) {
 		if (bi.offset == bi.blk->size && bi.blk->node.next == bi.head)
 			break;
 		buf_move_cursor(0, i);
 		print_line(&bi);
 	}
+	selection_check();
+
 	if (i < window->h) {
 		// dummy empty line
 		buf_move_cursor(0, i++);
@@ -285,8 +361,10 @@ static void update_cursor_line(void)
 	obuf.scroll_x = window->vx;
 	block_iter_bol(&bi);
 
+	selection_init(&bi);
 	buf_move_cursor(0, window->cy - window->vy);
 	print_line(&bi);
+	selection_check();
 
 	obuf.scroll_x = 0;
 	print_status_line();
@@ -431,6 +509,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	} else if (cx != window->cx || cy != window->cy ||
 			save_change_head != buffer->save_change_head) {
 		update_flags |= UPDATE_STATUS_LINE;
+
+		// full update when selecting and cursor moved
+		if (window->sel_blk)
+			update_flags |= UPDATE_FULL;
 	}
 
 	if (update_flags & UPDATE_FULL) {
