@@ -127,6 +127,13 @@ struct window {
 
 	// preferred cursor x (cx)
 	int preferred_x;
+
+	// Selection always starts at exact position of cursor and ends to
+	// current position of cursor regardless of whether your are selecting
+	// lines or not.
+	struct block *sel_blk;
+	unsigned int sel_offset;
+	unsigned sel_is_lines : 1;
 };
 
 struct command {
@@ -197,6 +204,8 @@ void do_insert(const char *buf, unsigned int len);
 void do_delete(unsigned int len);
 void insert(const char *buf, unsigned int len);
 
+void select_start(int is_lines);
+void select_end(void);
 void cut_line(void);
 void copy_line(void);
 void paste(void);

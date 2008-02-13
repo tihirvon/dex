@@ -179,6 +179,23 @@ static void cmd_save(char **args)
 	save_buffer();
 }
 
+static void cmd_select(char **args)
+{
+	int is_lines = 0;
+	int i = 0;
+
+	ARGC(0, 1);
+	while (i < argc) {
+		const char *arg = args[i++];
+
+		if (!strcmp(arg, "--lines")) {
+			is_lines = 1;
+			continue;
+		}
+	}
+	select_start(is_lines);
+}
+
 static void cmd_quit(char **args)
 {
 	running = 0;
@@ -207,6 +224,11 @@ static void cmd_redo(char **args)
 static void cmd_paste(char **args)
 {
 	paste();
+}
+
+static void cmd_cancel(char **args)
+{
+	select_end();
 }
 
 static void cmd_copy(char **args)
@@ -246,6 +268,7 @@ struct command commands[] = {
 	{ "backspace", NULL, cmd_backspace },
 	{ "bind", NULL, cmd_bind },
 	{ "bol", NULL, cmd_bol },
+	{ "cancel", NULL, cmd_cancel },
 	{ "copy", NULL, cmd_copy },
 	{ "cut", NULL, cmd_cut },
 	{ "debug_contents", NULL, cmd_debug_contents },
@@ -262,6 +285,7 @@ struct command commands[] = {
 	{ "redo", NULL, cmd_redo },
 	{ "right", NULL, cmd_right },
 	{ "save", NULL, cmd_save },
+	{ "select", NULL, cmd_select },
 	{ "undo", NULL, cmd_undo },
 	{ "up", NULL, cmd_up },
 	{ NULL, NULL, NULL }

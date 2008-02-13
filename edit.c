@@ -192,6 +192,20 @@ static void delete(unsigned int len)
 	}
 }
 
+void select_start(int is_lines)
+{
+	window->sel_blk = window->cblk;
+	window->sel_offset = window->coffset;
+	window->sel_is_lines = is_lines;
+}
+
+void select_end(void)
+{
+	window->sel_blk = NULL;
+	window->sel_offset = 0;
+	window->sel_is_lines = 0;
+}
+
 static void record_copy(char *buf, unsigned int len, int is_lines)
 {
 	if (copy_buf)
