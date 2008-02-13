@@ -49,5 +49,6 @@ void read_config(void)
 
 		ptr += n + 1;
 	}
+	free(line);
 	munmap(buf, st.st_size);
 }
