@@ -618,7 +618,7 @@ int main(int argc, char *argv[])
 		for (; i < argc; i++)
 			open_buffer(argv[i]);
 	}
-	if (!window->buffers)
+	if (!window->nr_buffers)
 		open_buffer(NULL);
 	set_buffer(window->buffers[0]);
 
