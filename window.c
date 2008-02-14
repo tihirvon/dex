@@ -22,6 +22,7 @@ void set_buffer(struct buffer *b)
 	window->buffer = b;
 	window->cblk = BLOCK(b->blocks.next);
 	buffer = b;
+	update_flags |= UPDATE_FULL;
 }
 
 void next_buffer(void)
