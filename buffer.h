@@ -18,7 +18,6 @@
 #include <stdarg.h>
 
 #define BLOCK(item) container_of((item), struct block, node)
-#define CHANGE(item) container_of((item), struct change, node)
 #define BLOCK_SIZE 64
 
 #define BLOCK_ITER_CURSOR(name, window) \
