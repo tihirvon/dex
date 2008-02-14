@@ -84,6 +84,11 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 		return; \
 	}
 
+static void cmd_backspace(char **args)
+{
+	backspace();
+}
+
 static void cmd_bind(char **args)
 {
 	struct binding *b, *first = NULL, *prev = NULL;
@@ -134,96 +139,9 @@ static void cmd_bind(char **args)
 	list_add_before(&first->node, &bindings);
 }
 
-static void cmd_delete(char **args)
+static void cmd_bol(char **args)
 {
-	delete_ch();
-}
-
-static void cmd_backspace(char **args)
-{
-	backspace();
-}
-
-static void cmd_left(char **args)
-{
-	move_left(1);
-}
-
-static void cmd_right(char **args)
-{
-	move_right(1);
-}
-
-static void cmd_up(char **args)
-{
-	move_up(1);
-}
-
-static void cmd_down(char **args)
-{
-	move_down(1);
-}
-
-static void cmd_pgup(char **args)
-{
-	move_up(window->h - 1);
-}
-
-static void cmd_pgdown(char **args)
-{
-	move_down(window->h - 1);
-}
-
-static void cmd_save(char **args)
-{
-	save_buffer();
-}
-
-static void cmd_select(char **args)
-{
-	int is_lines = 0;
-	int i = 0;
-
-	ARGC(0, 1);
-	while (i < argc) {
-		const char *arg = args[i++];
-
-		if (!strcmp(arg, "--lines")) {
-			is_lines = 1;
-			continue;
-		}
-	}
-	select_start(is_lines);
-}
-
-static void cmd_quit(char **args)
-{
-	running = 0;
-}
-
-static void cmd_prev(char **args)
-{
-	prev_buffer();
-}
-
-static void cmd_next(char **args)
-{
-	next_buffer();
-}
-
-static void cmd_undo(char **args)
-{
-	undo();
-}
-
-static void cmd_redo(char **args)
-{
-	redo();
-}
-
-static void cmd_paste(char **args)
-{
-	paste();
+	move_bol();
 }
 
 static void cmd_cancel(char **args)
@@ -260,16 +178,6 @@ static void cmd_cut(char **args)
 	select_end();
 }
 
-static void cmd_bol(char **args)
-{
-	move_bol();
-}
-
-static void cmd_eol(char **args)
-{
-	move_eol();
-}
-
 static void cmd_debug_contents(char **args)
 {
 	struct block *blk;
@@ -281,6 +189,98 @@ static void cmd_debug_contents(char **args)
 			write(2, "-X-", 3);
 	}
 	write(2, "--\n", 3);
+}
+
+static void cmd_delete(char **args)
+{
+	delete_ch();
+}
+
+static void cmd_down(char **args)
+{
+	move_down(1);
+}
+
+static void cmd_eol(char **args)
+{
+	move_eol();
+}
+
+static void cmd_left(char **args)
+{
+	move_left(1);
+}
+
+static void cmd_next(char **args)
+{
+	next_buffer();
+}
+
+static void cmd_paste(char **args)
+{
+	paste();
+}
+
+static void cmd_pgdown(char **args)
+{
+	move_down(window->h - 1);
+}
+
+static void cmd_pgup(char **args)
+{
+	move_up(window->h - 1);
+}
+
+static void cmd_prev(char **args)
+{
+	prev_buffer();
+}
+
+static void cmd_quit(char **args)
+{
+	running = 0;
+}
+
+static void cmd_redo(char **args)
+{
+	redo();
+}
+
+static void cmd_right(char **args)
+{
+	move_right(1);
+}
+
+static void cmd_save(char **args)
+{
+	save_buffer();
+}
+
+static void cmd_select(char **args)
+{
+	int is_lines = 0;
+	int i = 0;
+
+	ARGC(0, 1);
+	while (i < argc) {
+		const char *arg = args[i++];
+
+		if (!strcmp(arg, "--lines")) {
+			is_lines = 1;
+			continue;
+		}
+	}
+	select_start(is_lines);
+}
+
+static void cmd_undo(char **args)
+{
+	undo();
+}
+
+static void cmd_up(char **args)
+{
+	move_up(1);
 }
 
 struct command commands[] = {
