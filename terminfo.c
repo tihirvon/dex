@@ -712,10 +712,6 @@ int terminfo_get_caps(const char *filename)
 	nr_strs = get_u16le(buf + 8);
 	strs_size = get_u16le(buf + 10);
 
-	// ?
-	if (name_size > 128)
-		goto corrupt;
-
 	total_size = 12 + name_size + nr_bools + nr_nums * 2 + nr_strs * 2 + strs_size;
 	if ((name_size + nr_bools) % 2)
 		total_size++;
