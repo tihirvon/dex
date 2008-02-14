@@ -29,6 +29,7 @@ static int add_status_str(char *buf, int size, int *posp, const char *str)
 	return 0;
 }
 
+__FORMAT(1, 2)
 static const char *ssprintf(const char *format, ...)
 {
 	static char buf[256];
