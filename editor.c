@@ -82,7 +82,7 @@ static int format_status(char *buf, int size, const char *format)
 						buffer->filename ? buffer->filename : "(No name)");
 				break;
 			case 'm':
-				if (buffer->save_change_head != buffer->cur_change_head)
+				if (buffer_modified(buffer))
 					w += add_status_str(buf, size, &pos, "[+]");
 				break;
 			case 'y':

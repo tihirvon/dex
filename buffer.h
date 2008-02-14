@@ -154,6 +154,11 @@ static inline void init_block_iter_cursor(struct block_iter *bi, struct window *
 	bi->offset = w->coffset;
 }
 
+static inline int buffer_modified(struct buffer *b)
+{
+	return b->save_change_head != b->cur_change_head;
+}
+
 struct block *block_new(int size);
 void delete_block(struct block *blk);
 
