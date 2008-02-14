@@ -17,6 +17,26 @@ void window_add_buffer(struct buffer *b)
 	window->buffers[window->nr_buffers++] = b;
 }
 
+void window_remove_buffer(struct buffer *b)
+{
+	int i;
+
+	for (i = 0; i < window->nr_buffers; i++) {
+		if (window->buffers[i] != b)
+			continue;
+
+		window->nr_buffers--;
+		if (i < window->nr_buffers)
+			memmove(window->buffers + i,
+				window->buffers + i + 1,
+				(window->nr_buffers - i) * sizeof(struct buffer *));
+		break;
+	}
+	if (!window->nr_buffers)
+		open_buffer(NULL);
+	set_buffer(window->buffers[i]);
+}
+
 void set_buffer(struct buffer *b)
 {
 	window->buffer = b;

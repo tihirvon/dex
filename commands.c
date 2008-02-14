@@ -231,6 +231,15 @@ static void cmd_cancel(char **args)
 	select_end();
 }
 
+static void cmd_close(char **args)
+{
+	if (buffer_modified(buffer)) {
+		return;
+	}
+
+	window_remove_buffer(buffer);
+}
+
 static void cmd_copy(char **args)
 {
 	unsigned int len;
@@ -279,6 +288,7 @@ struct command commands[] = {
 	{ "bind", NULL, cmd_bind },
 	{ "bol", NULL, cmd_bol },
 	{ "cancel", NULL, cmd_cancel },
+	{ "close", NULL, cmd_close },
 	{ "copy", NULL, cmd_copy },
 	{ "cut", NULL, cmd_cut },
 	{ "debug_contents", NULL, cmd_debug_contents },

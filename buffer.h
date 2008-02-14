@@ -184,6 +184,7 @@ char *buffer_get_bytes(unsigned int *lenp);
 
 struct window *window_new(void);
 void window_add_buffer(struct buffer *b);
+void window_remove_buffer(struct buffer *b);
 void set_buffer(struct buffer *b);
 void next_buffer(void);
 void prev_buffer(void);
