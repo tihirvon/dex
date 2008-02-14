@@ -15,11 +15,16 @@ struct block *block_new(int alloc)
 	return blk;
 }
 
+static void free_block(struct block *blk)
+{
+	free(blk->data);
+	free(blk);
+}
+
 void delete_block(struct block *blk)
 {
 	list_del(&blk->node);
-	free(blk->data);
-	free(blk);
+	free_block(blk);
 }
 
 char *buffer_get_bytes(unsigned int *lenp)
@@ -176,13 +181,16 @@ void redo(void)
 	buffer->cur_change_head = head;
 }
 
-struct buffer *buffer_new(void)
+static struct buffer *buffer_new(const char *filename)
 {
 	struct buffer *b = xnew0(struct buffer, 1);
+	if (filename)
+		b->filename = xstrdup(filename);
 	list_init(&b->blocks);
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
 	b->tab_width = 8;
+	b->utf8 = !!(term_flags & TERM_UTF8);
 	return b;
 }
 
@@ -217,55 +225,82 @@ static int read_blocks(struct buffer *b, int fd)
 	return 0;
 }
 
-struct buffer *buffer_load(const char *filename)
+static void free_changes(struct buffer *b)
 {
-	struct buffer *b;
-	struct stat st;
-	int fd, ro = 0;
+	struct change_head *ch = &b->change_head;
 
-	fd = open(filename, O_RDWR);
-	if (fd < 0) {
-		ro = 1;
-		fd = open(filename, O_RDONLY);
+top:
+	while (ch->nr_prev)
+		ch = ch->prev[ch->nr_prev - 1];
+
+	// ch is leaf now
+	while (ch->next) {
+		struct change_head *next = ch->next;
+
+		free(((struct change *)ch)->buf);
+		free(ch);
+
+		ch = next;
+		if (--ch->nr_prev)
+			goto top;
+
+		// we have become leaf
+		free(ch->prev);
 	}
-	if (fd < 0)
-		return NULL;
-
-	fstat(fd, &st);
-
-	b = buffer_new();
-	b->size = st.st_size;
-	b->utf8 = !!(term_flags & TERM_UTF8);
-	b->ro = ro;
-	b->filename = xstrdup(filename);
-	if (read_blocks(b, fd)) {
-		return NULL;
-	}
-	close(fd);
-
-	if (b->utf8) {
-		b->next_char = block_iter_next_uchar;
-		b->prev_char = block_iter_prev_uchar;
-		b->get_char = block_iter_get_uchar;
-	} else {
-		b->next_char = block_iter_next_byte;
-		b->prev_char = block_iter_prev_byte;
-		b->get_char = block_iter_get_byte;
-	}
-
-	window_add_buffer(b);
-	return b;
 }
 
-struct buffer *buffer_new_file(void)
+static void free_buffer(struct buffer *b)
+{
+	struct list_head *item;
+
+	item = &b->blocks;
+	while (item != &b->blocks) {
+		struct list_head *next = item->next;
+		free_block(container_of(item, struct block, node));
+		item = next;
+	}
+	free_changes(b);
+
+	free(b->filename);
+	free(b);
+}
+
+struct buffer *open_buffer(const char *filename)
 {
 	struct buffer *b;
-	struct block *blk;
 
-	b = buffer_new();
-	b->utf8 = !!(term_flags & TERM_UTF8);
-	blk = block_new(ALLOC_ROUND(1));
-	list_add_before(&blk->node, &b->blocks);
+	b = buffer_new(filename);
+	if (filename) {
+		int fd, ro = 0;
+
+		fd = open(filename, O_RDWR);
+		if (fd < 0) {
+			ro = 1;
+			fd = open(filename, O_RDONLY);
+		}
+		if (fd < 0) {
+			if (errno != ENOENT) {
+				free_buffer(b);
+				return NULL;
+			}
+		} else {
+			struct stat st;
+
+			fstat(fd, &st);
+			b->size = st.st_size;
+			b->ro = ro;
+			if (read_blocks(b, fd)) {
+				free_buffer(b);
+				return NULL;
+			}
+			close(fd);
+		}
+	}
+
+	if (list_empty(&b->blocks)) {
+		struct block *blk = block_new(ALLOC_ROUND(1));
+		list_add_before(&blk->node, &b->blocks);
+	}
 
 	if (b->utf8) {
 		b->next_char = block_iter_next_uchar;

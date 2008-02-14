@@ -616,10 +616,10 @@ int main(int argc, char *argv[])
 	window = window_new();
 	if (argc - i) {
 		for (; i < argc; i++)
-			buffer_load(argv[i]);
+			open_buffer(argv[i]);
 	}
 	if (!window->buffers)
-		buffer_new_file();
+		open_buffer(NULL);
 	set_buffer(window->buffers[0]);
 
 	set_signal_handler(SIGWINCH, signal_handler);

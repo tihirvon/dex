@@ -173,9 +173,7 @@ void record_change(unsigned int offset, char *buf, unsigned int len);
 void undo(void);
 void redo(void);
 
-struct buffer *buffer_new(void);
-struct buffer *buffer_load(const char *filename);
-struct buffer *buffer_new_file(void);
+struct buffer *open_buffer(const char *filename);
 void save_buffer(void);
 char *buffer_get_bytes(unsigned int *lenp);
 
