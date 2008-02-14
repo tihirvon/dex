@@ -45,6 +45,7 @@ static int add_status_pos(char *buf, int size, int *posp)
 {
 	int h = window->h;
 	int pos = window->vy;
+	int d;
 
 	if (buffer->nl <= h) {
 		if (pos)
@@ -53,10 +54,11 @@ static int add_status_pos(char *buf, int size, int *posp)
 	}
 	if (pos == 0)
 		return add_status_str(buf, size, posp, "Top");
-	pos += h - 1;
-	if (pos >= buffer->nl)
+	if (pos + h - 1 >= buffer->nl)
 		return add_status_str(buf, size, posp, "Bot");
-	return add_status_str(buf, size, posp, ssprintf("%2d%%", pos * 100 / buffer->nl));
+
+	d = buffer->nl - (h - 1);
+	return add_status_str(buf, size, posp, ssprintf("%2d%%", (pos * 100 + d / 2) / d));
 }
 
 static int format_status(char *buf, int size, const char *format)
