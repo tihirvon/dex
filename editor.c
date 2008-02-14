@@ -128,7 +128,7 @@ static void print_status_line(void)
 	int lw, rw;
 
 	buf_move_cursor(0, window->h);
-	buf_set_colors(-1, 7);
+	buf_set_colors(0, 7);
 	lw = format_status(lbuf, sizeof(lbuf), lformat);
 	rw = format_status(rbuf, sizeof(rbuf), rformat);
 	if (lw + rw <= window->w) {
@@ -159,7 +159,7 @@ static void selection_check(void)
 {
 	if (window->sel_blk) {
 		if (!sel_started && cur_offset >= sel_so) {
-			buf_set_colors(-1, 7);
+			buf_set_colors(0, 7);
 			sel_started = 1;
 		}
 		if (!sel_ended && cur_offset >= sel_eo) {
