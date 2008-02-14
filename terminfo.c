@@ -611,6 +611,59 @@ static char *get_str(int idx)
 	return xstrdup(strs + offset);
 }
 
+static int validate(void)
+{
+	int valid = 1;
+	int i;
+
+	for (i = 0; i < nr_bools; i++) {
+		if (bools[i] == 1 || bools[i] == 0) {
+			d_print("=bool %3d: %d\n", i, bools[i]);
+		} else {
+			d_print("!bool %3d: %d\n", i, bools[i]);
+			valid = 0;
+		}
+	}
+
+	for (i = 0; i < nr_nums; i++) {
+		unsigned short num = get_u16le(nums + i * 2);
+		if (num == 0xffff) {
+			d_print("=num %3d: missing\n", i);
+		} else if (num > 32767) {
+			d_print("!num %3d: negative\n", i);
+			valid = 0;
+		} else {
+			d_print("=num %3d: OK\n", i);
+		}
+	}
+
+	for (i = 0; i < nr_strs; i++) {
+		unsigned short offset = get_u16le(offsets + i * 2);
+		if (offset == 0xffff) {
+			d_print("=str %3d: missing\n", i);
+		} else if (offset > 32767) {
+			d_print("!str %3d: negative\n", i);
+			valid = 0;
+		} else if (offset + 1 >= strs_size) {
+			d_print("!str %3d: invalid\n", i);
+			valid = 0;
+		} else {
+			int len, max_size;
+
+			max_size = strs_size - offset;
+			for (len = 0; len < max_size && strs[offset + len]; len++)
+				;
+			if (len == max_size) {
+				d_print("!str %3d: missing NUL\n", i);
+				valid = 0;
+			} else {
+				d_print("=str %3d: OK\n", i);
+			}
+		}
+	}
+	return valid;
+}
+
 /* terminfo format (see man 5 term):
  *
  *  0 1 0x1A
@@ -685,6 +738,9 @@ int terminfo_get_caps(const char *filename)
 
 	pos += nr_strs * 2;
 	strs = buf + pos;
+
+	if (!validate())
+		goto corrupt;
 
 	/* now get only the interesting caps, ignore other crap */
 	term_cap.ut = get_bool(tcb_back_color_erase);
