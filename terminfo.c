@@ -715,6 +715,8 @@ int terminfo_get_caps(const char *filename)
 	total_size = 12 + name_size + nr_bools + nr_nums * 2 + nr_strs * 2 + strs_size;
 	if ((name_size + nr_bools) % 2)
 		total_size++;
+
+	// NOTE: size can be bigger than total_size if the format is extended
 	if (total_size > size)
 		goto corrupt;
 
