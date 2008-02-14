@@ -1,5 +1,6 @@
 #include "term.h"
 #include "xmalloc.h"
+#include "debug.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,7 +11,6 @@
 #include <termios.h>
 #include <signal.h>
 #include <string.h>
-#include <inttypes.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -562,18 +562,18 @@ static int keymap[NR_SKEYS] = {
 };
 /* }}} */
 
-static int nr_bools, nr_nums, nr_strs, strs_size;
-static char *bools;
-static uint16_t *nums;
-static uint16_t *offsets;
-static char *strs;
+static unsigned int nr_bools, nr_nums, nr_strs, strs_size;
+static const char *bools;
+static const char *nums;
+static const char *offsets;
+static const char *strs;
 
 static inline int max(int a, int b)
 {
 	return a > b ? a : b;
 }
 
-static int get_u16(const char *buffer)
+static unsigned short get_u16le(const char *buffer)
 {
 	const unsigned char *buf = (const unsigned char *)buffer;
 
@@ -589,21 +589,29 @@ static int get_bool(int idx)
 
 static int get_num(int idx)
 {
+	unsigned short val;
+
 	if (idx >= nr_nums)
 		return -1;
-	if (nums[idx] == 0xffff)
+	val = get_u16le(nums + idx * 2);
+	if (val == 0xffff)
 		return -1;
-	return nums[idx];
+	return val;
 }
 
 static char *get_str(int idx)
 {
+	unsigned short offset;
+
 	if (idx >= nr_strs)
 		return NULL;
-	return xstrdup(strs + offsets[idx]);
+	offset = get_u16le(offsets + idx * 2);
+	if (offset == 0xffff)
+		return NULL;
+	return xstrdup(strs + offset);
 }
 
-/* terminfo format:
+/* terminfo format (see man 5 term):
  *
  *  0 1 0x1A
  *  1 1 0x01
@@ -614,10 +622,10 @@ static char *get_str(int idx)
  * 10 2 string table size (T)
  * 12 A names
  *
- * 12 + A                          B     booleans
- * 12 + A + B + (12 + A + B) % 2   N * 2 numbers
- *                                 S * 2 string offsets
- *                                 T     string table
+ *  12 + A                 B     booleans (0 or 1)
+ * (12 + A + B + 1) & ~1U  N * 2 numbers
+ *                         S * 2 string offsets
+ *                         T     string table
  */
 int terminfo_get_caps(const char *filename)
 {
@@ -645,12 +653,13 @@ int terminfo_get_caps(const char *filename)
 	if (buf[0] != 0x1A || buf[1] != 0x01)
 		return -2;
 
-	name_size = get_u16(buf + 2);
-	nr_bools = get_u16(buf + 4);
-	nr_nums = get_u16(buf + 6);
-	nr_strs = get_u16(buf + 8);
-	strs_size = get_u16(buf + 10);
+	name_size = get_u16le(buf + 2);
+	nr_bools = get_u16le(buf + 4);
+	nr_nums = get_u16le(buf + 6);
+	nr_strs = get_u16le(buf + 8);
+	strs_size = get_u16le(buf + 10);
 
+	// ?
 	if (name_size > 128)
 		goto corrupt;
 
@@ -664,12 +673,15 @@ int terminfo_get_caps(const char *filename)
 	bools = buf + pos;
 
 	pos += nr_bools;
-	if (pos % 2)
+	if (pos % 2) {
+		if (buf[pos])
+			goto corrupt;
 		pos++;
-	nums = (uint16_t *)(buf + pos);
+	}
+	nums = buf + pos;
 
 	pos += nr_nums * 2;
-	offsets = (uint16_t *)(buf + pos);
+	offsets = buf + pos;
 
 	pos += nr_strs * 2;
 	strs = buf + pos;
