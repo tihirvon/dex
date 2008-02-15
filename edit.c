@@ -75,11 +75,16 @@ static void alloc_for_insert(unsigned int len)
 		view->cblk = r;
 		view->coffset = 0;
 	} else if (!lsize) {
-		// don't split, add new block before l
-		struct block *m = block_new(len);
-		list_add_before(&m->node, &l->node);
-		view->cblk = m;
-		view->coffset = 0;
+		if (!rsize) {
+			l->alloc = ALLOC_ROUND(len);
+			xrenew(l->data, l->alloc);
+		} else {
+			// don't split, add new block before l
+			struct block *m = block_new(len);
+			list_add_before(&m->node, &l->node);
+			view->cblk = m;
+			view->coffset = 0;
+		}
 	} else {
 		struct block *m;
 
