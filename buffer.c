@@ -2,6 +2,9 @@
 #include "xmalloc.h"
 #include "term.h"
 
+LIST_HEAD(windows);
+struct window *window;
+struct view *view;
 struct buffer *buffer;
 enum undo_merge undo_merge;
 
@@ -29,8 +32,8 @@ void delete_block(struct block *blk)
 
 char *buffer_get_bytes(unsigned int *lenp)
 {
-	struct block *blk = window->cblk;
-	unsigned int offset = window->coffset;
+	struct block *blk = view->cblk;
+	unsigned int offset = view->coffset;
 	unsigned int len = *lenp;
 	unsigned int count = 0;
 	char *buf = NULL;
@@ -72,7 +75,7 @@ unsigned int buffer_get_offset(struct block *stop_blk, unsigned int stop_offset)
 
 unsigned int buffer_offset(void)
 {
-	return buffer_get_offset(window->cblk, window->coffset);
+	return buffer_get_offset(view->cblk, view->coffset);
 }
 
 static void add_change(struct change *change, struct change_head *head)
@@ -129,8 +132,8 @@ static void move_offset(unsigned int offset)
 
 	list_for_each_entry(blk, &buffer->blocks, node) {
 		if (offset <= blk->size) {
-			window->cblk = blk;
-			window->coffset = offset;
+			view->cblk = blk;
+			view->coffset = offset;
 			return;
 		}
 		offset -= blk->size;

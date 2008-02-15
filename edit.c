@@ -9,18 +9,18 @@ static int copy_is_lines;
 
 void update_preferred_x(void)
 {
-	update_cursor_x(window);
-	window->preferred_x = window->cx;
+	update_cursor_x(view);
+	view->preferred_x = view->cx;
 }
 
 static void move_preferred_x(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 	unsigned int tw = buffer->tab_width;
 	int x = 0;
 
 	block_iter_bol(&bi);
-	while (x < window->preferred_x) {
+	while (x < view->preferred_x) {
 		uchar u;
 
 		if (!block_iter_next_uchar(&bi, &u))
@@ -36,14 +36,14 @@ static void move_preferred_x(void)
 			x++;
 		}
 	}
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 }
 
 static void alloc_for_insert(unsigned int len)
 {
-	struct block *l = window->cblk;
-	unsigned int lsize = window->coffset;
+	struct block *l = view->cblk;
+	unsigned int lsize = view->coffset;
 	unsigned int rsize = l->size - lsize;
 
 	if (lsize + len <= BLOCK_SIZE && rsize) {
@@ -72,14 +72,14 @@ static void alloc_for_insert(unsigned int len)
 		l->size = lsize;
 		l->alloc = ALLOC_ROUND(lsize);
 		xrenew(l->data, l->alloc);
-		window->cblk = r;
-		window->coffset = 0;
+		view->cblk = r;
+		view->coffset = 0;
 	} else if (!lsize) {
 		// don't split, add new block before l
 		struct block *m = block_new(len);
 		list_add_before(&m->node, &l->node);
-		window->cblk = m;
-		window->coffset = 0;
+		view->cblk = m;
+		view->coffset = 0;
 	} else {
 		struct block *m;
 
@@ -99,24 +99,24 @@ static void alloc_for_insert(unsigned int len)
 		// add new block after l
 		m = block_new(len);
 		list_add_after(&m->node, &l->node);
-		window->cblk = m;
-		window->coffset = 0;
+		view->cblk = m;
+		view->coffset = 0;
 	}
 }
 
 void do_insert(const char *buf, unsigned int len)
 {
-	struct block *blk = window->cblk;
+	struct block *blk = view->cblk;
 	unsigned int nl;
 
 	if (len + blk->size > blk->alloc) {
 		alloc_for_insert(len);
-		blk = window->cblk;
-	} else if (window->coffset != blk->size) {
-		char *ptr = blk->data + window->coffset;
-		memmove(ptr + len, ptr, blk->size - window->coffset);
+		blk = view->cblk;
+	} else if (view->coffset != blk->size) {
+		char *ptr = blk->data + view->coffset;
+		memmove(ptr + len, ptr, blk->size - view->coffset);
 	}
-	nl = copy_count_nl(blk->data + window->coffset, buf, len);
+	nl = copy_count_nl(blk->data + view->coffset, buf, len);
 	blk->size += len;
 	blk->nl += nl;
 	buffer->nl += nl;
@@ -135,38 +135,38 @@ void insert(const char *buf, unsigned int len)
 
 static unsigned int delete_in_block(unsigned int len)
 {
-	struct block *blk = window->cblk;
+	struct block *blk = view->cblk;
 	unsigned int nl, avail;
 
-	if (window->coffset == blk->size) {
+	if (view->coffset == blk->size) {
 		if (blk->node.next == &buffer->blocks)
 			return 0;
 		blk = BLOCK(blk->node.next);
-		window->cblk = blk;
-		window->coffset = 0;
+		view->cblk = blk;
+		view->coffset = 0;
 	}
 
-	avail = blk->size - window->coffset;
+	avail = blk->size - view->coffset;
 	if (len > avail)
 		len = avail;
 
-	nl = count_nl(blk->data + window->coffset, len);
+	nl = count_nl(blk->data + view->coffset, len);
 	blk->nl -= nl;
 	buffer->nl -= nl;
 	if (avail != len) {
-		memmove(blk->data + window->coffset,
-			blk->data + window->coffset + len,
+		memmove(blk->data + view->coffset,
+			blk->data + view->coffset + len,
 			avail - len);
 	}
 	blk->size -= len;
 	if (!blk->size) {
 		if (blk->node.next != &buffer->blocks) {
-			window->cblk = BLOCK(blk->node.next);
-			window->coffset = 0;
+			view->cblk = BLOCK(blk->node.next);
+			view->coffset = 0;
 			delete_block(blk);
 		} else if (blk->node.prev != &buffer->blocks) {
-			window->cblk = BLOCK(blk->node.prev);
-			window->coffset = window->cblk->size;
+			view->cblk = BLOCK(blk->node.prev);
+			view->coffset = view->cblk->size;
 			delete_block(blk);
 		}
 	}
@@ -203,19 +203,19 @@ static void delete(unsigned int len)
 
 void select_start(int is_lines)
 {
-	window->sel_blk = window->cblk;
-	window->sel_offset = window->coffset;
-	window->sel_is_lines = is_lines;
+	view->sel_blk = view->cblk;
+	view->sel_offset = view->coffset;
+	view->sel_is_lines = is_lines;
 	update_flags |= UPDATE_CURSOR_LINE;
 }
 
 void select_end(void)
 {
-	if (window->sel_is_lines)
+	if (view->sel_is_lines)
 		move_preferred_x();
-	window->sel_blk = NULL;
-	window->sel_offset = 0;
-	window->sel_is_lines = 0;
+	view->sel_blk = NULL;
+	view->sel_offset = 0;
+	view->sel_is_lines = 0;
 	update_flags |= UPDATE_FULL;
 }
 
@@ -264,12 +264,12 @@ unsigned int count_bytes_eol(struct block_iter *bi)
 
 unsigned int prepare_selection(void)
 {
-	if (window->sel_blk) {
+	if (view->sel_blk) {
 		// there is a selection
 		struct block_iter bi;
 		unsigned int so, co, len;
 
-		so = buffer_get_offset(window->sel_blk, window->sel_offset);
+		so = buffer_get_offset(view->sel_blk, view->sel_offset);
 		co = buffer_offset();
 		if (co > so) {
 			unsigned int to;
@@ -279,37 +279,37 @@ unsigned int prepare_selection(void)
 			co = so;
 			so = to;
 
-			tb = window->cblk;
-			window->cblk = window->sel_blk;
-			window->sel_blk = tb;
+			tb = view->cblk;
+			view->cblk = view->sel_blk;
+			view->sel_blk = tb;
 
-			to = window->coffset;
-			window->coffset = window->sel_offset;
-			window->sel_offset = to;
+			to = view->coffset;
+			view->coffset = view->sel_offset;
+			view->sel_offset = to;
 		}
 
 		len = so - co;
-		if (window->sel_is_lines) {
-			bi.head = &window->buffer->blocks;
-			bi.blk = window->sel_blk;
-			bi.offset = window->sel_offset;
+		if (view->sel_is_lines) {
+			bi.head = &view->buffer->blocks;
+			bi.blk = view->sel_blk;
+			bi.offset = view->sel_offset;
 			len += count_bytes_eol(&bi);
 
-			init_block_iter_cursor(&bi, window);
+			init_block_iter_cursor(&bi, view);
 			len += block_iter_bol(&bi);
-			window->cblk = bi.blk;
-			window->coffset = bi.offset;
+			view->cblk = bi.blk;
+			view->coffset = bi.offset;
 		} else {
 			len++;
 		}
 		return len;
 	} else {
 		// current line is the selection
-		BLOCK_ITER_CURSOR(bi, window);
+		BLOCK_ITER_CURSOR(bi, view);
 
 		block_iter_bol(&bi);
-		window->cblk = bi.blk;
-		window->coffset = bi.offset;
+		view->cblk = bi.blk;
+		view->coffset = bi.offset;
 
 		return count_bytes_eol(&bi);
 	}
@@ -321,12 +321,12 @@ void paste(void)
 	if (!copy_buf)
 		return;
 	if (copy_is_lines) {
-		BLOCK_ITER_CURSOR(bi, window);
+		BLOCK_ITER_CURSOR(bi, view);
 
 		update_preferred_x();
 		block_iter_next_line(&bi);
-		window->cblk = bi.blk;
-		window->coffset = bi.offset;
+		view->cblk = bi.blk;
+		view->coffset = bi.offset;
 
 		record_change(buffer_offset(), NULL, copy_len);
 		do_insert(copy_buf, copy_len);
@@ -339,7 +339,7 @@ void paste(void)
 
 void delete_ch(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 	uchar u;
 
 	if (undo_merge != UNDO_MERGE_DELETE)
@@ -356,14 +356,14 @@ void delete_ch(void)
 
 void backspace(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 	uchar u;
 
 	if (undo_merge != UNDO_MERGE_BACKSPACE)
 		undo_merge = UNDO_MERGE_NONE;
 	if (buffer->prev_char(&bi, &u)) {
-		window->cblk = bi.blk;
-		window->coffset = bi.offset;
+		view->cblk = bi.blk;
+		view->coffset = bi.offset;
 		if (buffer->utf8) {
 			delete(u_char_size(u));
 		} else {
@@ -396,7 +396,7 @@ void insert_ch(unsigned int ch)
 
 void move_left(int count)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 
 	while (count > 0) {
 		uchar u;
@@ -409,15 +409,15 @@ void move_left(int count)
 		}
 		count--;
 	}
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 
 	update_preferred_x();
 }
 
 void move_right(int count)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 
 	while (count > 0) {
 		uchar u;
@@ -430,24 +430,24 @@ void move_right(int count)
 		}
 		count--;
 	}
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 
 	update_preferred_x();
 }
 
 void move_bol(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 	block_iter_bol(&bi);
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 	update_preferred_x();
 }
 
 void move_eol(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 
 	while (1) {
 		uchar u;
@@ -459,15 +459,15 @@ void move_eol(void)
 			break;
 		}
 	}
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 
 	update_preferred_x();
 }
 
 void move_up(int count)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 
 	while (count > 0) {
 		uchar u;
@@ -476,17 +476,17 @@ void move_up(int count)
 			break;
 		if (u == '\n') {
 			count--;
-			window->cy--;
+			view->cy--;
 		}
 	}
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 	move_preferred_x();
 }
 
 void move_down(int count)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 
 	while (count > 0) {
 		uchar u;
@@ -495,16 +495,16 @@ void move_down(int count)
 			break;
 		if (u == '\n') {
 			count--;
-			window->cy++;
+			view->cy++;
 		}
 	}
-	window->cblk = bi.blk;
-	window->coffset = bi.offset;
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
 	move_preferred_x();
 }
 
 int buffer_get_char(uchar *up)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 	return buffer->next_char(&bi, up);
 }

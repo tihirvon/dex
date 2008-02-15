@@ -155,7 +155,7 @@ static void cmd_close(char **args)
 		return;
 	}
 
-	window_remove_buffer(buffer);
+	remove_view();
 }
 
 static void cmd_copy(char **args)
@@ -164,7 +164,7 @@ static void cmd_copy(char **args)
 
 	undo_merge = UNDO_MERGE_NONE;
 	len = prepare_selection();
-	copy(len, window->sel_is_lines);
+	copy(len, view->sel_is_lines);
 	select_end();
 }
 
@@ -174,7 +174,7 @@ static void cmd_cut(char **args)
 
 	undo_merge = UNDO_MERGE_NONE;
 	len = prepare_selection();
-	cut(len, window->sel_is_lines);
+	cut(len, view->sel_is_lines);
 	select_end();
 }
 

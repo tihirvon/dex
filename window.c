@@ -1,11 +1,11 @@
 #include "buffer.h"
 
-struct window *window;
-
 struct window *window_new(void)
 {
 	struct window *w = xnew0(struct window, 1);
 
+	list_init(&w->views);
+	list_add_before(&w->node, &windows);
 	w->w = 80;
 	w->h = 24;
 	return w;
@@ -13,71 +13,68 @@ struct window *window_new(void)
 
 void window_add_buffer(struct buffer *b)
 {
-	xrenew(window->buffers, window->nr_buffers + 1);
-	window->buffers[window->nr_buffers++] = b;
+	struct view *v;
+
+	BUG_ON(!b);
+	BUG_ON(!window);
+
+	// FIXME: don't allow multiple buffers (views) on same window
+	v = view_new(window, b);
+	list_add_before(&v->node, &window->views);
 }
 
-void window_remove_buffer(struct buffer *b)
+void remove_view(void)
 {
-	int i;
+	struct list_head *next = view->node.next;
 
-	for (i = 0; i < window->nr_buffers; i++) {
-		if (window->buffers[i] != b)
-			continue;
-
-		window->nr_buffers--;
-		if (i < window->nr_buffers)
-			memmove(window->buffers + i,
-				window->buffers + i + 1,
-				(window->nr_buffers - i) * sizeof(struct buffer *));
-		break;
-	}
-	if (!window->nr_buffers)
+	view_delete(view);
+	if (list_empty(&window->views))
 		open_buffer(NULL);
-	set_buffer(window->buffers[i]);
+	if (next == &window->views)
+		next = next->next;
+	set_view(VIEW(next));
 }
 
-void set_buffer(struct buffer *b)
+void set_view(struct view *v)
 {
-	window->buffer = b;
-	window->cblk = BLOCK(b->blocks.next);
-	buffer = b;
+	view = v;
+	buffer = v->buffer;
+	window = v->window;
+
+	window->view = v;
+
 	update_flags |= UPDATE_FULL;
 }
 
 void next_buffer(void)
 {
-	int i;
-
-	for (i = 0; i < window->nr_buffers; i++) {
-		if (window->buffer == window->buffers[i])
-			break;
+	BUG_ON(!window);
+	BUG_ON(!window->view);
+	if (window->view->node.next == &window->views) {
+		set_view(VIEW(window->views.next));
+	} else {
+		set_view(VIEW(window->view->node.next));
 	}
-	i = (i + 1) % window->nr_buffers;
-	set_buffer(window->buffers[i]);
 }
 
 void prev_buffer(void)
 {
-	int i;
-
-	for (i = 0; i < window->nr_buffers; i++) {
-		if (window->buffer == window->buffers[i])
-			break;
+	if (window->view->node.prev == &window->views) {
+		set_view(VIEW(window->views.prev));
+	} else {
+		set_view(VIEW(window->view->node.prev));
 	}
-	i = (i + window->nr_buffers - 1) % window->nr_buffers;
-	set_buffer(window->buffers[i]);
 }
 
-static void update_cursor_y(struct window *w)
+static void update_cursor_y(struct view *v)
 {
 	struct block *blk;
 	unsigned int nl = 0;
 
-	list_for_each_entry(blk, &w->buffer->blocks, node) {
-		if (blk == w->cblk) {
-			nl += count_nl(blk->data, w->coffset);
-			w->cy = nl;
+	list_for_each_entry(blk, &v->buffer->blocks, node) {
+		if (blk == v->cblk) {
+			nl += count_nl(blk->data, v->coffset);
+			v->cy = nl;
 			return;
 		}
 		nl += blk->nl;
@@ -85,48 +82,49 @@ static void update_cursor_y(struct window *w)
 	BUG_ON(1);
 }
 
-void update_cursor_x(struct window *w)
+void update_cursor_x(struct view *v)
 {
-	BLOCK_ITER_CURSOR(bi, w);
-	unsigned int tw = w->buffer->tab_width;
+	BLOCK_ITER_CURSOR(bi, v);
+	unsigned int tw = v->buffer->tab_width;
 
 	block_iter_bol(&bi);
-	w->cx = 0;
-	w->cx_idx = 0;
+	v->cx = 0;
+	v->cx_idx = 0;
 	while (1) {
 		uchar u;
 
-		if (bi.blk == w->cblk && bi.offset == w->coffset)
+		if (bi.blk == v->cblk && bi.offset == v->coffset)
 			break;
-		if (!w->coffset && bi.offset == bi.blk->size && bi.blk->node.next == &w->cblk->node) {
+		if (!v->coffset && bi.offset == bi.blk->size && bi.blk->node.next == &v->cblk->node) {
 			// this[this.size] == this.next[0]
 			break;
 		}
-		if (!w->buffer->next_char(&bi, &u))
+		if (!v->buffer->next_char(&bi, &u))
 			break;
-		w->cx_idx++;
+		v->cx_idx++;
 		if (u == '\t') {
-			w->cx = (w->cx + tw) / tw * tw;
+			v->cx = (v->cx + tw) / tw * tw;
 		} else if (u < 0x20) {
-			w->cx += 2;
+			v->cx += 2;
 		} else {
-			w->cx += u_char_width(u);
+			v->cx += u_char_width(u);
 		}
 	}
 }
 
-void update_cursor(struct window *w)
+void update_cursor(struct view *v)
 {
 	unsigned int c = 8;
 
-	update_cursor_x(w);
-	update_cursor_y(w);
-	if (w->cx - w->vx >= w->w)
-		w->vx = (w->cx - w->w + c) & ~(c - 1);
-	if (w->cx < w->vx)
-		w->vx = w->cx / c * c;
-	if (window->cy < window->vy)
-		window->vy = window->cy;
-	if (window->cy > window->vy + window->h - 1)
-		window->vy = window->cy - window->h + 1;
+	update_cursor_x(v);
+	update_cursor_y(v);
+	if (v->cx - v->vx >= v->window->w)
+		v->vx = (v->cx - v->window->w + c) & ~(c - 1);
+	if (v->cx < v->vx)
+		v->vx = v->cx / c * c;
+
+	if (v->cy < v->vy)
+		v->vy = v->cy;
+	if (v->cy > v->vy + v->window->h - 1)
+		v->vy = v->cy - v->window->h + 1;
 }

@@ -44,7 +44,7 @@ static const char *ssprintf(const char *format, ...)
 static int add_status_pos(char *buf, int size, int *posp)
 {
 	int h = window->h;
-	int pos = window->vy;
+	int pos = view->vy;
 	int d;
 
 	if (buffer->nl <= h) {
@@ -86,15 +86,15 @@ static int format_status(char *buf, int size, const char *format)
 					w += add_status_str(buf, size, &pos, "[+]");
 				break;
 			case 'y':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", window->cy));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cy));
 				break;
 			case 'x':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", window->cx));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx));
 				break;
 			case 'X':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", window->cx_idx));
-				if (window->cx != window->cx_idx)
-					w += add_status_str(buf, size, &pos, ssprintf("-%d", window->cx));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_idx));
+				if (view->cx != view->cx_idx)
+					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx));
 				break;
 			case 'c':
 				if (got_char)
@@ -160,7 +160,7 @@ static int sel_ended;
 
 static void selection_check(void)
 {
-	if (window->sel_blk) {
+	if (view->sel_blk) {
 		if (!sel_started && cur_offset >= sel_so) {
 			buf_set_colors(0, 7);
 			sel_started = 1;
@@ -174,7 +174,7 @@ static void selection_check(void)
 
 static void selection_init(struct block_iter *cur)
 {
-	if (window->sel_blk) {
+	if (view->sel_blk) {
 		struct block_iter si, ei;
 
 		sel_started = 0;
@@ -182,12 +182,12 @@ static void selection_init(struct block_iter *cur)
 		cur_offset = buffer_get_offset(cur->blk, cur->offset);
 
 		si.head = &buffer->blocks;
-		si.blk = window->sel_blk;
-		si.offset = window->sel_offset;
+		si.blk = view->sel_blk;
+		si.offset = view->sel_offset;
 
 		ei.head = &buffer->blocks;
-		ei.blk = window->cblk;
-		ei.offset = window->coffset;
+		ei.blk = view->cblk;
+		ei.offset = view->coffset;
 
 		sel_so = buffer_get_offset(si.blk, si.offset);
 		sel_eo = buffer_get_offset(ei.blk, ei.offset);
@@ -195,11 +195,11 @@ static void selection_init(struct block_iter *cur)
 			unsigned int to = sel_eo;
 			sel_eo = sel_so;
 			sel_so = to;
-			if (window->sel_is_lines) {
+			if (view->sel_is_lines) {
 				sel_so -= block_iter_bol(&ei);
 				sel_eo += count_bytes_eol(&si);
 			}
-		} else if (window->sel_is_lines) {
+		} else if (view->sel_is_lines) {
 			sel_so -= block_iter_bol(&si);
 			sel_eo += count_bytes_eol(&ei);
 		}
@@ -317,13 +317,13 @@ static void print_line(struct block_iter *bi)
 
 static void update_full(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 	int i;
 
 	buf_hide_cursor();
-	obuf.scroll_x = window->vx;
+	obuf.scroll_x = view->vx;
 
-	for (i = 0; i < window->cy - window->vy; i++)
+	for (i = 0; i < view->cy - view->vy; i++)
 		block_iter_prev_line(&bi);
 	block_iter_bol(&bi);
 
@@ -352,20 +352,20 @@ static void update_full(void)
 	print_status_line();
 	print_command_line();
 
-	buf_move_cursor(window->cx - window->vx, window->cy - window->vy);
+	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
 	buf_show_cursor();
 }
 
 static void update_cursor_line(void)
 {
-	BLOCK_ITER_CURSOR(bi, window);
+	BLOCK_ITER_CURSOR(bi, view);
 
 	buf_hide_cursor();
-	obuf.scroll_x = window->vx;
+	obuf.scroll_x = view->vx;
 	block_iter_bol(&bi);
 
 	selection_init(&bi);
-	buf_move_cursor(0, window->cy - window->vy);
+	buf_move_cursor(0, view->cy - view->vy);
 	print_line(&bi);
 	selection_check();
 
@@ -373,7 +373,7 @@ static void update_cursor_line(void)
 	print_status_line();
 	print_command_line();
 
-	buf_move_cursor(window->cx - window->vx, window->cy - window->vy);
+	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
 	buf_show_cursor();
 }
 
@@ -384,7 +384,7 @@ static void update_status_line(void)
 	print_status_line();
 	print_command_line();
 
-	buf_move_cursor(window->cx - window->vx, window->cy - window->vy);
+	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
 	buf_show_cursor();
 }
 
@@ -417,8 +417,8 @@ static void debug_blocks(void)
 		BUG_ON(blk->size > blk->alloc);
 		nl = count_nl(blk->data, blk->size);
 		BUG_ON(nl != blk->nl);
-		if (blk == window->cblk) {
-			BUG_ON(window->coffset > blk->size);
+		if (blk == view->cblk) {
+			BUG_ON(view->coffset > blk->size);
 		}
 	}
 }
@@ -437,7 +437,7 @@ void ui_start(void)
 		buf_escape(term_cap.ti);
 
 	update_window_sizes();
-	update_cursor(window);
+	update_cursor(view);
 	update_full();
 	buf_flush();
 }
@@ -465,10 +465,10 @@ void ui_end(void)
 static void handle_key(enum term_key_type type, unsigned int key)
 {
 	struct change_head *save_change_head = buffer->save_change_head;
-	int cx = window->cx;
-	int cy = window->cy;
-	int vx = window->vx;
-	int vy = window->vy;
+	int cx = view->cx;
+	int cy = view->cy;
+	int vx = view->vx;
+	int vy = view->vy;
 
 	if (uncompleted_binding) {
 		handle_binding(type, key);
@@ -505,16 +505,16 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	}
 
 	debug_blocks();
-	update_cursor(window);
+	update_cursor(view);
 
-	if (vx != window->vx || vy != window->vy) {
+	if (vx != view->vx || vy != view->vy) {
 		update_flags |= UPDATE_FULL;
-	} else if (cx != window->cx || cy != window->cy ||
+	} else if (cx != view->cx || cy != view->cy ||
 			save_change_head != buffer->save_change_head) {
 		update_flags |= UPDATE_STATUS_LINE;
 
 		// full update when selecting and cursor moved
-		if (window->sel_blk)
+		if (view->sel_blk)
 			update_flags |= UPDATE_FULL;
 	}
 
@@ -535,7 +535,7 @@ static void handle_signal(void)
 	switch (received_signal) {
 	case SIGWINCH:
 		update_window_sizes();
-		update_cursor(window);
+		update_cursor(view);
 		update_full();
 		buf_flush();
 		break;
@@ -618,9 +618,9 @@ int main(int argc, char *argv[])
 		for (; i < argc; i++)
 			open_buffer(argv[i]);
 	}
-	if (!window->nr_buffers)
+	if (list_empty(&window->views))
 		open_buffer(NULL);
-	set_buffer(window->buffers[0]);
+	set_view(VIEW(window->views.next));
 
 	set_signal_handler(SIGWINCH, signal_handler);
 	set_signal_handler(SIGINT, signal_handler);

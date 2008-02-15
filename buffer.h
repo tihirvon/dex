@@ -18,6 +18,8 @@
 #include <stdarg.h>
 
 #define BLOCK(item) container_of((item), struct block, node)
+#define VIEW(item) container_of((item), struct view, node)
+#define WINDOW(item) container_of((item), struct window, node)
 #define BLOCK_SIZE 64
 
 #define BLOCK_ITER_CURSOR(name, window) \
@@ -79,13 +81,10 @@ struct buffer {
 	int (*get_char)(struct block_iter *i, uchar *up);
 };
 
-// There's no global list of buffers.  Each window has its own list of buffers
-// although you can open same file to other window and they will share the
-// buffer.  Currently there's only one fullscreen window.
-struct window {
-	struct buffer **buffers;
+struct view {
+	struct list_head node;
 	struct buffer *buffer;
-	int nr_buffers;
+	struct window *window;
 
 	// cursor
 	struct block *cblk;
@@ -103,9 +102,6 @@ struct window {
 	// top left corner
 	int vx, vy;
 
-	int x, y;
-	int w, h;
-
 	// preferred cursor x (cx)
 	int preferred_x;
 
@@ -115,6 +111,17 @@ struct window {
 	struct block *sel_blk;
 	unsigned int sel_offset;
 	unsigned sel_is_lines : 1;
+};
+
+struct window {
+	struct list_head node;
+	struct list_head views;
+
+	// current view. always exists
+	struct view *view;
+
+	int x, y;
+	int w, h;
 };
 
 struct command {
@@ -136,8 +143,13 @@ enum undo_merge {
 #define UPDATE_CURSOR_LINE	(1 << 1)
 #define UPDATE_FULL		(1 << 2)
 
-extern struct buffer *buffer;
+// buffer = view->buffer = window->view->buffer
 extern struct window *window;
+extern struct view *view;
+extern struct buffer *buffer;
+
+extern struct list_head windows;
+
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern struct command commands[];
@@ -147,11 +159,11 @@ extern int running;
 // options
 extern int move_wraps;
 
-static inline void init_block_iter_cursor(struct block_iter *bi, struct window *w)
+static inline void init_block_iter_cursor(struct block_iter *bi, struct view *v)
 {
-	bi->head = &w->buffer->blocks;
-	bi->blk = w->cblk;
-	bi->offset = w->coffset;
+	bi->head = &v->buffer->blocks;
+	bi->blk = v->cblk;
+	bi->offset = v->coffset;
 }
 
 static inline int buffer_modified(struct buffer *b)
@@ -182,14 +194,17 @@ struct buffer *open_buffer(const char *filename);
 void save_buffer(void);
 char *buffer_get_bytes(unsigned int *lenp);
 
+struct view *view_new(struct window *w, struct buffer *b);
+void view_delete(struct view *v);
+
 struct window *window_new(void);
 void window_add_buffer(struct buffer *b);
-void window_remove_buffer(struct buffer *b);
-void set_buffer(struct buffer *b);
+void remove_view(void);
+void set_view(struct view *v);
 void next_buffer(void);
 void prev_buffer(void);
-void update_cursor_x(struct window *w);
-void update_cursor(struct window *w);
+void update_cursor_x(struct view *v);
+void update_cursor(struct view *v);
 
 void update_preferred_x(void);
 void do_insert(const char *buf, unsigned int len);
