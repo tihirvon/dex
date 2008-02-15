@@ -64,8 +64,9 @@ struct buffer {
 	// used to determine if buffer is modified
 	struct change_head *save_change_head;
 
+	struct stat st;
+
 	unsigned int nl;
-	unsigned int size;
 
 	char *filename;
 

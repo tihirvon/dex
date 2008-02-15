@@ -205,8 +205,8 @@ static int read_blocks(struct buffer *b, int fd)
 		struct block *blk;
 		int size = BLOCK_SIZE;
 
-		if (size > b->size - r)
-			size = b->size - r;
+		if (size > b->st.st_size - r)
+			size = b->st.st_size - r;
 
 		blk = block_new(size);
 		blk->size = xread(fd,  blk->data, size);
@@ -224,7 +224,6 @@ static int read_blocks(struct buffer *b, int fd)
 		b->nl += blk->nl;
 		list_add_before(&blk->node, &b->blocks);
 	}
-	b->size = r;
 	return 0;
 }
 
@@ -287,10 +286,7 @@ struct buffer *open_buffer(const char *filename)
 				return NULL;
 			}
 		} else {
-			struct stat st;
-
-			fstat(fd, &st);
-			b->size = st.st_size;
+			fstat(fd, &b->st);
 			b->ro = ro;
 			if (read_blocks(b, fd)) {
 				free_buffer(b);
