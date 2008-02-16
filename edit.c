@@ -380,7 +380,7 @@ void backspace(void)
 
 void insert_ch(unsigned int ch)
 {
-	unsigned char buf[4];
+	unsigned char buf[5];
 	int i = 0;
 
 	if (undo_merge != UNDO_MERGE_INSERT)
@@ -391,6 +391,8 @@ void insert_ch(unsigned int ch)
 	} else {
 		buf[i++] = ch;
 	}
+	if (ch != '\n' && view->cblk->node.next == &buffer->blocks && view->coffset == view->cblk->size)
+		buf[i++] = '\n';
 	insert(buf, i);
 	move_right(1);
 
