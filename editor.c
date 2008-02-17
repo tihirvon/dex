@@ -165,7 +165,7 @@ static void selection_check(void)
 			buf_set_colors(0, 7);
 			sel_started = 1;
 		}
-		if (!sel_ended && cur_offset >= sel_eo) {
+		if (!sel_ended && cur_offset > sel_eo) {
 			buf_set_colors(-1, -1);
 			sel_ended = 1;
 		}
