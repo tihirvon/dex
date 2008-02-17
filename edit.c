@@ -322,6 +322,9 @@ unsigned int prepare_selection(void)
 
 void paste(void)
 {
+	if (view->sel_blk)
+		delete_ch();
+
 	undo_merge = UNDO_MERGE_NONE;
 	if (!copy_buf)
 		return;
@@ -400,6 +403,9 @@ void insert_ch(unsigned int ch)
 {
 	unsigned char buf[5];
 	int i = 0;
+
+	if (view->sel_blk)
+		delete_ch();
 
 	if (undo_merge != UNDO_MERGE_INSERT)
 		undo_merge = UNDO_MERGE_NONE;
