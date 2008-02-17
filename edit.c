@@ -344,38 +344,56 @@ void paste(void)
 
 void delete_ch(void)
 {
-	BLOCK_ITER_CURSOR(bi, view);
-	uchar u;
+	if (view->sel_blk) {
+		unsigned int len;
 
-	if (undo_merge != UNDO_MERGE_DELETE)
 		undo_merge = UNDO_MERGE_NONE;
-	if (buffer->get_char(&bi, &u)) {
-		if (buffer->utf8) {
-			delete(u_char_size(u));
-		} else {
-			delete(1);
+		len = prepare_selection();
+		delete(len);
+		select_end();
+	} else {
+		BLOCK_ITER_CURSOR(bi, view);
+		uchar u;
+
+		if (undo_merge != UNDO_MERGE_DELETE)
+			undo_merge = UNDO_MERGE_NONE;
+		if (buffer->get_char(&bi, &u)) {
+			if (buffer->utf8) {
+				delete(u_char_size(u));
+			} else {
+				delete(1);
+			}
 		}
+		undo_merge = UNDO_MERGE_DELETE;
 	}
-	undo_merge = UNDO_MERGE_DELETE;
 }
 
 void backspace(void)
 {
-	BLOCK_ITER_CURSOR(bi, view);
-	uchar u;
+	if (view->sel_blk) {
+		unsigned int len;
 
-	if (undo_merge != UNDO_MERGE_BACKSPACE)
 		undo_merge = UNDO_MERGE_NONE;
-	if (buffer->prev_char(&bi, &u)) {
-		view->cblk = bi.blk;
-		view->coffset = bi.offset;
-		if (buffer->utf8) {
-			delete(u_char_size(u));
-		} else {
-			delete(1);
+		len = prepare_selection();
+		delete(len);
+		select_end();
+	} else {
+		BLOCK_ITER_CURSOR(bi, view);
+		uchar u;
+
+		if (undo_merge != UNDO_MERGE_BACKSPACE)
+			undo_merge = UNDO_MERGE_NONE;
+		if (buffer->prev_char(&bi, &u)) {
+			view->cblk = bi.blk;
+			view->coffset = bi.offset;
+			if (buffer->utf8) {
+				delete(u_char_size(u));
+			} else {
+				delete(1);
+			}
 		}
+		undo_merge = UNDO_MERGE_BACKSPACE;
 	}
-	undo_merge = UNDO_MERGE_BACKSPACE;
 }
 
 void insert_ch(unsigned int ch)
