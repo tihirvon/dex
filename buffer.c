@@ -203,22 +203,24 @@ static int read_blocks(struct buffer *b, int fd)
 
 	while (1) {
 		struct block *blk;
+		ssize_t rc;
 		int size = BLOCK_SIZE;
 
 		if (size > b->st.st_size - r)
 			size = b->st.st_size - r;
 
 		blk = block_new(size);
-		blk->size = xread(fd,  blk->data, size);
+		rc = xread(fd,  blk->data, size);
 
-		if (blk->size <= 0) {
+		if (rc <= 0) {
 			free(blk->data);
 			free(blk);
-			if (blk->size == -1)
-				return -1;
+			if (rc < 0)
+				return rc;
 			break;
 		}
-		r += blk->size;
+		blk->size = rc;
+		r += rc;
 
 		blk->nl = count_nl(blk->data, blk->size);
 		b->nl += blk->nl;
