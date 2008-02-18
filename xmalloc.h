@@ -22,7 +22,7 @@
 void malloc_fail(void) __NORETURN;
 
 #define xnew(type, n)		(type *)xmalloc(sizeof(type) * (n))
-#define xnew0(type, n)		(type *)xmalloc0(sizeof(type) * (n))
+#define xnew0(type, n)		(type *)xcalloc(sizeof(type) * (n))
 #define xrenew(mem, n)		do { \
 					mem = xrealloc(mem, sizeof(*mem) * (n)); \
 				} while (0)
@@ -36,7 +36,7 @@ static inline void * __MALLOC xmalloc(size_t size)
 	return ptr;
 }
 
-static inline void * __MALLOC xmalloc0(size_t size)
+static inline void * __MALLOC xcalloc(size_t size)
 {
 	void *ptr = calloc(1, size);
 
