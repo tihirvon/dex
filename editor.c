@@ -320,7 +320,6 @@ static void update_full(void)
 	BLOCK_ITER_CURSOR(bi, view);
 	int i;
 
-	buf_hide_cursor();
 	obuf.scroll_x = view->vx;
 
 	for (i = 0; i < view->cy - view->vy; i++)
@@ -351,16 +350,12 @@ static void update_full(void)
 	obuf.scroll_x = 0;
 	print_status_line();
 	print_command_line();
-
-	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
-	buf_show_cursor();
 }
 
 static void update_cursor_line(void)
 {
 	BLOCK_ITER_CURSOR(bi, view);
 
-	buf_hide_cursor();
 	obuf.scroll_x = view->vx;
 	block_iter_bol(&bi);
 
@@ -372,20 +367,12 @@ static void update_cursor_line(void)
 	obuf.scroll_x = 0;
 	print_status_line();
 	print_command_line();
-
-	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
-	buf_show_cursor();
 }
 
 static void update_status_line(void)
 {
-	buf_hide_cursor();
-
 	print_status_line();
 	print_command_line();
-
-	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
-	buf_show_cursor();
 }
 
 static void update_window_sizes(void)
@@ -518,6 +505,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			update_flags |= UPDATE_FULL;
 	}
 
+	if (!update_flags)
+		return;
+
+	buf_hide_cursor();
 	if (update_flags & UPDATE_FULL) {
 		update_full();
 	} else if (update_flags & UPDATE_CURSOR_LINE) {
@@ -525,6 +516,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	} else if (update_flags & UPDATE_STATUS_LINE) {
 		update_status_line();
 	}
+	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
+	buf_show_cursor();
+
 	update_flags = 0;
 
 	buf_flush();
