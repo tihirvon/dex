@@ -1,6 +1,8 @@
 #ifndef OBUF_H
 #define OBUF_H
 
+#include "uchar.h"
+
 struct output_buffer {
 	unsigned char *buf;
 	unsigned int alloc;
@@ -15,6 +17,8 @@ struct output_buffer {
 
 	// width of screen
 	unsigned int width;
+
+	unsigned int tab_width;
 
 	int bg;
 };
@@ -31,5 +35,7 @@ void buf_move_cursor(int x, int y);
 void buf_set_colors(int fg, int bg);
 void buf_clear_eol(void);
 void buf_flush(void);
+void buf_skip(uchar u, int utf8);
+int buf_put_char(uchar u, int utf8);
 
 #endif

@@ -102,3 +102,86 @@ void buf_flush(void)
 		obuf.count = 0;
 	}
 }
+
+static void skipped_too_much(uchar u)
+{
+	int n = obuf.x - obuf.scroll_x;
+
+	if (obuf.alloc - obuf.count < 8)
+		buf_flush();
+	if (u == '\t') {
+		memset(obuf.buf + obuf.count, ' ', n);
+		obuf.count += n;
+	} else if (u < 0x20) {
+		obuf.buf[obuf.count++] = u | 0x40;
+	} else if (u & U_INVALID_MASK) {
+		if (n > 2)
+			obuf.buf[obuf.count++] = hex_tab[(u >> 4) & 0x0f];
+		if (n > 1)
+			obuf.buf[obuf.count++] = hex_tab[u & 0x0f];
+		obuf.buf[obuf.count++] = '>';
+	} else {
+		obuf.buf[obuf.count++] = '>';
+	}
+}
+
+void buf_skip(uchar u, int utf8)
+{
+	if (u < 0x80 || !utf8) {
+		if (u >= 0x20) {
+			obuf.x++;
+		} else if (u == '\t') {
+			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
+		} else {
+			// control
+			obuf.x += 2;
+		}
+	} else {
+		obuf.x += u_char_width(u);
+	}
+
+	if (obuf.x > obuf.scroll_x)
+		skipped_too_much(u);
+}
+
+int buf_put_char(uchar u, int utf8)
+{
+	unsigned int space = obuf.scroll_x + obuf.width - obuf.x;
+	unsigned int width;
+
+	if (!space)
+		return 0;
+	if (obuf.alloc - obuf.count < 8)
+		buf_flush();
+
+	if (u < 0x80 || !utf8) {
+		if (u >= 0x20) {
+			obuf.buf[obuf.count++] = u;
+			obuf.x++;
+		} else if (u == '\t') {
+			width = (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
+			if (width > space)
+				width = space;
+			memset(obuf.buf + obuf.count, ' ', width);
+			obuf.count += width;
+			obuf.x += width;
+		} else {
+			obuf.buf[obuf.count++] = '^';
+			obuf.x++;
+			if (space > 1) {
+				obuf.buf[obuf.count++] = u | 0x40;
+				obuf.x++;
+			}
+		}
+	} else {
+		width = u_char_width(u);
+		if (width <= space) {
+			u_set_char(obuf.buf, &obuf.count, u);
+			obuf.x += width;
+		} else {
+			obuf.buf[obuf.count++] = '>';
+			obuf.x++;
+		}
+	}
+	return 1;
+}

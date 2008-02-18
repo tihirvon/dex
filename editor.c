@@ -227,7 +227,6 @@ static unsigned int screen_next_line(struct block_iter *bi)
 
 static void print_line(struct block_iter *bi)
 {
-	int n, tw = buffer->tab_width;
 	int utf8 = buffer->utf8;
 	uchar u;
 
@@ -236,80 +235,16 @@ static void print_line(struct block_iter *bi)
 			buf_clear_eol();
 			return;
 		}
-		if (u < 0x80 || !utf8) {
-			if (u >= 0x20) {
-				obuf.x++;
-			} else if (u == '\t') {
-				obuf.x += (obuf.x + tw) / tw * tw - obuf.x;
-			} else {
-				// control
-				obuf.x += 2;
-			}
-		} else {
-			obuf.x += u_char_width(u);
-		}
-	}
-	n = obuf.x - obuf.scroll_x;
-	if (n) {
-		// skipped too much
-		if (obuf.alloc - obuf.count < 8)
-			buf_flush();
-		if (u == '\t') {
-			memset(obuf.buf + obuf.count, ' ', n);
-			obuf.count += n;
-		} else if (u < 0x20) {
-			obuf.buf[obuf.count++] = u | 0x40;
-		} else if (u & U_INVALID_MASK) {
-			if (n > 2)
-				obuf.buf[obuf.count++] = hex_tab[(u >> 4) & 0x0f];
-			if (n > 1)
-				obuf.buf[obuf.count++] = hex_tab[u & 0x0f];
-			obuf.buf[obuf.count++] = '>';
-		} else {
-			obuf.buf[obuf.count++] = '>';
-		}
+		buf_skip(u, utf8);
 	}
 	while (1) {
-		unsigned int width, space = obuf.scroll_x + obuf.width - obuf.x;
-
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		if (!space) {
-			screen_next_line(bi);
-			return;
-		}
 		if (!screen_next_char(bi, &u) || u == '\n')
 			break;
-		if (obuf.alloc - obuf.count < 8)
-			buf_flush();
 
-		if (u < 0x80 || !utf8) {
-			if (u >= 0x20) {
-				obuf.buf[obuf.count++] = u;
-				obuf.x++;
-			} else if (u == '\t') {
-				width = (obuf.x + tw) / tw * tw - obuf.x;
-				if (width > space)
-					width = space;
-				memset(obuf.buf + obuf.count, ' ', width);
-				obuf.count += width;
-				obuf.x += width;
-			} else {
-				obuf.buf[obuf.count++] = '^';
-				obuf.x++;
-				if (space > 1) {
-					obuf.buf[obuf.count++] = u | 0x40;
-					obuf.x++;
-				}
-			}
-		} else {
-			width = u_char_width(u);
-			if (width <= space) {
-				u_set_char(obuf.buf, &obuf.count, u);
-				obuf.x += width;
-			} else {
-				obuf.buf[obuf.count++] = '>';
-				obuf.x++;
-			}
+		if (!buf_put_char(u, utf8)) {
+			screen_next_line(bi);
+			return;
 		}
 	}
 	buf_clear_eol();
@@ -320,6 +255,7 @@ static void update_full(void)
 	BLOCK_ITER_CURSOR(bi, view);
 	int i;
 
+	obuf.tab_width = buffer->tab_width;
 	obuf.scroll_x = view->vx;
 
 	for (i = 0; i < view->cy - view->vy; i++)
@@ -356,6 +292,7 @@ static void update_cursor_line(void)
 {
 	BLOCK_ITER_CURSOR(bi, view);
 
+	obuf.tab_width = buffer->tab_width;
 	obuf.scroll_x = view->vx;
 	block_iter_bol(&bi);
 
