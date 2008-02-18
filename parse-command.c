@@ -7,7 +7,7 @@
 static char **argv;
 static int argc;
 static int arga;
-static GROWING_BUFFER(arg);
+static GBUF(arg);
 
 static void add_arg(char *str)
 {

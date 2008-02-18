@@ -1,39 +1,53 @@
+/*
+ * This code is largely based on strbuf in the GIT version control system.
+ */
+
 #include "gbuf.h"
 #include "xmalloc.h"
 
-void gbuf_resize(struct growing_buffer *buf, size_t size)
+char gbuf_empty_buffer[1];
+
+static inline void gbuf_init(struct gbuf *buf)
+{
+	buf->buffer = gbuf_empty_buffer;
+	buf->alloc = 0;
+	buf->len = 0;
+}
+
+void gbuf_grow(struct gbuf *buf, size_t more)
 {
 	size_t align = 16 - 1;
+	size_t alloc = (buf->len + more + 1 + align) & ~align;
 
-	buf->alloc = (size + align) & ~align;
-	buf->buffer = xrealloc(buf->buffer, buf->alloc);
+	if (alloc > buf->alloc) {
+		if (!buf->alloc)
+			buf->buffer = NULL;
+		buf->alloc = alloc;
+		buf->buffer = xrealloc(buf->buffer, buf->alloc);
+		// gbuf is not NUL terminated if this was first alloc
+		buf->buffer[buf->len] = 0;
+	}
 }
 
-void gbuf_free(struct growing_buffer *buf)
+void gbuf_free(struct gbuf *buf)
 {
-	free(buf->buffer);
-	buf->buffer = NULL;
-	buf->alloc = 0;
-	buf->count = 0;
+	if (buf->alloc)
+		free(buf->buffer);
+	gbuf_init(buf);
 }
 
-void gbuf_add_ch(struct growing_buffer *buf, char ch)
+void gbuf_add_ch(struct gbuf *buf, char ch)
 {
-	size_t avail = gbuf_avail(buf);
-
-	if (avail < 1)
-		gbuf_resize(buf, buf->count + 1);
-	buf->buffer[buf->count++] = ch;
+	gbuf_grow(buf, 1);
+	buf->buffer[buf->len++] = ch;
+	buf->buffer[buf->len] = 0;
 }
 
-char *gbuf_steal(struct growing_buffer *buf)
+char *gbuf_steal(struct gbuf *buf)
 {
-	char *b;
-
-	gbuf_add_ch(buf, 0);
-	b = buf->buffer;
-	buf->buffer = NULL;
-	buf->alloc = 0;
-	buf->count = 0;
+	char *b = buf->buffer;
+	if (!buf->alloc)
+		b = xcalloc(1);
+	gbuf_init(buf);
 	return b;
 }
