@@ -11,7 +11,7 @@ struct window *window_new(void)
 	return w;
 }
 
-void window_add_buffer(struct buffer *b)
+struct view *window_add_buffer(struct buffer *b)
 {
 	struct view *v;
 
@@ -21,6 +21,7 @@ void window_add_buffer(struct buffer *b)
 	// FIXME: don't allow multiple buffers (views) on same window
 	v = view_new(window, b);
 	list_add_before(&v->node, &window->views);
+	return v;
 }
 
 void remove_view(void)

@@ -184,11 +184,201 @@ void redo(void)
 	buffer->cur_change_head = head;
 }
 
+static int remove_double_slashes(char *str)
+{
+	char prev = 0;
+	int s, d;
+
+	d = 0;
+	for (s = 0; str[s]; s++) {
+		char ch = str[s];
+
+		if (ch == '/' && prev == '/')
+			continue;
+		str[d++] = ch;
+		prev = ch;
+	}
+	str[d] = 0;
+	return d;
+}
+
+/*
+ * canonicalizes filename
+ *
+ *   - replaces double-slashes with one slash
+ *   - removes any "." or ".." path components
+ *   - makes path absolute
+ *   - expands symbolic links
+ *   - checks that all but the last expanded path component are directories
+ *   - last path component is allowed to not exist
+ */
+static char *path_absolute(const char *filename)
+{
+	int depth = 0;
+	char buf[PATH_MAX];
+	char prev;
+	char *sp;
+	int s, d;
+
+	d = 0;
+	if (filename[0] != '/') {
+		getcwd(buf, sizeof(buf));
+		d = strlen(buf);
+		buf[d++] = '/';
+		prev = '/';
+	}
+	for (s = 0; filename[s]; s++) {
+		char ch = filename[s];
+
+		if (prev == '/' && ch == '/')
+			continue;
+		buf[d++] = ch;
+		prev = ch;
+	}
+	buf[d] = 0;
+
+	// for each component:
+	//     remove "."
+	//     remove ".." and previous component
+	//     if symlink then replace with link destination and start over
+
+	sp = buf + 1;
+	while (*sp) {
+		struct stat st;
+		char *ep = strchr(sp, '/');
+		int last = !ep;
+		int rc;
+
+		if (ep)
+			*ep = 0;
+		if (!strcmp(sp, ".")) {
+			if (last) {
+				*sp = 0;
+				break;
+			}
+			memmove(sp, ep + 1, strlen(ep + 1) + 1);
+			d_print("'%s' '%s' (.)\n", buf, sp);
+			continue;
+		}
+		if (!strcmp(sp, "..")) {
+			if (sp == buf + 1) {
+				// first component is "..". remove it
+				if (last) {
+					*sp = 0;
+					break;
+				}
+				memmove(sp, ep + 1, strlen(ep + 1) + 1);
+			} else {
+				// remove previous component
+				sp -= 2;
+				while (*sp != '/')
+					sp--;
+				sp++;
+
+				if (last) {
+					*sp = 0;
+					break;
+				}
+				memmove(sp, ep + 1, strlen(ep + 1) + 1);
+			}
+			d_print("'%s' '%s' (..)\n", buf, sp);
+			continue;
+		}
+
+		rc = lstat(buf, &st);
+		if (rc) {
+			if (last && errno == ENOENT)
+				break;
+			return NULL;
+		}
+
+		if (S_ISLNK(st.st_mode)) {
+			char target[PATH_MAX];
+			ssize_t len, clen;
+
+			if (++depth > 8) {
+				errno = ELOOP;
+				return NULL;
+			}
+			len = readlink(buf, target, sizeof(target));
+			if (len < 0) {
+				d_print("readlink failed for '%s'\n", buf);
+				return NULL;
+			}
+			if (len == sizeof(target)) {
+				errno = ENAMETOOLONG;
+				return NULL;
+			}
+			target[len] = 0;
+			len = remove_double_slashes(target);
+
+			if (target[0] == '/')
+				sp = buf;
+
+			if (last) {
+				if (sp - buf + len + 1 > sizeof(buf)) {
+					errno = ENAMETOOLONG;
+					return NULL;
+				}
+				memcpy(sp, target, len + 1);
+				d_print("'%s' '%s' (last)\n", buf, sp);
+				continue;
+			}
+
+			// remove trailing slash
+			if (target[len - 1] == '/')
+				target[--len] = 0;
+
+			// replace sp - ep with target
+			*ep = '/';
+			clen = ep - sp;
+			if (clen != len) {
+				if (len > clen && strlen(buf) + len - clen + 1 > sizeof(buf)) {
+					errno = ENAMETOOLONG;
+					return NULL;
+				}
+				memmove(sp + len, ep, strlen(ep) + 1);
+			}
+			memcpy(sp, target, len);
+			d_print("'%s' '%s'\n", buf, sp);
+			continue;
+		}
+
+		if (last) {
+			if (!S_ISREG(st.st_mode)) {
+				// FIXME: better error message
+				errno = EBADF;
+				return NULL;
+			}
+			break;
+		}
+
+		if (!S_ISDIR(st.st_mode)) {
+			errno = ENOTDIR;
+			return NULL;
+		}
+
+		*ep = '/';
+		sp = ep + 1;
+	}
+	return xstrdup(buf);
+}
+
 static struct buffer *buffer_new(const char *filename)
 {
-	struct buffer *b = xnew0(struct buffer, 1);
-	if (filename)
+	struct buffer *b;
+	char *absolute = NULL;
+
+	if (filename) {
+		absolute = path_absolute(filename);
+		if (!absolute)
+			return NULL;
+	}
+	b = xnew0(struct buffer, 1);
+	if (filename) {
 		b->filename = xstrdup(filename);
+		b->abs_filename = absolute;
+	}
 	list_init(&b->blocks);
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
@@ -266,15 +456,55 @@ static void free_buffer(struct buffer *b)
 	free_changes(b);
 
 	free(b->filename);
+	free(b->abs_filename);
 	free(b);
 }
 
-struct buffer *open_buffer(const char *filename)
+static int same_buffer(struct buffer *a, struct buffer *b)
+{
+	if (a->st.st_mode && b->st.st_mode &&
+	    a->st.st_dev == b->st.st_dev &&
+	    a->st.st_ino == b->st.st_ino)
+		return 1;
+	if (a->abs_filename && b->abs_filename)
+		return !strcmp(a->abs_filename, b->abs_filename);
+	return 0;
+}
+
+static struct view *find_view(struct buffer *b)
+{
+	struct window *w;
+	struct view *v;
+
+	// open in current window?
+	list_for_each_entry(v, &window->views, node) {
+		if (same_buffer(v->buffer, b))
+			return v;
+	}
+
+	// open in any other window?
+	list_for_each_entry(w, &windows, node) {
+		if (w == window)
+			continue;
+		list_for_each_entry(v, &w->views, node) {
+			if (same_buffer(v->buffer, b))
+				return v;
+		}
+	}
+	return NULL;
+}
+
+struct view *open_buffer(const char *filename)
 {
 	struct buffer *b;
 
 	b = buffer_new(filename);
+	if (!b) {
+		d_print("error %s: %s\n", filename, strerror(errno));
+		return NULL;
+	}
 	if (filename) {
+		struct view *v;
 		int fd, ro = 0;
 
 		fd = open(filename, O_RDWR);
@@ -287,14 +517,35 @@ struct buffer *open_buffer(const char *filename)
 				free_buffer(b);
 				return NULL;
 			}
+
+			v = find_view(b);
 		} else {
-			fstat(fd, &b->st);
 			b->ro = ro;
-			if (read_blocks(b, fd)) {
+			fstat(fd, &b->st);
+			if (!S_ISREG(b->st.st_mode)) {
+				int err = S_ISDIR(b->st.st_mode) ? EISDIR : EINVAL;
+				close(fd);
+				free_buffer(b);
+				errno = err;
+				return NULL;
+			}
+			v = find_view(b);
+			if (!v && read_blocks(b, fd)) {
+				close(fd);
 				free_buffer(b);
 				return NULL;
 			}
 			close(fd);
+		}
+
+		if (v) {
+			free_buffer(b);
+			if (v->window != window) {
+				// open the buffer in other window to current window
+				return window_add_buffer(v->buffer);
+			}
+			// the file was already open in current window
+			return v;
 		}
 	}
 
@@ -313,8 +564,7 @@ struct buffer *open_buffer(const char *filename)
 		b->get_char = block_iter_get_byte;
 	}
 
-	window_add_buffer(b);
-	return b;
+	return window_add_buffer(b);
 }
 
 void save_buffer(void)

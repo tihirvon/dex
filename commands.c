@@ -222,6 +222,16 @@ static void cmd_next(char **args)
 	next_buffer();
 }
 
+static void cmd_open(char **args)
+{
+	struct view *v;
+
+	ARGC(0, 1);
+	v = open_buffer(args[0]);
+	if (v)
+		set_view(v);
+}
+
 static void cmd_paste(char **args)
 {
 	paste();
@@ -304,6 +314,7 @@ struct command commands[] = {
 	{ "eol", NULL, cmd_eol },
 	{ "left", NULL, cmd_left },
 	{ "next", NULL, cmd_next },
+	{ "open", NULL, cmd_open },
 	{ "paste", NULL, cmd_paste },
 	{ "pgdown", NULL, cmd_pgdown },
 	{ "pgup", NULL, cmd_pgup },

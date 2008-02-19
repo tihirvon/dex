@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <limits.h>
 
 #define BLOCK(item) container_of((item), struct block, node)
 #define VIEW(item) container_of((item), struct view, node)
@@ -69,6 +70,7 @@ struct buffer {
 	unsigned int nl;
 
 	char *filename;
+	char *abs_filename;
 
 	unsigned utf8 : 1;
 	unsigned modified : 1;
@@ -197,7 +199,7 @@ void record_change(unsigned int offset, char *buf, unsigned int len);
 void undo(void);
 void redo(void);
 
-struct buffer *open_buffer(const char *filename);
+struct view *open_buffer(const char *filename);
 void save_buffer(void);
 char *buffer_get_bytes(unsigned int *lenp);
 
@@ -205,7 +207,7 @@ struct view *view_new(struct window *w, struct buffer *b);
 void view_delete(struct view *v);
 
 struct window *window_new(void);
-void window_add_buffer(struct buffer *b);
+struct view *window_add_buffer(struct buffer *b);
 void remove_view(void);
 void set_view(struct view *v);
 void next_buffer(void);
