@@ -40,5 +40,7 @@ void gbuf_grow(struct gbuf *buf, size_t more);
 void gbuf_free(struct gbuf *buf);
 void gbuf_add_ch(struct gbuf *buf, char ch);
 char *gbuf_steal(struct gbuf *buf);
+void gbuf_make_space(struct gbuf *buf, size_t pos, size_t len);
+void gbuf_remove(struct gbuf *buf, size_t pos, size_t len);
 
 #endif

@@ -138,6 +138,11 @@ enum undo_merge {
 	UNDO_MERGE_BACKSPACE
 };
 
+enum input_mode {
+	INPUT_NORMAL,
+	INPUT_COMMAND,
+};
+
 // from smallest update to largest. UPDATE_CURSOR_LINE includes
 // UPDATE_STATUS_LINE and so on.
 #define UPDATE_STATUS_LINE	(1 << 0)
@@ -156,6 +161,7 @@ extern unsigned int update_flags;
 extern struct command commands[];
 extern struct binding *uncompleted_binding;
 extern int running;
+extern enum input_mode input_mode;
 
 // options
 extern int move_wraps;

@@ -51,3 +51,20 @@ char *gbuf_steal(struct gbuf *buf)
 	gbuf_init(buf);
 	return b;
 }
+
+void gbuf_make_space(struct gbuf *buf, size_t pos, size_t len)
+{
+	BUG_ON(pos > buf->len);
+	gbuf_grow(buf, len);
+	memmove(buf->buffer + pos + len, buf->buffer + pos, buf->len - pos);
+	buf->len += len;
+	buf->buffer[buf->len] = 0;
+}
+
+void gbuf_remove(struct gbuf *buf, size_t pos, size_t len)
+{
+	BUG_ON(pos + len > buf->len);
+	memmove(buf->buffer + pos, buf->buffer + pos + len, buf->len - pos - len);
+	buf->len -= len;
+	buf->buffer[buf->len] = 0;
+}

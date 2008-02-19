@@ -9,7 +9,7 @@ INSTALL_LOG	:=
 
 CFLAGS	+= -g -I.
 
-objs	:= buffer.o commands.o config.o edit.o editor.o gbuf.o iter.o obuf.o \
+objs	:= buffer.o cmdline.o commands.o config.o edit.o editor.o gbuf.o iter.o obuf.o \
 	parse-command.o term.o termcap.o terminfo.o uchar.o util.o \
 	view.o window.o xmalloc.o
 

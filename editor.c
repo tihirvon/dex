@@ -1,17 +1,17 @@
 #include "buffer.h"
 #include "term.h"
 #include "obuf.h"
+#include "cmdline.h"
 
 #include <locale.h>
 #include <langinfo.h>
 #include <signal.h>
 
-static enum {
-	INPUT_NORMAL,
-} input_mode;
+enum input_mode input_mode;
 int running = 1;
 
 static int received_signal;
+static int cmdline_x;
 
 static int add_status_str(char *buf, int size, int *posp, const char *str)
 {
@@ -145,11 +145,84 @@ static void print_status_line(void)
 	}
 }
 
+static int get_char_width(int *idx)
+{
+	uchar u;
+
+	if (term_flags & TERM_UTF8) {
+		u_get_char(cmdline.buffer, idx, &u);
+		return u_char_width(u);
+	} else {
+		int i = *idx;
+		char ch = cmdline.buffer[i++];
+
+		*idx = i;
+		if (ch >= 0x20)
+			return 1;
+		return 2;
+	}
+}
+
+static void print_command(void)
+{
+	int i, w;
+	uchar u;
+
+	// width of characters up to and including cursor position
+	w = 1; // ":"
+	i = 0;
+	while (i <= cmdline_pos && cmdline.buffer[i])
+		w += get_char_width(&i);
+	if (!cmdline.buffer[cmdline_pos])
+		w++;
+
+	obuf.tab_width = 8;
+	obuf.scroll_x = 0;
+	if (w > window->w)
+		obuf.scroll_x = w - window->w;
+
+	i = 0;
+	if (obuf.x < obuf.scroll_x) {
+		buf_skip(':', 0);
+		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
+			if (term_flags & TERM_UTF8) {
+				u_get_char(cmdline.buffer, &i, &u);
+			} else {
+				u = cmdline.buffer[i++];
+			}
+			buf_skip(u, term_flags & TERM_UTF8);
+		}
+	} else {
+		buf_put_char(':', 0);
+	}
+
+	cmdline_x = obuf.x - obuf.scroll_x;
+	while (cmdline.buffer[i]) {
+		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
+		if (term_flags & TERM_UTF8) {
+			u_get_char(cmdline.buffer, &i, &u);
+		} else {
+			u = cmdline.buffer[i++];
+		}
+		if (!buf_put_char(u, term_flags & TERM_UTF8))
+			break;
+		if (i <= cmdline_pos)
+			cmdline_x = obuf.x - obuf.scroll_x;
+	}
+	buf_clear_eol();
+}
+
 static void print_command_line(void)
 {
 	buf_move_cursor(0, window->h + 1);
 	buf_set_colors(-1, -1);
-	buf_clear_eol();
+	if (input_mode == INPUT_COMMAND) {
+		print_command();
+	} else {
+		obuf.tab_width = 8;
+		obuf.scroll_x = 0;
+		buf_clear_eol();
+	}
 }
 
 // selection start / end buffer byte offsets
@@ -312,6 +385,18 @@ static void update_status_line(void)
 	print_command_line();
 }
 
+static void restore_cursor(void)
+{
+	switch (input_mode) {
+	case INPUT_NORMAL:
+		buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
+		break;
+	case INPUT_COMMAND:
+		buf_move_cursor(cmdline_x, window->h + 1);
+		break;
+	}
+}
+
 static void update_window_sizes(void)
 {
 	int w, h;
@@ -321,6 +406,17 @@ static void update_window_sizes(void)
 		window->h = h - 2;
 		obuf.width = w;
 	}
+}
+
+static void update_everything(void)
+{
+	update_window_sizes();
+	update_cursor(view);
+	buf_hide_cursor();
+	update_full();
+	restore_cursor();
+	buf_show_cursor();
+	buf_flush();
 }
 
 static void debug_blocks(void)
@@ -360,10 +456,7 @@ void ui_start(void)
 	if (term_cap.ti)
 		buf_escape(term_cap.ti);
 
-	update_window_sizes();
-	update_cursor(view);
-	update_full();
-	buf_flush();
+	update_everything();
 }
 
 void ui_end(void)
@@ -384,6 +477,47 @@ void ui_end(void)
 
 	buf_flush();
 	term_cooked();
+}
+
+static void command_mode_key(enum term_key_type type, unsigned int key)
+{
+	switch (type) {
+	case KEY_NORMAL:
+		switch (key) {
+		case 0x1b:
+			cmdline_clear();
+			input_mode = INPUT_NORMAL;
+			break;
+		case '\r':
+			handle_command(cmdline.buffer);
+			cmdline_clear();
+			input_mode = INPUT_NORMAL;
+			break;
+		default:
+			cmdline_insert(key);
+			break;
+		}
+		break;
+	case KEY_META:
+		break;
+	case KEY_SPECIAL:
+		switch (key) {
+		case SKEY_LEFT:
+			cmdline_prev_char();
+			break;
+		case SKEY_RIGHT:
+			cmdline_next_char();
+			break;
+		case SKEY_DELETE:
+			cmdline_delete();
+			break;
+		case SKEY_BACKSPACE:
+			cmdline_backspace();
+			break;
+		}
+		break;
+	}
+	update_flags |= UPDATE_STATUS_LINE;
 }
 
 static void handle_key(enum term_key_type type, unsigned int key)
@@ -425,6 +559,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 				break;
 			}
 			break;
+		case INPUT_COMMAND:
+			command_mode_key(type, key);
+			break;
 		}
 	}
 
@@ -453,7 +590,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	} else if (update_flags & UPDATE_STATUS_LINE) {
 		update_status_line();
 	}
-	buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
+	restore_cursor();
 	buf_show_cursor();
 
 	update_flags = 0;
@@ -465,10 +602,7 @@ static void handle_signal(void)
 {
 	switch (received_signal) {
 	case SIGWINCH:
-		update_window_sizes();
-		update_cursor(view);
-		update_full();
-		buf_flush();
+		update_everything();
 		break;
 	case SIGINT:
 		handle_key(KEY_NORMAL, 0x03);

@@ -133,7 +133,7 @@ single_char:
 int u_char_width(uchar u)
 {
 	if (unlikely(u < 0x20))
-		goto control;
+		return 2;
 
 	if (u < 0x1100U)
 		goto narrow;
@@ -198,13 +198,8 @@ narrow:
 	return 1;
 wide:
 	return 2;
-control:
-	/* special case */
-	if (u == 0)
-		return 1;
-
-	/* print control chars as <xx> */
 invalid:
+	/* <xx> */
 	return 4;
 }
 

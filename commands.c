@@ -158,6 +158,12 @@ static void cmd_close(char **args)
 	remove_view();
 }
 
+static void cmd_command(char **args)
+{
+	input_mode = INPUT_COMMAND;
+	update_flags |= UPDATE_STATUS_LINE;
+}
+
 static void cmd_copy(char **args)
 {
 	unsigned int len;
@@ -289,6 +295,7 @@ struct command commands[] = {
 	{ "bol", NULL, cmd_bol },
 	{ "cancel", NULL, cmd_cancel },
 	{ "close", NULL, cmd_close },
+	{ "command", NULL, cmd_command },
 	{ "copy", NULL, cmd_copy },
 	{ "cut", NULL, cmd_cut },
 	{ "debug_contents", NULL, cmd_debug_contents },
