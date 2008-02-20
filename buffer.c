@@ -85,7 +85,7 @@ static void add_change(struct change *change, struct change_head *head)
 	head->prev[head->nr_prev++] = &change->head;
 }
 
-void record_change(unsigned int offset, char *buf, unsigned int len)
+void record_change(unsigned int offset, char *buf, unsigned int len, int move_after)
 {
 	struct change *change;
 
@@ -118,6 +118,7 @@ void record_change(unsigned int offset, char *buf, unsigned int len)
 	change = xmalloc(sizeof(struct change));
 	change->offset = offset;
 	change->count = len;
+	change->move_after = move_after;
 	change->buf = buf;
 	change->head.prev = NULL;
 	change->head.nr_prev = 0;
@@ -145,6 +146,8 @@ static void reverse_change(struct change *change)
 	move_offset(change->offset);
 	if (change->buf) {
 		do_insert(change->buf, change->count);
+		if (change->move_after)
+			move_offset(change->offset + change->count);
 		update_preferred_x();
 		free(change->buf);
 		change->buf = NULL;

@@ -133,7 +133,7 @@ void do_insert(const char *buf, unsigned int len)
 
 void insert(const char *buf, unsigned int len)
 {
-	record_change(buffer_offset(), NULL, len);
+	record_change(buffer_offset(), NULL, len, 0);
 	do_insert(buf, len);
 	update_preferred_x();
 }
@@ -194,13 +194,13 @@ void do_delete(unsigned int len)
 	}
 }
 
-static void delete(unsigned int len)
+static void delete(unsigned int len, int move_after)
 {
 	char *buf;
 
 	buf = buffer_get_bytes(&len);
 	if (len) {
-		record_change(buffer_offset(), buf, len);
+		record_change(buffer_offset(), buf, len, move_after);
 		do_delete(len);
 		update_preferred_x();
 	}
@@ -240,7 +240,7 @@ void cut(unsigned int len, int is_lines)
 	buf = buffer_get_bytes(&len);
 	if (len) {
 		record_copy(xmemdup(buf, len), len, is_lines);
-		record_change(buffer_offset(), buf, len);
+		record_change(buffer_offset(), buf, len, 0);
 		do_delete(len);
 	}
 }
@@ -337,7 +337,7 @@ void paste(void)
 		view->cblk = bi.blk;
 		view->coffset = bi.offset;
 
-		record_change(buffer_offset(), NULL, copy_len);
+		record_change(buffer_offset(), NULL, copy_len, 0);
 		do_insert(copy_buf, copy_len);
 
 		move_preferred_x();
@@ -353,7 +353,7 @@ void delete_ch(void)
 
 		undo_merge = UNDO_MERGE_NONE;
 		len = prepare_selection();
-		delete(len);
+		delete(len, 0);
 		select_end();
 	} else {
 		BLOCK_ITER_CURSOR(bi, view);
@@ -363,9 +363,9 @@ void delete_ch(void)
 			undo_merge = UNDO_MERGE_NONE;
 		if (buffer->get_char(&bi, &u)) {
 			if (buffer->utf8) {
-				delete(u_char_size(u));
+				delete(u_char_size(u), 0);
 			} else {
-				delete(1);
+				delete(1, 0);
 			}
 		}
 		undo_merge = UNDO_MERGE_DELETE;
@@ -379,7 +379,7 @@ void backspace(void)
 
 		undo_merge = UNDO_MERGE_NONE;
 		len = prepare_selection();
-		delete(len);
+		delete(len, 1);
 		select_end();
 	} else {
 		BLOCK_ITER_CURSOR(bi, view);
@@ -391,9 +391,9 @@ void backspace(void)
 			view->cblk = bi.blk;
 			view->coffset = bi.offset;
 			if (buffer->utf8) {
-				delete(u_char_size(u));
+				delete(u_char_size(u), 1);
 			} else {
-				delete(1);
+				delete(1, 1);
 			}
 		}
 		undo_merge = UNDO_MERGE_BACKSPACE;
