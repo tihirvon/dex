@@ -210,7 +210,7 @@ int u_str_width(const char *str)
 	while (str[idx]) {
 		uchar u;
 
-		u_get_char(str, &idx, &u);
+		u = u_get_char(str, &idx);
 		w += u_char_width(u);
 	}
 	return w;
@@ -223,7 +223,7 @@ int u_str_nwidth(const char *str, int len)
 	uchar u;
 
 	while (len > 0) {
-		u_get_char(str, &idx, &u);
+		u = u_get_char(str, &idx);
 		if (u == 0)
 			break;
 		w += u_char_width(u);
@@ -277,7 +277,7 @@ one:
 	return;
 }
 
-void u_get_char(const char *str, int *idx, uchar *uch)
+uchar u_get_char(const char *str, int *idx)
 {
 	const unsigned char *s = (const unsigned char *)str;
 	int len, i = *idx;
@@ -298,13 +298,12 @@ void u_get_char(const char *str, int *idx, uchar *uch)
 		len--;
 	}
 	*idx = i;
-	*uch = u;
-	return;
+	return u;
 invalid:
 	i = *idx;
 	u = s[i++];
-	*uch = u | U_INVALID_MASK;
 	*idx = i;
+	return u | U_INVALID_MASK;
 }
 
 void u_set_char_raw(char *str, int *idx, uchar uch)
@@ -399,7 +398,7 @@ int u_copy_chars(char *dst, const char *src, int *width)
 	uchar u;
 
 	while (w > 0) {
-		u_get_char(src, &si, &u);
+		u = u_get_char(src, &si);
 		if (u == 0)
 			break;
 
@@ -431,9 +430,7 @@ int u_skip_chars(const char *str, int *width)
 	int idx = 0;
 
 	while (w > 0) {
-		uchar u;
-
-		u_get_char(str, &idx, &u);
+		uchar u = u_get_char(str, &idx);
 		w -= u_char_width(u);
 	}
 	/* add 1..3 if skipped 'too much' (the last char was double width or invalid (<xx>)) */
@@ -459,8 +456,8 @@ int u_strcasecmp(const char *a, const char *b)
 	do {
 		uchar au, bu;
 
-		u_get_char(a, &ai, &au);
-		u_get_char(b, &bi, &bu);
+		au = u_get_char(a, &ai);
+		bu = u_get_char(b, &bi);
 		res = chcasecmp(au, bu);
 		if (res)
 			break;
@@ -481,8 +478,8 @@ int u_strncasecmp(const char *a, const char *b, int len)
 		uchar au, bu;
 		int res;
 
-		u_get_char(a, &ai, &au);
-		u_get_char(b, &bi, &bu);
+		au = u_get_char(a, &ai);
+		bu = u_get_char(b, &bi);
 		res = chcasecmp(au, bu);
 		if (res)
 			return res;
@@ -512,7 +509,7 @@ char *u_strcasestr(const char *haystack, const char *needle)
 
 		/* skip one char */
 		idx = 0;
-		u_get_char(haystack, &idx, &u);
+		u = u_get_char(haystack, &idx);
 		haystack += idx;
 		haystack_len -= idx;
 	} while (1);

@@ -147,11 +147,8 @@ static void print_status_line(void)
 
 static int get_char_width(int *idx)
 {
-	uchar u;
-
 	if (term_flags & TERM_UTF8) {
-		u_get_char(cmdline.buffer, idx, &u);
-		return u_char_width(u);
+		return u_char_width(u_get_char(cmdline.buffer, idx));
 	} else {
 		int i = *idx;
 		char ch = cmdline.buffer[i++];
@@ -186,7 +183,7 @@ static void print_command(void)
 		buf_skip(':', 0);
 		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
 			if (term_flags & TERM_UTF8) {
-				u_get_char(cmdline.buffer, &i, &u);
+				u = u_get_char(cmdline.buffer, &i);
 			} else {
 				u = cmdline.buffer[i++];
 			}
@@ -200,7 +197,7 @@ static void print_command(void)
 	while (cmdline.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		if (term_flags & TERM_UTF8) {
-			u_get_char(cmdline.buffer, &i, &u);
+			u = u_get_char(cmdline.buffer, &i);
 		} else {
 			u = cmdline.buffer[i++];
 		}

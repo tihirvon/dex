@@ -58,14 +58,14 @@ extern int u_is_valid(const char *str);
 /*
  * @str  null-terminated UTF-8 string
  *
- * Retuns length of @str in UTF-8 characters.
+ * Returns length of @str in UTF-8 characters.
  */
 extern int u_strlen(const char *str);
 
 /*
  * @str  null-terminated UTF-8 string
  *
- * Retuns width of @str.
+ * Returns width of @str.
  */
 extern int u_str_width(const char *str);
 
@@ -73,7 +73,7 @@ extern int u_str_width(const char *str);
  * @str  null-terminated UTF-8 string
  * @len  number of characters to measure
  *
- * Retuns width of the first @len characters in @str.
+ * Returns width of the first @len characters in @str.
  */
 extern int u_str_nwidth(const char *str, int len);
 
@@ -82,9 +82,10 @@ extern void u_prev_char_pos(const char *str, int *idx);
 /*
  * @str  null-terminated UTF-8 string
  * @idx  pointer to byte index in @str (not UTF-8 character index!)
- * @uch  pointer to returned unicode character
+ *
+ * Returns unicode character or first byte or'ed with U_INVALID_MASK
  */
-extern void u_get_char(const char *str, int *idx, uchar *uch);
+extern uchar u_get_char(const char *str, int *idx);
 
 /*
  * @str  destination buffer
