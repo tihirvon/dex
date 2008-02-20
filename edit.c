@@ -315,6 +315,7 @@ unsigned int prepare_selection(void)
 		block_iter_bol(&bi);
 		view->cblk = bi.blk;
 		view->coffset = bi.offset;
+		view->sel_is_lines = 1;
 
 		return count_bytes_eol(&bi);
 	}
