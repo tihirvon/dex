@@ -525,7 +525,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vx = view->vx;
 	int vy = view->vy;
 
-	if (uncompleted_binding) {
+	if (nr_pressed_keys) {
 		handle_binding(type, key);
 	} else {
 		switch (input_mode) {

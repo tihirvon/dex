@@ -3,15 +3,20 @@
 
 #include <ctype.h>
 
+#define MAX_KEYS 4
+
 struct binding {
 	struct list_head node;
-	enum term_key_type type;
-	unsigned int key;
 	char *command;
-	struct binding *binding;
+	enum term_key_type types[MAX_KEYS];
+	unsigned int keys[MAX_KEYS];
+	int nr_keys;
 };
 
-struct binding *uncompleted_binding;
+int nr_pressed_keys;
+
+static enum term_key_type pressed_types[MAX_KEYS];
+static unsigned int pressed_keys[MAX_KEYS];
 
 static LIST_HEAD(bindings);
 static const char *special_names[NR_SKEYS] = {
@@ -91,52 +96,40 @@ static void cmd_backspace(char **args)
 
 static void cmd_bind(char **args)
 {
-	struct binding *b, *first = NULL, *prev = NULL;
+	struct binding *b;
 	char *keys;
-	const char *str;
-	int count = 0;
-	int i = 0;
+	int count = 0, i = 0;
 
 	ARGC(2, 2);
 
-	keys = xstrdup(args[0]);
+	b = xnew(struct binding, 1);
+	b->command = xstrdup(args[1]);
+
+	keys = args[0];
 	while (keys[i]) {
-		enum term_key_type type;
-		unsigned int key;
 		int start = i;
+
+		if (count >= MAX_KEYS)
+			goto error;
 
 		i++;
 		while (keys[i] && keys[i] != ',')
 			i++;
 		if (keys[i] == ',')
 			keys[i++] = 0;
-		if (!parse_key(&type, &key, keys + start)) {
-			free(keys);
-			return;
-		}
+		if (!parse_key(&b->types[count], &b->keys[count], keys + start))
+			goto error;
 		count++;
 	}
-	if (!count) {
-		free(keys);
-		return;
-	}
+	b->nr_keys = count;
+	if (!count)
+		goto error;
 
-	str = keys;
-	do {
-		b = xnew(struct binding, 1);
-		b->command = NULL;
-		parse_key(&b->type, &b->key, str);
-		str += strlen(str) + 1;
-		if (!first)
-			first = b;
-		if (prev)
-			prev->binding = b;
-		prev = b;
-	} while (--count);
-	free(keys);
-
-	b->command = xstrdup(args[1]);
-	list_add_before(&first->node, &bindings);
+	list_add_before(&b->node, &bindings);
+	return;
+error:
+	free(b->command);
+	free(b);
 }
 
 static void cmd_bol(char **args)
@@ -329,35 +322,31 @@ struct command commands[] = {
 	{ NULL, NULL, NULL }
 };
 
-static void handle_one(struct binding *b)
-{
-	if (b->command) {
-		undo_merge = UNDO_MERGE_NONE;
-		handle_command(b->command);
-		uncompleted_binding = NULL;
-	} else {
-		uncompleted_binding = b->binding;
-	}
-}
-
 void handle_binding(enum term_key_type type, unsigned int key)
 {
 	struct binding *b;
 
-	if (uncompleted_binding) {
-		if (type == KEY_NORMAL && key == 0x1b)
-			return;
-		if (uncompleted_binding->type == type && uncompleted_binding->key == key) {
-			handle_one(uncompleted_binding);
-			return;
+	pressed_types[nr_pressed_keys] = type;
+	pressed_keys[nr_pressed_keys] = key;
+	nr_pressed_keys++;
+
+	list_for_each_entry(b, &bindings, node) {
+		if (b->nr_keys < nr_pressed_keys)
+			continue;
+
+		if (memcmp(b->keys, pressed_keys, nr_pressed_keys * sizeof(pressed_keys[0])))
+			continue;
+		if (memcmp(b->types, pressed_types, nr_pressed_keys * sizeof(pressed_types[0])))
+			continue;
+
+		if (b->nr_keys == nr_pressed_keys) {
+			undo_merge = UNDO_MERGE_NONE;
+			handle_command(b->command);
+			nr_pressed_keys = 0;
+			break;
 		}
-		uncompleted_binding = NULL;
-	} else {
-		list_for_each_entry(b, &bindings, node) {
-			if (b->type == type && b->key == key) {
-				handle_one(b);
-				return;
-			}
-		}
+
+		// partial match
+		break;
 	}
 }

@@ -161,7 +161,7 @@ extern struct list_head windows;
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern struct command commands[];
-extern struct binding *uncompleted_binding;
+extern int nr_pressed_keys;
 extern int running;
 extern enum input_mode input_mode;
 
