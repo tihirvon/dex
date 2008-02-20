@@ -534,6 +534,19 @@ void move_down(int count)
 	move_preferred_x();
 }
 
+void move_bof(void)
+{
+	view->cblk = BLOCK(buffer->blocks.next);
+	view->coffset = 0;
+	move_preferred_x();
+}
+
+void move_eof(void)
+{
+	view->cblk = BLOCK(buffer->blocks.prev);
+	view->coffset = view->cblk->size;
+}
+
 int buffer_get_char(uchar *up)
 {
 	BLOCK_ITER_CURSOR(bi, view);

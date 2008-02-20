@@ -132,6 +132,11 @@ error:
 	free(b);
 }
 
+static void cmd_bof(char **args)
+{
+	move_bof();
+}
+
 static void cmd_bol(char **args)
 {
 	move_bol();
@@ -198,6 +203,11 @@ static void cmd_delete(char **args)
 static void cmd_down(char **args)
 {
 	move_down(1);
+}
+
+static void cmd_eof(char **args)
+{
+	move_eof();
 }
 
 static void cmd_eol(char **args)
@@ -295,6 +305,7 @@ static void cmd_up(char **args)
 struct command commands[] = {
 	{ "backspace", NULL, cmd_backspace },
 	{ "bind", NULL, cmd_bind },
+	{ "bof", NULL, cmd_bof },
 	{ "bol", NULL, cmd_bol },
 	{ "cancel", NULL, cmd_cancel },
 	{ "close", NULL, cmd_close },
@@ -304,6 +315,7 @@ struct command commands[] = {
 	{ "debug_contents", NULL, cmd_debug_contents },
 	{ "delete", NULL, cmd_delete },
 	{ "down", NULL, cmd_down },
+	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
 	{ "left", NULL, cmd_left },
 	{ "next", NULL, cmd_next },

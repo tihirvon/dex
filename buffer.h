@@ -237,6 +237,8 @@ void move_bol(void);
 void move_eol(void);
 void move_up(int count);
 void move_down(int count);
+void move_bof(void);
+void move_eof(void);
 
 int buffer_get_char(uchar *up);
 
