@@ -617,35 +617,29 @@ static int validate(void)
 	int i;
 
 	for (i = 0; i < nr_bools; i++) {
-		if (bools[i] == 1 || bools[i] == 0) {
-			d_print("=bool %3d: %d\n", i, bools[i]);
-		} else {
-			d_print("!bool %3d: %d\n", i, bools[i]);
+		if (bools[i] != 1 && bools[i] != 0) {
+			d_print("bool %3d: %d\n", i, bools[i]);
 			valid = 0;
 		}
 	}
 
 	for (i = 0; i < nr_nums; i++) {
 		unsigned short num = get_u16le(nums + i * 2);
-		if (num == 0xffff) {
-			d_print("=num %3d: missing\n", i);
-		} else if (num > 32767) {
-			d_print("!num %3d: negative\n", i);
+		if (num > 32767 && num != 0xffff) {
+			d_print("num %3d: negative\n", i);
 			valid = 0;
-		} else {
-			d_print("=num %3d: OK\n", i);
 		}
 	}
 
 	for (i = 0; i < nr_strs; i++) {
 		unsigned short offset = get_u16le(offsets + i * 2);
-		if (offset == 0xffff) {
-			d_print("=str %3d: missing\n", i);
-		} else if (offset > 32767) {
-			d_print("!str %3d: negative\n", i);
+		if (offset == 0xffff)
+			continue;
+		if (offset > 32767) {
+			d_print("str %3d: negative\n", i);
 			valid = 0;
 		} else if (offset + 1 >= strs_size) {
-			d_print("!str %3d: invalid\n", i);
+			d_print("str %3d: invalid\n", i);
 			valid = 0;
 		} else {
 			int len, max_size;
@@ -654,10 +648,8 @@ static int validate(void)
 			for (len = 0; len < max_size && strs[offset + len]; len++)
 				;
 			if (len == max_size) {
-				d_print("!str %3d: missing NUL\n", i);
+				d_print("str %3d: missing NUL\n", i);
 				valid = 0;
-			} else {
-				d_print("=str %3d: OK\n", i);
 			}
 		}
 	}
