@@ -200,6 +200,27 @@ static void cmd_delete(char **args)
 	delete_ch();
 }
 
+static void cmd_delete_bol(char **args)
+{
+	BLOCK_ITER_CURSOR(bi, view);
+	unsigned int len = block_iter_bol(&bi);
+
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
+
+	undo_merge = UNDO_MERGE_NONE;
+	delete(len, 1);
+}
+
+static void cmd_delete_eol(char **args)
+{
+	BLOCK_ITER_CURSOR(bi, view);
+	unsigned int len = count_bytes_eol(&bi) - 1;
+
+	undo_merge = UNDO_MERGE_NONE;
+	delete(len, 0);
+}
+
 static void cmd_down(char **args)
 {
 	move_down(1);
@@ -314,6 +335,8 @@ struct command commands[] = {
 	{ "cut", NULL, cmd_cut },
 	{ "debug_contents", NULL, cmd_debug_contents },
 	{ "delete", NULL, cmd_delete },
+	{ "delete_bol", NULL, cmd_delete_bol },
+	{ "delete_eol", NULL, cmd_delete_eol },
 	{ "down", NULL, cmd_down },
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },

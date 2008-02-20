@@ -194,7 +194,7 @@ void do_delete(unsigned int len)
 	}
 }
 
-static void delete(unsigned int len, int move_after)
+void delete(unsigned int len, int move_after)
 {
 	char *buf;
 
