@@ -267,11 +267,11 @@ static void selection_init(struct block_iter *cur)
 			sel_so = to;
 			if (view->sel_is_lines) {
 				sel_so -= block_iter_bol(&ei);
-				sel_eo += count_bytes_eol(&si);
+				sel_eo += count_bytes_eol(&si) - 1;
 			}
 		} else if (view->sel_is_lines) {
 			sel_so -= block_iter_bol(&si);
-			sel_eo += count_bytes_eol(&ei);
+			sel_eo += count_bytes_eol(&ei) - 1;
 		}
 		selection_check();
 	}
