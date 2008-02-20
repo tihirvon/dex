@@ -355,10 +355,8 @@ void handle_binding(enum term_key_type type, unsigned int key)
 			undo_merge = UNDO_MERGE_NONE;
 			handle_command(b->command);
 			nr_pressed_keys = 0;
-			break;
 		}
-
-		// partial match
-		break;
+		return;
 	}
+	nr_pressed_keys = 0;
 }
