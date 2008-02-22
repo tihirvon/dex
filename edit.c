@@ -298,9 +298,7 @@ unsigned int prepare_selection(void)
 
 		len = so - co;
 		if (view->sel_is_lines) {
-			bi.head = &view->buffer->blocks;
-			bi.blk = view->sel.blk;
-			bi.offset = view->sel.offset;
+			bi = view->sel;
 			len += count_bytes_eol(&bi);
 
 			bi = view->cursor;

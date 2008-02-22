@@ -251,10 +251,7 @@ static void selection_init(struct block_iter *cur)
 		sel_ended = 0;
 		cur_offset = buffer_get_offset(cur->blk, cur->offset);
 
-		si.head = &buffer->blocks;
-		si.blk = view->sel.blk;
-		si.offset = view->sel.offset;
-
+		si = view->sel;
 		ei = view->cursor;
 
 		sel_so = buffer_get_offset(si.blk, si.offset);
