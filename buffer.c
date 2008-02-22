@@ -202,7 +202,7 @@ static int remove_double_slashes(char *str)
  *   - checks that all but the last expanded path component are directories
  *   - last path component is allowed to not exist
  */
-static char *path_absolute(const char *filename)
+char *path_absolute(const char *filename)
 {
 	int depth = 0;
 	char buf[PATH_MAX];

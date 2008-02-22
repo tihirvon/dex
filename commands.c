@@ -292,6 +292,20 @@ static void cmd_right(char **args)
 
 static void cmd_save(char **args)
 {
+	ARGC(0, 1);
+
+	if (args[0]) {
+		char *absolute = path_absolute(args[0]);
+
+		if (!absolute) {
+			return;
+		}
+		free(buffer->filename);
+		free(buffer->abs_filename);
+		buffer->filename = xstrdup(args[0]);
+		buffer->abs_filename = absolute;
+		buffer->ro = 0;
+	}
 	save_buffer();
 }
 

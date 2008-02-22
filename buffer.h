@@ -198,6 +198,7 @@ void record_change(unsigned int offset, char *buf, unsigned int len, int move_af
 void undo(void);
 void redo(void);
 
+char *path_absolute(const char *filename);
 struct view *open_buffer(const char *filename);
 void save_buffer(void);
 char *buffer_get_bytes(unsigned int *lenp);
