@@ -303,7 +303,7 @@ unsigned int prepare_selection(void)
 			bi.offset = view->sel.offset;
 			len += count_bytes_eol(&bi);
 
-			init_block_iter_cursor(&bi, view);
+			bi = view->cursor;
 			len += block_iter_bol(&bi);
 			SET_CURSOR(bi);
 		} else {

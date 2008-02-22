@@ -174,11 +174,6 @@ extern int running;
 extern enum input_mode input_mode;
 extern struct options options;
 
-static inline void init_block_iter_cursor(struct block_iter *bi, struct view *v)
-{
-	*bi = v->cursor;
-}
-
 static inline int buffer_modified(struct buffer *b)
 {
 	return b->save_change_head != b->cur_change_head;
