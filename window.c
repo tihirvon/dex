@@ -73,8 +73,8 @@ static void update_cursor_y(struct view *v)
 	unsigned int nl = 0;
 
 	list_for_each_entry(blk, &v->buffer->blocks, node) {
-		if (blk == v->cblk) {
-			nl += count_nl(blk->data, v->coffset);
+		if (blk == v->cursor.blk) {
+			nl += count_nl(blk->data, v->cursor.offset);
 			v->cy = nl;
 			return;
 		}
@@ -85,7 +85,7 @@ static void update_cursor_y(struct view *v)
 
 void update_cursor_x(struct view *v)
 {
-	BLOCK_ITER_CURSOR(bi, v);
+	struct block_iter bi = v->cursor;
 	unsigned int tw = v->buffer->tab_width;
 
 	block_iter_bol(&bi);
@@ -94,9 +94,9 @@ void update_cursor_x(struct view *v)
 	while (1) {
 		uchar u;
 
-		if (bi.blk == v->cblk && bi.offset == v->coffset)
+		if (bi.blk == v->cursor.blk && bi.offset == v->cursor.offset)
 			break;
-		if (!v->coffset && bi.offset == bi.blk->size && bi.blk->node.next == &v->cblk->node) {
+		if (!v->cursor.offset && bi.offset == bi.blk->size && bi.blk->node.next == &v->cursor.blk->node) {
 			// this[this.size] == this.next[0]
 			break;
 		}

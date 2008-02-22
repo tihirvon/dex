@@ -32,8 +32,8 @@ void delete_block(struct block *blk)
 
 char *buffer_get_bytes(unsigned int *lenp)
 {
-	struct block *blk = view->cblk;
-	unsigned int offset = view->coffset;
+	struct block *blk = view->cursor.blk;
+	unsigned int offset = view->cursor.offset;
 	unsigned int len = *lenp;
 	unsigned int count = 0;
 	char *buf = NULL;
@@ -75,7 +75,7 @@ unsigned int buffer_get_offset(struct block *stop_blk, unsigned int stop_offset)
 
 unsigned int buffer_offset(void)
 {
-	return buffer_get_offset(view->cblk, view->coffset);
+	return buffer_get_offset(view->cursor.blk, view->cursor.offset);
 }
 
 static void add_change(struct change *change, struct change_head *head)
@@ -133,8 +133,8 @@ static void move_offset(unsigned int offset)
 
 	list_for_each_entry(blk, &buffer->blocks, node) {
 		if (offset <= blk->size) {
-			view->cblk = blk;
-			view->coffset = offset;
+			view->cursor.blk = blk;
+			view->cursor.offset = offset;
 			return;
 		}
 		offset -= blk->size;

@@ -255,9 +255,7 @@ static void selection_init(struct block_iter *cur)
 		si.blk = view->sel_blk;
 		si.offset = view->sel_offset;
 
-		ei.head = &buffer->blocks;
-		ei.blk = view->cblk;
-		ei.offset = view->coffset;
+		ei = view->cursor;
 
 		sel_so = buffer_get_offset(si.blk, si.offset);
 		sel_eo = buffer_get_offset(ei.blk, ei.offset);
@@ -322,7 +320,7 @@ static void print_line(struct block_iter *bi)
 
 static void update_full(void)
 {
-	BLOCK_ITER_CURSOR(bi, view);
+	struct block_iter bi = view->cursor;
 	int i;
 
 	obuf.tab_width = buffer->tab_width;
@@ -360,7 +358,7 @@ static void update_full(void)
 
 static void update_cursor_line(void)
 {
-	BLOCK_ITER_CURSOR(bi, view);
+	struct block_iter bi = view->cursor;
 
 	obuf.tab_width = buffer->tab_width;
 	obuf.scroll_x = view->vx;
@@ -434,8 +432,8 @@ static void debug_blocks(void)
 		BUG_ON(blk->size > blk->alloc);
 		nl = count_nl(blk->data, blk->size);
 		BUG_ON(nl != blk->nl);
-		if (blk == view->cblk) {
-			BUG_ON(view->coffset > blk->size);
+		if (blk == view->cursor.blk) {
+			BUG_ON(view->cursor.offset > blk->size);
 		}
 	}
 }

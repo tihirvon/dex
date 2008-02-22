@@ -23,8 +23,11 @@
 #define WINDOW(item) container_of((item), struct window, node)
 #define BLOCK_SIZE 64
 
-#define BLOCK_ITER_CURSOR(name, window) \
-	struct block_iter name = { &window->buffer->blocks, window->cblk, window->coffset}
+#define SET_CURSOR(bi) \
+	do { \
+		view->cursor.blk = bi.blk; \
+		view->cursor.offset = bi.offset; \
+	} while (0)
 
 #define MIN_ALLOC 64U
 #define ALLOC_ROUND(x) (((x) + MIN_ALLOC - 1) & ~(MIN_ALLOC - 1))
@@ -91,9 +94,7 @@ struct view {
 	struct buffer *buffer;
 	struct window *window;
 
-	// cursor
-	struct block *cblk;
-	unsigned int coffset;
+	struct block_iter cursor;
 
 	// cursor y
 	int cy;
@@ -176,9 +177,7 @@ extern struct options options;
 
 static inline void init_block_iter_cursor(struct block_iter *bi, struct view *v)
 {
-	bi->head = &v->buffer->blocks;
-	bi->blk = v->cblk;
-	bi->offset = v->coffset;
+	*bi = v->cursor;
 }
 
 static inline int buffer_modified(struct buffer *b)
