@@ -3,6 +3,7 @@
 struct options options = {
 	.move_wraps = 1,
 	.trim_whitespace = 1,
+	.auto_indent = 1,
 };
 
 unsigned int update_flags;
@@ -404,6 +405,40 @@ void backspace(void)
 	}
 }
 
+// get indentation of previous non-whitespace-only line
+static char *get_indent(void)
+{
+	BLOCK_ITER_CURSOR(bi, view);
+	char *str;
+	int i, count = 0;
+	uchar u;
+
+	while (block_iter_prev_line(&bi)) {
+		block_iter_bol(&bi);
+		count = 0;
+		while (1) {
+			BUG_ON(!buffer->next_char(&bi, &u));
+			if (u != ' ' && u != '\t')
+				break;
+			count++;
+		}
+		if (u != '\n')
+			break;
+
+		// whitespace only
+		block_iter_prev_line(&bi);
+	}
+
+	block_iter_bol(&bi);
+	str = xnew(char, count + 1);
+	for (i = 0; i < count; i++) {
+		buffer->next_char(&bi, &u);
+		str[i] = u;
+	}
+	str[i] = 0;
+	return str;
+}
+
 // remove spaces and tables before and after cursor
 static void trim_whitespace(void)
 {
@@ -438,6 +473,17 @@ static void trim_whitespace(void)
 	delete(count, 0);
 }
 
+static void auto_indent(void)
+{
+	char *indent = get_indent();
+	int len = strlen(indent);
+
+	if (len) {
+		insert(indent, len);
+		move_right(len);
+	}
+}
+
 void insert_ch(unsigned int ch)
 {
 	if (view->sel_blk)
@@ -455,6 +501,8 @@ void insert_ch(unsigned int ch)
 			undo_merge = UNDO_MERGE_NONE;
 		insert(buf, 1);
 		move_right(1);
+		if (options.auto_indent)
+			auto_indent();
 
 		undo_merge = UNDO_MERGE_NONE;
 	} else {

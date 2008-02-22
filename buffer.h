@@ -138,6 +138,7 @@ struct command {
 struct options {
 	int move_wraps;
 	int trim_whitespace;
+	int auto_indent;
 };
 
 enum undo_merge {
