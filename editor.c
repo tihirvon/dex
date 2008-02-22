@@ -86,15 +86,15 @@ static int format_status(char *buf, int size, const char *format)
 					w += add_status_str(buf, size, &pos, "[+]");
 				break;
 			case 'y':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cy));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
 				break;
 			case 'x':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx + 1));
 				break;
 			case 'X':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_idx));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_idx + 1));
 				if (view->cx != view->cx_idx)
-					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx));
+					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx + 1));
 				break;
 			case 'c':
 				if (got_char)
