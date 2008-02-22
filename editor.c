@@ -230,7 +230,7 @@ static int sel_ended;
 
 static void selection_check(void)
 {
-	if (view->sel_blk) {
+	if (view->sel.blk) {
 		if (!sel_started && cur_offset >= sel_so) {
 			buf_set_colors(0, 7);
 			sel_started = 1;
@@ -244,7 +244,7 @@ static void selection_check(void)
 
 static void selection_init(struct block_iter *cur)
 {
-	if (view->sel_blk) {
+	if (view->sel.blk) {
 		struct block_iter si, ei;
 
 		sel_started = 0;
@@ -252,8 +252,8 @@ static void selection_init(struct block_iter *cur)
 		cur_offset = buffer_get_offset(cur->blk, cur->offset);
 
 		si.head = &buffer->blocks;
-		si.blk = view->sel_blk;
-		si.offset = view->sel_offset;
+		si.blk = view->sel.blk;
+		si.offset = view->sel.offset;
 
 		ei = view->cursor;
 
@@ -570,7 +570,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_flags |= UPDATE_STATUS_LINE;
 
 		// full update when selecting and cursor moved
-		if (view->sel_blk)
+		if (view->sel.blk)
 			update_flags |= UPDATE_FULL;
 	}
 

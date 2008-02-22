@@ -212,8 +212,7 @@ void delete(unsigned int len, int move_after)
 
 void select_start(int is_lines)
 {
-	view->sel_blk = view->cursor.blk;
-	view->sel_offset = view->cursor.offset;
+	view->sel = view->cursor;
 	view->sel_is_lines = is_lines;
 	update_flags |= UPDATE_CURSOR_LINE;
 }
@@ -222,8 +221,8 @@ void select_end(void)
 {
 	if (view->sel_is_lines)
 		move_preferred_x();
-	view->sel_blk = NULL;
-	view->sel_offset = 0;
+	view->sel.blk = NULL;
+	view->sel.offset = 0;
 	view->sel_is_lines = 0;
 	update_flags |= UPDATE_FULL;
 }
@@ -273,12 +272,12 @@ unsigned int count_bytes_eol(struct block_iter *bi)
 
 unsigned int prepare_selection(void)
 {
-	if (view->sel_blk) {
+	if (view->sel.blk) {
 		// there is a selection
 		struct block_iter bi;
 		unsigned int so, co, len;
 
-		so = buffer_get_offset(view->sel_blk, view->sel_offset);
+		so = buffer_get_offset(view->sel.blk, view->sel.offset);
 		co = buffer_offset();
 		if (co > so) {
 			unsigned int to;
@@ -289,19 +288,19 @@ unsigned int prepare_selection(void)
 			so = to;
 
 			tb = view->cursor.blk;
-			view->cursor.blk = view->sel_blk;
-			view->sel_blk = tb;
+			view->cursor.blk = view->sel.blk;
+			view->sel.blk = tb;
 
 			to = view->cursor.offset;
-			view->cursor.offset = view->sel_offset;
-			view->sel_offset = to;
+			view->cursor.offset = view->sel.offset;
+			view->sel.offset = to;
 		}
 
 		len = so - co;
 		if (view->sel_is_lines) {
 			bi.head = &view->buffer->blocks;
-			bi.blk = view->sel_blk;
-			bi.offset = view->sel_offset;
+			bi.blk = view->sel.blk;
+			bi.offset = view->sel.offset;
 			len += count_bytes_eol(&bi);
 
 			init_block_iter_cursor(&bi, view);
@@ -325,7 +324,7 @@ unsigned int prepare_selection(void)
 
 void paste(void)
 {
-	if (view->sel_blk)
+	if (view->sel.blk)
 		delete_ch();
 
 	undo_merge = UNDO_MERGE_NONE;
@@ -349,7 +348,7 @@ void paste(void)
 
 void delete_ch(void)
 {
-	if (view->sel_blk) {
+	if (view->sel.blk) {
 		unsigned int len;
 
 		undo_merge = UNDO_MERGE_NONE;
@@ -375,7 +374,7 @@ void delete_ch(void)
 
 void backspace(void)
 {
-	if (view->sel_blk) {
+	if (view->sel.blk) {
 		unsigned int len;
 
 		undo_merge = UNDO_MERGE_NONE;
@@ -480,7 +479,7 @@ static void auto_indent(void)
 
 void insert_ch(unsigned int ch)
 {
-	if (view->sel_blk)
+	if (view->sel.blk)
 		delete_ch();
 
 	if (undo_merge != UNDO_MERGE_INSERT)

@@ -114,8 +114,7 @@ struct view {
 	// Selection always starts at exact position of cursor and ends to
 	// current position of cursor regardless of whether your are selecting
 	// lines or not.
-	struct block *sel_blk;
-	unsigned int sel_offset;
+	struct block_iter sel;
 	unsigned sel_is_lines : 1;
 };
 
