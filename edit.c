@@ -2,6 +2,7 @@
 
 struct options options = {
 	.move_wraps = 1,
+	.trim_whitespace = 1,
 };
 
 unsigned int update_flags;
@@ -403,30 +404,75 @@ void backspace(void)
 	}
 }
 
+// remove spaces and tables before and after cursor
+static void trim_whitespace(void)
+{
+	BLOCK_ITER_CURSOR(bi, view);
+	int i, count = 0;
+	uchar u;
+
+	// count spaces and tables at or after cursor
+	while (buffer->next_char(&bi, &u)) {
+		if (u != '\t' && u != ' ') {
+			buffer->prev_char(&bi, &u);
+			break;
+		}
+		count++;
+	}
+
+	// back to old position
+	for (i = 0; i < count; i++)
+		buffer->prev_char(&bi, &u);
+
+	// count spaces and tabs before cursor
+	while (buffer->prev_char(&bi, &u)) {
+		if (u != '\t' && u != ' ') {
+			buffer->next_char(&bi, &u);
+			break;
+		}
+		count++;
+	}
+
+	view->cblk = bi.blk;
+	view->coffset = bi.offset;
+	delete(count, 0);
+}
+
 void insert_ch(unsigned int ch)
 {
-	unsigned char buf[5];
-	int i = 0;
-
 	if (view->sel_blk)
 		delete_ch();
 
 	if (undo_merge != UNDO_MERGE_INSERT)
 		undo_merge = UNDO_MERGE_NONE;
 
-	if (buffer->utf8) {
-		u_set_char_raw(buf, &i, ch);
-	} else {
-		buf[i++] = ch;
-	}
-	if (ch != '\n' && view->cblk->node.next == &buffer->blocks && view->coffset == view->cblk->size)
-		buf[i++] = '\n';
-	insert(buf, i);
-	move_right(1);
+	if (ch == '\n') {
+		unsigned char buf[1] = { '\n' };
 
-	undo_merge = UNDO_MERGE_INSERT;
-	if (ch == '\n')
+		if (options.trim_whitespace)
+			trim_whitespace();
+		if (undo_merge != UNDO_MERGE_INSERT)
+			undo_merge = UNDO_MERGE_NONE;
+		insert(buf, 1);
+		move_right(1);
+
 		undo_merge = UNDO_MERGE_NONE;
+	} else {
+		unsigned char buf[5];
+		int i = 0;
+
+		if (buffer->utf8) {
+			u_set_char_raw(buf, &i, ch);
+		} else {
+			buf[i++] = ch;
+		}
+		if (view->cblk->node.next == &buffer->blocks && view->coffset == view->cblk->size)
+			buf[i++] = '\n';
+		insert(buf, i);
+		move_right(1);
+
+		undo_merge = UNDO_MERGE_INSERT;
+	}
 }
 
 void move_left(int count)
