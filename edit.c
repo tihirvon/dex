@@ -1,6 +1,8 @@
 #include "buffer.h"
 
-struct options options;
+struct options options = {
+	.move_wraps = 1,
+};
 
 unsigned int update_flags;
 
