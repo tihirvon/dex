@@ -1,6 +1,7 @@
 #include "buffer.h"
 
-int move_wraps = 1;
+struct options options;
+
 unsigned int update_flags;
 
 static char *copy_buf;
@@ -435,7 +436,7 @@ void move_left(int count)
 
 		if (!buffer->prev_char(&bi, &u))
 			break;
-		if (!move_wraps && u == '\n') {
+		if (!options.move_wraps && u == '\n') {
 			block_iter_next_byte(&bi, &u);
 			break;
 		}
@@ -456,7 +457,7 @@ void move_right(int count)
 
 		if (!buffer->next_char(&bi, &u))
 			break;
-		if (!move_wraps && u == '\n') {
+		if (!options.move_wraps && u == '\n') {
 			block_iter_prev_byte(&bi, &u);
 			break;
 		}

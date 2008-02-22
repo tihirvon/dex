@@ -135,6 +135,10 @@ struct command {
 	void (*cmd)(char **);
 };
 
+struct options {
+	int move_wraps;
+};
+
 enum undo_merge {
 	UNDO_MERGE_NONE,
 	UNDO_MERGE_INSERT,
@@ -166,9 +170,7 @@ extern struct command commands[];
 extern int nr_pressed_keys;
 extern int running;
 extern enum input_mode input_mode;
-
-// options
-extern int move_wraps;
+extern struct options options;
 
 static inline void init_block_iter_cursor(struct block_iter *bi, struct view *v)
 {
