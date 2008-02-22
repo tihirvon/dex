@@ -206,7 +206,7 @@ char *path_absolute(const char *filename)
 {
 	int depth = 0;
 	char buf[PATH_MAX];
-	char prev;
+	char prev = 0;
 	char *sp;
 	int s, d;
 
