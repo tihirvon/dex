@@ -7,7 +7,7 @@ extern const char hex_tab[16];
 extern const signed char u_len_tab[256];
 extern int u_min_val[4];
 extern int u_max_val[4];
-unsigned int u_first_byte_mask[4];
+extern unsigned int u_first_byte_mask[4];
 
 /*
  * Invalid bytes are or'ed with this
