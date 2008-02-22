@@ -563,6 +563,13 @@ void save_buffer(void)
 	char *filename;
 	int len, fd;
 
+	if (!buffer->filename) {
+		return;
+	}
+	if (buffer->ro) {
+		return;
+	}
+
 	len = strlen(buffer->filename);
 	filename = xnew(char, len + 8);
 	memcpy(filename, buffer->filename, len);
@@ -571,6 +578,7 @@ void save_buffer(void)
 	filename[len + 7] = 0;
 	fd = mkstemp(filename);
 	if (fd < 0) {
+		free(filename);
 		return;
 	}
 	list_for_each_entry(blk, &buffer->blocks, node) {
@@ -579,7 +587,11 @@ void save_buffer(void)
 	}
 	close(fd);
 	if (rename(filename, buffer->filename)) {
+		unlink(filename);
+		free(filename);
+		return;
 	}
 
+	free(filename);
 	buffer->save_change_head = buffer->cur_change_head;
 }
