@@ -329,7 +329,7 @@ static void update_full(void)
 
 	selection_init(&bi);
 	for (i = 0; i < window->h; i++) {
-		if (bi.offset == bi.blk->size && bi.blk->node.next == bi.head)
+		if (block_iter_eof(&bi))
 			break;
 		buf_move_cursor(0, i);
 		print_line(&bi);

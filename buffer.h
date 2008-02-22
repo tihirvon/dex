@@ -254,4 +254,9 @@ void ui_end(void);
 void handle_command(const char *cmd);
 void handle_binding(enum term_key_type type, unsigned int key);
 
+static inline int block_iter_eof(struct block_iter *bi)
+{
+	return bi->offset == bi->blk->size && bi->blk->node.next == bi->head;
+}
+
 #endif
