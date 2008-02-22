@@ -191,8 +191,8 @@ unsigned int block_iter_prev_line(struct block_iter *bi);
 unsigned int block_iter_bol(struct block_iter *bi);
 int block_iter_get_byte(struct block_iter *bi, uchar *up);
 int block_iter_get_uchar(struct block_iter *bi, uchar *up);
+unsigned int iter_get_offset(struct block_iter *bi);
 
-unsigned int buffer_get_offset(struct block *stop_blk, unsigned int stop_offset);
 unsigned int buffer_offset(void);
 void record_change(unsigned int offset, char *buf, unsigned int len, int move_after);
 void undo(void);

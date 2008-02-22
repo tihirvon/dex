@@ -174,3 +174,16 @@ int block_iter_get_uchar(struct block_iter *bi, uchar *up)
 	struct block_iter save = *bi;
 	return block_iter_next_uchar(&save, up);
 }
+
+unsigned int iter_get_offset(struct block_iter *bi)
+{
+	struct block *blk;
+	unsigned int offset = 0;
+
+	list_for_each_entry(blk, bi->head, node) {
+		if (blk == bi->blk)
+			break;
+		offset += blk->size;
+	}
+	return offset + bi->offset;
+}

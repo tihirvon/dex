@@ -249,13 +249,13 @@ static void selection_init(struct block_iter *cur)
 
 		sel_started = 0;
 		sel_ended = 0;
-		cur_offset = buffer_get_offset(cur->blk, cur->offset);
+		cur_offset = iter_get_offset(cur);
 
 		si = view->sel;
 		ei = view->cursor;
 
-		sel_so = buffer_get_offset(si.blk, si.offset);
-		sel_eo = buffer_get_offset(ei.blk, ei.offset);
+		sel_so = iter_get_offset(&si);
+		sel_eo = iter_get_offset(&ei);
 		if (sel_so > sel_eo) {
 			unsigned int to = sel_eo;
 			sel_eo = sel_so;
