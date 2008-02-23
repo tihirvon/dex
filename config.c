@@ -4,17 +4,13 @@
 
 void read_config(void)
 {
-	const char *home = getenv("HOME");
 	char filename[1024];
 	struct stat st;
 	size_t size, alloc = 0;
 	char *buf, *ptr, *line = NULL;
 	int fd;
 
-	if (!home)
-		home = "";
-
-	snprintf(filename, sizeof(filename), "%s/.editor/rc", home);
+	snprintf(filename, sizeof(filename), "%s/.editor/rc", home_dir);
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
 		return;

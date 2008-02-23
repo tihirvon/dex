@@ -173,6 +173,7 @@ extern int nr_pressed_keys;
 extern int running;
 extern enum input_mode input_mode;
 extern struct options options;
+extern char *home_dir;
 
 static inline int buffer_modified(struct buffer *b)
 {

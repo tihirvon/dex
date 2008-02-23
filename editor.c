@@ -9,6 +9,7 @@
 
 enum input_mode input_mode;
 int running = 1;
+char *home_dir;
 
 static int received_signal;
 static int cmdline_x;
@@ -623,12 +624,24 @@ static void signal_handler(int signum)
 	received_signal = signum;
 }
 
+static void init_misc(void)
+{
+	home_dir = getenv("HOME");
+	if (!home_dir) {
+		home_dir = xcalloc(1);
+	} else {
+		home_dir = xstrdup(home_dir);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int i;
 	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
 	const char *term = NULL;
 	const char *charset;
+
+	init_misc();
 
 	for (i = 1; i < argc; i++) {
 		const char *opt = argv[i];
