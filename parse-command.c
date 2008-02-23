@@ -2,6 +2,7 @@
 #include "gbuf.h"
 
 #include <ctype.h>
+#include <pwd.h>
 
 // can contain many commands. each terminated with NULL
 static char **argv;
@@ -16,6 +17,47 @@ static void add_arg(char *str)
 		xrenew(argv, arga);
 	}
 	argv[argc++] = str;
+}
+
+static const char *get_home_dir(const char *username, int len)
+{
+	char buf[len + 1];
+	struct passwd *passwd;
+
+	memcpy(buf, username, len);
+	buf[len] = 0;
+	passwd = getpwnam(buf);
+	if (!passwd)
+		return NULL;
+	return passwd->pw_dir;
+}
+
+static int parse_home(const char *cmd, int *posp)
+{
+	int len, pos = *posp;
+	const char *username = cmd + pos + 1;
+	const char *str;
+
+	for (len = 0; username[len]; len++) {
+		char ch = username[len];
+		if (isspace(ch) || ch == '/' || ch == ':')
+			break;
+		if (!isalnum(ch))
+			return 0;
+	}
+
+	if (!len) {
+		gbuf_add_str(&arg, home_dir);
+		*posp = pos + 1;
+		return 1;
+	}
+
+	str = get_home_dir(username, len);
+	if (!str)
+		return 0;
+	gbuf_add_str(&arg, str);
+	*posp = pos + 1 + len;
+	return 1;
 }
 
 static int parse_sq(const char *cmd, int *posp)
@@ -86,6 +128,12 @@ static int parse_command(const char *cmd, int *posp)
 				add_arg(gbuf_steal(&arg));
 			got_arg = 0;
 			break;
+		}
+
+		if (!got_arg && cmd[pos] == '~') {
+			got_arg = 1;
+			if (parse_home(cmd, &pos))
+				continue;
 		}
 
 		got_arg = 1;
