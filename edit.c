@@ -420,6 +420,8 @@ static char *get_indent(void)
 		// whitespace only
 		block_iter_prev_line(&bi);
 	}
+	if (!count)
+		return NULL;
 
 	block_iter_bol(&bi);
 	str = xnew(char, count + 1);
@@ -467,10 +469,11 @@ static void trim_whitespace(void)
 static void auto_indent(void)
 {
 	char *indent = get_indent();
-	int len = strlen(indent);
 
-	if (len) {
+	if (indent) {
+		int len = strlen(indent);
 		insert(indent, len);
+		free(indent);
 		move_right(len);
 	}
 }
