@@ -72,7 +72,7 @@ static void add_change(struct change *change, struct change_head *head)
 	head->prev[head->nr_prev++] = &change->head;
 }
 
-void record_change(unsigned int offset, char *buf, unsigned int len, int move_after)
+static void record_change(unsigned int offset, char *buf, unsigned int len, int move_after)
 {
 	struct change *change;
 
@@ -112,6 +112,16 @@ void record_change(unsigned int offset, char *buf, unsigned int len, int move_af
 
 	add_change(change, buffer->cur_change_head);
 	buffer->cur_change_head = &change->head;
+}
+
+void record_insert(unsigned int len)
+{
+	record_change(buffer_offset(), NULL, len, 0);
+}
+
+void record_delete(char *buf, unsigned int len, int move_after)
+{
+	record_change(buffer_offset(), buf, len, move_after);
 }
 
 static void move_offset(unsigned int offset)

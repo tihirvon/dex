@@ -195,7 +195,8 @@ int block_iter_get_uchar(struct block_iter *bi, uchar *up);
 unsigned int iter_get_offset(struct block_iter *bi);
 
 unsigned int buffer_offset(void);
-void record_change(unsigned int offset, char *buf, unsigned int len, int move_after);
+void record_insert(unsigned int len);
+void record_delete(char *buf, unsigned int len, int move_after);
 void undo(void);
 void redo(void);
 

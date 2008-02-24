@@ -137,7 +137,7 @@ void do_insert(const char *buf, unsigned int len)
 
 void insert(const char *buf, unsigned int len)
 {
-	record_change(buffer_offset(), NULL, len, 0);
+	record_insert(len);
 	do_insert(buf, len);
 	update_preferred_x();
 }
@@ -204,7 +204,7 @@ void delete(unsigned int len, int move_after)
 
 	buf = buffer_get_bytes(&len);
 	if (len) {
-		record_change(buffer_offset(), buf, len, move_after);
+		record_delete(buf, len, move_after);
 		do_delete(len);
 		update_preferred_x();
 	}
@@ -243,7 +243,7 @@ void cut(unsigned int len, int is_lines)
 	buf = buffer_get_bytes(&len);
 	if (len) {
 		record_copy(xmemdup(buf, len), len, is_lines);
-		record_change(buffer_offset(), buf, len, 0);
+		record_delete(buf, len, 0);
 		do_delete(len);
 	}
 }
@@ -335,7 +335,7 @@ void paste(void)
 		block_iter_next_line(&bi);
 		SET_CURSOR(bi);
 
-		record_change(buffer_offset(), NULL, copy_len, 0);
+		record_insert(copy_len);
 		do_insert(copy_buf, copy_len);
 
 		move_preferred_x();
