@@ -55,7 +55,8 @@ struct change_head {
 struct change {
 	struct change_head head;
 	unsigned int offset;
-	unsigned count : 31;
+	unsigned int del_count;
+	unsigned ins_count : 31;
 	// after undoing backspace move after the text
 	unsigned move_after : 1;
 	// deleted bytes (inserted bytes need not to be saved)
@@ -197,6 +198,7 @@ unsigned int iter_get_offset(struct block_iter *bi);
 unsigned int buffer_offset(void);
 void record_insert(unsigned int len);
 void record_delete(char *buf, unsigned int len, int move_after);
+void record_replace(char *buf, unsigned int ins_count, unsigned int del_count);
 void undo(void);
 void redo(void);
 

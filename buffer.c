@@ -65,63 +65,70 @@ unsigned int buffer_offset(void)
 	return iter_get_offset(&view->cursor);
 }
 
-static void add_change(struct change *change, struct change_head *head)
+static struct change *new_change(void)
 {
+	struct change_head *head = buffer->cur_change_head;
+	struct change *change = xcalloc(sizeof(struct change));
+
 	change->head.next = head;
 	xrenew(head->prev, head->nr_prev + 1);
 	head->prev[head->nr_prev++] = &change->head;
-}
 
-static void record_change(unsigned int offset, char *buf, unsigned int len, int move_after)
-{
-	struct change *change;
-
-	if (undo_merge && buffer->cur_change_head->next) {
-		change = (struct change *)buffer->cur_change_head;
-		if (undo_merge == UNDO_MERGE_INSERT && !buf && !change->buf) {
-			change->count += len;
-			return;
-		}
-		if (buf && change->buf) {
-			if (undo_merge == UNDO_MERGE_DELETE) {
-				xrenew(change->buf, change->count + len);
-				memcpy(change->buf + change->count, buf, len);
-				change->count += len;
-				free(buf);
-				return;
-			}
-			if (undo_merge == UNDO_MERGE_BACKSPACE) {
-				xrenew(buf, len + change->count);
-				memcpy(buf + len, change->buf, change->count);
-				change->count += len;
-				free(change->buf);
-				change->buf = buf;
-				change->offset -= len;
-				return;
-			}
-		}
-	}
-
-	change = xmalloc(sizeof(struct change));
-	change->offset = offset;
-	change->count = len;
-	change->move_after = move_after;
-	change->buf = buf;
-	change->head.prev = NULL;
-	change->head.nr_prev = 0;
-
-	add_change(change, buffer->cur_change_head);
 	buffer->cur_change_head = &change->head;
+	return change;
 }
 
 void record_insert(unsigned int len)
 {
-	record_change(buffer_offset(), NULL, len, 0);
+	struct change *change = (struct change *)buffer->cur_change_head;
+
+	if (undo_merge == UNDO_MERGE_INSERT && change && !change->del_count) {
+		change->ins_count += len;
+		return;
+	}
+
+	change = new_change();
+	change->offset = buffer_offset();
+	change->ins_count = len;
 }
 
 void record_delete(char *buf, unsigned int len, int move_after)
 {
-	record_change(buffer_offset(), buf, len, move_after);
+	struct change *change = (struct change *)buffer->cur_change_head;
+
+	if (change && !change->ins_count) {
+		if (undo_merge == UNDO_MERGE_DELETE) {
+			xrenew(change->buf, change->del_count + len);
+			memcpy(change->buf + change->del_count, buf, len);
+			change->del_count += len;
+			free(buf);
+			return;
+		}
+		if (undo_merge == UNDO_MERGE_BACKSPACE) {
+			xrenew(buf, len + change->del_count);
+			memcpy(buf + len, change->buf, change->del_count);
+			change->del_count += len;
+			free(change->buf);
+			change->buf = buf;
+			change->offset -= len;
+			return;
+		}
+	}
+
+	change = new_change();
+	change->offset = buffer_offset();
+	change->del_count = len;
+	change->move_after = move_after;
+	change->buf = buf;
+}
+
+void record_replace(char *buf, unsigned int ins_count, unsigned int del_count)
+{
+	struct change *change = new_change();
+	change->offset = buffer_offset();
+	change->ins_count = ins_count;
+	change->del_count = del_count;
+	change->buf = buf;
 }
 
 static void move_offset(unsigned int offset)
@@ -141,17 +148,34 @@ static void move_offset(unsigned int offset)
 static void reverse_change(struct change *change)
 {
 	move_offset(change->offset);
-	if (change->buf) {
-		do_insert(change->buf, change->count);
+	if (!change->ins_count) {
+		// convert delete to insert
+		do_insert(change->buf, change->del_count);
 		if (change->move_after)
-			move_offset(change->offset + change->count);
+			move_offset(change->offset + change->del_count);
+		change->ins_count = change->del_count;
+		change->del_count = 0;
 		update_preferred_x();
 		free(change->buf);
 		change->buf = NULL;
+	} else if (change->del_count) {
+		// reverse replace
+		unsigned int count = change->ins_count;
+		char *buf = buffer_get_bytes(&count);
+
+		do_delete(change->ins_count);
+		do_insert(change->buf, change->del_count);
+		free(change->buf);
+		change->buf = buf;
+		change->ins_count = change->del_count;
+		change->del_count = count;
 	} else {
-		unsigned int count = change->count;
+		// convert insert to delete
+		unsigned int count = change->ins_count;
 		change->buf = buffer_get_bytes(&count);
-		do_delete(change->count);
+		do_delete(change->ins_count);
+		change->del_count = change->ins_count;
+		change->ins_count = 0;
 		update_preferred_x();
 	}
 }
