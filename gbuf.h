@@ -1,10 +1,7 @@
 #ifndef GBUF_H
 #define GBUF_H
 
-#include "xmalloc.h"
-#include "debug.h"
-
-#include <stdlib.h>
+#include "util.h"
 
 struct gbuf {
 	char *buffer;
