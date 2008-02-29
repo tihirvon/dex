@@ -3,7 +3,6 @@
 
 #include "list.h"
 #include "uchar.h"
-#include "term.h"
 #include "util.h"
 
 #define BLOCK(item) container_of((item), struct block, node)
