@@ -4,20 +4,7 @@
 #include "list.h"
 #include "uchar.h"
 #include "term.h"
-#include "xmalloc.h"
-#include "debug.h"
 #include "util.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <limits.h>
 
 #define BLOCK(item) container_of((item), struct block, node)
 #define VIEW(item) container_of((item), struct view, node)

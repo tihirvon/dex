@@ -2,8 +2,6 @@
 #include "buffer.h"
 #include "gbuf.h"
 
-#include <string.h>
-
 GBUF(cmdline);
 int cmdline_pos;
 

@@ -2,8 +2,6 @@
 #include "window.h"
 #include "term.h"
 
-#include <ctype.h>
-
 #define MAX_KEYS 4
 
 struct binding {

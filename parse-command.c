@@ -2,9 +2,6 @@
 #include "buffer.h"
 #include "gbuf.h"
 
-#include <ctype.h>
-#include <pwd.h>
-
 // can contain many commands. each terminated with NULL
 static char **argv;
 static int argc;

@@ -1,8 +1,6 @@
 #include "buffer.h"
 #include "commands.h"
 
-#include <sys/mman.h>
-
 void read_config(void)
 {
 	char filename[1024];
