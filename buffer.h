@@ -178,7 +178,6 @@ void record_replace(char *buf, unsigned int ins_count, unsigned int del_count);
 void undo(void);
 void redo(void);
 
-char *path_absolute(const char *filename);
 char *buffer_get_bytes(unsigned int *lenp);
 
 void update_cursor_x(struct view *v);

@@ -86,3 +86,183 @@ void debug_print(const char *function, const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 }
+
+static int remove_double_slashes(char *str)
+{
+	char prev = 0;
+	int s, d;
+
+	d = 0;
+	for (s = 0; str[s]; s++) {
+		char ch = str[s];
+
+		if (ch == '/' && prev == '/')
+			continue;
+		str[d++] = ch;
+		prev = ch;
+	}
+	str[d] = 0;
+	return d;
+}
+
+/*
+ * canonicalizes filename
+ *
+ *   - replaces double-slashes with one slash
+ *   - removes any "." or ".." path components
+ *   - makes path absolute
+ *   - expands symbolic links
+ *   - checks that all but the last expanded path component are directories
+ *   - last path component is allowed to not exist
+ */
+char *path_absolute(const char *filename)
+{
+	int depth = 0;
+	char buf[PATH_MAX];
+	char prev = 0;
+	char *sp;
+	int s, d;
+
+	d = 0;
+	if (filename[0] != '/') {
+		getcwd(buf, sizeof(buf));
+		d = strlen(buf);
+		buf[d++] = '/';
+		prev = '/';
+	}
+	for (s = 0; filename[s]; s++) {
+		char ch = filename[s];
+
+		if (prev == '/' && ch == '/')
+			continue;
+		buf[d++] = ch;
+		prev = ch;
+	}
+	buf[d] = 0;
+
+	// for each component:
+	//     remove "."
+	//     remove ".." and previous component
+	//     if symlink then replace with link destination and start over
+
+	sp = buf + 1;
+	while (*sp) {
+		struct stat st;
+		char *ep = strchr(sp, '/');
+		int last = !ep;
+		int rc;
+
+		if (ep)
+			*ep = 0;
+		if (!strcmp(sp, ".")) {
+			if (last) {
+				*sp = 0;
+				break;
+			}
+			memmove(sp, ep + 1, strlen(ep + 1) + 1);
+			d_print("'%s' '%s' (.)\n", buf, sp);
+			continue;
+		}
+		if (!strcmp(sp, "..")) {
+			if (sp == buf + 1) {
+				// first component is "..". remove it
+				if (last) {
+					*sp = 0;
+					break;
+				}
+				memmove(sp, ep + 1, strlen(ep + 1) + 1);
+			} else {
+				// remove previous component
+				sp -= 2;
+				while (*sp != '/')
+					sp--;
+				sp++;
+
+				if (last) {
+					*sp = 0;
+					break;
+				}
+				memmove(sp, ep + 1, strlen(ep + 1) + 1);
+			}
+			d_print("'%s' '%s' (..)\n", buf, sp);
+			continue;
+		}
+
+		rc = lstat(buf, &st);
+		if (rc) {
+			if (last && errno == ENOENT)
+				break;
+			return NULL;
+		}
+
+		if (S_ISLNK(st.st_mode)) {
+			char target[PATH_MAX];
+			ssize_t len, clen;
+
+			if (++depth > 8) {
+				errno = ELOOP;
+				return NULL;
+			}
+			len = readlink(buf, target, sizeof(target));
+			if (len < 0) {
+				d_print("readlink failed for '%s'\n", buf);
+				return NULL;
+			}
+			if (len == sizeof(target)) {
+				errno = ENAMETOOLONG;
+				return NULL;
+			}
+			target[len] = 0;
+			len = remove_double_slashes(target);
+
+			if (target[0] == '/')
+				sp = buf;
+
+			if (last) {
+				if (sp - buf + len + 1 > sizeof(buf)) {
+					errno = ENAMETOOLONG;
+					return NULL;
+				}
+				memcpy(sp, target, len + 1);
+				d_print("'%s' '%s' (last)\n", buf, sp);
+				continue;
+			}
+
+			// remove trailing slash
+			if (target[len - 1] == '/')
+				target[--len] = 0;
+
+			// replace sp - ep with target
+			*ep = '/';
+			clen = ep - sp;
+			if (clen != len) {
+				if (len > clen && strlen(buf) + len - clen + 1 > sizeof(buf)) {
+					errno = ENAMETOOLONG;
+					return NULL;
+				}
+				memmove(sp + len, ep, strlen(ep) + 1);
+			}
+			memcpy(sp, target, len);
+			d_print("'%s' '%s'\n", buf, sp);
+			continue;
+		}
+
+		if (last) {
+			if (!S_ISREG(st.st_mode)) {
+				// FIXME: better error message
+				errno = EBADF;
+				return NULL;
+			}
+			break;
+		}
+
+		if (!S_ISDIR(st.st_mode)) {
+			errno = ENOTDIR;
+			return NULL;
+		}
+
+		*ep = '/';
+		sp = ep + 1;
+	}
+	return xstrdup(buf);
+}
