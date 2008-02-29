@@ -16,13 +16,9 @@ void read_config(void)
 	}
 	fstat(fd, &st);
 	size = st.st_size;
-	if (!size) {
-		close(fd);
-		return;
-	}
-	buf = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	buf = xmmap(fd, 0, size);
 	close(fd);
-	if (buf == MAP_FAILED) {
+	if (!buf) {
 		return;
 	}
 
@@ -45,5 +41,5 @@ void read_config(void)
 		ptr += n + 1;
 	}
 	free(line);
-	munmap(buf, st.st_size);
+	xmunmap(buf, st.st_size);
 }

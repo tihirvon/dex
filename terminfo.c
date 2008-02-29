@@ -1,19 +1,5 @@
 #include "term.h"
-#include "xmalloc.h"
-#include "debug.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
-#include <signal.h>
-#include <string.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdarg.h>
+#include "util.h"
 
 /* booleans {{{ */
 enum {
@@ -687,9 +673,9 @@ int terminfo_get_caps(const char *filename)
 		return -1;
 	}
 	size = st.st_size;
-	buf = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	buf = xmmap(fd, 0, size);
 	close(fd);
-	if (buf == MAP_FAILED)
+	if (!buf)
 		return -1;
 	if (size < 12)
 		goto corrupt;
@@ -749,9 +735,9 @@ int terminfo_get_caps(const char *filename)
 	for (i = 0; i < NR_SKEYS; i++)
 		term_keycodes[i] = get_str(keymap[i]);
 
-	munmap(buf, size);
+	xmunmap(buf, size);
 	return 0;
 corrupt:
-	munmap(buf, size);
+	xmunmap(buf, size);
 	return -2;
 }

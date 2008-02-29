@@ -1,16 +1,5 @@
 #include "term.h"
-#include "xmalloc.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
+#include "util.h"
 
 /*
  * booleans:
@@ -221,10 +210,8 @@ static char *termcap_open(const char *filename, int *size)
 	}
 	*size = st.st_size;
 
-	buf = mmap(NULL, *size, PROT_READ, MAP_PRIVATE, fd, 0);
+	buf = xmmap(fd, 0, *size);
 	close(fd);
-	if (buf == MAP_FAILED)
-		buf = NULL;
 	return buf;
 }
 
@@ -421,6 +408,6 @@ int termcap_get_caps(const char *filename, const char *term)
 	if (buf == NULL)
 		return -1;
 	rc = process(buf, size, term);
-	munmap(buf, size);
+	xmunmap(buf, size);
 	return rc;
 }
