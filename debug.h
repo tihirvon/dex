@@ -1,6 +1,8 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#include "xmalloc.h"
+
 #ifndef DEBUG
 #define DEBUG 1
 #endif
