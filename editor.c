@@ -9,7 +9,6 @@
 
 enum input_mode input_mode;
 int running = 1;
-char *home_dir;
 
 static int received_signal;
 static int cmdline_x;
@@ -622,16 +621,6 @@ static void set_signal_handler(int signum, void (*handler)(int))
 static void signal_handler(int signum)
 {
 	received_signal = signum;
-}
-
-static void init_misc(void)
-{
-	home_dir = getenv("HOME");
-	if (!home_dir) {
-		home_dir = xcalloc(1);
-	} else {
-		home_dir = xstrdup(home_dir);
-	}
 }
 
 int main(int argc, char *argv[])

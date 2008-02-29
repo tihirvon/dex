@@ -1,5 +1,17 @@
 #include "buffer.h"
 
+char *home_dir;
+
+void init_misc(void)
+{
+	home_dir = getenv("HOME");
+	if (!home_dir) {
+		home_dir = xcalloc(1);
+	} else {
+		home_dir = xstrdup(home_dir);
+	}
+}
+
 unsigned int count_nl(const char *buf, unsigned int size)
 {
 	unsigned int i, nl = 0;

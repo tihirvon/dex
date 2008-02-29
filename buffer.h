@@ -150,7 +150,6 @@ extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern enum input_mode input_mode;
 extern struct options options;
-extern char *home_dir;
 
 static inline int buffer_modified(struct buffer *b)
 {
