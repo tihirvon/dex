@@ -79,7 +79,6 @@ struct buffer {
 	char *abs_filename;
 
 	unsigned utf8 : 1;
-	unsigned modified : 1;
 	unsigned ro : 1;
 	unsigned crlf : 1;
 
