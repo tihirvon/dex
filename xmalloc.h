@@ -64,9 +64,9 @@ static inline char * __MALLOC xstrdup(const char *str)
 
 static inline void * __MALLOC xmemdup(void *ptr, size_t size)
 {
-	void *dup = xmalloc(size);
-	memcpy(dup, ptr, size);
-	return dup;
+	void *buf = xmalloc(size);
+	memcpy(buf, ptr, size);
+	return buf;
 }
 
 char * __MALLOC xstrndup(const char *str, size_t n);
