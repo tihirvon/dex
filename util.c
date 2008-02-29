@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "util.h"
 
 char *home_dir;
 

@@ -1,5 +1,5 @@
 #include "commands.h"
-#include "buffer.h"
+#include "util.h"
 #include "gbuf.h"
 
 // can contain many commands. each terminated with NULL

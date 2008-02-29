@@ -1,6 +1,6 @@
 #include "obuf.h"
 #include "term.h"
-#include "buffer.h"
+#include "util.h"
 
 struct output_buffer obuf;
 

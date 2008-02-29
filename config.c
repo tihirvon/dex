@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "util.h"
 #include "commands.h"
 
 void read_config(void)
