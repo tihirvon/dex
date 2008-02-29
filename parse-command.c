@@ -161,7 +161,9 @@ error:
 	return -1;
 }
 
-static char **parse_commands(const char *cmd, int *argcp)
+char **parse_commands(const char *cmd, int *argcp);
+
+char **parse_commands(const char *cmd, int *argcp)
 {
 	int pos = 0;
 
@@ -176,42 +178,4 @@ static char **parse_commands(const char *cmd, int *argcp)
 
 	*argcp = argc;
 	return argv;
-}
-
-static void run_command(char **av)
-{
-	int i;
-
-	for (i = 0; commands[i].name; i++) {
-		if (!strcmp(av[0], commands[i].name)) {
-			commands[i].cmd(av + 1);
-			return;
-		}
-	}
-	d_print("no such command: %s\n", av[0]);
-}
-
-void handle_command(const char *cmd)
-{
-	int count;
-	char **args = parse_commands(cmd, &count);
-	int s, e;
-
-	if (!args)
-		return;
-
-	s = 0;
-	while (s < count) {
-		e = s;
-		while (e < count && args[e])
-			e++;
-
-		if (e > s)
-			run_command(args + s);
-
-		s = e + 1;
-	}
-
-	while (count > 0)
-		free(args[--count]);
 }

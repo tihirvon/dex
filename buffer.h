@@ -117,12 +117,6 @@ struct view {
 	unsigned sel_is_lines : 1;
 };
 
-struct command {
-	const char *name;
-	const char *short_name;
-	void (*cmd)(char **);
-};
-
 struct options {
 	int move_wraps;
 	int trim_whitespace;
@@ -153,7 +147,6 @@ extern struct buffer *buffer;
 
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
-extern struct command commands[];
 extern enum input_mode input_mode;
 extern struct options options;
 extern char *home_dir;
