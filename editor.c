@@ -435,7 +435,7 @@ static void debug_blocks(void)
 	}
 }
 
-void ui_start(void)
+static void ui_start(void)
 {
 	term_raw();
 
