@@ -1,3 +1,4 @@
+#include "commands.h"
 #include "buffer.h"
 #include "gbuf.h"
 
@@ -160,8 +161,6 @@ error:
 	d_print("parse error\n");
 	return -1;
 }
-
-char **parse_commands(const char *cmd, int *argcp);
 
 char **parse_commands(const char *cmd, int *argcp)
 {

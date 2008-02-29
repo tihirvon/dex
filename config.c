@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "commands.h"
 
 #include <sys/mman.h>
 

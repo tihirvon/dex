@@ -1,3 +1,4 @@
+#include "commands.h"
 #include "window.h"
 #include "term.h"
 
@@ -415,8 +416,6 @@ static void run_command(char **av)
 	}
 	d_print("no such command: %s\n", av[0]);
 }
-
-char **parse_commands(const char *cmd, int *argcp);
 
 void handle_command(const char *cmd)
 {

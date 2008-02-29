@@ -2,6 +2,7 @@
 #include "term.h"
 #include "obuf.h"
 #include "cmdline.h"
+#include "commands.h"
 
 #include <locale.h>
 #include <langinfo.h>
