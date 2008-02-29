@@ -1,5 +1,4 @@
 #include "window.h"
-#include "xmalloc.h"
 #include "term.h"
 
 struct view *view;
