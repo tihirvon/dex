@@ -161,19 +161,21 @@ error:
 	return -1;
 }
 
-static int parse_commands(const char *cmd)
+static char **parse_commands(const char *cmd, int *argcp)
 {
 	int pos = 0;
 
 	argc = 0;
 	while (1) {
 		if (parse_command(cmd, &pos))
-			return -1;
+			return NULL;
 		if (!cmd[pos] || cmd[pos] == '#')
 			break;
 		pos++;
 	}
-	return 0;
+
+	*argcp = argc;
+	return argv;
 }
 
 static void run_command(char **av)
@@ -191,21 +193,25 @@ static void run_command(char **av)
 
 void handle_command(const char *cmd)
 {
-	if (!parse_commands(cmd)) {
-		int s, e;
+	int count;
+	char **args = parse_commands(cmd, &count);
+	int s, e;
 
-		s = 0;
-		while (s < argc) {
-			e = s;
-			while (e < argc && argv[e])
-				e++;
+	if (!args)
+		return;
 
-			if (e > s)
-				run_command(argv + s);
+	s = 0;
+	while (s < count) {
+		e = s;
+		while (e < count && args[e])
+			e++;
 
-			s = e + 1;
-		}
+		if (e > s)
+			run_command(args + s);
+
+		s = e + 1;
 	}
-	while (argc > 0)
-		free(argv[--argc]);
+
+	while (count > 0)
+		free(args[--count]);
 }
