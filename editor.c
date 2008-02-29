@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "window.h"
 #include "term.h"
 #include "obuf.h"
 #include "cmdline.h"

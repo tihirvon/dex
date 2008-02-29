@@ -20,8 +20,6 @@
 
 #define BLOCK(item) container_of((item), struct block, node)
 #define VIEW(item) container_of((item), struct view, node)
-#define WINDOW(item) container_of((item), struct window, node)
-#define BLOCK_SIZE 64
 
 #define SET_CURSOR(bi) \
 	do { \
@@ -29,6 +27,7 @@
 		view->cursor.offset = bi.offset; \
 	} while (0)
 
+#define BLOCK_SIZE 64
 #define MIN_ALLOC 64U
 #define ALLOC_ROUND(x) (((x) + MIN_ALLOC - 1) & ~(MIN_ALLOC - 1))
 
@@ -118,17 +117,6 @@ struct view {
 	unsigned sel_is_lines : 1;
 };
 
-struct window {
-	struct list_head node;
-	struct list_head views;
-
-	// current view. always exists
-	struct view *view;
-
-	int x, y;
-	int w, h;
-};
-
 struct command {
 	const char *name;
 	const char *short_name;
@@ -160,17 +148,12 @@ enum input_mode {
 #define UPDATE_FULL		(1 << 2)
 
 // buffer = view->buffer = window->view->buffer
-extern struct window *window;
 extern struct view *view;
 extern struct buffer *buffer;
-
-extern struct list_head windows;
 
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern struct command commands[];
-extern int nr_pressed_keys;
-extern int running;
 extern enum input_mode input_mode;
 extern struct options options;
 extern char *home_dir;
@@ -202,19 +185,8 @@ void undo(void);
 void redo(void);
 
 char *path_absolute(const char *filename);
-struct view *open_buffer(const char *filename);
-void save_buffer(void);
 char *buffer_get_bytes(unsigned int *lenp);
 
-struct view *view_new(struct window *w, struct buffer *b);
-void view_delete(struct view *v);
-
-struct window *window_new(void);
-struct view *window_add_buffer(struct buffer *b);
-void remove_view(void);
-void set_view(struct view *v);
-void next_buffer(void);
-void prev_buffer(void);
 void update_cursor_x(struct view *v);
 void update_cursor(struct view *v);
 

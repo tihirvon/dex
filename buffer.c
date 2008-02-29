@@ -1,9 +1,7 @@
-#include "buffer.h"
+#include "window.h"
 #include "xmalloc.h"
 #include "term.h"
 
-LIST_HEAD(windows);
-struct window *window;
 struct view *view;
 struct buffer *buffer;
 enum undo_merge undo_merge;

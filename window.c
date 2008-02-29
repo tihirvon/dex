@@ -1,4 +1,7 @@
-#include "buffer.h"
+#include "window.h"
+
+LIST_HEAD(windows);
+struct window *window;
 
 struct window *window_new(void)
 {

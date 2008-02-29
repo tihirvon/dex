@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "window.h"
 
 struct view *view_new(struct window *w, struct buffer *b)
 {
