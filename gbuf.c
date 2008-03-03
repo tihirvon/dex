@@ -50,7 +50,7 @@ void gbuf_add_str(struct gbuf *buf, const char *str)
 	if (!len)
 		return;
 	gbuf_grow(buf, len);
-	memcpy(buf->buffer + buf->len, str, len);
+	memcpy(buf->buffer + buf->len, str, len + 1);
 	buf->len += len;
 }
 
