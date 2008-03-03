@@ -11,7 +11,7 @@ struct gbuf {
 
 extern char gbuf_empty_buffer[];
 
-#define GBUF(name) struct gbuf name = { gbuf_empty_buffer, 0, 0 };
+#define GBUF(name) struct gbuf name = { gbuf_empty_buffer, 0, 0 }
 
 static inline void gbuf_truncate(struct gbuf *buf, size_t pos)
 {
