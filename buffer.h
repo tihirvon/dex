@@ -120,6 +120,7 @@ enum undo_merge {
 enum input_mode {
 	INPUT_NORMAL,
 	INPUT_COMMAND,
+	INPUT_SEARCH,
 };
 
 // from smallest update to largest. UPDATE_CURSOR_LINE includes
@@ -136,6 +137,8 @@ extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern enum input_mode input_mode;
 extern struct options options;
+
+extern char *line_buffer;
 
 static inline int buffer_modified(struct buffer *b)
 {
@@ -164,6 +167,7 @@ void undo(void);
 void redo(void);
 
 char *buffer_get_bytes(unsigned int *lenp);
+void fetch_eol(const struct block_iter *bi);
 
 void update_cursor_x(struct view *v);
 void update_cursor(struct view *v);

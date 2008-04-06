@@ -3,6 +3,7 @@
 #include "obuf.h"
 #include "cmdline.h"
 #include "commands.h"
+#include "search.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -161,13 +162,13 @@ static int get_char_width(int *idx)
 	}
 }
 
-static void print_command(void)
+static void print_command(uchar prefix)
 {
 	int i, w;
 	uchar u;
 
 	// width of characters up to and including cursor position
-	w = 1; // ":"
+	w = 1; // ":" (prefix)
 	i = 0;
 	while (i <= cmdline_pos && cmdline.buffer[i])
 		w += get_char_width(&i);
@@ -181,7 +182,7 @@ static void print_command(void)
 
 	i = 0;
 	if (obuf.x < obuf.scroll_x) {
-		buf_skip(':', 0);
+		buf_skip(prefix, 0);
 		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
 			if (term_flags & TERM_UTF8) {
 				u = u_get_char(cmdline.buffer, &i);
@@ -191,7 +192,7 @@ static void print_command(void)
 			buf_skip(u, term_flags & TERM_UTF8);
 		}
 	} else {
-		buf_put_char(':', 0);
+		buf_put_char(prefix, 0);
 	}
 
 	cmdline_x = obuf.x - obuf.scroll_x;
@@ -214,12 +215,18 @@ static void print_command_line(void)
 {
 	buf_move_cursor(0, window->h + 1);
 	buf_set_colors(-1, -1);
-	if (input_mode == INPUT_COMMAND) {
-		print_command();
-	} else {
+	switch (input_mode) {
+	case INPUT_COMMAND:
+		print_command(':');
+		break;
+	case INPUT_SEARCH:
+		print_command(search_direction == SEARCH_FWD ? '/' : '?');
+		break;
+	default:
 		obuf.tab_width = 8;
 		obuf.scroll_x = 0;
 		buf_clear_eol();
+		break;
 	}
 }
 
@@ -385,6 +392,7 @@ static void restore_cursor(void)
 		buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
 		break;
 	case INPUT_COMMAND:
+	case INPUT_SEARCH:
 		buf_move_cursor(cmdline_x, window->h + 1);
 		break;
 	}
@@ -513,6 +521,47 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	update_flags |= UPDATE_STATUS_LINE;
 }
 
+static void search_mode_key(enum term_key_type type, unsigned int key)
+{
+	switch (type) {
+	case KEY_NORMAL:
+		switch (key) {
+		case 0x1b:
+			cmdline_clear();
+			input_mode = INPUT_NORMAL;
+			break;
+		case '\r':
+			search(cmdline.buffer);
+			cmdline_clear();
+			input_mode = INPUT_NORMAL;
+			break;
+		default:
+			cmdline_insert(key);
+			break;
+		}
+		break;
+	case KEY_META:
+		break;
+	case KEY_SPECIAL:
+		switch (key) {
+		case SKEY_LEFT:
+			cmdline_prev_char();
+			break;
+		case SKEY_RIGHT:
+			cmdline_next_char();
+			break;
+		case SKEY_DELETE:
+			cmdline_delete();
+			break;
+		case SKEY_BACKSPACE:
+			cmdline_backspace();
+			break;
+		}
+		break;
+	}
+	update_flags |= UPDATE_STATUS_LINE;
+}
+
 static void handle_key(enum term_key_type type, unsigned int key)
 {
 	struct change_head *save_change_head = buffer->save_change_head;
@@ -554,6 +603,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			break;
 		case INPUT_COMMAND:
 			command_mode_key(type, key);
+			break;
+		case INPUT_SEARCH:
+			search_mode_key(type, key);
 			break;
 		}
 	}

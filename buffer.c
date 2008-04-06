@@ -5,6 +5,10 @@ struct view *view;
 struct buffer *buffer;
 enum undo_merge undo_merge;
 
+/* temporary buffer for searching etc. */
+char *line_buffer;
+static size_t line_buffer_alloc;
+
 struct block *block_new(int alloc)
 {
 	struct block *blk = xnew0(struct block, 1);
@@ -55,6 +59,44 @@ char *buffer_get_bytes(unsigned int *lenp)
 	}
 	*lenp = count;
 	return buf;
+}
+
+static void line_buffer_add(size_t pos, const char *src, size_t count)
+{
+	size_t size = pos + count + 1;
+
+	if (line_buffer_alloc < size) {
+		line_buffer_alloc = ALLOC_ROUND(size);
+		xrenew(line_buffer, line_buffer_alloc);
+	}
+	memcpy(line_buffer + pos, src, count);
+}
+
+void fetch_eol(const struct block_iter *bi)
+{
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
+	size_t pos = 0;
+
+	while (1) {
+		unsigned int avail = blk->size - offset;
+		char *src = blk->data + offset;
+		char *ptr = memchr(src, '\n', avail);
+
+		if (ptr) {
+			line_buffer_add(pos, src, ptr - src);
+			pos += ptr - src;
+			break;
+		}
+		line_buffer_add(pos, src, avail);
+		pos += avail;
+
+		if (blk->node.next == &buffer->blocks)
+			break;
+		blk = BLOCK(blk->node.next);
+		offset = 0;
+	}
+	line_buffer_add(pos, "", 1);
 }
 
 unsigned int buffer_offset(void)

@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "window.h"
 #include "term.h"
+#include "search.h"
 
 #define MAX_KEYS 4
 
@@ -308,6 +309,30 @@ static void cmd_save(char **args)
 	save_buffer();
 }
 
+static void cmd_search_bwd(char **args)
+{
+	input_mode = INPUT_SEARCH;
+	search_init(SEARCH_BWD);
+	update_flags |= UPDATE_STATUS_LINE;
+}
+
+static void cmd_search_fwd(char **args)
+{
+	input_mode = INPUT_SEARCH;
+	search_init(SEARCH_FWD);
+	update_flags |= UPDATE_STATUS_LINE;
+}
+
+static void cmd_search_next(char **args)
+{
+	search_next();
+}
+
+static void cmd_search_prev(char **args)
+{
+	search_prev();
+}
+
 static void cmd_select(char **args)
 {
 	int is_lines = 0;
@@ -369,6 +394,10 @@ static struct command commands[] = {
 	{ "redo", NULL, cmd_redo },
 	{ "right", NULL, cmd_right },
 	{ "save", NULL, cmd_save },
+	{ "search-bwd", NULL, cmd_search_bwd },
+	{ "search-fwd", NULL, cmd_search_fwd },
+	{ "search-next", NULL, cmd_search_next },
+	{ "search-prev", NULL, cmd_search_prev },
 	{ "select", NULL, cmd_select },
 	{ "undo", NULL, cmd_undo },
 	{ "up", NULL, cmd_up },
