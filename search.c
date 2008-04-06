@@ -21,10 +21,10 @@ static void do_search_fwd(void)
 	uchar u;
 
 	block_iter_next_byte(&bi, &u);
-	fetch_eol(&bi);
-	while (1) {
+	do {
 		regmatch_t match;
 
+		fetch_eol(&bi);
 		if (!regexec(&regex, line_buffer, 1, &match, 0)) {
 			int offset = match.rm_so;
 
@@ -34,10 +34,7 @@ static void do_search_fwd(void)
 			update_cursor(view);
 			return;
 		}
-		if (!block_iter_next_line(&bi))
-			break;
-		fetch_eol(&bi);
-	}
+	} while (block_iter_next_line(&bi));
 }
 
 static void do_search_bwd(void)
@@ -46,14 +43,14 @@ static void do_search_bwd(void)
 	int cx = view->cx_idx;
 	uchar u;
 
-	block_iter_bol(&bi);
-	fetch_eol(&bi);
-	while (1) {
+	do {
 		regmatch_t match;
 		const char *buf = line_buffer;
 		int offset = -1;
 		int pos = 0;
 
+		block_iter_bol(&bi);
+		fetch_eol(&bi);
 		while (!regexec(&regex, buf + pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
@@ -73,12 +70,8 @@ static void do_search_bwd(void)
 			update_cursor(view);
 			return;
 		}
-		if (!block_iter_prev_line(&bi))
-			break;
 		cx = -1;
-		block_iter_bol(&bi);
-		fetch_eol(&bi);
-	}
+	} while (block_iter_prev_line(&bi));
 }
 
 void search(const char *pattern)
