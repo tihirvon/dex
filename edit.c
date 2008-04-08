@@ -210,17 +210,17 @@ void delete(unsigned int len, int move_after)
 	}
 }
 
-void replace(unsigned int del_len, char *buf, int ins_len)
+void replace(unsigned int del_count, char *inserted, int ins_count)
 {
-	char *del;
+	char *deleted;
 
-	del = buffer_get_bytes(&del_len);
-	if (del_len)
-		do_delete(del_len);
-	if (ins_len)
-		do_insert(buf, ins_len);
-	if (del_len || ins_len) {
-		record_replace(del, ins_len, del_len);
+	deleted = buffer_get_bytes(&del_count);
+	if (del_count)
+		do_delete(del_count);
+	if (ins_count)
+		do_insert(inserted, ins_count);
+	if (del_count || ins_count) {
+		record_replace(deleted, del_count, ins_count);
 		update_preferred_x();
 	}
 }

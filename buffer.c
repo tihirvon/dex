@@ -163,13 +163,13 @@ void record_delete(char *buf, unsigned int len, int move_after)
 	change->buf = buf;
 }
 
-void record_replace(char *buf, unsigned int ins_count, unsigned int del_count)
+void record_replace(char *deleted, unsigned int del_count, unsigned int ins_count)
 {
 	struct change *change = new_change();
 	change->offset = buffer_offset();
 	change->ins_count = ins_count;
 	change->del_count = del_count;
-	change->buf = buf;
+	change->buf = deleted;
 }
 
 static void move_offset(unsigned int offset)

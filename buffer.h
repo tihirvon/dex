@@ -163,7 +163,7 @@ unsigned int block_iter_get_offset(struct block_iter *bi);
 unsigned int buffer_offset(void);
 void record_insert(unsigned int len);
 void record_delete(char *buf, unsigned int len, int move_after);
-void record_replace(char *buf, unsigned int ins_count, unsigned int del_count);
+void record_replace(char *deleted, unsigned int del_count, unsigned int ins_count);
 void undo(void);
 void redo(void);
 
@@ -178,7 +178,7 @@ void do_insert(const char *buf, unsigned int len);
 void do_delete(unsigned int len);
 void delete(unsigned int len, int move_after);
 void insert(const char *buf, unsigned int len);
-void replace(unsigned int del_len, char *buf, int ins_len);
+void replace(unsigned int del_count, char *inserted, int ins_count);
 void cut(unsigned int len, int is_lines);
 void copy(unsigned int len, int is_lines);
 unsigned int count_bytes_eol(struct block_iter *bi);
