@@ -96,6 +96,7 @@ void search(const char *pattern)
 	err = regcomp(&regex, pattern, REG_EXTENDED | REG_NEWLINE);
 	if (err) {
 		regerror(err, &regex, regex_error, sizeof(regex_error));
+		d_print("error: %s\n", regex_error);
 		return;
 	}
 
@@ -284,6 +285,7 @@ void reg_replace(const char *pattern, const char *format, const char *flags_str)
 	if (err) {
 		regerror(err, &re, regex_error, sizeof(regex_error));
 		regfree(&re);
+		d_print("error: %s\n", regex_error);
 		return;
 	}
 
