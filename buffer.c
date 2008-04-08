@@ -101,7 +101,7 @@ void fetch_eol(const struct block_iter *bi)
 
 unsigned int buffer_offset(void)
 {
-	return iter_get_offset(&view->cursor);
+	return block_iter_get_offset(&view->cursor);
 }
 
 static struct change *new_change(void)

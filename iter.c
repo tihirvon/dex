@@ -175,7 +175,7 @@ int block_iter_get_uchar(struct block_iter *bi, uchar *up)
 	return block_iter_next_uchar(&save, up);
 }
 
-unsigned int iter_get_offset(struct block_iter *bi)
+unsigned int block_iter_get_offset(struct block_iter *bi)
 {
 	struct block *blk;
 	unsigned int offset = 0;

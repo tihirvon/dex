@@ -277,7 +277,7 @@ unsigned int prepare_selection(void)
 		struct block_iter bi;
 		unsigned int so, co, len;
 
-		so = iter_get_offset(&view->sel);
+		so = block_iter_get_offset(&view->sel);
 		co = buffer_offset();
 		if (co > so) {
 			unsigned int to;
