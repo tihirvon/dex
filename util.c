@@ -12,6 +12,13 @@ void init_misc(void)
 	}
 }
 
+const char *editor_file(const char *name)
+{
+	static char filename[1024];
+	snprintf(filename, sizeof(filename), "%s/.editor/%s", home_dir, name);
+	return filename;
+}
+
 unsigned int count_nl(const char *buf, unsigned int size)
 {
 	unsigned int i, nl = 0;
@@ -74,6 +81,51 @@ ssize_t xwrite(int fd, const void *buf, size_t count)
 		count -= rc;
 	} while (count > 0);
 	return count_save;
+}
+
+int wbuf_flush(struct wbuf *wbuf)
+{
+	if (wbuf->fill) {
+		ssize_t rc = xwrite(wbuf->fd, wbuf->buf, wbuf->fill);
+		if (rc < 0)
+			return rc;
+	}
+	return 0;
+}
+
+int wbuf_write_str(struct wbuf *wbuf, const char *str)
+{
+	int len = strlen(str);
+	ssize_t rc;
+
+	if (wbuf->fill + len > sizeof(wbuf->buf)) {
+		rc = wbuf_flush(wbuf);
+		if (rc < 0)
+			return rc;
+	}
+	if (len >= sizeof(wbuf->buf)) {
+		rc = wbuf_flush(wbuf);
+		if (rc < 0)
+			return rc;
+		rc = xwrite(wbuf->fd, str, len);
+		if (rc < 0)
+			return rc;
+		return 0;
+	}
+	memcpy(wbuf->buf + wbuf->fill, str, len);
+	wbuf->fill += len;
+	return 0;
+}
+
+int wbuf_write_ch(struct wbuf *wbuf, char ch)
+{
+	if (wbuf->fill + 1 > sizeof(wbuf->buf)) {
+		ssize_t rc = wbuf_flush(wbuf);
+		if (rc < 0)
+			return rc;
+	}
+	wbuf->buf[wbuf->fill++] = ch;
+	return 0;
 }
 
 void bug(const char *function, const char *fmt, ...)

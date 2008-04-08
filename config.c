@@ -3,13 +3,13 @@
 
 void read_config(void)
 {
-	char filename[1024];
+	const char *filename;
 	struct stat st;
 	size_t size, alloc = 0;
 	char *buf, *ptr, *line = NULL;
 	int fd;
 
-	snprintf(filename, sizeof(filename), "%s/.editor/rc", home_dir);
+	filename = editor_file("rc");
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
 		return;

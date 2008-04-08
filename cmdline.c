@@ -70,3 +70,9 @@ void cmdline_clear(void)
 	cmdline_pos = 0;
 }
 
+void cmdline_set_text(const char *text)
+{
+	cmdline_clear();
+	gbuf_add_str(&cmdline, text);
+	cmdline_pos = strlen(text);
+}

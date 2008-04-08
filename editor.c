@@ -4,6 +4,7 @@
 #include "cmdline.h"
 #include "commands.h"
 #include "search.h"
+#include "history.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -480,7 +481,7 @@ void ui_end(void)
 	term_cooked();
 }
 
-static int common_key(enum term_key_type type, unsigned int key)
+static int common_key(struct history *history, enum term_key_type type, unsigned int key)
 {
 	const char *str;
 
@@ -492,24 +493,25 @@ static int common_key(enum term_key_type type, unsigned int key)
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
 			break;
-		case 0x01: // ^A
-			cmdline_pos = 0;
-			break;
-		case 0x02: // ^B
-			cmdline_prev_char();
-			break;
 		case 0x04: // ^D
 			cmdline_delete();
-			break;
-		case 0x05: // ^E
-			cmdline_pos = strlen(cmdline.buffer);
-			break;
-		case 0x06: // ^F
-			cmdline_next_char();
 			break;
 		case 0x15: // ^U
 			cmdline_delete_bol();
 			break;
+
+		case 0x01: // ^A
+			cmdline_pos = 0;
+			return 1;
+		case 0x02: // ^B
+			cmdline_prev_char();
+			return 1;
+		case 0x05: // ^E
+			cmdline_pos = strlen(cmdline.buffer);
+			return 1;
+		case 0x06: // ^F
+			cmdline_next_char();
+			return 1;
 		default:
 			return 0;
 		}
@@ -518,29 +520,41 @@ static int common_key(enum term_key_type type, unsigned int key)
 		return 0;
 	case KEY_SPECIAL:
 		switch (key) {
-		case SKEY_LEFT:
-			cmdline_prev_char();
-			break;
-		case SKEY_RIGHT:
-			cmdline_next_char();
-			break;
 		case SKEY_DELETE:
 			cmdline_delete();
 			break;
 		case SKEY_BACKSPACE:
 			cmdline_backspace();
 			break;
+
+		case SKEY_LEFT:
+			cmdline_prev_char();
+			return 1;
+		case SKEY_RIGHT:
+			cmdline_next_char();
+			return 1;
 		case SKEY_HOME:
 			cmdline_pos = 0;
-			break;
+			return 1;
 		case SKEY_END:
 			cmdline_pos = strlen(cmdline.buffer);
-			break;
+			return 1;
+		case SKEY_UP:
+			str = history_search_forward(history, cmdline.buffer);
+			if (str)
+				cmdline_set_text(str);
+			return 1;
+		case SKEY_DOWN:
+			str = history_search_backward(history);
+			if (str)
+				cmdline_set_text(str);
+			return 1;
 		default:
 			return 0;
 		}
 		break;
 	}
+	history_reset_search();
 	return 1;
 }
 
@@ -551,6 +565,7 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 		switch (key) {
 		case '\r':
 			handle_command(cmdline.buffer);
+			history_add(&command_history, cmdline.buffer);
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
 			break;
@@ -560,10 +575,11 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 		}
 		break;
 	case KEY_META:
-		break;
+		return;
 	case KEY_SPECIAL:
-		break;
+		return;
 	}
+	history_reset_search();
 }
 
 static void search_mode_key(enum term_key_type type, unsigned int key)
@@ -573,6 +589,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		switch (key) {
 		case '\r':
 			search(cmdline.buffer);
+			history_add(&search_history, cmdline.buffer);
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
 			break;
@@ -582,10 +599,11 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		}
 		break;
 	case KEY_META:
-		break;
+		return;
 	case KEY_SPECIAL:
-		break;
+		return;
 	}
+	history_reset_search();
 }
 
 static void handle_key(enum term_key_type type, unsigned int key)
@@ -628,12 +646,12 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			}
 			break;
 		case INPUT_COMMAND:
-			if (!common_key(type, key))
+			if (!common_key(&command_history, type, key))
 				command_mode_key(type, key);
 			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case INPUT_SEARCH:
-			if (!common_key(type, key))
+			if (!common_key(&search_history, type, key))
 				search_mode_key(type, key);
 			update_flags |= UPDATE_STATUS_LINE;
 			break;
@@ -776,6 +794,8 @@ int main(int argc, char *argv[])
 	obuf.bg = -1;
 
 	read_config();
+	history_load(&command_history, editor_file("command-history"));
+	history_load(&search_history, editor_file("search-history"));
 	ui_start();
 
 	while (running) {
@@ -789,5 +809,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	ui_end();
+	mkdir(editor_file(""), 0755);
+	history_save(&command_history, editor_file("command-history"));
+	history_save(&search_history, editor_file("search-history"));
 	return 0;
 }
