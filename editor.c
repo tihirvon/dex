@@ -480,15 +480,75 @@ void ui_end(void)
 	term_cooked();
 }
 
+static int common_key(enum term_key_type type, unsigned int key)
+{
+	const char *str;
+
+	switch (type) {
+	case KEY_NORMAL:
+		switch (key) {
+		case 0x1b: // ESC
+		case 0x03: // ^C
+			cmdline_clear();
+			input_mode = INPUT_NORMAL;
+			break;
+		case 0x01: // ^A
+			cmdline_pos = 0;
+			break;
+		case 0x02: // ^B
+			cmdline_prev_char();
+			break;
+		case 0x04: // ^D
+			cmdline_delete();
+			break;
+		case 0x05: // ^E
+			cmdline_pos = strlen(cmdline.buffer);
+			break;
+		case 0x06: // ^F
+			cmdline_next_char();
+			break;
+		case 0x15: // ^U
+			cmdline_delete_bol();
+			break;
+		default:
+			return 0;
+		}
+		break;
+	case KEY_META:
+		return 0;
+	case KEY_SPECIAL:
+		switch (key) {
+		case SKEY_LEFT:
+			cmdline_prev_char();
+			break;
+		case SKEY_RIGHT:
+			cmdline_next_char();
+			break;
+		case SKEY_DELETE:
+			cmdline_delete();
+			break;
+		case SKEY_BACKSPACE:
+			cmdline_backspace();
+			break;
+		case SKEY_HOME:
+			cmdline_pos = 0;
+			break;
+		case SKEY_END:
+			cmdline_pos = strlen(cmdline.buffer);
+			break;
+		default:
+			return 0;
+		}
+		break;
+	}
+	return 1;
+}
+
 static void command_mode_key(enum term_key_type type, unsigned int key)
 {
 	switch (type) {
 	case KEY_NORMAL:
 		switch (key) {
-		case 0x1b:
-			cmdline_clear();
-			input_mode = INPUT_NORMAL;
-			break;
 		case '\r':
 			handle_command(cmdline.buffer);
 			cmdline_clear();
@@ -502,23 +562,8 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_META:
 		break;
 	case KEY_SPECIAL:
-		switch (key) {
-		case SKEY_LEFT:
-			cmdline_prev_char();
-			break;
-		case SKEY_RIGHT:
-			cmdline_next_char();
-			break;
-		case SKEY_DELETE:
-			cmdline_delete();
-			break;
-		case SKEY_BACKSPACE:
-			cmdline_backspace();
-			break;
-		}
 		break;
 	}
-	update_flags |= UPDATE_STATUS_LINE;
 }
 
 static void search_mode_key(enum term_key_type type, unsigned int key)
@@ -526,10 +571,6 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	switch (type) {
 	case KEY_NORMAL:
 		switch (key) {
-		case 0x1b:
-			cmdline_clear();
-			input_mode = INPUT_NORMAL;
-			break;
 		case '\r':
 			search(cmdline.buffer);
 			cmdline_clear();
@@ -543,23 +584,8 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_META:
 		break;
 	case KEY_SPECIAL:
-		switch (key) {
-		case SKEY_LEFT:
-			cmdline_prev_char();
-			break;
-		case SKEY_RIGHT:
-			cmdline_next_char();
-			break;
-		case SKEY_DELETE:
-			cmdline_delete();
-			break;
-		case SKEY_BACKSPACE:
-			cmdline_backspace();
-			break;
-		}
 		break;
 	}
-	update_flags |= UPDATE_STATUS_LINE;
 }
 
 static void handle_key(enum term_key_type type, unsigned int key)
@@ -602,10 +628,14 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			}
 			break;
 		case INPUT_COMMAND:
-			command_mode_key(type, key);
+			if (!common_key(type, key))
+				command_mode_key(type, key);
+			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case INPUT_SEARCH:
-			search_mode_key(type, key);
+			if (!common_key(type, key))
+				search_mode_key(type, key);
+			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		}
 	}
