@@ -54,6 +54,16 @@ void gbuf_add_str(struct gbuf *buf, const char *str)
 	buf->len += len;
 }
 
+void gbuf_add_buf(struct gbuf *buf, const char *buffer, size_t len)
+{
+	if (!len)
+		return;
+	gbuf_grow(buf, len);
+	memcpy(buf->buffer + buf->len, buffer, len);
+	buf->len += len;
+	buf->buffer[buf->len] = 0;
+}
+
 char *gbuf_steal(struct gbuf *buf)
 {
 	char *b = buf->buffer;

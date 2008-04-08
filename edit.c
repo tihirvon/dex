@@ -210,6 +210,21 @@ void delete(unsigned int len, int move_after)
 	}
 }
 
+void replace(unsigned int del_len, char *buf, int ins_len)
+{
+	char *del;
+
+	del = buffer_get_bytes(&del_len);
+	if (del_len)
+		do_delete(del_len);
+	if (ins_len)
+		do_insert(buf, ins_len);
+	if (del_len || ins_len) {
+		record_replace(del, ins_len, del_len);
+		update_preferred_x();
+	}
+}
+
 void select_start(int is_lines)
 {
 	view->sel = view->cursor;

@@ -285,6 +285,12 @@ static void cmd_redo(char **args)
 	redo();
 }
 
+static void cmd_replace(char **args)
+{
+	ARGC(2, 3);
+	reg_replace(args[0], args[1], args[2]);
+}
+
 static void cmd_right(char **args)
 {
 	move_right(1);
@@ -392,6 +398,7 @@ static struct command commands[] = {
 	{ "prev", NULL, cmd_prev },
 	{ "quit", NULL, cmd_quit },
 	{ "redo", NULL, cmd_redo },
+	{ "replace", NULL, cmd_replace },
 	{ "right", NULL, cmd_right },
 	{ "save", NULL, cmd_save },
 	{ "search-bwd", NULL, cmd_search_bwd },

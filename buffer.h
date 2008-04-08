@@ -139,6 +139,7 @@ extern enum input_mode input_mode;
 extern struct options options;
 
 extern char *line_buffer;
+extern size_t line_buffer_len;
 
 static inline int buffer_modified(struct buffer *b)
 {
@@ -177,6 +178,7 @@ void do_insert(const char *buf, unsigned int len);
 void do_delete(unsigned int len);
 void delete(unsigned int len, int move_after);
 void insert(const char *buf, unsigned int len);
+void replace(unsigned int del_len, char *buf, int ins_len);
 void cut(unsigned int len, int is_lines);
 void copy(unsigned int len, int is_lines);
 unsigned int count_bytes_eol(struct block_iter *bi);

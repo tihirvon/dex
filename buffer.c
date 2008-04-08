@@ -7,6 +7,7 @@ enum undo_merge undo_merge;
 
 /* temporary buffer for searching etc. */
 char *line_buffer;
+size_t line_buffer_len;
 static size_t line_buffer_alloc;
 
 struct block *block_new(int alloc)
@@ -97,6 +98,7 @@ void fetch_eol(const struct block_iter *bi)
 		offset = 0;
 	}
 	line_buffer_add(pos, "", 1);
+	line_buffer_len = pos;
 }
 
 unsigned int buffer_offset(void)
