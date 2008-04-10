@@ -130,6 +130,7 @@ void history_load(struct history *history, const char *filename)
 		int rc = xread(fd, buf, st.st_size);
 		int pos = 0;
 		if (rc < 0) {
+			free(buf);
 			close(fd);
 			return;
 		}
@@ -146,6 +147,7 @@ void history_load(struct history *history, const char *filename)
 			}
 			history_add(history, line);
 		}
+		free(buf);
 	}
 	close(fd);
 }
