@@ -71,6 +71,23 @@ static void do_search_bwd(regex_t *regex)
 	} while (block_iter_prev_line(&bi));
 }
 
+void search_tag(const char *pattern)
+{
+	regex_t regex;
+	int err;
+
+	// NOTE: regex needs to be freed even if regcomp() fails
+	err = regcomp(&regex, pattern, REG_NEWLINE);
+	if (err) {
+		char error[1024];
+		regerror(err, &regex, error, sizeof(error));
+		d_print("error: %s\n", error);
+	} else {
+		do_search_fwd(&regex);
+	}
+	regfree(&regex);
+}
+
 static struct {
 	char error[1024];
 	regex_t regex;

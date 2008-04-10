@@ -366,6 +366,12 @@ static void cmd_select(char **args)
 	select_start(is_lines);
 }
 
+static void cmd_tag(char **args)
+{
+	ARGC(1, 1);
+	goto_tag(args[0]);
+}
+
 static void cmd_undo(char **args)
 {
 	undo();
@@ -417,6 +423,7 @@ static const struct command commands[] = {
 	{ "search-next", NULL, cmd_search_next },
 	{ "search-prev", NULL, cmd_search_prev },
 	{ "select", NULL, cmd_select },
+	{ "tag", "t", cmd_tag },
 	{ "undo", NULL, cmd_undo },
 	{ "up", NULL, cmd_up },
 	{ NULL, NULL, NULL }

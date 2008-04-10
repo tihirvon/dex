@@ -201,6 +201,8 @@ void move_bof(void);
 void move_eof(void);
 void move_to_line(int line);
 
+void goto_tag(const char *name);
+
 int buffer_get_char(uchar *up);
 
 static inline int block_iter_eof(struct block_iter *bi)

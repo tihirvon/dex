@@ -1,0 +1,142 @@
+#include "buffer.h"
+#include "window.h"
+#include "search.h"
+
+struct tag_file {
+	struct stat st;
+	int fd;
+	char *map;
+};
+
+struct tag_address {
+	char *filename;
+	char *pattern;
+	int line;
+};
+
+struct file_location {
+	struct list_head node;
+	char *filename;
+	int line;
+};
+
+static struct tag_file *tag_file;
+
+static struct tag_file *open_tag_file(const char *filename)
+{
+	struct tag_file *tf = xnew(struct tag_file, 1);
+
+	tf->fd = open(filename, O_RDONLY);
+	if (tf->fd < 0) {
+		free(tf);
+		return NULL;
+	}
+
+	fstat(tf->fd, &tf->st);
+	tf->map = xmmap(tf->fd, 0, tf->st.st_size);
+	if (!tf->map) {
+		close(tf->fd);
+		free(tf);
+		return NULL;
+	}
+	return tf;
+}
+
+static int parse_tag_address(struct tag_address *ta, char *buf)
+{
+	char ch = *buf;
+	int i;
+
+	if (ch == '/' || ch == '?') {
+		// the search pattern is not real regular expression
+		// need to escape special characters
+		char *pattern = xnew(char, strlen(buf) * 2);
+		int j = 0;
+
+		for (i = 1; buf[i]; i++) {
+			if (buf[i] == '\\' && buf[i + 1]) {
+				i++;
+				if (buf[i] == '\\')
+					pattern[j++] = '\\';
+				pattern[j++] = buf[i];
+				continue;
+			}
+			if (buf[i] == ch) {
+				pattern[j] = 0;
+				ta->pattern = pattern;
+				return 1;
+			}
+			if (buf[i] == '*')
+				pattern[j++] = '\\';
+			pattern[j++] = buf[i];
+		}
+		free(pattern);
+		return 0;
+	}
+	ta->line = atoi(buf);
+	return ta->line > 0;
+}
+
+static int do_search(struct tag_file *tf, struct tag_address *ta, const char *name)
+{
+	const char *ptr, *buf = tf->map;
+	size_t size = tf->st.st_size;
+	int name_len = strlen(name);
+
+	memset(ta, 0, sizeof(*ta));
+	ptr = buf;
+	while (ptr < buf + size) {
+		size_t n = buf + size - ptr;
+		char *end = memchr(ptr, '\n', n);
+
+		if (end)
+			n = end - ptr;
+
+		// tag\tfilename\t[^;]+(;.*)?
+		if (name_len + 4 < n && !memcmp(ptr, name, name_len) && ptr[name_len] == '\t') {
+			char *filename = xstrndup(ptr + name_len + 1, n - name_len - 1);
+			char *tab = strchr(filename, '\t');
+
+			if (tab && parse_tag_address(ta, tab + 1)) {
+				*tab = 0;
+				ta->filename = filename;
+				return 1;
+			}
+			free(filename);
+		}
+
+		ptr += n + 1;
+	}
+	return 0;
+}
+
+void goto_tag(const char *name)
+{
+	struct tag_address ta;
+	struct view *v;
+
+	if (!tag_file)
+		tag_file = open_tag_file("tags");
+	if (!tag_file)
+		return;
+	if (!do_search(tag_file, &ta, name)) {
+		return;
+	}
+	v = open_buffer(ta.filename);
+	if (!v) {
+		free(ta.filename);
+		free(ta.pattern);
+		return;
+	}
+	set_view(v);
+	if (ta.pattern) {
+		d_print("'%s' '%s'\n", ta.filename, ta.pattern);
+		move_bof();
+		search_tag(ta.pattern);
+	} else {
+		d_print("'%s' %d\n", ta.filename, ta.line);
+		move_to_line(ta.line);
+	}
+	free(ta.filename);
+	free(ta.pattern);
+}
