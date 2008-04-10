@@ -372,7 +372,7 @@ struct command {
 	void (*cmd)(char **);
 };
 
-static struct command commands[] = {
+static const struct command commands[] = {
 	{ "backspace", NULL, cmd_backspace },
 	{ "bind", NULL, cmd_bind },
 	{ "bof", NULL, cmd_bof },
