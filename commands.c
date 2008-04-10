@@ -378,7 +378,7 @@ static struct command commands[] = {
 	{ "bof", NULL, cmd_bof },
 	{ "bol", NULL, cmd_bol },
 	{ "cancel", NULL, cmd_cancel },
-	{ "close", NULL, cmd_close },
+	{ "close", "cl", cmd_close },
 	{ "command", NULL, cmd_command },
 	{ "copy", NULL, cmd_copy },
 	{ "cut", NULL, cmd_cut },
@@ -391,16 +391,16 @@ static struct command commands[] = {
 	{ "eol", NULL, cmd_eol },
 	{ "left", NULL, cmd_left },
 	{ "next", NULL, cmd_next },
-	{ "open", NULL, cmd_open },
+	{ "open", "o", cmd_open },
 	{ "paste", NULL, cmd_paste },
 	{ "pgdown", NULL, cmd_pgdown },
 	{ "pgup", NULL, cmd_pgup },
 	{ "prev", NULL, cmd_prev },
-	{ "quit", NULL, cmd_quit },
+	{ "quit", "q", cmd_quit },
 	{ "redo", NULL, cmd_redo },
-	{ "replace", NULL, cmd_replace },
+	{ "replace", "r", cmd_replace },
 	{ "right", NULL, cmd_right },
-	{ "save", NULL, cmd_save },
+	{ "save", "s", cmd_save },
 	{ "search-bwd", NULL, cmd_search_bwd },
 	{ "search-fwd", NULL, cmd_search_fwd },
 	{ "search-next", NULL, cmd_search_next },
@@ -443,8 +443,9 @@ static void run_command(char **av)
 	int i;
 
 	for (i = 0; commands[i].name; i++) {
-		if (!strcmp(av[0], commands[i].name)) {
-			commands[i].cmd(av + 1);
+		const struct command *c = &commands[i];
+		if ((c->short_name && !strcmp(av[0], c->short_name)) || !strcmp(av[0], c->name)) {
+			c->cmd(av + 1);
 			return;
 		}
 	}
