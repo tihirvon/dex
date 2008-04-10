@@ -199,6 +199,7 @@ void move_up(int count);
 void move_down(int count);
 void move_bof(void);
 void move_eof(void);
+void move_to_line(int line);
 
 int buffer_get_char(uchar *up);
 

@@ -240,6 +240,16 @@ static void cmd_left(char **args)
 	move_left(1);
 }
 
+static void cmd_line(char **args)
+{
+	int line;
+
+	ARGC(1, 1);
+	line = atoi(args[0]);
+	if (line > 0)
+		move_to_line(line);
+}
+
 static void cmd_next(char **args)
 {
 	next_buffer();
@@ -390,6 +400,7 @@ static const struct command commands[] = {
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
 	{ "left", NULL, cmd_left },
+	{ "line", NULL, cmd_line },
 	{ "next", NULL, cmd_next },
 	{ "open", "o", cmd_open },
 	{ "paste", NULL, cmd_paste },

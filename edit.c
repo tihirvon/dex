@@ -648,6 +648,16 @@ void move_eof(void)
 	view->cursor.offset = view->cursor.blk->size;
 }
 
+void move_to_line(int line)
+{
+	line--;
+	update_cursor(view);
+	if (view->cy > line)
+		move_up(view->cy - line);
+	if (view->cy < line)
+		move_down(line - view->cy);
+}
+
 int buffer_get_char(uchar *up)
 {
 	struct block_iter bi = view->cursor;
