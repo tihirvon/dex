@@ -201,6 +201,8 @@ void move_bof(void);
 void move_eof(void);
 
 void goto_tag(const char *name);
+void push_location(void);
+void pop_location(void);
 
 int buffer_get_char(uchar *up);
 char *get_word_under_cursor(void);

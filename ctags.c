@@ -21,6 +21,7 @@ struct file_location {
 };
 
 static struct tag_file *tag_file;
+static LIST_HEAD(location_head);
 
 static struct tag_file *open_tag_file(const char *filename)
 {
@@ -110,6 +111,36 @@ static int do_search(struct tag_file *tf, struct tag_address *ta, const char *na
 	return 0;
 }
 
+void push_location(void)
+{
+	struct file_location *loc;
+
+	if (!buffer->filename)
+		return;
+	loc = xnew(struct file_location, 1);
+	loc->filename = xstrdup(buffer->filename);
+	loc->line = view->cy + 1;
+	list_add_after(&loc->node, &location_head);
+}
+
+void pop_location(void)
+{
+	struct file_location *loc;
+	struct view *v;
+
+	if (list_empty(&location_head))
+		return;
+	loc = container_of(location_head.next, struct file_location, node);
+	list_del(&loc->node);
+	v = open_buffer(loc->filename);
+	if (v) {
+		set_view(v);
+		move_to_line(loc->line);
+	}
+	free(loc->filename);
+	free(loc);
+}
+
 void goto_tag(const char *name)
 {
 	struct tag_address ta;
@@ -122,6 +153,7 @@ void goto_tag(const char *name)
 	if (!do_search(tag_file, &ta, name)) {
 		return;
 	}
+
 	v = open_buffer(ta.filename);
 	if (!v) {
 		free(ta.filename);

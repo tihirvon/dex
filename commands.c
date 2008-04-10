@@ -280,9 +280,19 @@ static void cmd_pgup(char **args)
 	move_up(window->h - 1);
 }
 
+static void cmd_pop(char **args)
+{
+	pop_location();
+}
+
 static void cmd_prev(char **args)
 {
 	prev_buffer();
+}
+
+static void cmd_push(char **args)
+{
+	push_location();
 }
 
 static void cmd_quit(char **args)
@@ -422,7 +432,9 @@ static const struct command commands[] = {
 	{ "paste", NULL, cmd_paste },
 	{ "pgdown", NULL, cmd_pgdown },
 	{ "pgup", NULL, cmd_pgup },
+	{ "pop", NULL, cmd_pop },
 	{ "prev", NULL, cmd_prev },
+	{ "push", NULL, cmd_push },
 	{ "quit", "q", cmd_quit },
 	{ "redo", NULL, cmd_redo },
 	{ "replace", "r", cmd_replace },
