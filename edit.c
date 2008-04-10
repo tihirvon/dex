@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "gbuf.h"
 
 struct options options = {
 	.move_wraps = 1,
@@ -652,4 +653,36 @@ int buffer_get_char(uchar *up)
 {
 	struct block_iter bi = view->cursor;
 	return buffer->next_char(&bi, up);
+}
+
+static int is_word_byte(unsigned char byte)
+{
+	return isalnum(byte) || byte == '_' || byte & 0x80;
+}
+
+char *get_word_under_cursor(void)
+{
+	struct block_iter bi = view->cursor;
+	GBUF(buf);
+	uchar ch;
+
+	if (!block_iter_next_byte(&bi, &ch))
+		return NULL;
+
+	while (is_word_byte(ch)) {
+		if (!block_iter_prev_byte(&bi, &ch))
+			break;
+
+	}
+	while (!is_word_byte(ch)) {
+		if (!block_iter_next_byte(&bi, &ch))
+			return NULL;
+	}
+
+	do {
+		gbuf_add_ch(&buf, ch);
+		if (!block_iter_next_byte(&bi, &ch))
+			break;
+	} while (is_word_byte(ch));
+	return gbuf_steal(&buf);
 }

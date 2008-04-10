@@ -368,8 +368,18 @@ static void cmd_select(char **args)
 
 static void cmd_tag(char **args)
 {
-	ARGC(1, 1);
-	goto_tag(args[0]);
+	ARGC(0, 1);
+
+	if (args[0]) {
+		goto_tag(args[0]);
+	} else {
+		char *word = get_word_under_cursor();
+		if (!word) {
+			return;
+		}
+		goto_tag(word);
+		free(word);
+	}
 }
 
 static void cmd_undo(char **args)

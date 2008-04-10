@@ -203,6 +203,7 @@ void move_eof(void);
 void goto_tag(const char *name);
 
 int buffer_get_char(uchar *up);
+char *get_word_under_cursor(void);
 
 static inline int block_iter_eof(struct block_iter *bi)
 {
