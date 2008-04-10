@@ -221,7 +221,7 @@ static void print_command_line(void)
 		print_command(':');
 		break;
 	case INPUT_SEARCH:
-		print_command(search_direction == SEARCH_FWD ? '/' : '?');
+		print_command(current_search_direction() == SEARCH_FWD ? '/' : '?');
 		break;
 	default:
 		obuf.tab_width = 8;

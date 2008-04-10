@@ -6,9 +6,8 @@ enum search_direction {
 	SEARCH_BWD,
 };
 
-extern enum search_direction search_direction;
-
 void search_init(enum search_direction dir);
+enum search_direction current_search_direction(void);
 void search(const char *pattern);
 void search_prev(void);
 void search_next(void);

@@ -12,18 +12,7 @@ enum {
 	REPLACE_GLOBAL = (1 << 1),
 };
 
-enum search_direction search_direction;
-
-static char *search_pattern;
-static regex_t regex;
-static char regex_error[1024];
-
-void search_init(enum search_direction dir)
-{
-	search_direction = dir;
-}
-
-static void do_search_fwd(void)
+static void do_search_fwd(regex_t *regex)
 {
 	struct block_iter bi = view->cursor;
 	uchar u;
@@ -33,7 +22,7 @@ static void do_search_fwd(void)
 		regmatch_t match;
 
 		fetch_eol(&bi);
-		if (!regexec(&regex, line_buffer, 1, &match, 0)) {
+		if (!regexec(regex, line_buffer, 1, &match, 0)) {
 			int offset = match.rm_so;
 
 			while (offset--)
@@ -45,7 +34,7 @@ static void do_search_fwd(void)
 	} while (block_iter_next_line(&bi));
 }
 
-static void do_search_bwd(void)
+static void do_search_bwd(regex_t *regex)
 {
 	struct block_iter bi = view->cursor;
 	int cx = view->cx_idx;
@@ -59,7 +48,7 @@ static void do_search_bwd(void)
 
 		block_iter_bol(&bi);
 		fetch_eol(&bi);
-		while (!regexec(&regex, buf + pos, 1, &match, 0)) {
+		while (!regexec(regex, buf + pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
 				/* match at or after cursor */
@@ -82,21 +71,38 @@ static void do_search_bwd(void)
 	} while (block_iter_prev_line(&bi));
 }
 
+static struct {
+	char error[1024];
+	regex_t regex;
+	char *pattern;
+	enum search_direction direction;
+} current_search;
+
+void search_init(enum search_direction dir)
+{
+	current_search.direction = dir;
+}
+
+enum search_direction current_search_direction(void)
+{
+	return current_search.direction;
+}
+
 void search(const char *pattern)
 {
 	int err;
 
-	if (search_pattern) {
-		free(search_pattern);
-		regfree(&regex);
+	if (current_search.pattern) {
+		free(current_search.pattern);
+		regfree(&current_search.regex);
 	}
-	search_pattern = xstrdup(pattern);
+	current_search.pattern = xstrdup(pattern);
 
 	// NOTE: regex needs to be freed even if regcomp() fails
-	err = regcomp(&regex, pattern, REG_EXTENDED | REG_NEWLINE);
+	err = regcomp(&current_search.regex, pattern, REG_EXTENDED | REG_NEWLINE);
 	if (err) {
-		regerror(err, &regex, regex_error, sizeof(regex_error));
-		d_print("error: %s\n", regex_error);
+		regerror(err, &current_search.regex, current_search.error, sizeof(current_search.error));
+		d_print("error: %s\n", current_search.error);
 		return;
 	}
 
@@ -105,12 +111,12 @@ void search(const char *pattern)
 
 static int can_search(void)
 {
-	if (!search_pattern) {
+	if (!current_search.pattern) {
 		d_print("no previous search pattern\n");
 		return 0;
 	}
-	if (*regex_error) {
-		d_print("Error parsing regexp: %s\n", regex_error);
+	if (*current_search.error) {
+		d_print("Error parsing regexp: %s\n", current_search.error);
 		return 0;
 	}
 	return 1;
@@ -119,20 +125,20 @@ static int can_search(void)
 void search_next(void)
 {
 	if (can_search()) {
-		if (search_direction == SEARCH_FWD)
-			do_search_fwd();
+		if (current_search.direction == SEARCH_FWD)
+			do_search_fwd(&current_search.regex);
 		else
-			do_search_bwd();
+			do_search_bwd(&current_search.regex);
 	}
 }
 
 void search_prev(void)
 {
 	if (can_search()) {
-		if (search_direction == SEARCH_BWD)
-			do_search_fwd();
+		if (current_search.direction == SEARCH_BWD)
+			do_search_fwd(&current_search.regex);
 		else
-			do_search_bwd();
+			do_search_bwd(&current_search.regex);
 	}
 }
 
@@ -283,9 +289,10 @@ void reg_replace(const char *pattern, const char *format, const char *flags_str)
 
 	err = regcomp(&re, pattern, re_flags);
 	if (err) {
-		regerror(err, &re, regex_error, sizeof(regex_error));
+		char error[1024];
+		regerror(err, &re, error, sizeof(error));
 		regfree(&re);
-		d_print("error: %s\n", regex_error);
+		d_print("error: %s\n", error);
 		return;
 	}
 
