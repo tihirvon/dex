@@ -154,6 +154,7 @@ void goto_tag(const char *name)
 		return;
 	}
 
+	push_location();
 	v = open_buffer(ta.filename);
 	if (!v) {
 		free(ta.filename);
