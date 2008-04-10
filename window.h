@@ -34,4 +34,7 @@ void set_view(struct view *v);
 void next_buffer(void);
 void prev_buffer(void);
 
+void center_cursor(void);
+void move_to_line(int line);
+
 #endif

@@ -132,3 +132,33 @@ void update_cursor(struct view *v)
 	if (v->cy > v->vy + v->window->h - 1)
 		v->vy = v->cy - v->window->h + 1;
 }
+
+void center_cursor(void)
+{
+	unsigned int hh = window->h / 2;
+
+	if (window->h >= buffer->nl || view->cy < hh) {
+		view->vy = 0;
+		return;
+	}
+
+	view->vy = view->cy - hh;
+	if (view->vy + window->h > buffer->nl) {
+		/*
+		 * -2 makes the dummy line and one ~ line visible.
+		 * It is good to know that we are at end of the file.
+		 */
+		view->vy -= view->vy + window->h - buffer->nl - 2;
+	}
+}
+
+void move_to_line(int line)
+{
+	line--;
+	update_cursor(view);
+	if (view->cy > line)
+		move_up(view->cy - line);
+	if (view->cy < line)
+		move_down(line - view->cy);
+	center_cursor();
+}

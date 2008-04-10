@@ -2,6 +2,7 @@
 #include "search.h"
 #include "util.h"
 #include "gbuf.h"
+#include "window.h"
 
 #include <regex.h>
 
@@ -12,7 +13,7 @@ enum {
 	REPLACE_GLOBAL = (1 << 1),
 };
 
-static void do_search_fwd(regex_t *regex)
+static int do_search_fwd(regex_t *regex)
 {
 	struct block_iter bi = view->cursor;
 	uchar u;
@@ -29,12 +30,13 @@ static void do_search_fwd(regex_t *regex)
 				block_iter_next_byte(&bi, &u);
 			SET_CURSOR(bi);
 			update_cursor(view);
-			return;
+			return 1;
 		}
 	} while (block_iter_next_line(&bi));
+	return 0;
 }
 
-static void do_search_bwd(regex_t *regex)
+static int do_search_bwd(regex_t *regex)
 {
 	struct block_iter bi = view->cursor;
 	int cx = view->cx_idx;
@@ -65,10 +67,11 @@ static void do_search_bwd(regex_t *regex)
 				block_iter_next_byte(&bi, &u);
 			SET_CURSOR(bi);
 			update_cursor(view);
-			return;
+			return 1;
 		}
 		cx = -1;
 	} while (block_iter_prev_line(&bi));
+	return 0;
 }
 
 void search_tag(const char *pattern)
@@ -83,7 +86,8 @@ void search_tag(const char *pattern)
 		regerror(err, &regex, error, sizeof(error));
 		d_print("error: %s\n", error);
 	} else {
-		do_search_fwd(&regex);
+		if (do_search_fwd(&regex))
+			center_cursor();
 	}
 	regfree(&regex);
 }
