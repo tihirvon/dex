@@ -155,6 +155,8 @@ static int parse_command(const char *cmd, int *posp)
 	return 0;
 error:
 	gbuf_free(&arg);
+	while (argc > 0)
+		free(argv[--argc]);
 	d_print("parse error\n");
 	return -1;
 }
