@@ -2,19 +2,15 @@
 #include "util.h"
 #include "gbuf.h"
 
-// can contain many commands. each terminated with NULL
-static char **argv;
-static int argc;
-static int arga;
 static GBUF(arg);
 
-static void add_arg(char *str)
+static void add_arg(struct parsed_command *pc, char *str)
 {
-	if (arga == argc) {
-		arga = (argc + 1 + 7) & ~7;
-		xrenew(argv, arga);
+	if (pc->alloc == pc->count) {
+		pc->alloc = (pc->count + 1 + 7) & ~7;
+		xrenew(pc->argv, pc->alloc);
 	}
-	argv[argc++] = str;
+	pc->argv[pc->count++] = str;
 }
 
 static const char *get_home_dir(const char *username, int len)
@@ -108,7 +104,7 @@ static int parse_dq(const char *cmd, int *posp)
 	return 0;
 }
 
-static int parse_command(const char *cmd, int *posp)
+static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 {
 	int got_arg = 0;
 	int pos = *posp;
@@ -116,14 +112,14 @@ static int parse_command(const char *cmd, int *posp)
 	while (1) {
 		if (isspace(cmd[pos])) {
 			if (got_arg)
-				add_arg(gbuf_steal(&arg));
+				add_arg(pc, gbuf_steal(&arg));
 			got_arg = 0;
 			while (isspace(cmd[pos]))
 				pos++;
 		}
 		if (!cmd[pos] || cmd[pos] == '#' || cmd[pos] == ';') {
 			if (got_arg)
-				add_arg(gbuf_steal(&arg));
+				add_arg(pc, gbuf_steal(&arg));
 			got_arg = 0;
 			break;
 		}
@@ -150,30 +146,34 @@ static int parse_command(const char *cmd, int *posp)
 			gbuf_add_ch(&arg, cmd[pos++]);
 		}
 	}
-	add_arg(NULL);
+	add_arg(pc, NULL);
 	*posp = pos;
 	return 0;
 error:
 	gbuf_free(&arg);
-	while (argc > 0)
-		free(argv[--argc]);
 	d_print("parse error\n");
 	return -1;
 }
 
-char **parse_commands(const char *cmd, int *argcp)
+int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 {
 	int pos = 0;
 
-	argc = 0;
+	memset(pc, 0, sizeof(*pc));
+
 	while (1) {
-		if (parse_command(cmd, &pos))
-			return NULL;
+		if (parse_command(pc, cmd, &pos))
+			return -1;
 		if (!cmd[pos] || cmd[pos] == '#')
 			break;
 		pos++;
 	}
+	return 0;
+}
 
-	*argcp = argc;
-	return argv;
+void free_commands(struct parsed_command *pc)
+{
+	while (pc->count > 0)
+		free(pc->argv[--pc->count]);
+	free(pc->argv);
 }

@@ -493,25 +493,25 @@ static void run_command(char **av)
 
 void handle_command(const char *cmd)
 {
-	int count;
-	char **args = parse_commands(cmd, &count);
+	struct parsed_command pc;
 	int s, e;
 
-	if (!args)
+	if (parse_commands(&pc, cmd, 0)) {
+		free_commands(&pc);
 		return;
+	}
 
 	s = 0;
-	while (s < count) {
+	while (s < pc.count) {
 		e = s;
-		while (e < count && args[e])
+		while (e < pc.count && pc.argv[e])
 			e++;
 
 		if (e > s)
-			run_command(args + s);
+			run_command(pc.argv + s);
 
 		s = e + 1;
 	}
 
-	while (count > 0)
-		free(args[--count]);
+	free_commands(&pc);
 }
