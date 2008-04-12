@@ -61,9 +61,8 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 		*key = ch - 0x40;
 		return 1;
 	}
-	if (str[0] == 'M' && str[1] == '-' && len == 3) {
+	if (str[0] == 'M' && str[1] == '-' && parse_key(type, key, str + 2)) {
 		*type = KEY_META;
-		*key = str[2];
 		return 1;
 	}
 	for (i = 0; i < NR_SKEYS; i++) {
