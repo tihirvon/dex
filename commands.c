@@ -401,13 +401,7 @@ static void cmd_up(char **args)
 	move_up(1);
 }
 
-struct command {
-	const char *name;
-	const char *short_name;
-	void (*cmd)(char **);
-};
-
-static const struct command commands[] = {
+const struct command commands[] = {
 	{ "backspace", NULL, cmd_backspace },
 	{ "bind", NULL, cmd_bind },
 	{ "bof", NULL, cmd_bof },
@@ -477,18 +471,28 @@ void handle_binding(enum term_key_type type, unsigned int key)
 	nr_pressed_keys = 0;
 }
 
-static void run_command(char **av)
+const struct command *find_command(const char *name)
 {
 	int i;
 
 	for (i = 0; commands[i].name; i++) {
-		const struct command *c = &commands[i];
-		if ((c->short_name && !strcmp(av[0], c->short_name)) || !strcmp(av[0], c->name)) {
-			c->cmd(av + 1);
-			return;
-		}
+		const struct command *cmd = &commands[i];
+
+		if (!strcmp(name, cmd->name))
+			return cmd;
+		if (cmd->short_name && !strcmp(name, cmd->short_name))
+			return cmd;
 	}
-	d_print("no such command: %s\n", av[0]);
+	return NULL;
+}
+
+static void run_command(char **av)
+{
+	const struct command *cmd = find_command(av[0]);
+	if (cmd)
+		cmd->cmd(av + 1);
+	else
+		d_print("no such command: %s\n", av[0]);
 }
 
 void handle_command(const char *cmd)

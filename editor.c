@@ -564,12 +564,17 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_NORMAL:
 		switch (key) {
 		case '\r':
+			reset_completion();
 			handle_command(cmdline.buffer);
 			history_add(&command_history, cmdline.buffer);
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
 			break;
+		case '\t':
+			complete_command();
+			break;
 		default:
+			reset_completion();
 			cmdline_insert(key);
 			break;
 		}
@@ -646,8 +651,11 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			}
 			break;
 		case INPUT_COMMAND:
-			if (!common_key(&command_history, type, key))
+			if (common_key(&command_history, type, key)) {
+				reset_completion();
+			} else {
 				command_mode_key(type, key);
+			}
 			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case INPUT_SEARCH:

@@ -111,12 +111,26 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 
 	while (1) {
 		if (isspace(cmd[pos])) {
+			if (pos < pc->comp_eo)
+				pc->comp_so = -1;
+
 			if (got_arg)
 				add_arg(pc, gbuf_steal(&arg));
 			got_arg = 0;
 			while (isspace(cmd[pos]))
 				pos++;
 		}
+
+		if (pos <= pc->comp_eo) {
+			if (!got_arg) {
+				pc->comp_so = pos;
+				pc->args_before_cursor = pc->count;
+			}
+		} else if (pc->comp_so < 0) {
+			pc->comp_so = pc->comp_eo;
+			pc->args_before_cursor = pc->count;
+		}
+
 		if (!cmd[pos] || cmd[pos] == '#' || cmd[pos] == ';') {
 			if (got_arg)
 				add_arg(pc, gbuf_steal(&arg));
@@ -160,6 +174,8 @@ int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 	int pos = 0;
 
 	memset(pc, 0, sizeof(*pc));
+	pc->comp_so = -1;
+	pc->comp_eo = cursor_pos;
 
 	while (1) {
 		if (parse_command(pc, cmd, &pos))
