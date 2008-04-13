@@ -79,7 +79,7 @@ void search_tag(const char *pattern)
 	if (err) {
 		char error[1024];
 		regerror(err, &regex, error, sizeof(error));
-		d_print("error: %s\n", error);
+		error_msg(error);
 	} else {
 		if (do_search_fwd(&regex))
 			center_cursor();
@@ -118,7 +118,7 @@ void search(const char *pattern)
 	err = regcomp(&current_search.regex, pattern, REG_EXTENDED | REG_NEWLINE);
 	if (err) {
 		regerror(err, &current_search.regex, current_search.error, sizeof(current_search.error));
-		d_print("error: %s\n", current_search.error);
+		error_msg(current_search.error);
 		return;
 	}
 
@@ -128,11 +128,11 @@ void search(const char *pattern)
 static int can_search(void)
 {
 	if (!current_search.pattern) {
-		d_print("no previous search pattern\n");
+		error_msg("No previous search pattern");
 		return 0;
 	}
 	if (*current_search.error) {
-		d_print("Error parsing regexp: %s\n", current_search.error);
+		error_msg(current_search.error);
 		return 0;
 	}
 	return 1;
@@ -297,7 +297,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		char error[1024];
 		regerror(err, &re, error, sizeof(error));
 		regfree(&re);
-		d_print("error: %s\n", error);
+		error_msg(error);
 		return;
 	}
 

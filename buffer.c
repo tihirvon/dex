@@ -257,7 +257,7 @@ static struct buffer *buffer_new(const char *filename)
 	if (filename) {
 		absolute = path_absolute(filename);
 		if (!absolute) {
-			d_print("Failed to make absolute path\n");
+			error_msg("Failed to make absolute path.");
 			return NULL;
 		}
 	}
@@ -386,10 +386,8 @@ struct view *open_buffer(const char *filename)
 	struct buffer *b;
 
 	b = buffer_new(filename);
-	if (!b) {
-		d_print("error %s: %s\n", filename, strerror(errno));
+	if (!b)
 		return NULL;
-	}
 	if (filename) {
 		struct view *v;
 		int fd, ro = 0;

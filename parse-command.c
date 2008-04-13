@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "util.h"
 #include "gbuf.h"
+#include "buffer.h"
 
 static GBUF(arg);
 
@@ -64,6 +65,7 @@ static int parse_sq(const char *cmd, int *posp)
 			break;
 		}
 		if (!cmd[pos]) {
+			error_msg("Missing '");
 			return -1;
 		}
 		gbuf_add_ch(&arg, cmd[pos++]);
@@ -82,6 +84,7 @@ static int parse_dq(const char *cmd, int *posp)
 			break;
 		}
 		if (!cmd[pos]) {
+			error_msg("Missing \"");
 			return -1;
 		}
 		if (cmd[pos] == '\\') {
@@ -153,8 +156,10 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 				goto error;
 		} else if (cmd[pos] == '\\') {
 			pos++;
-			if (!cmd[pos])
+			if (!cmd[pos]) {
+				error_msg("Unexpected EOF");
 				goto error;
+			}
 			gbuf_add_ch(&arg, cmd[pos++]);
 		} else {
 			gbuf_add_ch(&arg, cmd[pos++]);
@@ -165,7 +170,6 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 	return 0;
 error:
 	gbuf_free(&arg);
-	d_print("parse error\n");
 	return -1;
 }
 

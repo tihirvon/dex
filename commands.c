@@ -95,7 +95,7 @@ static const char *parse_flags(char ***argsp, const char *flags)
 		for (j = 1; arg[j]; j++) {
 			char flag = arg[j];
 			if (!strchr(flags, flag)) {
-				d_print("invalid option -%c\n", flag);
+				error_msg("Invalid option -%c", flag);
 				return NULL;
 			}
 			if (!strchr(parsed, flag)) {
@@ -119,11 +119,11 @@ static const char *parse_args(char ***argsp, const char *flags, int min, int max
 		while (args[argc])
 			argc++;
 		if (argc < min) {
-			d_print("not enough arguments\n");
+			error_msg("Not enough arguments");
 			return NULL;
 		}
 		if (argc > max) {
-			d_print("too many arguments\n");
+			error_msg("Too many arguments");
 			return NULL;
 		}
 	}
@@ -368,7 +368,7 @@ static void cmd_quit(char **args)
 	list_for_each_entry(w, &windows, node) {
 		list_for_each_entry(v, &w->views, node) {
 			if (buffer_modified(v->buffer)) {
-				d_print("Save modified files or run 'quit -f' to quit without saving.\n");
+				error_msg("Save modified files or run 'quit -f' to quit without saving.");
 				return;
 			}
 		}
@@ -422,7 +422,7 @@ static void cmd_save(char **args)
 		char *absolute = path_absolute(args[0]);
 
 		if (!absolute) {
-			d_print("Failed to make absolute path.\n");
+			error_msg("Failed to make absolute path.");
 			return;
 		}
 		free(buffer->filename);
@@ -592,7 +592,7 @@ static void run_command(char **av)
 	if (cmd)
 		cmd->cmd(av + 1);
 	else
-		d_print("no such command: %s\n", av[0]);
+		error_msg("No such command: %s", av[0]);
 }
 
 void handle_command(const char *cmd)
