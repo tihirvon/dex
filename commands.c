@@ -2,6 +2,7 @@
 #include "window.h"
 #include "term.h"
 #include "search.h"
+#include "cmdline.h"
 
 #define MAX_KEYS 4
 
@@ -159,6 +160,9 @@ static void cmd_command(char **args)
 {
 	input_mode = INPUT_COMMAND;
 	update_flags |= UPDATE_STATUS_LINE;
+
+	if (args[0])
+		cmdline_set_text(args[0]);
 }
 
 static void cmd_copy(char **args)
