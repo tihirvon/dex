@@ -221,6 +221,7 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 		nr_delete = m[0].rm_eo - m[0].rm_so;
 		nr_insert = strlen(str);
 		replace(nr_delete, str, nr_insert);
+		free(str);
 		nr++;
 
 		count = nr_insert;

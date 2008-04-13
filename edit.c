@@ -211,7 +211,7 @@ void delete(unsigned int len, int move_after)
 	}
 }
 
-void replace(unsigned int del_count, char *inserted, int ins_count)
+void replace(unsigned int del_count, const char *inserted, int ins_count)
 {
 	char *deleted;
 

@@ -178,7 +178,7 @@ void do_insert(const char *buf, unsigned int len);
 void do_delete(unsigned int len);
 void delete(unsigned int len, int move_after);
 void insert(const char *buf, unsigned int len);
-void replace(unsigned int del_count, char *inserted, int ins_count);
+void replace(unsigned int del_count, const char *inserted, int ins_count);
 void cut(unsigned int len, int is_lines);
 void copy(unsigned int len, int is_lines);
 unsigned int count_bytes_eol(struct block_iter *bi);
