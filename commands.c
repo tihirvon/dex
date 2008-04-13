@@ -327,6 +327,7 @@ static void cmd_save(char **args)
 		char *absolute = path_absolute(args[0]);
 
 		if (!absolute) {
+			d_print("Failed to make absolute path.\n");
 			return;
 		}
 		free(buffer->filename);
