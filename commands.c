@@ -355,6 +355,24 @@ static void cmd_push(char **args)
 
 static void cmd_quit(char **args)
 {
+	const char *pf = parse_args(&args, "f", 0, 0);
+	struct window *w;
+	struct view *v;
+
+	if (!pf)
+		return;
+	if (pf[0]) {
+		running = 0;
+		return;
+	}
+	list_for_each_entry(w, &windows, node) {
+		list_for_each_entry(v, &w->views, node) {
+			if (buffer_modified(v->buffer)) {
+				d_print("Save modified files or run 'quit -f' to quit without saving.\n");
+				return;
+			}
+		}
+	}
 	running = 0;
 }
 
