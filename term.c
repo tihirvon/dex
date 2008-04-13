@@ -93,77 +93,71 @@ void term_cooked(void)
 	tcsetattr(0, 0, &termios_save);
 }
 
-static int input_read(char *buf, int buf_size)
-{
-	int rc;
+static char input_buf[256];
+static int input_buf_fill;
 
-	rc = read(0, buf, buf_size - 1);
-	if (rc == -1)
-		rc = 0;
-	buf[rc] = 0;
-	return rc;
+static void consume_input(int len)
+{
+	input_buf_fill -= len;
+	if (input_buf_fill)
+		memmove(input_buf, input_buf + len, input_buf_fill);
 }
 
-static int input_get_byte(char *buf, int buf_size, unsigned char *ch)
+static int input_get_byte(unsigned char *ch)
 {
-	int len;
-
-	if (buf[0] == 0) {
-		input_read(buf, buf_size);
-		if (buf[0] == 0)
+	if (!input_buf_fill) {
+		int rc = read(0, input_buf, sizeof(input_buf));
+		if (rc <= 0)
 			return 0;
+		input_buf_fill = rc;
 	}
-
-	*ch = buf[0];
-	len = strlen(buf + 1);
-	memmove(buf, buf + 1, len + 1);
+	*ch = input_buf[0];
+	consume_input(1);
 	return 1;
 }
 
 int term_read_key(unsigned int *key, enum term_key_type *type)
 {
-	const int buf_size = 32;
-	static char buf[32 + 1] = { 0, };
-	int buf_fill = strlen(buf);
 	unsigned char ch;
 
-	/*
-	 * One read always returns the whole key sequence if there's
-	 * enough space. Therefore we drain the buffer before doing
-	 * next read().
-	 *
-	 * Pasted text may not fit in the buffer but it doesn't matter,
-	 * we read it one character at time anyways.
-	 *
-	 * Ouch, UTF-8 is multibyte.
-	 */
-	if (buf_fill == 0) {
-		buf_fill = input_read(buf, buf_size);
-		if (buf_fill == 0)
+	if (!input_buf_fill) {
+		int rc = read(0, input_buf, sizeof(input_buf));
+		if (rc <= 0)
 			return 0;
+		input_buf_fill = rc;
 	}
 
-	if (buf_fill > 1) {
+	if (input_buf_fill > 1) {
 		int i;
 
 		for (i = 0; i < NR_SKEYS; i++) {
-			if (term_keycodes[i] && strcmp(term_keycodes[i], buf) == 0) {
-				*key = i;
-				*type = KEY_SPECIAL;
-				buf[0] = 0;
-				return 1;
+			int len;
+
+			if (!term_keycodes[i])
+				continue;
+
+			len = strlen(term_keycodes[i]);
+			if (len > input_buf_fill) {
+				/* FIXME: this might be trucated escape sequence */
+				continue;
 			}
+			if (strncmp(term_keycodes[i], input_buf, len))
+				continue;
+			*key = i;
+			*type = KEY_SPECIAL;
+			consume_input(len);
+			return 1;
 		}
-		if (buf_fill == 2 && buf[0] == '\033') {
+		if (input_buf[0] == '\033') {
 			/* 'esc key' or 'alt-key' */
-			*key = buf[1];
+			*key = input_buf[1];
 			*type = KEY_META;
-			buf[0] = 0;
+			consume_input(2);
 			return 1;
 		}
 	}
 	/* > 0 bytes in buf */
-	input_get_byte(buf, buf_size, &ch);
+	input_get_byte(&ch);
 
 	if (ch == 0x7f || ch == 0x08) {
 		*key = SKEY_BACKSPACE;
@@ -193,7 +187,7 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 		}
 		u = ch & (bit - 1);
 		do {
-			if (!input_get_byte(buf, buf_size, &ch))
+			if (!input_get_byte(&ch))
 				return 0;
 			if (ch >> 6 != 2)
 				return 0;
