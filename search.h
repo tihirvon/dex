@@ -6,6 +6,13 @@ enum search_direction {
 	SEARCH_BWD,
 };
 
+enum {
+	REPLACE_CONFIRM = (1 << 0),
+	REPLACE_GLOBAL = (1 << 1),
+	REPLACE_IGNORE_CASE = (1 << 2),
+	REPLACE_BASIC = (1 << 3),
+};
+
 void search_tag(const char *pattern);
 
 void search_init(enum search_direction dir);
@@ -14,6 +21,6 @@ void search(const char *pattern);
 void search_prev(void);
 void search_next(void);
 
-void reg_replace(const char *pattern, const char *format, const char *flags_str);
+void reg_replace(const char *pattern, const char *format, unsigned int flags);
 
 #endif

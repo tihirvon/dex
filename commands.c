@@ -76,6 +76,61 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 	return 0;
 }
 
+static const char *parse_flags(char ***argsp, const char *flags)
+{
+	static char parsed[16];
+	int i, j, count = 0;
+	char **args = *argsp;
+
+	parsed[0] = 0;
+	for (i = 0; args[i]; i++) {
+		const char *arg = args[i];
+
+		if (!strcmp(arg, "--")) {
+			i++;
+			break;
+		}
+		if (arg[0] != '-' || !arg[1])
+			break;
+		for (j = 1; arg[j]; j++) {
+			char flag = arg[j];
+			if (!strchr(flags, flag)) {
+				d_print("invalid option -%c\n", flag);
+				return NULL;
+			}
+			if (!strchr(parsed, flag)) {
+				parsed[count++] = flag;
+				parsed[count] = 0;
+			}
+		}
+	}
+	*argsp = args + i;
+	return parsed;
+}
+
+static const char *parse_args(char ***argsp, const char *flags, int min, int max)
+{
+	const char *pf = parse_flags(argsp, flags);
+
+	if (pf) {
+		char **args = *argsp;
+		int argc = 0;
+
+		while (args[argc])
+			argc++;
+		if (argc < min) {
+			d_print("not enough arguments\n");
+			return NULL;
+		}
+		if (argc > max) {
+			d_print("too many arguments\n");
+			return NULL;
+		}
+	}
+	d_print("flags: %s\n", pf);
+	return pf;
+}
+
 #define ARGC(min, max) \
 	int argc = 0; \
 	while (args[argc]) \
@@ -310,8 +365,30 @@ static void cmd_redo(char **args)
 
 static void cmd_replace(char **args)
 {
-	ARGC(2, 3);
-	reg_replace(args[0], args[1], args[2]);
+	const char *pf = parse_args(&args, "bcgi", 2, 2);
+	unsigned int flags = 0;
+	int i;
+
+	if (!pf)
+		return;
+
+	for (i = 0; pf[i]; i++) {
+		switch (pf[i]) {
+		case 'b':
+			flags |= REPLACE_BASIC;
+			break;
+		case 'c':
+			flags |= REPLACE_CONFIRM;
+			break;
+		case 'g':
+			flags |= REPLACE_GLOBAL;
+			break;
+		case 'i':
+			flags |= REPLACE_IGNORE_CASE;
+			break;
+		}
+	}
+	reg_replace(args[0], args[1], flags);
 }
 
 static void cmd_right(char **args)

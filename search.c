@@ -8,11 +8,6 @@
 
 #define MAX_SUBSTRINGS 32
 
-enum {
-	REPLACE_CONFIRM = (1 << 0),
-	REPLACE_GLOBAL = (1 << 1),
-};
-
 static int do_search_fwd(regex_t *regex)
 {
 	struct block_iter bi = view->cursor;
@@ -282,32 +277,20 @@ static void get_range(struct block_iter *bi, unsigned int *nr_bytes)
 	*nr_bytes = len;
 }
 
-void reg_replace(const char *pattern, const char *format, const char *flags_str)
+void reg_replace(const char *pattern, const char *format, unsigned int flags)
 {
 	struct block_iter bi;
 	unsigned int nr_bytes;
-	unsigned int flags = 0;
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
 	int nr_substitutions = 0;
 	int nr_lines = 0;
 	regex_t re;
-	int i, err;
+	int err;
 
-	for (i = 0; flags_str && flags_str[i]; i++) {
-		switch (flags_str[i]) {
-		case 'c':
-			flags |= REPLACE_CONFIRM;
-			break;
-		case 'g':
-			flags |= REPLACE_GLOBAL;
-			break;
-		case 'i':
-			re_flags |= REG_ICASE;
-			break;
-		default:
-			break;
-		}
-	}
+	if (flags & REPLACE_IGNORE_CASE)
+		re_flags |= REG_ICASE;
+	if (flags & REPLACE_BASIC)
+		re_flags &= ~REG_EXTENDED;
 
 	err = regcomp(&re, pattern, re_flags);
 	if (err) {
