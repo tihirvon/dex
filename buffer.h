@@ -207,6 +207,8 @@ void pop_location(void);
 int buffer_get_char(uchar *up);
 char *get_word_under_cursor(void);
 
+void error_msg(const char *format, ...);
+
 static inline int block_iter_eof(struct block_iter *bi)
 {
 	return bi->offset == bi->blk->size && bi->blk->node.next == bi->head;

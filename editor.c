@@ -12,6 +12,7 @@
 
 enum input_mode input_mode;
 int running = 1;
+char error_buf[256];
 
 static int received_signal;
 static int cmdline_x;
@@ -226,6 +227,14 @@ static void print_command_line(void)
 	default:
 		obuf.tab_width = 8;
 		obuf.scroll_x = 0;
+		if (error_buf[0]) {
+			int i;
+			for (i = 0; error_buf[i]; i++) {
+				if (!buf_put_char(error_buf[i], term_flags & TERM_UTF8))
+					break;
+			}
+			error_buf[0] = 0;
+		}
 		buf_clear_eol();
 		break;
 	}
@@ -479,6 +488,16 @@ void ui_end(void)
 
 	buf_flush();
 	term_cooked();
+}
+
+void error_msg(const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	vsnprintf(error_buf, sizeof(error_buf), format, ap);
+	va_end(ap);
+	update_flags |= UPDATE_STATUS_LINE;
 }
 
 static int common_key(struct history *history, enum term_key_type type, unsigned int key)
