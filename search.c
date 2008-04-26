@@ -4,8 +4,6 @@
 #include "gbuf.h"
 #include "window.h"
 
-#include <regex.h>
-
 #define MAX_SUBSTRINGS 32
 
 static int do_search_fwd(regex_t *regex)
@@ -104,7 +102,7 @@ enum search_direction current_search_direction(void)
 	return current_search.direction;
 }
 
-void search(const char *pattern)
+void search(const char *pattern, int re_flags)
 {
 	int err;
 
@@ -115,7 +113,7 @@ void search(const char *pattern)
 	current_search.pattern = xstrdup(pattern);
 
 	// NOTE: regex needs to be freed even if regcomp() fails
-	err = regcomp(&current_search.regex, pattern, REG_EXTENDED | REG_NEWLINE);
+	err = regcomp(&current_search.regex, pattern, re_flags);
 	if (err) {
 		regerror(err, &current_search.regex, current_search.error, sizeof(current_search.error));
 		error_msg(current_search.error);

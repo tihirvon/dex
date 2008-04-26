@@ -612,7 +612,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_NORMAL:
 		switch (key) {
 		case '\r':
-			search(cmdline.buffer);
+			search(cmdline.buffer, REG_EXTENDED | REG_NEWLINE);
 			history_add(&search_history, cmdline.buffer);
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
