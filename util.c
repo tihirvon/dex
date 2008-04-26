@@ -1,5 +1,8 @@
 #include "util.h"
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 char *home_dir;
 
 void init_misc(void)
@@ -329,4 +332,24 @@ char *path_absolute(const char *filename)
 		sp = ep + 1;
 	}
 	return xstrdup(buf);
+}
+
+void spawn(char **args)
+{
+	pid_t pid;
+	int status;
+
+	ui_end();
+	pid = fork();
+	if (pid < 0) {
+		return;
+	}
+	if (!pid) {
+		execvp(args[0], args);
+		exit(42);
+	}
+	while (wait(&status) < 0 && errno == EINTR)
+		;
+	ui_start();
+	any_key();
 }

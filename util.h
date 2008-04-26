@@ -45,7 +45,11 @@ unsigned int copy_count_nl(char *dst, const char *src, unsigned int len);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
+void spawn(char **args);
+
+void ui_start(void);
 void ui_end(void);
+void any_key(void);
 
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
 void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);

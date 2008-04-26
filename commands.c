@@ -123,7 +123,7 @@ static const char *parse_args(char ***argsp, const char *flags, int min, int max
 			error_msg("Not enough arguments");
 			return NULL;
 		}
-		if (argc > max) {
+		if (max >= 0 && argc > max) {
 			error_msg("Too many arguments");
 			return NULL;
 		}
@@ -415,6 +415,39 @@ static void cmd_right(char **args)
 	move_right(1);
 }
 
+static void cmd_run(char **args)
+{
+	const char *pf = parse_args(&args, "c", 1, -1);
+
+	if (!pf)
+		return;
+	if (*pf) {
+		struct parsed_command pc;
+		char cmd[8192];
+		char *word;
+
+		if (args[1]) {
+			error_msg("Too many arguments");
+			return;
+		}
+
+		word = get_word_under_cursor();
+		if (!word) {
+			return;
+		}
+
+		snprintf(cmd, sizeof(cmd), args[0], word);
+		if (parse_commands(&pc, cmd, 0)) {
+			free_commands(&pc);
+			return;
+		}
+		spawn(pc.argv);
+		free_commands(&pc);
+	} else {
+		spawn(args);
+	}
+}
+
 static void cmd_save(char **args)
 {
 	ARGC(0, 1);
@@ -565,6 +598,7 @@ const struct command commands[] = {
 	{ "redo", NULL, cmd_redo },
 	{ "replace", "r", cmd_replace },
 	{ "right", NULL, cmd_right },
+	{ "run", NULL, cmd_run },
 	{ "save", "s", cmd_save },
 	{ "search-bwd", NULL, cmd_search_bwd },
 	{ "search-fwd", NULL, cmd_search_fwd },

@@ -454,7 +454,17 @@ static void debug_blocks(void)
 	}
 }
 
-static void ui_start(void)
+void any_key(void)
+{
+	unsigned int key;
+	enum term_key_type type;
+
+	printf("Press any key to continue\n");
+	term_read_key(&key, &type);
+	update_everything();
+}
+
+void ui_start(void)
 {
 	term_raw();
 
@@ -466,8 +476,6 @@ static void ui_start(void)
 /* 	term_write_str("\033[?47h"); */
 	if (term_cap.ti)
 		buf_escape(term_cap.ti);
-
-	update_everything();
 }
 
 void ui_end(void)
@@ -732,6 +740,7 @@ static void handle_signal(void)
 		kill(0, SIGSTOP);
 	case SIGCONT:
 		ui_start();
+		update_everything();
 		break;
 	}
 	received_signal = 0;
@@ -824,6 +833,7 @@ int main(int argc, char *argv[])
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));
 	ui_start();
+	update_everything();
 
 	while (running) {
 		if (received_signal) {
