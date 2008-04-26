@@ -3,6 +3,7 @@
 #include "term.h"
 #include "search.h"
 #include "cmdline.h"
+#include "history.h"
 
 #define MAX_KEYS 4
 
@@ -436,16 +437,48 @@ static void cmd_save(char **args)
 
 static void cmd_search_bwd(char **args)
 {
-	input_mode = INPUT_SEARCH;
-	search_init(SEARCH_BWD);
-	update_flags |= UPDATE_STATUS_LINE;
+	const char *pf = parse_args(&args, "w", 0, 0);
+
+	if (!pf)
+		return;
+
+	if (*pf) {
+		char *word = get_word_under_cursor();
+		if (!word) {
+			return;
+		}
+		search_init(SEARCH_BWD);
+		search(word, REG_NEWLINE);
+		history_add(&search_history, word);
+		free(word);
+	} else {
+		input_mode = INPUT_SEARCH;
+		search_init(SEARCH_BWD);
+		update_flags |= UPDATE_STATUS_LINE;
+	}
 }
 
 static void cmd_search_fwd(char **args)
 {
-	input_mode = INPUT_SEARCH;
-	search_init(SEARCH_FWD);
-	update_flags |= UPDATE_STATUS_LINE;
+	const char *pf = parse_args(&args, "w", 0, 0);
+
+	if (!pf)
+		return;
+
+	if (*pf) {
+		char *word = get_word_under_cursor();
+		if (!word) {
+			return;
+		}
+		search_init(SEARCH_FWD);
+		search(word, REG_NEWLINE);
+		history_add(&search_history, word);
+		free(word);
+	} else {
+		input_mode = INPUT_SEARCH;
+		search_init(SEARCH_FWD);
+		update_flags |= UPDATE_STATUS_LINE;
+	}
 }
 
 static void cmd_search_next(char **args)
