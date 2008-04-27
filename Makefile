@@ -25,11 +25,11 @@ install: all
 tags:
 	exuberant-ctags *.[ch]
 
-REV     = $(shell git-rev-parse HEAD)
+REV     = $(shell git rev-parse --short HEAD)
 RELEASE	= editor-$(REV)
 TARBALL	= $(RELEASE).tar.bz2
 
 dist:
-	git-tar-tree $(REV) $(RELEASE) | bzip2 -9 > $(TARBALL)
+	git archive --format=tar --prefix=$(RELEASE)/ $(REV) | gzip -c -9 > $(TARBALL)
 
 .PHONY: all install dist
