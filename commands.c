@@ -437,6 +437,7 @@ static void cmd_run(char **args)
 		}
 
 		snprintf(cmd, sizeof(cmd), args[0], word);
+		free(word);
 		if (parse_commands(&pc, cmd, 0)) {
 			free_commands(&pc);
 			return;
