@@ -43,6 +43,19 @@ static struct tag_file *open_tag_file(const char *filename)
 	return tf;
 }
 
+static int tag_file_changed(struct tag_file *tf)
+{
+	struct stat st;
+	fstat(tf->fd, &st);
+	return st.st_mtime != tf->st.st_mtime;
+}
+
+static void free_tag_file(struct tag_file *tf)
+{
+	xmunmap(tf->map, tf->st.st_size);
+	close(tf->fd);
+}
+
 static int parse_tag_address(struct tag_address *ta, char *buf)
 {
 	char ch = *buf;
@@ -146,6 +159,10 @@ void goto_tag(const char *name)
 	struct tag_address ta;
 	struct view *v;
 
+	if (tag_file && tag_file_changed(tag_file)) {
+		free_tag_file(tag_file);
+		tag_file = NULL;
+	}
 	if (!tag_file)
 		tag_file = open_tag_file("tags");
 	if (!tag_file)
