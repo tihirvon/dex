@@ -334,6 +334,19 @@ char *path_absolute(const char *filename)
 	return xstrdup(buf);
 }
 
+const char *get_home_dir(const char *username, int len)
+{
+	char buf[len + 1];
+	struct passwd *passwd;
+
+	memcpy(buf, username, len);
+	buf[len] = 0;
+	passwd = getpwnam(buf);
+	if (!passwd)
+		return NULL;
+	return passwd->pw_dir;
+}
+
 void spawn(char **args)
 {
 	pid_t pid;
