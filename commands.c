@@ -469,7 +469,7 @@ static void cmd_save(char **args)
 	save_buffer();
 }
 
-static void cmd_search_bwd(char **args)
+static void do_search_next(char **args, enum search_direction dir)
 {
 	const char *pf = parse_args(&args, "w", 0, 0);
 
@@ -481,38 +481,25 @@ static void cmd_search_bwd(char **args)
 		if (!word) {
 			return;
 		}
-		search_init(SEARCH_BWD);
+		search_init(dir);
 		search(word, REG_NEWLINE);
 		history_add(&search_history, word);
 		free(word);
 	} else {
 		input_mode = INPUT_SEARCH;
-		search_init(SEARCH_BWD);
+		search_init(dir);
 		update_flags |= UPDATE_STATUS_LINE;
 	}
 }
 
+static void cmd_search_bwd(char **args)
+{
+	do_search_next(args, SEARCH_BWD);
+}
+
 static void cmd_search_fwd(char **args)
 {
-	const char *pf = parse_args(&args, "w", 0, 0);
-
-	if (!pf)
-		return;
-
-	if (*pf) {
-		char *word = get_word_under_cursor();
-		if (!word) {
-			return;
-		}
-		search_init(SEARCH_FWD);
-		search(word, REG_NEWLINE);
-		history_add(&search_history, word);
-		free(word);
-	} else {
-		input_mode = INPUT_SEARCH;
-		search_init(SEARCH_FWD);
-		update_flags |= UPDATE_STATUS_LINE;
-	}
+	do_search_next(args, SEARCH_FWD);
 }
 
 static void cmd_search_next(char **args)
