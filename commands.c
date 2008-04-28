@@ -477,14 +477,18 @@ static void do_search_next(char **args, enum search_direction dir)
 		return;
 
 	if (*pf) {
-		char *word = get_word_under_cursor();
+		char *pattern, *word = get_word_under_cursor();
+
 		if (!word) {
 			return;
 		}
+		pattern = xnew(char, strlen(word) + 5);
+		sprintf(pattern, "\\<%s\\>", word);
 		search_init(dir);
-		search(word, REG_NEWLINE);
-		history_add(&search_history, word);
+		search(pattern, REG_EXTENDED | REG_NEWLINE);
+		history_add(&search_history, pattern);
 		free(word);
+		free(pattern);
 	} else {
 		input_mode = INPUT_SEARCH;
 		search_init(dir);
