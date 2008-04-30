@@ -243,10 +243,26 @@ static void init_completion(void)
 	free_commands(&pc);
 }
 
+static char *shell_escape(const char *str)
+{
+	GBUF(buf);
+	int i;
+
+	for (i = 0; str[i]; i++) {
+		char ch = str[i];
+		if (ch == ' ' || ch == '\'' || ch == '"' || (ch == '~' && !i)) {
+			gbuf_add_ch(&buf, '\\');
+			gbuf_add_ch(&buf, ch);
+		} else {
+			gbuf_add_ch(&buf, ch);
+		}
+	}
+	return gbuf_steal(&buf);
+}
+
 void complete_command(void)
 {
-	const char *middle;
-	char *str;
+	char *middle, *str;
 	int head_len, middle_len, tail_len;
 
 	if (!completion.head)
@@ -254,7 +270,7 @@ void complete_command(void)
 	if (!completion.count)
 		return;
 
-	middle = completion.matches[completion.idx];
+	middle = shell_escape(completion.matches[completion.idx]);
 	middle_len = strlen(middle);
 	head_len = strlen(completion.head);
 	tail_len = strlen(completion.tail);
@@ -271,6 +287,7 @@ void complete_command(void)
 	cmdline_set_text(str);
 	cmdline_pos = head_len + middle_len;
 
+	free(middle);
 	free(str);
 	completion.idx = (completion.idx + 1) % completion.count;
 	if (completion.count == 1)
