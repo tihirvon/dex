@@ -334,7 +334,7 @@ static void free_buffer(struct buffer *b)
 {
 	struct list_head *item;
 
-	item = &b->blocks;
+	item = b->blocks.next;
 	while (item != &b->blocks) {
 		struct list_head *next = item->next;
 		free_block(container_of(item, struct block, node));
