@@ -533,6 +533,40 @@ void insert_ch(unsigned int ch)
 	}
 }
 
+void join_lines(void)
+{
+	struct block_iter next, bi = view->cursor;
+	int count;
+	uchar u;
+	char *buf;
+
+	if (!block_iter_next_line(&bi)) {
+		return;
+	}
+	next = bi;
+	block_iter_prev_byte(&bi, &u);
+	count = 1;
+	while (block_iter_prev_byte(&bi, &u)) {
+		if (u != '\t' && u != ' ') {
+			block_iter_next_byte(&bi, &u);
+			break;
+		}
+		count++;
+	}
+	while (block_iter_next_byte(&next, &u)) {
+		if (u != '\t' && u != ' ')
+			break;
+		count++;
+	}
+
+	undo_merge = UNDO_MERGE_NONE;
+	view->cursor = bi;
+	buf = buffer_get_bytes(&count);
+	do_delete(count);
+	do_insert(" ", 1);
+	record_replace(buf, count, 1);
+}
+
 void move_left(int count)
 {
 	struct block_iter bi = view->cursor;

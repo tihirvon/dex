@@ -347,6 +347,11 @@ static void cmd_error(char **args)
 	show_compile_error();
 }
 
+static void cmd_join(char **args)
+{
+	join_lines();
+}
+
 static void cmd_left(char **args)
 {
 	move_left(1);
@@ -652,6 +657,7 @@ const struct command commands[] = {
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
 	{ "error", NULL, cmd_error },
+	{ "join", NULL, cmd_join },
 	{ "left", NULL, cmd_left },
 	{ "line", NULL, cmd_line },
 	{ "next", NULL, cmd_next },
