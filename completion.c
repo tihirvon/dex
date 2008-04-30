@@ -221,7 +221,7 @@ static void init_completion(void)
 {
 	struct parsed_command pc;
 	const char *cmd = cmdline.buffer;
-	char *str;
+	char *str, *parsed;
 	int rc;
 
 	rc = parse_commands(&pc, cmd, cmdline_pos);
@@ -231,13 +231,14 @@ static void init_completion(void)
 		return;
 	}
 	str = xstrndup(cmd + pc.comp_so, pc.comp_eo - pc.comp_so);
-	d_print("%c %d %d %d |%s|\n", rc, pc.args_before_cursor, pc.comp_so, pc.comp_eo, str);
+	parsed = parse_command_arg(str);
 
 	completion.head = xstrndup(cmd, pc.comp_so);
 	completion.tail = xstrdup(cmd + pc.comp_eo);
 	completion.add_space = 1;
 
-	collect_completions(&pc, str);
+	collect_completions(&pc, parsed);
+	free(parsed);
 	free(str);
 	free_commands(&pc);
 }
