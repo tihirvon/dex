@@ -330,7 +330,7 @@ top:
 	}
 }
 
-static void free_buffer(struct buffer *b)
+void free_buffer(struct buffer *b)
 {
 	struct list_head *item;
 

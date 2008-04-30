@@ -29,6 +29,7 @@ struct view *window_add_buffer(struct buffer *b);
 
 struct view *open_buffer(const char *filename);
 void save_buffer(void);
+void free_buffer(struct buffer *b);
 void remove_view(void);
 void set_view(struct view *v);
 void next_buffer(void);
