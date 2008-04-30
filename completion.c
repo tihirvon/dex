@@ -191,12 +191,24 @@ static void collect_files(const char *prefix)
 static void collect_completions(struct parsed_command *pc, const char *str)
 {
 	const struct command *cmd;
+	const char *name;
+	int i;
 
-	if (!pc->args_before_cursor) {
+	// Multiple commands are separated by ";" which are converted to NULL.
+	// Find command name.
+	name = NULL;
+	for (i = 0; i < pc->args_before_cursor; i++) {
+		if (!name)
+			name = pc->argv[i];
+		if (!pc->argv[i])
+			name = NULL;
+	}
+
+	if (!name) {
 		collect_commands(str);
 		return;
 	}
-	cmd = find_command(pc->argv[0]);
+	cmd = find_command(name);
 	if (cmd) {
 		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save")) {
 			collect_files(str);
