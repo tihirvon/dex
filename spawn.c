@@ -57,8 +57,16 @@ void spawn(char **args, unsigned int flags)
 		return;
 	}
 	if (!pid) {
-		int i;
+		int i, dev_null = -1;
 
+		if (flags & (SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR))
+			dev_null = open("/dev/null", O_WRONLY);
+		if (dev_null != -1) {
+			if (flags & SPAWN_REDIRECT_STDOUT)
+				dup2(dev_null, 1);
+			if (flags & SPAWN_REDIRECT_STDERR)
+				dup2(dev_null, 2);
+		}
 		if (flags & SPAWN_COLLECT_ERRORS)
 			dup2(p[1], 2);
 		for (i = 3; i < 30; i++)

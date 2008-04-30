@@ -467,7 +467,7 @@ static void cmd_right(char **args)
 
 static void cmd_run(char **args)
 {
-	const char *pf = parse_args(&args, "cejp", 1, -1);
+	const char *pf = parse_args(&args, "cejps", 1, -1);
 	unsigned int flags = 0;
 	int quoted = 0;
 
@@ -487,6 +487,9 @@ static void cmd_run(char **args)
 			break;
 		case 'p':
 			flags |= SPAWN_PROMPT;
+			break;
+		case 's':
+			flags |= SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
 			break;
 		}
 		pf++;
