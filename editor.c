@@ -521,6 +521,8 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case 0x03: // ^C
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
+			// clear possible parse error
+			error_buf[0] = 0;
 			break;
 		case 0x04: // ^D
 			cmdline_delete();
