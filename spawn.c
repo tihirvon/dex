@@ -53,7 +53,10 @@ void spawn(char **args, unsigned int flags)
 	ui_end();
 	pid = fork();
 	if (pid < 0) {
-		error_msg("fork: %s", strerror(errno));
+		int error = errno;
+		ui_start();
+		update_everything();
+		error_msg("fork: %s", strerror(error));
 		return;
 	}
 	if (!pid) {
