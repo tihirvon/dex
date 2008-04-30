@@ -258,19 +258,6 @@ static void cmd_cut(char **args)
 	select_end();
 }
 
-static void cmd_debug_contents(char **args)
-{
-	struct block *blk;
-
-	write(2, "\n--\n", 4);
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		write(2, blk->data, blk->size);
-		if (blk->node.next != &buffer->blocks)
-			write(2, "-X-", 3);
-	}
-	write(2, "--\n", 3);
-}
-
 static void cmd_delete(char **args)
 {
 	delete_ch();
@@ -658,7 +645,6 @@ const struct command commands[] = {
 	{ "command", NULL, cmd_command },
 	{ "copy", NULL, cmd_copy },
 	{ "cut", NULL, cmd_cut },
-	{ "debug_contents", NULL, cmd_debug_contents },
 	{ "delete", NULL, cmd_delete },
 	{ "delete-bol", NULL, cmd_delete_bol },
 	{ "delete-eol", NULL, cmd_delete_eol },
