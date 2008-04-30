@@ -506,6 +506,8 @@ void error_msg(const char *format, ...)
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
 	update_flags |= UPDATE_STATUS_LINE;
+
+	d_print("%s\n", error_buf);
 }
 
 static int common_key(struct history *history, enum term_key_type type, unsigned int key)
