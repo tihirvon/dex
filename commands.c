@@ -4,6 +4,7 @@
 #include "search.h"
 #include "cmdline.h"
 #include "history.h"
+#include "spawn.h"
 
 #define MAX_KEYS 4
 
@@ -294,6 +295,55 @@ static void cmd_eol(char **args)
 	move_eol();
 }
 
+static void cmd_error(char **args)
+{
+	const char *pf = parse_args(&args, "np", 0, 1);
+	char dir = 0;
+
+	if (!pf)
+		return;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'n':
+		case 'p':
+			dir = *pf;
+			break;
+		}
+		pf++;
+	}
+
+	if (!cerr.count) {
+		info_msg("No errors");
+		return;
+	}
+	if (dir == 'n') {
+		if (cerr.pos == cerr.count - 1) {
+			info_msg("No more errors");
+			return;
+		}
+		cerr.pos++;
+	} else if (dir == 'p') {
+		if (cerr.pos <= 0) {
+			info_msg("No previous errors");
+			return;
+		}
+		cerr.pos--;
+	} else if (*args) {
+		int num = atoi(*args);
+		if (num < 1 || num > cerr.count) {
+			info_msg("There are %d errors", cerr.count);
+			return;
+		}
+		cerr.pos = num - 1;
+	} else {
+		// default is current error
+		if (cerr.pos < 0)
+			cerr.pos = 0;
+	}
+	show_compile_error();
+}
+
 static void cmd_left(char **args)
 {
 	move_left(1);
@@ -417,11 +467,31 @@ static void cmd_right(char **args)
 
 static void cmd_run(char **args)
 {
-	const char *pf = parse_args(&args, "c", 1, -1);
+	const char *pf = parse_args(&args, "cejp", 1, -1);
+	unsigned int flags = 0;
+	int quoted = 0;
 
 	if (!pf)
 		return;
-	if (*pf) {
+
+	while (*pf) {
+		switch (*pf) {
+		case 'c':
+			quoted = 1;
+			break;
+		case 'e':
+			flags |= SPAWN_COLLECT_ERRORS;
+			break;
+		case 'j':
+			flags |= SPAWN_COLLECT_ERRORS | SPAWN_JUMP_TO_ERROR;
+			break;
+		case 'p':
+			flags |= SPAWN_PROMPT;
+			break;
+		}
+		pf++;
+	}
+	if (quoted) {
 		struct parsed_command pc;
 		char cmd[8192];
 		char *word;
@@ -442,10 +512,10 @@ static void cmd_run(char **args)
 			free_commands(&pc);
 			return;
 		}
-		spawn(pc.argv);
+		spawn(pc.argv, flags);
 		free_commands(&pc);
 	} else {
-		spawn(args);
+		spawn(args, flags);
 	}
 }
 
@@ -576,6 +646,7 @@ const struct command commands[] = {
 	{ "down", NULL, cmd_down },
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
+	{ "error", NULL, cmd_error },
 	{ "left", NULL, cmd_left },
 	{ "line", NULL, cmd_line },
 	{ "next", NULL, cmd_next },

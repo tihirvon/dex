@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
@@ -46,11 +47,11 @@ ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
 const char *get_home_dir(const char *username, int len);
-void spawn(char **args);
 
 void ui_start(void);
 void ui_end(void);
 void any_key(void);
+void update_everything(void);
 
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
 void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);

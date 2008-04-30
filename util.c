@@ -1,8 +1,5 @@
 #include "util.h"
 
-#include <sys/types.h>
-#include <sys/wait.h>
-
 char *home_dir;
 
 void init_misc(void)
@@ -345,24 +342,4 @@ const char *get_home_dir(const char *username, int len)
 	if (!passwd)
 		return NULL;
 	return passwd->pw_dir;
-}
-
-void spawn(char **args)
-{
-	pid_t pid;
-	int status;
-
-	ui_end();
-	pid = fork();
-	if (pid < 0) {
-		return;
-	}
-	if (!pid) {
-		execvp(args[0], args);
-		exit(42);
-	}
-	while (wait(&status) < 0 && errno == EINTR)
-		;
-	ui_start();
-	any_key();
 }

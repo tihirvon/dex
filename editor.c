@@ -419,7 +419,7 @@ static void update_window_sizes(void)
 	}
 }
 
-static void update_everything(void)
+void update_everything(void)
 {
 	update_window_sizes();
 	update_cursor(view);
@@ -461,7 +461,6 @@ void any_key(void)
 
 	printf("Press any key to continue\n");
 	term_read_key(&key, &type);
-	update_everything();
 }
 
 void ui_start(void)
@@ -499,6 +498,18 @@ void ui_end(void)
 }
 
 void error_msg(const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	vsnprintf(error_buf, sizeof(error_buf), format, ap);
+	va_end(ap);
+	update_flags |= UPDATE_STATUS_LINE;
+
+	d_print("%s\n", error_buf);
+}
+
+void info_msg(const char *format, ...)
 {
 	va_list ap;
 
