@@ -563,6 +563,7 @@ void join_lines(void)
 	do_delete(count);
 	do_insert(" ", 1);
 	record_replace(buf, count, 1);
+	update_preferred_x();
 }
 
 void move_left(int count)
