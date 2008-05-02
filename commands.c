@@ -129,7 +129,6 @@ static const char *parse_args(char ***argsp, const char *flags, int min, int max
 			return NULL;
 		}
 	}
-	d_print("flags: %s\n", pf);
 	return pf;
 }
 
