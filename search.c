@@ -109,6 +109,7 @@ void search(const char *pattern, int re_flags)
 	if (current_search.pattern) {
 		free(current_search.pattern);
 		regfree(&current_search.regex);
+		current_search.error[0] = 0;
 	}
 	current_search.pattern = xstrdup(pattern);
 
