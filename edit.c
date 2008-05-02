@@ -413,85 +413,69 @@ void backspace(void)
 	}
 }
 
-// get indentation of previous non-whitespace-only line
+// get indentation of current or previous non-whitespace-only line
 static char *get_indent(void)
 {
 	struct block_iter bi = view->cursor;
-	char *str;
-	int i, count = 0;
-	uchar u;
 
-	while (block_iter_prev_line(&bi)) {
+	while (1) {
+		struct block_iter save;
+		int count = 0;
+		uchar u;
+
 		block_iter_bol(&bi);
-		count = 0;
-		while (1) {
-			BUG_ON(!buffer->next_char(&bi, &u));
-			if (u != ' ' && u != '\t')
-				break;
+		save = bi;
+		while (block_iter_next_byte(&bi, &u) && u != '\n') {
+			if (u != ' ' && u != '\t') {
+				char *str;
+				int i;
+
+				if (!count)
+					return NULL;
+				bi = save;
+				str = xnew(char, count + 1);
+				for (i = 0; i < count; i++) {
+					block_iter_next_byte(&bi, &u);
+					str[i] = u;
+				}
+				str[i] = 0;
+				return str;
+			}
 			count++;
 		}
-		if (u != '\n')
-			break;
-
-		// whitespace only
-		block_iter_prev_line(&bi);
+		bi = save;
+		if (!block_iter_prev_line(&bi))
+			return NULL;
 	}
-	if (!count)
-		return NULL;
-
-	block_iter_bol(&bi);
-	str = xnew(char, count + 1);
-	for (i = 0; i < count; i++) {
-		buffer->next_char(&bi, &u);
-		str[i] = u;
-	}
-	str[i] = 0;
-	return str;
 }
 
-// remove spaces and tables before and after cursor
-static void trim_whitespace(void)
+// goto beginning of whitespace (tabs and spaces) under cursor and
+// return number of whitespace bytes after cursor after moving cursor
+static int goto_beginning_of_whitespace(void)
 {
 	struct block_iter bi = view->cursor;
-	int i, count = 0;
+	int count = 0;
 	uchar u;
 
-	// count spaces and tables at or after cursor
-	while (buffer->next_char(&bi, &u)) {
-		if (u != '\t' && u != ' ') {
-			buffer->prev_char(&bi, &u);
+	// count spaces and tabs at or after cursor
+	while (block_iter_next_byte(&bi, &u)) {
+		if (u != '\t' && u != ' ')
 			break;
-		}
 		count++;
 	}
 
-	// back to old position
-	for (i = 0; i < count; i++)
-		buffer->prev_char(&bi, &u);
-
 	// count spaces and tabs before cursor
-	while (buffer->prev_char(&bi, &u)) {
+	bi = view->cursor;
+	while (block_iter_prev_byte(&bi, &u)) {
 		if (u != '\t' && u != ' ') {
-			buffer->next_char(&bi, &u);
+			block_iter_next_byte(&bi, &u);
 			break;
 		}
 		count++;
 	}
 
 	SET_CURSOR(bi);
-	delete(count, 0);
-}
-
-static void auto_indent(void)
-{
-	char *indent = get_indent();
-
-	if (indent) {
-		int len = strlen(indent);
-		insert(indent, len);
-		free(indent);
-		move_right(len);
-	}
+	return count;
 }
 
 void insert_ch(unsigned int ch)
@@ -503,17 +487,31 @@ void insert_ch(unsigned int ch)
 		undo_merge = UNDO_MERGE_NONE;
 
 	if (ch == '\n') {
-		unsigned char buf[1] = { '\n' };
+		char *indent = NULL;
+		char *deleted = NULL;
+		int ins_count = 0;
+		int del_count = 0;
 
-		if (options.trim_whitespace)
-			trim_whitespace();
-		if (undo_merge != UNDO_MERGE_INSERT)
-			undo_merge = UNDO_MERGE_NONE;
-		insert(buf, 1);
-		move_right(1);
-		if (options.auto_indent)
-			auto_indent();
-
+		if (options.auto_indent) {
+			indent = get_indent();
+			if (indent)
+				ins_count += strlen(indent);
+		}
+		if (options.trim_whitespace) {
+			del_count = goto_beginning_of_whitespace();
+			if (del_count) {
+				deleted = buffer_get_bytes(&del_count);
+				do_delete(del_count);
+			}
+		}
+		if (indent) {
+			do_insert(indent, ins_count);
+			free(indent);
+		}
+		do_insert("\n", 1);
+		ins_count++;
+		record_replace(deleted, del_count, ins_count);
+		move_right(ins_count);
 		undo_merge = UNDO_MERGE_NONE;
 	} else {
 		unsigned char buf[5];
