@@ -524,7 +524,7 @@ void insert_ch(unsigned int ch)
 		} else {
 			buf[i++] = ch;
 		}
-		if (view->cursor.blk->node.next == &buffer->blocks && view->cursor.offset == view->cursor.blk->size)
+		if (block_iter_eof(&view->cursor))
 			buf[i++] = '\n';
 		insert(buf, i);
 		move_right(1);
