@@ -22,7 +22,6 @@ static int do_search_fwd(regex_t *regex)
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
 			SET_CURSOR(bi);
-			update_cursor(view);
 			return 1;
 		}
 	} while (block_iter_next_line(&bi));
@@ -59,7 +58,6 @@ static int do_search_bwd(regex_t *regex)
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
 			SET_CURSOR(bi);
-			update_cursor(view);
 			return 1;
 		}
 		cx = -1;
@@ -324,7 +322,6 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 		BUG_ON(!block_iter_next_line(&bi));
 	}
-	update_cursor(view);
 	regfree(&re);
 
 	if (nr_substitutions)
