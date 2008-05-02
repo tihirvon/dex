@@ -347,6 +347,60 @@ static void cmd_error(char **args)
 	show_compile_error();
 }
 
+static char *shell_unescape(const char *str)
+{
+	GBUF(buf);
+	int i = 0;
+
+	while (str[i]) {
+		char ch = str[i++];
+		if (ch == '\\' && str[i]) {
+			ch = str[i++];
+			switch (ch) {
+			case 'n':
+				ch = '\n';
+				break;
+			case 'r':
+				ch = '\r';
+				break;
+			}
+		}
+		gbuf_add_ch(&buf, ch);
+	}
+	return gbuf_steal(&buf);
+}
+
+static void cmd_insert(char **args)
+{
+	const char *pf = parse_args(&args, "ekm", 1, 1);
+	const char *str = args[0];
+	char *buf = NULL;
+
+	if (!pf)
+		return;
+
+	if (strchr(pf, 'e')) {
+		buf = shell_unescape(str);
+		str = buf;
+	}
+
+	if (view->sel.blk)
+		delete_ch();
+	undo_merge = UNDO_MERGE_NONE;
+	if (strchr(pf, 'k')) {
+		int i;
+		for (i = 0; str[i]; i++)
+			insert_ch(str[i]);
+	} else {
+		int len = strlen(str);
+
+		insert(str, len);
+		if (strchr(pf, 'm'))
+			move_offset(buffer_offset() + len);
+	}
+	free(buf);
+}
+
 static void cmd_join(char **args)
 {
 	join_lines();
@@ -657,6 +711,7 @@ const struct command commands[] = {
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
 	{ "error", NULL, cmd_error },
+	{ "insert", NULL, cmd_insert },
 	{ "join", NULL, cmd_join },
 	{ "left", NULL, cmd_left },
 	{ "line", NULL, cmd_line },

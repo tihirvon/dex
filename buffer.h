@@ -161,6 +161,7 @@ int block_iter_get_uchar(struct block_iter *bi, uchar *up);
 unsigned int block_iter_get_offset(struct block_iter *bi);
 
 unsigned int buffer_offset(void);
+void move_offset(unsigned int offset);
 void record_insert(unsigned int len);
 void record_delete(char *buf, unsigned int len, int move_after);
 void record_replace(char *deleted, unsigned int del_count, unsigned int ins_count);

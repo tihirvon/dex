@@ -172,7 +172,7 @@ void record_replace(char *deleted, unsigned int del_count, unsigned int ins_coun
 	change->buf = deleted;
 }
 
-static void move_offset(unsigned int offset)
+void move_offset(unsigned int offset)
 {
 	struct block *blk;
 
