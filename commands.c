@@ -306,6 +306,11 @@ static void cmd_eol(char **args)
 	move_eol();
 }
 
+static void cmd_erase_word(char **args)
+{
+	erase_word();
+}
+
 static void cmd_error(char **args)
 {
 	const char *pf = parse_args(&args, "np", 0, 1);
@@ -738,6 +743,7 @@ const struct command commands[] = {
 	{ "down", NULL, cmd_down },
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
+	{ "erase-word", NULL, cmd_erase_word },
 	{ "error", NULL, cmd_error },
 	{ "insert", NULL, cmd_insert },
 	{ "join", NULL, cmd_join },

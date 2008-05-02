@@ -192,6 +192,7 @@ void delete_ch(void);
 void backspace(void);
 void insert_ch(unsigned int ch);
 void join_lines(void);
+void erase_word(void);
 
 void move_left(int count);
 void move_right(int count);

@@ -690,7 +690,7 @@ int buffer_get_char(uchar *up)
 
 static int is_word_byte(unsigned char byte)
 {
-	return isalnum(byte) || byte == '_' || byte & 0x80;
+	return isalnum(byte) || byte == '_' || byte > 0x7f;
 }
 
 char *get_word_under_cursor(void)
@@ -718,4 +718,34 @@ char *get_word_under_cursor(void)
 			break;
 	} while (is_word_byte(ch));
 	return gbuf_steal(&buf);
+}
+
+void erase_word(void)
+{
+	struct block_iter bi = view->cursor;
+	int count = 0;
+	uchar u;
+
+	while (buffer->prev_char(&bi, &u)) {
+		if (isspace(u)) {
+			count++;
+			continue;
+		}
+		do {
+			if (!is_word_byte(u)) {
+				if (count)
+					buffer->next_char(&bi, &u);
+				else
+					count++;
+				break;
+			}
+			count += u_char_size(u);
+		} while (buffer->prev_char(&bi, &u));
+		break;
+	}
+
+	if (count) {
+		view->cursor = bi;
+		delete(count, 1);
+	}
 }
