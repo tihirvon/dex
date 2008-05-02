@@ -122,37 +122,48 @@ void search(const char *pattern, int re_flags)
 	search_next();
 }
 
-static int can_search(void)
+void search_next(void)
 {
+	struct block_iter save;
+
 	if (!current_search.pattern) {
 		error_msg("No previous search pattern");
-		return 0;
+		return;
 	}
 	if (*current_search.error) {
 		error_msg(current_search.error);
-		return 0;
+		return;
 	}
-	return 1;
-}
-
-void search_next(void)
-{
-	if (can_search()) {
-		if (current_search.direction == SEARCH_FWD)
-			do_search_fwd(&current_search.regex);
-		else
-			do_search_bwd(&current_search.regex);
+	if (current_search.direction == SEARCH_FWD) {
+		if (do_search_fwd(&current_search.regex))
+			return;
+		save = view->cursor;
+		move_bof();
+		if (do_search_fwd(&current_search.regex)) {
+			info_msg("Continuing at top.");
+		} else {
+			info_msg("No matches.");
+			view->cursor = save;
+		}
+	} else {
+		if (do_search_bwd(&current_search.regex))
+			return;
+		save = view->cursor;
+		move_eof();
+		if (do_search_bwd(&current_search.regex)) {
+			info_msg("Continuing at bottom.");
+		} else {
+			info_msg("No matches.");
+			view->cursor = save;
+		}
 	}
 }
 
 void search_prev(void)
 {
-	if (can_search()) {
-		if (current_search.direction == SEARCH_BWD)
-			do_search_fwd(&current_search.regex);
-		else
-			do_search_bwd(&current_search.regex);
-	}
+	current_search.direction ^= 1;
+	search_next();
+	current_search.direction ^= 1;
 }
 
 static char *build_replace(const char *line, const char *format, regmatch_t *m)
