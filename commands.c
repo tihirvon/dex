@@ -503,6 +503,25 @@ static void cmd_redo(char **args)
 	redo();
 }
 
+static void cmd_repeat(char **args)
+{
+	const char *pf = parse_args(&args, "", 2, -1);
+	const struct command *cmd;
+	int count;
+
+	if (!pf)
+		return;
+
+	count = atoi(args[0]);
+	cmd = find_command(args[1]);
+	if (!cmd) {
+		error_msg("No such command: %s", args[1]);
+		return;
+	}
+	while (count-- > 0)
+		cmd->cmd(args + 2);
+}
+
 static void cmd_replace(char **args)
 {
 	const char *pf = parse_args(&args, "bcgi", 2, 2);
@@ -735,6 +754,7 @@ const struct command commands[] = {
 	{ "push", NULL, cmd_push },
 	{ "quit", "q", cmd_quit },
 	{ "redo", NULL, cmd_redo },
+	{ "repeat", NULL, cmd_repeat },
 	{ "replace", "r", cmd_replace },
 	{ "right", NULL, cmd_right },
 	{ "run", NULL, cmd_run },
