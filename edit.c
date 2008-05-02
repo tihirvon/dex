@@ -672,13 +672,14 @@ void move_bof(void)
 {
 	view->cursor.blk = BLOCK(buffer->blocks.next);
 	view->cursor.offset = 0;
-	move_preferred_x();
+	view->preferred_x = 0;
 }
 
 void move_eof(void)
 {
 	view->cursor.blk = BLOCK(buffer->blocks.prev);
 	view->cursor.offset = view->cursor.blk->size;
+	update_preferred_x();
 }
 
 int buffer_get_char(uchar *up)
