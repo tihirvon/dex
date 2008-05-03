@@ -153,7 +153,12 @@ void show_compile_error(void)
 {
 	struct compile_error *e = cerr.errors[cerr.pos];
 
-	if (e->file && e->line > 0)
+	if (e->file && e->line > 0) {
 		goto_file_line(e->file, e->line);
+	} else if (strstr(e->msg, ": In function ") && cerr.pos + 1 < cerr.count) {
+		struct compile_error *next = cerr.errors[cerr.pos + 1];
+		if (next->file && next->line > 0)
+			goto_file_line(next->file, next->line);
+	}
 	info_msg("[%d/%d] %s", cerr.pos + 1, cerr.count, e->msg);
 }
