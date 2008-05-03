@@ -102,6 +102,8 @@ static void read_stderr(int fd, unsigned int flags)
 
 void spawn(char **args, unsigned int flags)
 {
+	unsigned int mask = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
+	int quiet = (flags & mask) == mask;
 	pid_t pid;
 	int status;
 	int p[2];
@@ -111,12 +113,15 @@ void spawn(char **args, unsigned int flags)
 		return;
 	}
 
-	ui_end();
+	if (!quiet)
+		ui_end();
 	pid = fork();
 	if (pid < 0) {
 		int error = errno;
-		ui_start();
-		update_everything();
+		if (!quiet) {
+			ui_start();
+			update_everything();
+		}
 		error_msg("fork: %s", strerror(error));
 		return;
 	}
@@ -145,10 +150,12 @@ void spawn(char **args, unsigned int flags)
 	}
 	while (wait(&status) < 0 && errno == EINTR)
 		;
-	ui_start();
-	if (flags & SPAWN_PROMPT)
-		any_key();
-	update_everything();
+	if (!quiet) {
+		ui_start();
+		if (flags & SPAWN_PROMPT)
+			any_key();
+		update_everything();
+	}
 	if (flags & SPAWN_JUMP_TO_ERROR && cerr.count) {
 		cerr.pos = 0;
 		show_compile_error();
