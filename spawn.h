@@ -7,8 +7,14 @@
 #define SPAWN_REDIRECT_STDOUT	(1 << 3)
 #define SPAWN_REDIRECT_STDERR	(1 << 4)
 
+struct compile_error {
+	char *file;
+	char *msg;
+	int line;
+};
+
 struct compile_errors {
-	char **lines;
+	struct compile_error **errors;
 	int alloc;
 	int count;
 	int pos;

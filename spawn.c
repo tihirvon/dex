@@ -4,17 +4,60 @@
 
 struct compile_errors cerr;
 
+static void free_compile_error(struct compile_error *e)
+{
+	free(e->msg);
+	free(e->file);
+	free(e);
+}
+
 static void free_errors(void)
 {
 	int i;
 
 	for (i = 0; i < cerr.count; i++)
-		free(cerr.lines[i]);
-	free(cerr.lines);
-	cerr.lines = NULL;
+		free_compile_error(cerr.errors[i]);
+	free(cerr.errors);
+	cerr.errors = NULL;
 	cerr.alloc = 0;
 	cerr.count = 0;
 	cerr.pos = -1;
+}
+
+static struct compile_error *parse_error_msg(char *str)
+{
+	struct compile_error *e = xnew(struct compile_error, 1);
+	char *nl = strchr(str, '\n');
+	char *colon, *ptr;
+
+	if (nl)
+		*nl = 0;
+	fprintf(stderr, "%s\n", str);
+
+	e->file = NULL;
+	e->line = -1;
+
+	colon = strchr(str, ':');
+	ptr = colon + 1;
+	if (colon && isdigit(*ptr)) {
+		int num = 0;
+
+		*colon = 0;
+		while (isdigit(*ptr)) {
+			num *= 10;
+			num += *ptr++ - '0';
+		}
+		e->file = xstrdup(str);
+		e->line = num;
+
+		if (*ptr == ':')
+			ptr++;
+		while (isspace(*ptr))
+			ptr++;
+		str = ptr;
+	}
+	e->msg = xstrdup(str);
+	return e;
 }
 
 static void read_stderr(int fd)
@@ -25,16 +68,17 @@ static void read_stderr(int fd)
 	free_errors();
 
 	while (fgets(line, sizeof(line), f)) {
-		char *nl = strchr(line, '\n');
-
-		if (nl)
-			*nl = 0;
-		fprintf(stderr, "%s\n", line);
+		struct compile_error *e = parse_error_msg(line);
+		if (!strcmp(e->msg, "error: (Each undeclared identifier is reported only once") ||
+		    !strcmp(e->msg, "error: for each function it appears in.)")) {
+			free_compile_error(e);
+			continue;
+		}
 		if (cerr.count == cerr.alloc) {
 			cerr.alloc = (cerr.alloc * 3 / 2 + 16) & ~15;
-			xrenew(cerr.lines, cerr.alloc);
+			xrenew(cerr.errors, cerr.alloc);
 		}
-		cerr.lines[cerr.count++] = xstrdup(line);
+		cerr.errors[cerr.count++] = e;
 	}
 	fclose(f);
 }
@@ -107,26 +151,9 @@ static void goto_file_line(const char *filename, int line)
 
 void show_compile_error(void)
 {
-	char *line = cerr.lines[cerr.pos];
-	char *colon, *ptr;
+	struct compile_error *e = cerr.errors[cerr.pos];
 
-	colon = strchr(line, ':');
-	ptr = colon + 1;
-	if (colon && isdigit(*ptr)) {
-		int num = 0;
-
-		*colon = 0;
-		while (isdigit(*ptr)) {
-			num *= 10;
-			num += *ptr++ - '0';
-		}
-		if (*ptr == ':')
-			ptr++;
-		while (isspace(*ptr))
-			ptr++;
-		goto_file_line(line, num);
-		*colon = ':';
-		line = ptr;
-	}
-	info_msg("[%d/%d] %s", cerr.pos + 1, cerr.count, line);
+	if (e->file && e->line > 0)
+		goto_file_line(e->file, e->line);
+	info_msg("[%d/%d] %s", cerr.pos + 1, cerr.count, e->msg);
 }
