@@ -189,7 +189,8 @@ char *path_absolute(const char *filename)
 
 	d = 0;
 	if (filename[0] != '/') {
-		getcwd(buf, sizeof(buf));
+		if (!getcwd(buf, sizeof(buf)))
+			return NULL;
 		d = strlen(buf);
 		buf[d++] = '/';
 		prev = '/';
