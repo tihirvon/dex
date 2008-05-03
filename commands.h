@@ -35,5 +35,6 @@ void read_config(void);
 const struct command *find_command(const char *name);
 void complete_command(void);
 void reset_completion(void);
+void add_completion(char *str);
 
 #endif

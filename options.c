@@ -1,5 +1,6 @@
 #include "options.h"
 #include "buffer.h"
+#include "commands.h"
 
 struct options options = {
 	.auto_indent = 1,
@@ -104,4 +105,33 @@ void set_option(const char *name, const char *value)
 		return;
 	}
 	error_msg("No such option %s", name);
+}
+
+void collect_options(const char *prefix)
+{
+	int len = strlen(prefix);
+	int i;
+
+	for (i = 0; option_desc[i].name; i++) {
+		const struct option_description *desc = &option_desc[i];
+		if (!strncmp(prefix, desc->name, len))
+			add_completion(xstrdup(desc->name));
+	}
+}
+
+void collect_option_values(const char *name, const char *prefix)
+{
+	int len = strlen(prefix);
+	int i, j;
+
+	for (i = 0; option_desc[i].name; i++) {
+		const struct option_description *desc = &option_desc[i];
+		if (desc->type != OPT_ENUM || strcmp(name, desc->name))
+			continue;
+		for (j = 0; desc->enum_values[j]; j++) {
+			if (!strncmp(prefix, desc->enum_values[j], len))
+				add_completion(xstrdup(desc->enum_values[j]));
+		}
+		break;
+	}
 }

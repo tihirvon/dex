@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "cmdline.h"
+#include "options.h"
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -16,7 +17,7 @@ struct {
 	int add_space;
 } completion;
 
-static void add_completion(char *str)
+void add_completion(char *str)
 {
 	if (completion.count == completion.alloc) {
 		completion.alloc = (completion.count + 8) & ~7;
@@ -191,27 +192,36 @@ static void collect_files(const char *prefix)
 static void collect_completions(struct parsed_command *pc, const char *str)
 {
 	const struct command *cmd;
-	const char *name;
+	int name_idx;
 	int i;
 
 	// Multiple commands are separated by ";" which are converted to NULL.
 	// Find command name.
-	name = NULL;
+	name_idx = -1;
 	for (i = 0; i < pc->args_before_cursor; i++) {
-		if (!name)
-			name = pc->argv[i];
+		if (name_idx == -1)
+			name_idx = i;
 		if (!pc->argv[i])
-			name = NULL;
+			name_idx = -1;
 	}
 
-	if (!name) {
+	if (name_idx < 0) {
 		collect_commands(str);
 		return;
 	}
-	cmd = find_command(name);
+	cmd = find_command(pc->argv[name_idx]);
 	if (cmd) {
+		int argc = pc->args_before_cursor - name_idx;
 		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save")) {
 			collect_files(str);
+			return;
+		}
+		if (!strcmp(cmd->name, "set")) {
+			if (argc == 1) {
+				collect_options(str);
+			} else if (argc == 2) {
+				collect_option_values(pc->argv[pc->args_before_cursor - 1], str);
+			}
 			return;
 		}
 	}
