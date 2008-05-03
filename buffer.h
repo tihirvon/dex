@@ -4,6 +4,7 @@
 #include "list.h"
 #include "uchar.h"
 #include "util.h"
+#include "options.h"
 
 #define BLOCK(item) container_of((item), struct block, node)
 #define VIEW(item) container_of((item), struct view, node)
@@ -104,12 +105,6 @@ struct view {
 	unsigned sel_is_lines : 1;
 };
 
-struct options {
-	int move_wraps;
-	int trim_whitespace;
-	int auto_indent;
-};
-
 enum undo_merge {
 	UNDO_MERGE_NONE,
 	UNDO_MERGE_INSERT,
@@ -136,7 +131,6 @@ extern struct buffer *buffer;
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern enum input_mode input_mode;
-extern struct options options;
 
 extern char *line_buffer;
 extern size_t line_buffer_len;

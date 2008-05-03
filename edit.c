@@ -1,12 +1,6 @@
 #include "buffer.h"
 #include "gbuf.h"
 
-struct options options = {
-	.move_wraps = 1,
-	.trim_whitespace = 1,
-	.auto_indent = 1,
-};
-
 unsigned int update_flags;
 
 static char *copy_buf;
