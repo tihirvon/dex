@@ -17,6 +17,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <pwd.h>
+#include <regex.h>
 
 #ifndef DEBUG
 #define DEBUG 1
@@ -47,6 +48,7 @@ ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
 const char *get_home_dir(const char *username, int len);
+int regexp_match(const char *pattern, const char *str);
 
 void ui_start(void);
 void ui_end(void);

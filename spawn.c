@@ -60,7 +60,19 @@ static struct compile_error *parse_error_msg(char *str)
 	return e;
 }
 
-static void read_stderr(int fd)
+static int is_redundant(const char *msg)
+{
+	if (strstr(msg, ": In function "))
+		return 1;
+
+	// don't ignore these if there are no other errors
+	if (regexp_match("^make: \\*\\*\\* \\[.*\\] Error 1$", msg) ||
+	    regexp_match("^collect.*: ld returned 1 exit status$", msg))
+		return cerr.count;
+	return 0;
+}
+
+static void read_stderr(int fd, unsigned int flags)
 {
 	FILE *f = fdopen(fd, "r");
 	char line[4096];
@@ -69,8 +81,13 @@ static void read_stderr(int fd)
 
 	while (fgets(line, sizeof(line), f)) {
 		struct compile_error *e = parse_error_msg(line);
+
 		if (!strcmp(e->msg, "error: (Each undeclared identifier is reported only once") ||
 		    !strcmp(e->msg, "error: for each function it appears in.)")) {
+			free_compile_error(e);
+			continue;
+		}
+		if (flags & SPAWN_IGNORE_REDUNDANT && is_redundant(e->msg)) {
 			free_compile_error(e);
 			continue;
 		}
@@ -123,7 +140,7 @@ void spawn(char **args, unsigned int flags)
 	}
 	if (flags & SPAWN_COLLECT_ERRORS) {
 		close(p[1]);
-		read_stderr(p[0]);
+		read_stderr(p[0], flags);
 		close(p[0]);
 	}
 	while (wait(&status) < 0 && errno == EINTR)

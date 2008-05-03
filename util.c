@@ -344,3 +344,18 @@ const char *get_home_dir(const char *username, int len)
 		return NULL;
 	return passwd->pw_dir;
 }
+
+int regexp_match(const char *pattern, const char *str)
+{
+	regex_t re;
+	int err, ret;
+
+	err = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE);
+	if (err) {
+		regfree(&re);
+		return 0;
+	}
+	ret = !regexec(&re, str, 0, NULL, 0);
+	regfree(&re);
+	return ret;
+}
