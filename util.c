@@ -93,28 +93,32 @@ int wbuf_flush(struct wbuf *wbuf)
 	return 0;
 }
 
-int wbuf_write_str(struct wbuf *wbuf, const char *str)
+int wbuf_write(struct wbuf *wbuf, const char *buf, size_t count)
 {
-	int len = strlen(str);
 	ssize_t rc;
 
-	if (wbuf->fill + len > sizeof(wbuf->buf)) {
+	if (wbuf->fill + count > sizeof(wbuf->buf)) {
 		rc = wbuf_flush(wbuf);
 		if (rc < 0)
 			return rc;
 	}
-	if (len >= sizeof(wbuf->buf)) {
+	if (count >= sizeof(wbuf->buf)) {
 		rc = wbuf_flush(wbuf);
 		if (rc < 0)
 			return rc;
-		rc = xwrite(wbuf->fd, str, len);
+		rc = xwrite(wbuf->fd, buf, count);
 		if (rc < 0)
 			return rc;
 		return 0;
 	}
-	memcpy(wbuf->buf + wbuf->fill, str, len);
-	wbuf->fill += len;
+	memcpy(wbuf->buf + wbuf->fill, buf, count);
+	wbuf->fill += count;
 	return 0;
+}
+
+int wbuf_write_str(struct wbuf *wbuf, const char *str)
+{
+	return wbuf_write(wbuf, str, strlen(str));
 }
 
 int wbuf_write_ch(struct wbuf *wbuf, char ch)

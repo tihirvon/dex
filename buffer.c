@@ -274,35 +274,71 @@ static struct buffer *buffer_new(const char *filename)
 	return b;
 }
 
-static int read_blocks(struct buffer *b, int fd)
+static void read_crlf_blocks(struct buffer *b, const char *buf)
 {
-	int r = 0;
+	size_t size = b->st.st_size;
+	size_t pos = 0;
 
-	while (1) {
+	while (pos < size) {
+		size_t count = size - pos;
 		struct block *blk;
-		ssize_t rc;
-		int size = BLOCK_SIZE;
+		int s, d;
 
-		if (size > b->st.st_size - r)
-			size = b->st.st_size - r;
+		if (count > BLOCK_SIZE)
+			count = BLOCK_SIZE;
 
-		blk = block_new(size);
-		rc = xread(fd,  blk->data, size);
-
-		if (rc <= 0) {
-			free(blk->data);
-			free(blk);
-			if (rc < 0)
-				return rc;
-			break;
+		blk = block_new(count);
+		d = 0;
+		for (s = 0; s < count; s++) {
+			char ch = buf[pos + s];
+			if (ch != '\r')
+				blk->data[d++] = ch;
+			if (ch == '\n')
+				blk->nl++;
 		}
-		blk->size = rc;
-		r += rc;
-
-		blk->nl = count_nl(blk->data, blk->size);
+		blk->size = d;
 		b->nl += blk->nl;
 		list_add_before(&blk->node, &b->blocks);
+		pos += count;
 	}
+}
+
+static void read_lf_blocks(struct buffer *b, const char *buf)
+{
+	size_t size = b->st.st_size;
+	size_t pos = 0;
+
+	while (pos < size) {
+		size_t count = size - pos;
+		struct block *blk;
+
+		if (count > BLOCK_SIZE)
+			count = BLOCK_SIZE;
+
+		blk = block_new(count);
+		blk->size = count;
+		blk->nl = copy_count_nl(blk->data, buf + pos, blk->size);
+		b->nl += blk->nl;
+		list_add_before(&blk->node, &b->blocks);
+		pos += count;
+	}
+}
+
+static int read_blocks(struct buffer *b, int fd)
+{
+	char *nl, *buf = xmmap(fd, 0, b->st.st_size);
+
+	if (!buf)
+		return -1;
+
+	nl = memchr(buf, '\n', b->st.st_size);
+	if (nl > buf && nl[-1] == '\r') {
+		b->crlf = 1;
+		read_crlf_blocks(b, buf);
+	} else {
+		read_lf_blocks(b, buf);
+	}
+	xmunmap(buf, b->st.st_size);
 	return 0;
 }
 
@@ -452,11 +488,24 @@ struct view *open_buffer(const char *filename)
 	return window_add_buffer(b);
 }
 
+static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)
+{
+	while (size--) {
+		char ch = *buf++;
+		if (ch == '\n' && wbuf_write_ch(wbuf, '\r'))
+			return -1;
+		if (wbuf_write_ch(wbuf, ch))
+			return -1;
+	}
+	return 0;
+}
+
 void save_buffer(void)
 {
 	struct block *blk;
 	char *filename;
-	int len, fd;
+	WBUF(wbuf);
+	int len, rc;
 
 	if (!buffer->filename) {
 		return;
@@ -471,22 +520,34 @@ void save_buffer(void)
 	filename[len] = '.';
 	memset(filename + len + 1, 'X', 6);
 	filename[len + 7] = 0;
-	fd = mkstemp(filename);
-	if (fd < 0) {
-		free(filename);
-		return;
-	}
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (blk->size)
-			xwrite(fd, blk->data, blk->size);
-	}
-	close(fd);
-	if (rename(filename, buffer->filename)) {
-		unlink(filename);
+	wbuf.fd = mkstemp(filename);
+	if (wbuf.fd < 0) {
 		free(filename);
 		return;
 	}
 
-	free(filename);
+	rc = 0;
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		if (blk->size) {
+			if (buffer->crlf)
+				rc = write_crlf(&wbuf, blk->data, blk->size);
+			else
+				rc = wbuf_write(&wbuf, blk->data, blk->size);
+			if (rc)
+				break;
+		}
+	}
+	if (rc || wbuf_flush(&wbuf)) {
+		unlink(filename);
+		goto out;
+	}
+	if (rename(filename, buffer->filename)) {
+		unlink(filename);
+		goto out;
+	}
+
 	buffer->save_change_head = buffer->cur_change_head;
+out:
+	close(wbuf.fd);
+	free(filename);
 }
