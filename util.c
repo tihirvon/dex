@@ -174,7 +174,7 @@ static int remove_double_slashes(char *str)
 }
 
 /*
- * canonicalizes filename
+ * canonicalizes path name
  *
  *   - replaces double-slashes with one slash
  *   - removes any "." or ".." path components
@@ -316,14 +316,8 @@ char *path_absolute(const char *filename)
 			continue;
 		}
 
-		if (last) {
-			if (!S_ISREG(st.st_mode)) {
-				// FIXME: better error message
-				errno = EBADF;
-				return NULL;
-			}
+		if (last)
 			break;
-		}
 
 		if (!S_ISDIR(st.st_mode)) {
 			errno = ENOTDIR;
