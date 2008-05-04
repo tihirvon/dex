@@ -508,9 +508,11 @@ void save_buffer(void)
 	int len, rc;
 
 	if (!buffer->filename) {
+		error_msg("No filename.");
 		return;
 	}
 	if (buffer->ro) {
+		error_msg("Can't save read only buffer.");
 		return;
 	}
 
@@ -522,6 +524,7 @@ void save_buffer(void)
 	filename[len + 7] = 0;
 	wbuf.fd = mkstemp(filename);
 	if (wbuf.fd < 0) {
+		error_msg("Error creating temporary file: %s", strerror(errno));
 		free(filename);
 		return;
 	}
@@ -538,10 +541,12 @@ void save_buffer(void)
 		}
 	}
 	if (rc || wbuf_flush(&wbuf)) {
+		error_msg("Write error: %s", strerror(errno));
 		unlink(filename);
 		goto out;
 	}
 	if (rename(filename, buffer->filename)) {
+		error_msg("Rename failed: %s", strerror(errno));
 		unlink(filename);
 		goto out;
 	}
