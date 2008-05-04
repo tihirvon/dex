@@ -9,6 +9,7 @@ struct options options = {
 	.move_wraps = 1,
 	.tab_width = 8,
 	.trim_whitespace = 1,
+	.newline = NEWLINE_UNIX,
 };
 
 #define OPT_VAR_(prefix, var) prefix##var
@@ -30,12 +31,14 @@ struct option_description {
 };
 
 static const char *bool_enum[] = { "false", "true", NULL };
+static const char *newline_enum[] = { "unix", "dos", NULL };
 
 static const struct option_description option_desc[] = {
 	BOOL_OPT("auto-indent", &options.auto_indent),
 	BOOL_OPT("expand-tab", &options.expand_tab),
 	INT_OPT("indent-width", &options.indent_width),
 	BOOL_OPT("move-wraps", &options.move_wraps),
+	ENUM_OPT("newline", &options.newline, newline_enum),
 	INT_OPT("tab-width", &options.tab_width),
 	BOOL_OPT("trim-whitespace", &options.trim_whitespace),
 	{ NULL, 0, NULL, NULL }

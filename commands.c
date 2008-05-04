@@ -642,15 +642,30 @@ static const char *get_file_type(mode_t mode)
 
 static void cmd_save(char **args)
 {
-	const char *pf = parse_args(&args, "f", 0, 1);
+	const char *pf = parse_args(&args, "dfu", 0, 1);
 	char *absolute;
 	struct stat st;
 	int force;
+	int newline = buffer->newline;
 
 	if (!pf)
 		return;
 
-	force = !!strchr(pf, 'f');
+	while (*pf) {
+		switch (*pf) {
+		case 'd':
+			newline = NEWLINE_DOS;
+			break;
+		case 'f':
+			force = 1;
+			break;
+		case 'u':
+			newline = NEWLINE_UNIX;
+			break;
+		}
+		pf++;
+	}
+
 	if (!args[0]) {
 		if (!buffer->abs_filename) {
 			error_msg("No filename.");
@@ -660,7 +675,7 @@ static void cmd_save(char **args)
 			error_msg("Use -f to force saving read-only file.");
 			return;
 		}
-		save_buffer(buffer->abs_filename);
+		save_buffer(buffer->abs_filename, newline);
 		return;
 	}
 
@@ -688,7 +703,7 @@ static void cmd_save(char **args)
 			return;
 		}
 	}
-	if (save_buffer(absolute)) {
+	if (save_buffer(absolute, newline)) {
 		free(absolute);
 		return;
 	}

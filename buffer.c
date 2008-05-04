@@ -271,6 +271,7 @@ static struct buffer *buffer_new(const char *filename)
 	b->save_change_head = &b->change_head;
 	b->tab_width = 8;
 	b->utf8 = !!(term_flags & TERM_UTF8);
+	b->newline = options.newline;
 	return b;
 }
 
@@ -333,7 +334,7 @@ static int read_blocks(struct buffer *b, int fd)
 
 	nl = memchr(buf, '\n', b->st.st_size);
 	if (nl > buf && nl[-1] == '\r') {
-		b->crlf = 1;
+		b->newline = NEWLINE_DOS;
 		read_crlf_blocks(b, buf);
 	} else {
 		read_lf_blocks(b, buf);
@@ -500,7 +501,7 @@ static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)
 	return 0;
 }
 
-int save_buffer(const char *filename)
+int save_buffer(const char *filename, enum newline_sequence newline)
 {
 	struct block *blk;
 	char *tmp;
@@ -523,7 +524,7 @@ int save_buffer(const char *filename)
 	rc = 0;
 	list_for_each_entry(blk, &buffer->blocks, node) {
 		if (blk->size) {
-			if (buffer->crlf)
+			if (newline == NEWLINE_DOS)
 				rc = write_crlf(&wbuf, blk->data, blk->size);
 			else
 				rc = wbuf_write(&wbuf, blk->data, blk->size);
@@ -544,6 +545,7 @@ int save_buffer(const char *filename)
 
 	buffer->save_change_head = buffer->cur_change_head;
 	buffer->ro = 0;
+	buffer->newline = newline;
 	return 0;
 out:
 	close(wbuf.fd);

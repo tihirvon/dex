@@ -1,6 +1,11 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+enum newline_sequence {
+	NEWLINE_UNIX,
+	NEWLINE_DOS,
+};
+
 struct options {
 	int auto_indent;
 	int expand_tab;
@@ -8,6 +13,9 @@ struct options {
 	int move_wraps;
 	int tab_width;
 	int trim_whitespace;
+
+	// this is just the default for new files
+	enum newline_sequence newline;
 };
 
 extern struct options options;
