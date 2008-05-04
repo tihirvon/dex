@@ -89,6 +89,7 @@ int wbuf_flush(struct wbuf *wbuf)
 		ssize_t rc = xwrite(wbuf->fd, wbuf->buf, wbuf->fill);
 		if (rc < 0)
 			return rc;
+		wbuf->fill = 0;
 	}
 	return 0;
 }
