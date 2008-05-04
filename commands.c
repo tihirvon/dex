@@ -619,24 +619,83 @@ static void cmd_run(char **args)
 	}
 }
 
+static const char *get_file_type(mode_t mode)
+{
+	if (S_ISREG(mode))
+		return "file";
+	if (S_ISDIR(mode))
+		return "directory";
+	if (S_ISCHR(mode))
+		return "character device";
+	if (S_ISBLK(mode))
+		return "block device";
+	if (S_ISFIFO(mode))
+		return "named pipe";
+	if (S_ISLNK(mode))
+		return "symbolic link";
+#ifdef S_ISSOCK
+	if (S_ISSOCK(mode))
+		return "socket";
+#endif
+	return "unknown";
+}
+
 static void cmd_save(char **args)
 {
-	ARGC(0, 1);
+	const char *pf = parse_args(&args, "f", 0, 1);
+	char *absolute;
+	struct stat st;
+	int force;
 
-	if (args[0]) {
-		char *absolute = path_absolute(args[0]);
+	if (!pf)
+		return;
 
-		if (!absolute) {
-			error_msg("Failed to make absolute path.");
+	force = !!strchr(pf, 'f');
+	if (!args[0]) {
+		if (!buffer->abs_filename) {
+			error_msg("No filename.");
 			return;
 		}
-		free(buffer->filename);
-		free(buffer->abs_filename);
-		buffer->filename = xstrdup(args[0]);
-		buffer->abs_filename = absolute;
-		buffer->ro = 0;
+		if (buffer->ro && !force) {
+			error_msg("Use -f to force saving read-only file.");
+			return;
+		}
+		save_buffer(buffer->abs_filename);
+		return;
 	}
-	save_buffer();
+
+	// ignore read-only flag when filename is explicitly given
+	absolute = path_absolute(args[0]);
+	if (!absolute) {
+		error_msg("Failed to make absolute path: %s", strerror(errno));
+		return;
+	}
+	if (stat(absolute, &st)) {
+		if (errno != ENOENT) {
+			error_msg("stat failed for %s: %s", absolute, strerror(errno));
+			free(absolute);
+			return;
+		}
+	} else {
+		if (S_ISDIR(st.st_mode)) {
+			error_msg("Will not overwrite directory %s", absolute);
+			free(absolute);
+			return;
+		}
+		if (!force) {
+			error_msg("Use -f to overwrite %s %s.", get_file_type(st.st_mode), absolute);
+			free(absolute);
+			return;
+		}
+	}
+	if (save_buffer(absolute)) {
+		free(absolute);
+		return;
+	}
+	free(buffer->filename);
+	free(buffer->abs_filename);
+	buffer->filename = xstrdup(args[0]);
+	buffer->abs_filename = absolute;
 }
 
 static void do_search_next(char **args, enum search_direction dir)

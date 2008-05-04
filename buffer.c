@@ -500,33 +500,24 @@ static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)
 	return 0;
 }
 
-void save_buffer(void)
+int save_buffer(const char *filename)
 {
 	struct block *blk;
-	char *filename;
+	char *tmp;
 	WBUF(wbuf);
 	int len, rc;
 
-	if (!buffer->abs_filename) {
-		error_msg("No filename.");
-		return;
-	}
-	if (buffer->ro) {
-		error_msg("Can't save read only buffer.");
-		return;
-	}
-
-	len = strlen(buffer->abs_filename);
-	filename = xnew(char, len + 8);
-	memcpy(filename, buffer->abs_filename, len);
-	filename[len] = '.';
-	memset(filename + len + 1, 'X', 6);
-	filename[len + 7] = 0;
-	wbuf.fd = mkstemp(filename);
+	len = strlen(filename);
+	tmp = xnew(char, len + 8);
+	memcpy(tmp, filename, len);
+	tmp[len] = '.';
+	memset(tmp + len + 1, 'X', 6);
+	tmp[len + 7] = 0;
+	wbuf.fd = mkstemp(tmp);
 	if (wbuf.fd < 0) {
 		error_msg("Error creating temporary file: %s", strerror(errno));
-		free(filename);
-		return;
+		free(tmp);
+		return -1;
 	}
 
 	rc = 0;
@@ -542,17 +533,20 @@ void save_buffer(void)
 	}
 	if (rc || wbuf_flush(&wbuf)) {
 		error_msg("Write error: %s", strerror(errno));
-		unlink(filename);
+		unlink(tmp);
 		goto out;
 	}
-	if (rename(filename, buffer->abs_filename)) {
+	if (rename(tmp, filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
-		unlink(filename);
+		unlink(tmp);
 		goto out;
 	}
 
 	buffer->save_change_head = buffer->cur_change_head;
+	buffer->ro = 0;
+	return 0;
 out:
 	close(wbuf.fd);
-	free(filename);
+	free(tmp);
+	return -1;
 }
