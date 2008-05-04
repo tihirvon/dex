@@ -257,7 +257,7 @@ static struct buffer *buffer_new(const char *filename)
 	if (filename) {
 		absolute = path_absolute(filename);
 		if (!absolute) {
-			error_msg("Failed to make absolute path.");
+			error_msg("Failed to make absolute path: %s", strerror(errno));
 			return NULL;
 		}
 	}
