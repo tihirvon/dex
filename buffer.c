@@ -507,7 +507,7 @@ void save_buffer(void)
 	WBUF(wbuf);
 	int len, rc;
 
-	if (!buffer->filename) {
+	if (!buffer->abs_filename) {
 		error_msg("No filename.");
 		return;
 	}
@@ -516,9 +516,9 @@ void save_buffer(void)
 		return;
 	}
 
-	len = strlen(buffer->filename);
+	len = strlen(buffer->abs_filename);
 	filename = xnew(char, len + 8);
-	memcpy(filename, buffer->filename, len);
+	memcpy(filename, buffer->abs_filename, len);
 	filename[len] = '.';
 	memset(filename + len + 1, 'X', 6);
 	filename[len + 7] = 0;
@@ -545,7 +545,7 @@ void save_buffer(void)
 		unlink(filename);
 		goto out;
 	}
-	if (rename(filename, buffer->filename)) {
+	if (rename(filename, buffer->abs_filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
 		unlink(filename);
 		goto out;
