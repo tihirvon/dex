@@ -17,9 +17,7 @@ char *xstrndup(const char *str, size_t n)
 
 	for (len = 0; len < n && str[len]; len++)
 		;
-	s = malloc(len + 1);
-	if (unlikely(s == NULL))
-		malloc_fail();
+	s = xmalloc(len + 1);
 	memcpy(s, str, len);
 	s[len] = 0;
 	return s;
