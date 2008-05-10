@@ -183,16 +183,7 @@ void record_replace(char *deleted, unsigned int del_count, unsigned int ins_coun
 
 void move_offset(unsigned int offset)
 {
-	struct block *blk;
-
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (offset <= blk->size) {
-			view->cursor.blk = blk;
-			view->cursor.offset = offset;
-			return;
-		}
-		offset -= blk->size;
-	}
+	block_iter_goto_offset(&view->cursor, offset);
 }
 
 static void reverse_change(struct change *change)

@@ -163,6 +163,20 @@ unsigned int block_iter_bol(struct block_iter *bi)
 	return count;
 }
 
+void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
+{
+	struct block *blk;
+
+	list_for_each_entry(blk, bi->head, node) {
+		if (offset <= blk->size) {
+			bi->blk = blk;
+			bi->offset = offset;
+			return;
+		}
+		offset -= blk->size;
+	}
+}
+
 int block_iter_get_byte(struct block_iter *bi, uchar *up)
 {
 	struct block_iter save = *bi;
