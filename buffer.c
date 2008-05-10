@@ -123,6 +123,7 @@ void record_insert(unsigned int len)
 {
 	struct change *change = (struct change *)buffer->cur_change_head;
 
+	BUG_ON(!len);
 	if (undo_merge == UNDO_MERGE_INSERT && change && !change->del_count) {
 		change->ins_count += len;
 		return;
@@ -137,6 +138,8 @@ void record_delete(char *buf, unsigned int len, int move_after)
 {
 	struct change *change = (struct change *)buffer->cur_change_head;
 
+	BUG_ON(!len);
+	BUG_ON(!buf);
 	if (change && !change->ins_count) {
 		if (undo_merge == UNDO_MERGE_DELETE) {
 			xrenew(change->buf, change->del_count + len);
@@ -165,7 +168,13 @@ void record_delete(char *buf, unsigned int len, int move_after)
 
 void record_replace(char *deleted, unsigned int del_count, unsigned int ins_count)
 {
-	struct change *change = new_change();
+	struct change *change;
+
+	BUG_ON(del_count && !deleted);
+	BUG_ON(!del_count && deleted);
+	BUG_ON(!del_count && !ins_count);
+
+	change = new_change();
 	change->offset = buffer_offset();
 	change->ins_count = ins_count;
 	change->del_count = del_count;
