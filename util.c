@@ -139,7 +139,7 @@ void bug(const char *function, const char *fmt, ...)
 
 	ui_end();
 
-	fprintf(stderr, "%s: ", function);
+	fprintf(stderr, "\n *** BUG *** %s: ", function);
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
