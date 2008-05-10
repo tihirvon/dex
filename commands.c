@@ -58,13 +58,18 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 		*key = str[0];
 		return 1;
 	}
+	if (!strcasecmp(str, "sp") || !strcasecmp(str, "space")) {
+		*type = KEY_NORMAL;
+		*key = ' ';
+		return 1;
+	}
 	ch = toupper(str[1]);
 	if (str[0] == '^' && ch >= 0x40 && ch < 0x60 && len == 2) {
 		*type = KEY_NORMAL;
 		*key = ch - 0x40;
 		return 1;
 	}
-	if (str[0] == 'M' && str[1] == '-' && parse_key(type, key, str + 2)) {
+	if (toupper(str[0]) == 'M' && str[1] == '-' && parse_key(type, key, str + 2)) {
 		*type = KEY_META;
 		return 1;
 	}
@@ -75,6 +80,7 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 			return 1;
 		}
 	}
+	error_msg("Invalid key %s", str);
 	return 0;
 }
 
@@ -169,9 +175,9 @@ static void cmd_bind(char **args)
 			goto error;
 
 		i++;
-		while (keys[i] && keys[i] != ',')
+		while (keys[i] && keys[i] != ' ')
 			i++;
-		if (keys[i] == ',')
+		if (keys[i] == ' ')
 			keys[i++] = 0;
 		if (!parse_key(&b->types[count], &b->keys[count], keys + start))
 			goto error;
