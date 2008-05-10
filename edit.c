@@ -930,11 +930,13 @@ void shift_lines(int count)
 		}
 	}
 
+	begin_change_chain();
 	block_iter_bol(&view->cursor);
 	if (count > 0)
 		shift_right(nr_lines, count);
 	else
 		shift_left(nr_lines, -count);
+	end_change_chain();
 
 	// only the cursor line is automatically updated
 	if (nr_lines > 1)

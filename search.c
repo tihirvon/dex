@@ -309,6 +309,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	}
 
 	get_range(&bi, &nr_bytes);
+	begin_change_chain();
 	while (1) {
 		// number of bytes to process
 		unsigned int count;
@@ -332,6 +333,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 		BUG_ON(!block_iter_next_line(&bi));
 	}
+	end_change_chain();
 	regfree(&re);
 
 	if (nr_substitutions)
