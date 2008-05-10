@@ -36,13 +36,12 @@ static int do_search_bwd(regex_t *regex)
 
 	do {
 		regmatch_t match;
-		const char *buf = line_buffer;
 		int offset = -1;
 		int pos = 0;
 
 		block_iter_bol(&bi);
 		fetch_eol(&bi);
-		while (!regexec(regex, buf + pos, 1, &match, 0)) {
+		while (!regexec(regex, line_buffer + pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
 				/* match at or after cursor */
