@@ -744,3 +744,203 @@ void erase_word(void)
 		delete(count, 1);
 	}
 }
+
+static char *alloc_indent(int count, int *sizep)
+{
+	char *indent;
+	int size;
+
+	if (options.expand_tab) {
+		size = options.indent_width * count;
+		indent = xnew(char, size);
+		memset(indent, ' ', size);
+	} else {
+		size = count;
+		indent = xnew(char, size);
+		memset(indent, '\t', size);
+	}
+	*sizep = size;
+	return indent;
+}
+
+static int get_indent_info(const char *buf, int *sizep, int *levelp)
+{
+	int pos = 0;
+	int width = 0;
+	int level = 0;
+	// current indentation level
+	int cur_spaces = 0;
+	int cur_tabs = 0;
+	int cur_bytes = 0;
+	// totals
+	int spaces = 0;
+	int tabs = 0;
+	int bytes = 0;
+
+	while (buf[pos]) {
+		if (buf[pos] == ' ') {
+			width++;
+			cur_spaces++;
+		} else if (buf[pos] == '\t') {
+			int tw = options.tab_width;
+			width = (width + tw) / tw * tw;
+			cur_tabs++;
+		} else {
+			break;
+		}
+		cur_bytes++;
+		pos++;
+
+		if (width % options.indent_width == 0) {
+			spaces += cur_spaces;
+			tabs += cur_tabs;
+			bytes += cur_bytes;
+			level++;
+			cur_spaces = 0;
+			cur_tabs = 0;
+			cur_bytes = 0;
+		}
+	}
+
+	*sizep = bytes;
+	*levelp = level;
+	return options.expand_tab ? !tabs : !spaces;
+}
+
+static void shift_right(int nr_lines, int count)
+{
+	int i, indent_size;
+	char *indent;
+
+	indent = alloc_indent(count, &indent_size);
+	i = 0;
+	while (1) {
+		int bytes, level;
+
+		fetch_eol(&view->cursor);
+		if (get_indent_info(line_buffer, &bytes, &level)) {
+			// indent is sane
+			// insert whitespace
+			do_insert(indent, indent_size);
+			record_insert(indent_size);
+		} else {
+			// replace whole indentation with sane one
+			char *deleted;
+			char *buf;
+			int size;
+
+			deleted = buffer_get_bytes(&bytes);
+			do_delete(bytes);
+			level += count;
+
+			buf = alloc_indent(level, &size);
+			do_insert(buf, size);
+			free(buf);
+			record_replace(deleted, bytes, size);
+		}
+		if (++i == nr_lines)
+			break;
+		block_iter_next_line(&view->cursor);
+	}
+	free(indent);
+}
+
+static void shift_left(int nr_lines, int count)
+{
+	int i;
+
+	i = 0;
+	while (1) {
+		int sane, bytes, level;
+
+		fetch_eol(&view->cursor);
+		sane = get_indent_info(line_buffer, &bytes, &level);
+		if (level && sane) {
+			// indent is sane
+			char *buf;
+
+			if (level > count)
+				level = count;
+			if (options.expand_tab)
+				level *= options.indent_width;
+			buf = buffer_get_bytes(&level);
+			do_delete(level);
+			record_delete(buf, level, 0);
+		} else if (level) {
+			// replace whole indentation with sane one
+			char *deleted;
+
+			deleted = buffer_get_bytes(&bytes);
+			do_delete(bytes);
+
+			if (level > count) {
+				char *buf;
+				int size;
+
+				buf = alloc_indent(level - count, &size);
+				do_insert(buf, size);
+				free(buf);
+				record_replace(deleted, bytes, size);
+			} else {
+				record_delete(deleted, bytes, 0);
+			}
+		}
+		if (++i == nr_lines)
+			break;
+		block_iter_next_line(&view->cursor);
+	}
+}
+
+void shift_lines(int count)
+{
+	int nr_lines = 1;
+	int sel_offset = 0;
+
+	if (view->sel.blk) {
+		struct block_iter si, ei, bi;
+		unsigned int so, eo;
+		uchar u, prev_char = 0;
+		int nr_bytes;
+
+		view->sel_is_lines = 1;
+
+		si = view->cursor;
+		ei = view->sel;
+
+		so = block_iter_get_offset(&si);
+		eo = block_iter_get_offset(&ei);
+		sel_offset = so;
+		nr_bytes = eo - so;
+		if (so > eo) {
+			struct block_iter ti = si;
+			si = ei;
+			ei = ti;
+			SET_CURSOR(si);
+			sel_offset = eo;
+			nr_bytes = so - eo;
+		}
+		nr_bytes++;
+
+		bi = si;
+		while (nr_bytes && block_iter_next_byte(&bi, &u)) {
+			if (prev_char == '\n')
+				nr_lines++;
+			prev_char = u;
+			nr_bytes--;
+		}
+	}
+
+	block_iter_bol(&view->cursor);
+	if (count > 0)
+		shift_right(nr_lines, count);
+	else
+		shift_left(nr_lines, -count);
+
+	// only the cursor line is automatically updated
+	if (nr_lines > 1)
+		update_flags |= UPDATE_FULL;
+
+	// make sure sel points to valid block
+	if (view->sel.blk)
+		block_iter_goto_offset(&view->sel, sel_offset);
+}

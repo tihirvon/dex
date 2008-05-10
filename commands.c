@@ -796,6 +796,22 @@ static void cmd_set(char **args)
 	set_option(args[0], args[1]);
 }
 
+static void cmd_shift(char **args)
+{
+	const char *pf = parse_args(&args, "", 0, 1);
+	int count = 1;
+
+	if (!pf)
+		return;
+	if (args[0])
+		count = atoi(args[0]);
+	if (!count) {
+		error_msg("Count must be non-zero.");
+		return;
+	}
+	shift_lines(count);
+}
+
 static void cmd_tag(char **args)
 {
 	ARGC(0, 1);
@@ -866,6 +882,7 @@ const struct command commands[] = {
 	{ "search-prev", NULL, cmd_search_prev },
 	{ "select", NULL, cmd_select },
 	{ "set", NULL, cmd_set },
+	{ "shift", NULL, cmd_shift },
 	{ "tag", "t", cmd_tag },
 	{ "undo", NULL, cmd_undo },
 	{ "up", NULL, cmd_up },
