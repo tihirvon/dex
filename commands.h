@@ -24,6 +24,7 @@ struct parsed_command {
 };
 
 extern const struct command commands[];
+extern const struct command *current_command;
 
 char *parse_command_arg(const char *cmd);
 int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos);

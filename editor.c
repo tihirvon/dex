@@ -11,7 +11,8 @@
 #include <signal.h>
 
 enum input_mode input_mode;
-int running = 1;
+int running;
+int nr_errors;
 char error_buf[256];
 
 static int received_signal;
@@ -507,6 +508,14 @@ void error_msg(const char *format, ...)
 	update_flags |= UPDATE_STATUS_LINE;
 
 	d_print("%s\n", error_buf);
+
+	if (!running) {
+		if (current_command)
+			printf("%s: %s\n", current_command->name, error_buf);
+		else
+			printf("%s\n", error_buf);
+	}
+	nr_errors++;
 }
 
 void info_msg(const char *format, ...)
@@ -852,6 +861,10 @@ int main(int argc, char *argv[])
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));
 	ui_start();
+	if (nr_errors)
+		any_key();
+	error_buf[0] = 0;
+	running = 1;
 	update_everything();
 
 	while (running) {

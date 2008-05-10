@@ -17,6 +17,7 @@ struct binding {
 };
 
 int nr_pressed_keys;
+const struct command *current_command;
 
 static enum term_key_type pressed_types[MAX_KEYS];
 static unsigned int pressed_keys[MAX_KEYS];
@@ -916,10 +917,13 @@ const struct command *find_command(const char *name)
 static void run_command(char **av)
 {
 	const struct command *cmd = find_command(av[0]);
-	if (cmd)
+	if (cmd) {
+		current_command = cmd;
 		cmd->cmd(av + 1);
-	else
+		current_command = NULL;
+	} else {
 		error_msg("No such command: %s", av[0]);
+	}
 }
 
 void handle_command(const char *cmd)
