@@ -158,11 +158,13 @@ static void cmd_backspace(char **args)
 
 static void cmd_bind(char **args)
 {
+	const char *pf = parse_args(&args, "", 2, 2);
 	struct binding *b;
 	char *keys;
 	int count = 0, i = 0;
 
-	ARGC(2, 2);
+	if (!pf)
+		return;
 
 	b = xnew(struct binding, 1);
 	b->command = xstrdup(args[1]);
@@ -184,9 +186,10 @@ static void cmd_bind(char **args)
 		count++;
 	}
 	b->nr_keys = count;
-	if (!count)
+	if (!count) {
+		error_msg("Empty key not allowed.");
 		goto error;
-
+	}
 	list_add_before(&b->node, &bindings);
 	return;
 error:
