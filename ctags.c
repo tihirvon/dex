@@ -165,9 +165,12 @@ void goto_tag(const char *name)
 	}
 	if (!tag_file)
 		tag_file = open_tag_file("tags");
-	if (!tag_file)
+	if (!tag_file) {
+		error_msg("No tag file.");
 		return;
+	}
 	if (!do_search(tag_file, &ta, name)) {
+		error_msg("Tag %s not found.", name);
 		return;
 	}
 
