@@ -597,12 +597,17 @@ static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)
 int save_buffer(const char *filename, enum newline_sequence newline)
 {
 	struct block *blk;
-	char *tmp;
+	char tmp[PATH_MAX];
 	WBUF(wbuf);
 	int len, rc;
 
 	len = strlen(filename);
-	tmp = xnew(char, len + 8);
+	if (len + 8 > PATH_MAX) {
+		errno = ENAMETOOLONG;
+		error_msg("Error making temporary path name: %s", strerror(errno));
+		return -1;
+	}
+
 	memcpy(tmp, filename, len);
 	tmp[len] = '.';
 	memset(tmp + len + 1, 'X', 6);
@@ -610,7 +615,6 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 	wbuf.fd = mkstemp(tmp);
 	if (wbuf.fd < 0) {
 		error_msg("Error creating temporary file: %s", strerror(errno));
-		free(tmp);
 		return -1;
 	}
 
@@ -628,20 +632,19 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 	if (rc || wbuf_flush(&wbuf)) {
 		error_msg("Write error: %s", strerror(errno));
 		unlink(tmp);
-		goto out;
+		close(wbuf.fd);
+		return -1;
 	}
 	if (rename(tmp, filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
 		unlink(tmp);
-		goto out;
+		close(wbuf.fd);
+		return -1;
 	}
+	close(wbuf.fd);
 
 	buffer->save_change_head = buffer->cur_change_head;
 	buffer->ro = 0;
 	buffer->newline = newline;
 	return 0;
-out:
-	close(wbuf.fd);
-	free(tmp);
-	return -1;
 }
