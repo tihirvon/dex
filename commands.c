@@ -587,7 +587,7 @@ static void cmd_run(char **args)
 			flags |= SPAWN_COLLECT_ERRORS;
 			break;
 		case 'i':
-			flags |= SPAWN_IGNORE_REDUNDANT;
+			flags |= SPAWN_COLLECT_ERRORS | SPAWN_IGNORE_REDUNDANT;
 			break;
 		case 'j':
 			flags |= SPAWN_COLLECT_ERRORS | SPAWN_JUMP_TO_ERROR;
