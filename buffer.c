@@ -597,6 +597,14 @@ static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)
 	return 0;
 }
 
+static mode_t get_umask(void)
+{
+	// Wonderful get-and-set API
+	mode_t old = umask(0);
+	umask(old);
+	return old;
+}
+
 int save_buffer(const char *filename, enum newline_sequence newline)
 {
 	struct block *blk;
@@ -620,6 +628,7 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 		error_msg("Error creating temporary file: %s", strerror(errno));
 		return -1;
 	}
+	fchmod(wbuf.fd, buffer->st.st_mode ? buffer->st.st_mode : 0666 & ~get_umask());
 
 	rc = 0;
 	list_for_each_entry(blk, &buffer->blocks, node) {
