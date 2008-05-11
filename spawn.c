@@ -2,6 +2,33 @@
 #include "buffer.h"
 #include "window.h"
 
+struct error_pattern {
+	/*
+	 * 0  Useless.  Always ignored.
+	 * 1  Useful only if there are no other errors, redundant otherwise.
+	 *    E.g. a command in Makefile fails silently and make complains.
+	 * 2  Redundant.  The real error message follows.
+	 * 3  Important.
+	 */
+	int importance;
+	int msg_idx;
+	int file_idx;
+	int line_idx;
+	const char *pattern;
+};
+
+static const struct error_pattern error_patterns[] = {
+	{  3,  3,  1,  2, "^(.*):([0-9]+): (.*)", },
+	{  2,  0,  1,  2, "^In file included from (.+):([0-9]+)[,:]" },
+	{  2,  0,  1,  2, "^ +from (.+):([0-9]+)[,:]" },
+	{  2,  2,  1, -1, "^(.*): (In function '.*':)$" },
+	{  0,  0, -1, -1, "^error: \\(Each undeclared identifier is reported only once" },
+	{  0,  0, -1, -1, "^error: for each function it appears in.\\)" },
+	{  1,  0, -1, -1, "^make: \\*\\*\\* \\[.*\\] Error [0-9]+$" },
+	{  1,  0, -1, -1, "^collect2: ld returned [0-9]+ exit status$" },
+	{ -1, -1, -1, -1, NULL }
+};
+
 struct compile_errors cerr;
 
 static void free_compile_error(struct compile_error *e)
@@ -24,52 +51,52 @@ static void free_errors(void)
 	cerr.pos = -1;
 }
 
-static struct compile_error *parse_error_msg(char *str)
+static void add_error_msg(struct compile_error *e)
 {
-	struct compile_error *e = xnew(struct compile_error, 1);
+	if (cerr.count == cerr.alloc) {
+		cerr.alloc = (cerr.alloc * 3 / 2 + 16) & ~15;
+		xrenew(cerr.errors, cerr.alloc);
+	}
+	cerr.errors[cerr.count++] = e;
+}
+
+static void handle_error_msg(char *str, unsigned int flags)
+{
+	const struct error_pattern *p;
+	struct compile_error *e;
 	char *nl = strchr(str, '\n');
-	char *colon, *ptr;
+	int min_level, i;
 
 	if (nl)
 		*nl = 0;
 	fprintf(stderr, "%s\n", str);
 
-	e->file = NULL;
-	e->line = -1;
-
-	colon = strchr(str, ':');
-	ptr = colon + 1;
-	if (colon && isdigit(*ptr)) {
-		int num = 0;
-
-		*colon = 0;
-		while (isdigit(*ptr)) {
-			num *= 10;
-			num += *ptr++ - '0';
+	for (i = 0; ; i++) {
+		p = &error_patterns[i];
+		if (!p->pattern) {
+			e = xnew(struct compile_error, 1);
+			e->msg = xstrdup(str);
+			e->file = NULL;
+			e->line = -1;
+			add_error_msg(e);
+			return;
 		}
-		e->file = xstrdup(str);
-		e->line = num;
-
-		if (*ptr == ':')
-			ptr++;
-		while (isspace(*ptr))
-			ptr++;
-		str = ptr;
+		if (regexp_match(p->pattern, str))
+			break;
 	}
-	e->msg = xstrdup(str);
-	return e;
-}
 
-static int is_redundant(const char *msg)
-{
-	if (strstr(msg, ": In function "))
-		return 1;
+	min_level = 0;
+	if (flags & SPAWN_IGNORE_REDUNDANT)
+		min_level = 3;
 
-	// don't ignore these if there are no other errors
-	if (regexp_match("^make: \\*\\*\\* \\[.*\\] Error 1$", msg) ||
-	    regexp_match("^collect.*: ld returned 1 exit status$", msg))
-		return cerr.count;
-	return 0;
+	if (p->importance >= min_level || (p->importance == 1 && !cerr.count)) {
+		e = xnew(struct compile_error, 1);
+		e->msg = xstrdup(regexp_matches[p->msg_idx]);
+		e->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
+		e->line = p->line_idx < 0 ? -1 : atoi(regexp_matches[p->line_idx]);
+		add_error_msg(e);
+	}
+	free_regexp_matches();
 }
 
 static void read_stderr(int fd, unsigned int flags)
@@ -79,24 +106,8 @@ static void read_stderr(int fd, unsigned int flags)
 
 	free_errors();
 
-	while (fgets(line, sizeof(line), f)) {
-		struct compile_error *e = parse_error_msg(line);
-
-		if (!strcmp(e->msg, "error: (Each undeclared identifier is reported only once") ||
-		    !strcmp(e->msg, "error: for each function it appears in.)")) {
-			free_compile_error(e);
-			continue;
-		}
-		if (flags & SPAWN_IGNORE_REDUNDANT && is_redundant(e->msg)) {
-			free_compile_error(e);
-			continue;
-		}
-		if (cerr.count == cerr.alloc) {
-			cerr.alloc = (cerr.alloc * 3 / 2 + 16) & ~15;
-			xrenew(cerr.errors, cerr.alloc);
-		}
-		cerr.errors[cerr.count++] = e;
-	}
+	while (fgets(line, sizeof(line), f))
+		handle_error_msg(line, flags);
 	fclose(f);
 }
 
@@ -179,7 +190,7 @@ void show_compile_error(void)
 
 	if (e->file && e->line > 0) {
 		goto_file_line(e->file, e->line);
-	} else if (strstr(e->msg, ": In function ") && cerr.pos + 1 < cerr.count) {
+	} else if (e->file && cerr.pos + 1 < cerr.count) {
 		struct compile_error *next = cerr.errors[cerr.pos + 1];
 		if (next->file && next->line > 0)
 			goto_file_line(next->file, next->line);

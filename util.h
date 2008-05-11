@@ -39,6 +39,7 @@
 	} while (0)
 
 extern char *home_dir;
+extern char *regexp_matches[];
 
 void init_misc(void);
 const char *editor_file(const char *name);
@@ -49,6 +50,7 @@ ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
 const char *get_home_dir(const char *username, int len);
 int regexp_match(const char *pattern, const char *str);
+void free_regexp_matches(void);
 
 void ui_start(void);
 void ui_end(void);

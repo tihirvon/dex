@@ -344,8 +344,13 @@ const char *get_home_dir(const char *username, int len)
 	return passwd->pw_dir;
 }
 
+#define REGEXP_SUBSTRINGS 8
+
+char *regexp_matches[REGEXP_SUBSTRINGS + 1];
+
 int regexp_match(const char *pattern, const char *str)
 {
+	regmatch_t m[REGEXP_SUBSTRINGS];
 	regex_t re;
 	int err, ret;
 
@@ -354,7 +359,27 @@ int regexp_match(const char *pattern, const char *str)
 		regfree(&re);
 		return 0;
 	}
-	ret = !regexec(&re, str, 0, NULL, 0);
+	ret = !regexec(&re, str, REGEXP_SUBSTRINGS, m, 0);
 	regfree(&re);
+	if (ret) {
+		int i;
+		for (i = 0; i < REGEXP_SUBSTRINGS; i++) {
+			if (m[i].rm_so == -1)
+				break;
+			regexp_matches[i] = xstrndup(str + m[i].rm_so, m[i].rm_eo - m[i].rm_so);
+			d_print("'%s'\n", regexp_matches[i]);
+		}
+		regexp_matches[i] = NULL;
+	}
 	return ret;
+}
+
+void free_regexp_matches(void)
+{
+	int i;
+
+	for (i = 0; i < REGEXP_SUBSTRINGS; i++) {
+		free(regexp_matches[i]);
+		regexp_matches[i] = NULL;
+	}
 }
