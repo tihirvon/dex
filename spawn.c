@@ -18,10 +18,11 @@ struct error_pattern {
 };
 
 static const struct error_pattern error_patterns[] = {
-	{  3,  3,  1,  2, "^(.*):([0-9]+): (.*)", },
+	{  3,  3,  1,  2, "^(.+):([0-9]+): (.*)" },
+	{  3,  0,  1,  2, "^.* at (.+):([0-9]+):$" },
 	{  2,  0,  1,  2, "^In file included from (.+):([0-9]+)[,:]" },
 	{  2,  0,  1,  2, "^ +from (.+):([0-9]+)[,:]" },
-	{  2,  2,  1, -1, "^(.*): (In function .*:)$" },
+	{  2,  2,  1, -1, "^(.+): (In function .*:)$" },
 	{  0,  0, -1, -1, "^error: \\(Each undeclared identifier is reported only once" },
 	{  0,  0, -1, -1, "^error: for each function it appears in.\\)" },
 	{  1,  0, -1, -1, "^make: \\*\\*\\* \\[.*\\] Error [0-9]+$" },
