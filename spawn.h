@@ -7,6 +7,7 @@
 #define SPAWN_REDIRECT_STDOUT	(1 << 3)
 #define SPAWN_REDIRECT_STDERR	(1 << 4)
 #define SPAWN_IGNORE_REDUNDANT	(1 << 5)
+#define SPAWN_IGNORE_DUPLICATES	(1 << 6)
 
 struct compile_error {
 	char *file;

@@ -51,8 +51,31 @@ static void free_errors(void)
 	cerr.pos = -1;
 }
 
-static void add_error_msg(struct compile_error *e)
+static int is_duplicate(const struct compile_error *e)
 {
+	int i;
+
+	for (i = 0; i < cerr.count; i++) {
+		struct compile_error *x = cerr.errors[i];
+		if (e->line != x->line)
+			continue;
+		if (!e->file != !x->file)
+			continue;
+		if (e->file && strcmp(e->file, x->file))
+			continue;
+		if (strcmp(e->msg, x->msg))
+			continue;
+		return 1;
+	}
+	return 0;
+}
+
+static void add_error_msg(struct compile_error *e, unsigned int flags)
+{
+	if (flags & SPAWN_IGNORE_DUPLICATES && is_duplicate(e)) {
+		free_compile_error(e);
+		return;
+	}
 	if (cerr.count == cerr.alloc) {
 		cerr.alloc = (cerr.alloc * 3 / 2 + 16) & ~15;
 		xrenew(cerr.errors, cerr.alloc);
@@ -78,7 +101,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 			e->msg = xstrdup(str);
 			e->file = NULL;
 			e->line = -1;
-			add_error_msg(e);
+			add_error_msg(e, flags);
 			return;
 		}
 		if (regexp_match(p->pattern, str))
@@ -94,7 +117,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 		e->msg = xstrdup(regexp_matches[p->msg_idx]);
 		e->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
 		e->line = p->line_idx < 0 ? -1 : atoi(regexp_matches[p->line_idx]);
-		add_error_msg(e);
+		add_error_msg(e, flags);
 	}
 	free_regexp_matches();
 }
