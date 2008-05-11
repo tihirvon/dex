@@ -342,23 +342,11 @@ void redo(void)
 	buffer->cur_change_head = head;
 }
 
-static struct buffer *buffer_new(const char *filename)
+static struct buffer *buffer_new(void)
 {
 	struct buffer *b;
-	char *absolute = NULL;
 
-	if (filename) {
-		absolute = path_absolute(filename);
-		if (!absolute) {
-			error_msg("Failed to make absolute path: %s", strerror(errno));
-			return NULL;
-		}
-	}
 	b = xnew0(struct buffer, 1);
-	if (filename) {
-		b->filename = xstrdup(filename);
-		b->abs_filename = absolute;
-	}
 	list_init(&b->blocks);
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
@@ -366,6 +354,32 @@ static struct buffer *buffer_new(const char *filename)
 	b->utf8 = !!(term_flags & TERM_UTF8);
 	b->newline = options.newline;
 	return b;
+}
+
+static void buffer_set_callbacks(struct buffer *b)
+{
+	if (b->utf8) {
+		b->next_char = block_iter_next_uchar;
+		b->prev_char = block_iter_prev_uchar;
+		b->get_char = block_iter_get_uchar;
+	} else {
+		b->next_char = block_iter_next_byte;
+		b->prev_char = block_iter_prev_byte;
+		b->get_char = block_iter_get_byte;
+	}
+}
+
+static struct view *empty_buffer(void)
+{
+	struct buffer *b = buffer_new();
+	struct block *blk;
+
+	// at least one block required
+	blk = block_new(ALLOC_ROUND(1));
+	list_add_before(&blk->node, &b->blocks);
+
+	buffer_set_callbacks(b);
+	return window_add_buffer(b);
 }
 
 static void read_crlf_blocks(struct buffer *b, const char *buf)
@@ -477,25 +491,15 @@ void free_buffer(struct buffer *b)
 	free(b);
 }
 
-static int same_buffer(struct buffer *a, struct buffer *b)
-{
-	if (a->st.st_mode && b->st.st_mode &&
-	    a->st.st_dev == b->st.st_dev &&
-	    a->st.st_ino == b->st.st_ino)
-		return 1;
-	if (a->abs_filename && b->abs_filename)
-		return !strcmp(a->abs_filename, b->abs_filename);
-	return 0;
-}
-
-static struct view *find_view(struct buffer *b)
+static struct view *find_view(const char *abs_filename)
 {
 	struct window *w;
 	struct view *v;
 
 	// open in current window?
 	list_for_each_entry(v, &window->views, node) {
-		if (same_buffer(v->buffer, b))
+		const char *f = v->buffer->abs_filename;
+		if (f && !strcmp(f, abs_filename))
 			return v;
 	}
 
@@ -504,7 +508,8 @@ static struct view *find_view(struct buffer *b)
 		if (w == window)
 			continue;
 		list_for_each_entry(v, &w->views, node) {
-			if (same_buffer(v->buffer, b))
+			const char *f = v->buffer->abs_filename;
+			if (f && !strcmp(f, abs_filename))
 				return v;
 		}
 	}
@@ -514,71 +519,69 @@ static struct view *find_view(struct buffer *b)
 struct view *open_buffer(const char *filename)
 {
 	struct buffer *b;
+	struct view *v;
+	char *absolute;
+	int fd;
 
-	b = buffer_new(filename);
-	if (!b)
+	if (!filename)
+		return empty_buffer();
+
+	absolute = path_absolute(filename);
+	if (!absolute) {
+		error_msg("Failed to make absolute path: %s", strerror(errno));
 		return NULL;
-	if (filename) {
-		struct view *v;
-		int fd, ro = 0;
-
-		fd = open(filename, O_RDWR);
-		if (fd < 0) {
-			ro = 1;
-			fd = open(filename, O_RDONLY);
-		}
-		if (fd < 0) {
-			if (errno != ENOENT) {
-				free_buffer(b);
-				return NULL;
-			}
-
-			v = find_view(b);
-		} else {
-			b->ro = ro;
-			fstat(fd, &b->st);
-			if (!S_ISREG(b->st.st_mode)) {
-				int err = S_ISDIR(b->st.st_mode) ? EISDIR : EINVAL;
-				close(fd);
-				free_buffer(b);
-				errno = err;
-				return NULL;
-			}
-			v = find_view(b);
-			if (!v && read_blocks(b, fd)) {
-				close(fd);
-				free_buffer(b);
-				return NULL;
-			}
-			close(fd);
-		}
-
-		if (v) {
-			free_buffer(b);
-			if (v->window != window) {
-				// open the buffer in other window to current window
-				return window_add_buffer(v->buffer);
-			}
-			// the file was already open in current window
-			return v;
-		}
 	}
 
+	// already open?
+	v = find_view(absolute);
+	if (v) {
+		free(absolute);
+		if (v->window != window) {
+			// open the buffer in other window to current window
+			return window_add_buffer(v->buffer);
+		}
+		// the file was already open in current window
+		return v;
+	}
+
+	b = buffer_new();
+	b->filename = xstrdup(filename);
+	b->abs_filename = absolute;
+
+	fd = open(filename, O_RDWR);
+	if (fd < 0) {
+		if (errno == ENOENT)
+			goto skip_read;
+		fd = open(filename, O_RDONLY);
+		if (fd < 0) {
+			error_msg("Error opening %s: %s", filename, strerror(errno));
+			free_buffer(b);
+			return NULL;
+		}
+		b->ro = 1;
+	}
+
+	fstat(fd, &b->st);
+	if (!S_ISREG(b->st.st_mode)) {
+		error_msg("Can't open %s", get_file_type(b->st.st_mode));
+		close(fd);
+		free_buffer(b);
+		return NULL;
+	}
+
+	if (read_blocks(b, fd)) {
+		error_msg("Error reading %s: %s", strerror(errno));
+		close(fd);
+		free_buffer(b);
+		return NULL;
+	}
+	close(fd);
+skip_read:
 	if (list_empty(&b->blocks)) {
 		struct block *blk = block_new(ALLOC_ROUND(1));
 		list_add_before(&blk->node, &b->blocks);
 	}
-
-	if (b->utf8) {
-		b->next_char = block_iter_next_uchar;
-		b->prev_char = block_iter_prev_uchar;
-		b->get_char = block_iter_get_uchar;
-	} else {
-		b->next_char = block_iter_next_byte;
-		b->prev_char = block_iter_prev_byte;
-		b->get_char = block_iter_get_byte;
-	}
-
+	buffer_set_callbacks(b);
 	return window_add_buffer(b);
 }
 

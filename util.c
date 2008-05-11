@@ -354,6 +354,27 @@ const char *get_home_dir(const char *username, int len)
 	return passwd->pw_dir;
 }
 
+const char *get_file_type(mode_t mode)
+{
+	if (S_ISREG(mode))
+		return "file";
+	if (S_ISDIR(mode))
+		return "directory";
+	if (S_ISCHR(mode))
+		return "character device";
+	if (S_ISBLK(mode))
+		return "block device";
+	if (S_ISFIFO(mode))
+		return "named pipe";
+	if (S_ISLNK(mode))
+		return "symbolic link";
+#ifdef S_ISSOCK
+	if (S_ISSOCK(mode))
+		return "socket";
+#endif
+	return "unknown";
+}
+
 #define REGEXP_SUBSTRINGS 8
 
 char *regexp_matches[REGEXP_SUBSTRINGS + 1];
