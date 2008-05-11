@@ -373,7 +373,6 @@ int regexp_match(const char *pattern, const char *str)
 			if (m[i].rm_so == -1)
 				break;
 			regexp_matches[i] = xstrndup(str + m[i].rm_so, m[i].rm_eo - m[i].rm_so);
-			d_print("'%s'\n", regexp_matches[i]);
 		}
 		regexp_matches[i] = NULL;
 	}
