@@ -148,18 +148,22 @@ void bug(const char *function, const char *fmt, ...)
 
 void debug_print(const char *function, const char *fmt, ...)
 {
-	static FILE *f;
+	static int fd = -1;
+	char buf[4096];
+	int pos;
 	va_list ap;
 
-	if (!f) {
-		f = fopen("/tmp/editor.log", "a");
-		BUG_ON(!f);
+	if (fd < 0) {
+		fd = open("/tmp/editor.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
+		BUG_ON(fd < 0);
 	}
 
-	fprintf(f, "%s: ", function);
+	snprintf(buf, sizeof(buf), "%s: ", function);
+	pos = strlen(buf);
 	va_start(ap, fmt);
-	vfprintf(f, fmt, ap);
+	vsnprintf(buf + pos, sizeof(buf) - pos, fmt, ap);
 	va_end(ap);
+	xwrite(fd, buf, strlen(buf));
 }
 
 static int remove_double_slashes(char *str)
