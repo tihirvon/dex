@@ -139,19 +139,6 @@ static const char *parse_args(char ***argsp, const char *flags, int min, int max
 	return pf;
 }
 
-#define ARGC(min, max) \
-	int argc = 0; \
-	while (args[argc]) \
-		argc++; \
-	if (argc < min) { \
-		d_print("not enough arguments\n"); \
-		return; \
-	} \
-	if (max >= 0 && argc > max) { \
-		d_print("too many arguments\n"); \
-		return; \
-	}
-
 static void cmd_backspace(char **args)
 {
 	backspace();
@@ -436,9 +423,12 @@ static void cmd_left(char **args)
 
 static void cmd_line(char **args)
 {
+	const char *pf = parse_args(&args, "", 1, 1);
 	int line;
 
-	ARGC(1, 1);
+	if (!pf)
+		return;
+
 	line = atoi(args[0]);
 	if (line > 0)
 		move_to_line(line);
@@ -451,9 +441,12 @@ static void cmd_next(char **args)
 
 static void cmd_open(char **args)
 {
+	const char *pf = parse_args(&args, "", 0, 1);
 	struct view *v;
 
-	ARGC(0, 1);
+	if (!pf)
+		return;
+
 	v = open_buffer(args[0]);
 	if (v)
 		set_view(v);
@@ -754,19 +747,12 @@ static void cmd_search_prev(char **args)
 
 static void cmd_select(char **args)
 {
-	int is_lines = 0;
-	int i = 0;
+	const char *pf = parse_args(&args, "l", 0, 0);
 
-	ARGC(0, 1);
-	while (i < argc) {
-		const char *arg = args[i++];
+	if (!pf)
+		return;
 
-		if (!strcmp(arg, "--lines")) {
-			is_lines = 1;
-			continue;
-		}
-	}
-	select_start(is_lines);
+	select_start(!!*pf);
 }
 
 static void cmd_set(char **args)
@@ -796,7 +782,10 @@ static void cmd_shift(char **args)
 
 static void cmd_tag(char **args)
 {
-	ARGC(0, 1);
+	const char *pf = parse_args(&args, "", 0, 1);
+
+	if (!pf)
+		return;
 
 	if (args[0]) {
 		goto_tag(args[0]);
