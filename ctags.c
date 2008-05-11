@@ -180,11 +180,9 @@ void goto_tag(const char *name)
 	}
 	set_view(v);
 	if (ta.pattern) {
-		d_print("'%s' '%s'\n", ta.filename, ta.pattern);
 		move_bof();
 		search_tag(ta.pattern);
 	} else {
-		d_print("'%s' %d\n", ta.filename, ta.line);
 		move_to_line(ta.line);
 	}
 	free(ta.filename);
