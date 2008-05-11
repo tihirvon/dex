@@ -124,15 +124,23 @@ static int do_search(struct tag_file *tf, struct tag_address *ta, const char *na
 	return 0;
 }
 
+static struct file_location *create_location(void)
+{
+	struct file_location *loc;
+
+	loc = xnew(struct file_location, 1);
+	loc->filename = xstrdup(buffer->filename);
+	loc->line = view->cy + 1;
+	return loc;
+}
+
 void push_location(void)
 {
 	struct file_location *loc;
 
 	if (!buffer->filename)
 		return;
-	loc = xnew(struct file_location, 1);
-	loc->filename = xstrdup(buffer->filename);
-	loc->line = view->cy + 1;
+	loc = create_location();
 	list_add_after(&loc->node, &location_head);
 }
 
@@ -158,6 +166,7 @@ void goto_tag(const char *name)
 {
 	struct tag_address ta;
 	struct view *v;
+	struct file_location *loc = NULL;
 
 	if (tag_file && tag_file_changed(tag_file)) {
 		free_tag_file(tag_file);
@@ -174,13 +183,21 @@ void goto_tag(const char *name)
 		return;
 	}
 
-	push_location();
+	if (buffer->filename)
+		loc = create_location();
 	v = open_buffer(ta.filename);
 	if (!v) {
 		free(ta.filename);
 		free(ta.pattern);
+		if (loc) {
+			free(loc->filename);
+			free(loc);
+		}
 		return;
 	}
+	if (loc)
+		list_add_after(&loc->node, &location_head);
+
 	set_view(v);
 	if (ta.pattern) {
 		move_bof();
