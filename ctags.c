@@ -80,8 +80,13 @@ static int parse_tag_address(struct tag_address *ta, char *buf)
 				ta->pattern = pattern;
 				return 1;
 			}
-			if (buf[i] == '*')
+			switch (buf[i]) {
+			case '*':
+			case '[':
+			case ']':
 				pattern[j++] = '\\';
+				break;
+			}
 			pattern[j++] = buf[i];
 		}
 		free(pattern);
