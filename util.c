@@ -148,11 +148,17 @@ void bug(const char *function, const char *fmt, ...)
 
 void debug_print(const char *function, const char *fmt, ...)
 {
+	static FILE *f;
 	va_list ap;
 
-	fprintf(stderr, "%s: ", function);
+	if (!f) {
+		f = fopen("/tmp/editor.log", "a");
+		BUG_ON(!f);
+	}
+
+	fprintf(f, "%s: ", function);
 	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
+	vfprintf(f, fmt, ap);
 	va_end(ap);
 }
 
