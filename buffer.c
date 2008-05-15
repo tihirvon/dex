@@ -570,7 +570,7 @@ struct view *open_buffer(const char *filename)
 	}
 
 	if (read_blocks(b, fd)) {
-		error_msg("Error reading %s: %s", strerror(errno));
+		error_msg("Error reading %s: %s", filename, strerror(errno));
 		close(fd);
 		free_buffer(b);
 		return NULL;
