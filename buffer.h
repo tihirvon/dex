@@ -216,9 +216,9 @@ void pop_location(void);
 int buffer_get_char(uchar *up);
 char *get_word_under_cursor(void);
 
-void error_msg(const char *format, ...);
-void info_msg(const char *format, ...);
-char get_confirmation(const char *choices, const char *format, ...);
+void error_msg(const char *format, ...) __FORMAT(1, 2);
+void info_msg(const char *format, ...) __FORMAT(1, 2);
+char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 
 static inline int block_iter_eof(struct block_iter *bi)
 {
