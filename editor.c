@@ -234,7 +234,6 @@ static void print_command_line(void)
 				if (!buf_put_char(error_buf[i], term_flags & TERM_UTF8))
 					break;
 			}
-			error_buf[0] = 0;
 		}
 		buf_clear_eol();
 		break;
@@ -873,8 +872,11 @@ int main(int argc, char *argv[])
 		} else {
 			unsigned int key;
 			enum term_key_type type;
-			if (term_read_key(&key, &type))
+			if (term_read_key(&key, &type)) {
+				/* clear possible error message */
+				error_buf[0] = 0;
 				handle_key(type, key);
+			}
 		}
 	}
 	ui_end();
