@@ -211,13 +211,11 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 	while (!regexec(re, line_buffer, MAX_SUBSTRINGS, m, 0)) {
 		int nr_delete, nr_insert, count;
 		char *str;
-		uchar u;
 
 		str = build_replace(line_buffer, format, m);
 
-		count = m[0].rm_so;
-		while (count--)
-			block_iter_next_byte(bi, &u);
+		/* move cursor to beginning of the text to replace */
+		block_iter_skip_bytes(bi, m[0].rm_so);
 		view->cursor = *bi;
 
 		nr_delete = m[0].rm_eo - m[0].rm_so;
@@ -226,9 +224,7 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 		free(str);
 		nr++;
 
-		count = nr_insert;
-		while (count--)
-			block_iter_next_byte(&view->cursor, &u);
+		block_iter_skip_bytes(&view->cursor, nr_insert);
 		*bi = view->cursor;
 
 		if (!(flags & REPLACE_GLOBAL))

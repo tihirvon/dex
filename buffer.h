@@ -156,6 +156,13 @@ int block_iter_get_byte(struct block_iter *bi, uchar *up);
 int block_iter_get_uchar(struct block_iter *bi, uchar *up);
 unsigned int block_iter_get_offset(struct block_iter *bi);
 
+static inline void block_iter_skip_bytes(struct block_iter *bi, int count)
+{
+	uchar u;
+	while (count--)
+		block_iter_next_byte(bi, &u);
+}
+
 unsigned int buffer_offset(void);
 void move_offset(unsigned int offset);
 void record_insert(unsigned int len);
