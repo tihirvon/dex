@@ -227,6 +227,9 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 			case 'a':
 				flags &= ~REPLACE_CONFIRM;
 				*flagsp = flags;
+
+				/* record rest of the changes as one chain */
+				begin_change_chain();
 				break;
 			case 'q':
 			case 0:
@@ -330,7 +333,11 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	}
 
 	get_range(&bi, &nr_bytes);
-	begin_change_chain();
+
+	/* record multiple changes as one chain only when replacing all */
+	if (!(flags & REPLACE_CONFIRM))
+		begin_change_chain();
+
 	while (1) {
 		// number of bytes to process
 		unsigned int count;
@@ -356,7 +363,10 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 		BUG_ON(!block_iter_next_line(&bi));
 	}
-	end_change_chain();
+
+	if (!(flags & REPLACE_CONFIRM))
+		end_change_chain();
+
 	regfree(&re);
 
 	if (nr_substitutions)
