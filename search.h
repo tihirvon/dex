@@ -13,6 +13,7 @@ enum {
 	REPLACE_GLOBAL = (1 << 1),
 	REPLACE_IGNORE_CASE = (1 << 2),
 	REPLACE_BASIC = (1 << 3),
+	REPLACE_CANCEL = (1 << 4),
 };
 
 void search_tag(const char *pattern);

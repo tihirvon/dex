@@ -529,6 +529,65 @@ void info_msg(const char *format, ...)
 	d_print("%s\n", error_buf);
 }
 
+char get_confirmation(const char *choices, const char *format, ...)
+{
+	int pos, i, count = strlen(choices);
+	char def = 0;
+	va_list ap;
+
+	va_start(ap, format);
+	vsnprintf(error_buf, sizeof(error_buf), format, ap);
+	va_end(ap);
+
+	pos = strlen(error_buf);
+	error_buf[pos++] = ' ';
+	error_buf[pos++] = '[';
+	for (i = 0; i < count; i++) {
+		if (isupper(choices[i]))
+			def = tolower(choices[i]);
+		error_buf[pos++] = choices[i];
+		error_buf[pos++] = '/';
+	}
+	pos--;
+	error_buf[pos++] = ']';
+	error_buf[pos] = 0;
+
+	update_cursor(view);
+	buf_hide_cursor();
+	update_full();
+	restore_cursor();
+	buf_show_cursor();
+	buf_flush();
+
+	while (1) {
+		unsigned int key;
+		enum term_key_type type;
+
+		if (term_read_key(&key, &type) && type == KEY_NORMAL) {
+			if (key == '\r' && def)
+				return def;
+			key = tolower(key);
+			if (strchr(choices, key))
+				return key;
+			if (key == def)
+				return key;
+		} else {
+			int sig = received_signal;
+
+			received_signal = 0;
+			switch (sig) {
+			case SIGWINCH:
+				update_everything();
+				break;
+			case SIGINT:
+				/* ^C, clear confirmation message */
+				error_buf[0] = 0;
+				return 0;
+			}
+		}
+	}
+}
+
 static int common_key(struct history *history, enum term_key_type type, unsigned int key)
 {
 	const char *str;

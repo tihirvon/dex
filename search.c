@@ -203,34 +203,59 @@ static char *build_replace(const char *line, const char *format, regmatch_t *m)
  * "foo abc bar abc baz" "foo abc bar abc baz"
  * "foo x bar abc baz"   " bar abc baz"
  */
-static int replace_on_line(regex_t *re, const char *format, struct block_iter *bi, unsigned int flags)
+static int replace_on_line(regex_t *re, const char *format, struct block_iter *bi, unsigned int *flagsp)
 {
+	unsigned int flags = *flagsp;
 	regmatch_t m[MAX_SUBSTRINGS];
 	int nr = 0;
 
 	while (!regexec(re, line_buffer, MAX_SUBSTRINGS, m, 0)) {
-		int nr_delete, nr_insert, count;
-		char *str;
-
-		str = build_replace(line_buffer, format, m);
+		int match_len, count;
+		int skip = 0;
 
 		/* move cursor to beginning of the text to replace */
 		block_iter_skip_bytes(bi, m[0].rm_so);
 		view->cursor = *bi;
 
-		nr_delete = m[0].rm_eo - m[0].rm_so;
-		nr_insert = strlen(str);
-		replace(nr_delete, str, nr_insert);
-		free(str);
-		nr++;
+		if (flags & REPLACE_CONFIRM) {
+			switch (get_confirmation("Ynaq", "Replace?")) {
+			case 'y':
+				break;
+			case 'n':
+				skip = 1;
+				break;
+			case 'a':
+				flags &= ~REPLACE_CONFIRM;
+				*flagsp = flags;
+				break;
+			case 'q':
+			case 0:
+				*flagsp = flags | REPLACE_CANCEL;
+				return nr;
+			}
+		}
 
-		block_iter_skip_bytes(&view->cursor, nr_insert);
+		match_len = m[0].rm_eo - m[0].rm_so;
+		if (skip) {
+			/* move cursor after the matched text */
+			block_iter_skip_bytes(&view->cursor, match_len);
+		} else {
+			char *str = build_replace(line_buffer, format, m);
+			int nr_insert = strlen(str);
+
+			replace(match_len, str, nr_insert);
+			free(str);
+			nr++;
+
+			/* move cursor after the replaced text */
+			block_iter_skip_bytes(&view->cursor, nr_insert);
+		}
 		*bi = view->cursor;
 
 		if (!(flags & REPLACE_GLOBAL))
 			break;
 
-		count = m[0].rm_so + nr_delete;
+		count = m[0].rm_so + match_len;
 		memmove(line_buffer, line_buffer + count, line_buffer_len - count + 1);
 		line_buffer_len -= count;
 	}
@@ -318,11 +343,13 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 			line_buffer[nr_bytes] = 0;
 		}
 
-		nr = replace_on_line(&re, format, &bi, flags);
+		nr = replace_on_line(&re, format, &bi, &flags);
 		if (nr) {
 			nr_substitutions += nr;
 			nr_lines++;
 		}
+		if (flags & REPLACE_CANCEL)
+			break;
 		if (count >= nr_bytes)
 			break;
 		nr_bytes -= count + 1;
@@ -337,6 +364,6 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 	if (nr_substitutions)
 		info_msg("%d substitutions on %d lines", nr_substitutions, nr_lines);
-	else
+	else if (!(flags & REPLACE_CANCEL))
 		info_msg("Pattern '%s' not found.", pattern);
 }

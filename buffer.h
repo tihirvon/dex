@@ -218,6 +218,7 @@ char *get_word_under_cursor(void);
 
 void error_msg(const char *format, ...);
 void info_msg(const char *format, ...);
+char get_confirmation(const char *choices, const char *format, ...);
 
 static inline int block_iter_eof(struct block_iter *bi)
 {
