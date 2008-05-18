@@ -3,9 +3,7 @@
 
 #include "common.h"
 
-void ui_start(void);
+void ui_start(int prompt);
 void ui_end(void);
-void any_key(void);
-void update_everything(void);
 
 #endif

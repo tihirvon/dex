@@ -155,10 +155,8 @@ void spawn(char **args, unsigned int flags)
 	pid = fork();
 	if (pid < 0) {
 		int error = errno;
-		if (!quiet) {
-			ui_start();
-			update_everything();
-		}
+		if (!quiet)
+			ui_start(0);
 		error_msg("fork: %s", strerror(error));
 		return;
 	}
@@ -187,12 +185,8 @@ void spawn(char **args, unsigned int flags)
 	}
 	while (wait(&status) < 0 && errno == EINTR)
 		;
-	if (!quiet) {
-		ui_start();
-		if (flags & SPAWN_PROMPT)
-			any_key();
-		update_everything();
-	}
+	if (!quiet)
+		ui_start(flags & SPAWN_PROMPT);
 	if (flags & SPAWN_JUMP_TO_ERROR && cerr.count) {
 		cerr.pos = 0;
 		show_compile_error();
