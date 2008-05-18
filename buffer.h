@@ -28,8 +28,8 @@ struct block {
 };
 
 struct block_iter {
-	struct list_head *head;
 	struct block *blk;
+	struct list_head *head;
 	unsigned int offset;
 };
 
