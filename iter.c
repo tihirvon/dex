@@ -1,4 +1,21 @@
-#include "buffer.h"
+#include "iter.h"
+
+struct block *block_new(int alloc)
+{
+	struct block *blk = xnew0(struct block, 1);
+
+	if (alloc)
+		blk->data = xnew(char, alloc);
+	blk->alloc = alloc;
+	return blk;
+}
+
+void delete_block(struct block *blk)
+{
+	list_del(&blk->node);
+	free(blk->data);
+	free(blk);
+}
 
 // analogous to *ptr++
 unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte)

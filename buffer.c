@@ -10,28 +10,6 @@ char *line_buffer;
 size_t line_buffer_len;
 static size_t line_buffer_alloc;
 
-struct block *block_new(int alloc)
-{
-	struct block *blk = xnew0(struct block, 1);
-
-	if (alloc)
-		blk->data = xnew(char, alloc);
-	blk->alloc = alloc;
-	return blk;
-}
-
-static void free_block(struct block *blk)
-{
-	free(blk->data);
-	free(blk);
-}
-
-void delete_block(struct block *blk)
-{
-	list_del(&blk->node);
-	free_block(blk);
-}
-
 char *buffer_get_bytes(unsigned int *lenp)
 {
 	struct block *blk = view->cursor.blk;
@@ -481,7 +459,10 @@ void free_buffer(struct buffer *b)
 	item = b->blocks.next;
 	while (item != &b->blocks) {
 		struct list_head *next = item->next;
-		free_block(container_of(item, struct block, node));
+		struct block *blk = BLOCK(item);
+
+		free(blk->data);
+		free(blk);
 		item = next;
 	}
 	free_changes(b);
