@@ -80,7 +80,7 @@ static void add_error_msg(struct compile_error *e, unsigned int flags)
 		return;
 	}
 	if (cerr.count == cerr.alloc) {
-		cerr.alloc = (cerr.alloc * 3 / 2 + 16) & ~15;
+		cerr.alloc = ROUND_UP(cerr.alloc * 3 / 2 + 1, 16);
 		xrenew(cerr.errors, cerr.alloc);
 	}
 	cerr.errors[cerr.count++] = e;

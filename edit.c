@@ -45,7 +45,7 @@ static void alloc_for_insert(unsigned int len)
 	unsigned int lsize = view->cursor.offset;
 	unsigned int rsize = l->size - lsize;
 
-	if (lsize + len <= BLOCK_SIZE && rsize) {
+	if (lsize + len <= BLOCK_MAX_SIZE && rsize) {
 		// merge to left
 		struct block *r;
 
@@ -58,7 +58,7 @@ static void alloc_for_insert(unsigned int len)
 		l->size = lsize;
 		l->alloc = ALLOC_ROUND(lsize + len);
 		xrenew(l->data, l->alloc);
-	} else if (rsize + len <= BLOCK_SIZE && lsize) {
+	} else if (rsize + len <= BLOCK_MAX_SIZE && lsize) {
 		// merge to right
 		struct block *r;
 

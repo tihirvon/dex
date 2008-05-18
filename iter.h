@@ -13,6 +13,8 @@ struct block {
 	unsigned int nl;
 };
 
+#define BLOCK_MAX_SIZE 64
+#define ALLOC_ROUND(x) ROUND_UP(x, 64)
 #define BLOCK(item) container_of((item), struct block, node)
 
 struct block *block_new(int size);

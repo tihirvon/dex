@@ -16,8 +16,7 @@ static inline void gbuf_init(struct gbuf *buf)
 
 void gbuf_grow(struct gbuf *buf, size_t more)
 {
-	size_t align = 16 - 1;
-	size_t alloc = (buf->len + more + 1 + align) & ~align;
+	size_t alloc = ROUND_UP(buf->len + more + 1, 16);
 
 	if (alloc > buf->alloc) {
 		if (!buf->alloc)

@@ -19,7 +19,7 @@ struct {
 void add_completion(char *str)
 {
 	if (completion.count == completion.alloc) {
-		completion.alloc = (completion.count + 8) & ~7;
+		completion.alloc = ROUND_UP(completion.count + 1, 8);
 		xrenew(completion.matches, completion.alloc);
 	}
 	completion.matches[completion.count++] = str;

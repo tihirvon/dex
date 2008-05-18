@@ -371,8 +371,8 @@ static void read_crlf_blocks(struct buffer *b, const char *buf)
 		struct block *blk;
 		int s, d;
 
-		if (count > BLOCK_SIZE)
-			count = BLOCK_SIZE;
+		if (count > BLOCK_MAX_SIZE)
+			count = BLOCK_MAX_SIZE;
 
 		blk = block_new(count);
 		d = 0;
@@ -399,8 +399,8 @@ static void read_lf_blocks(struct buffer *b, const char *buf)
 		size_t count = size - pos;
 		struct block *blk;
 
-		if (count > BLOCK_SIZE)
-			count = BLOCK_SIZE;
+		if (count > BLOCK_MAX_SIZE)
+			count = BLOCK_MAX_SIZE;
 
 		blk = block_new(count);
 		blk->size = count;

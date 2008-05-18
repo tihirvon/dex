@@ -31,7 +31,7 @@ void read_config(void)
 			n = end - ptr;
 
 		if (alloc < n + 1) {
-			alloc = (n + 1 + 63) & ~63;
+			alloc = ROUND_UP(n + 1, 64);
 			xrenew(line, alloc);
 		}
 		memcpy(line, ptr, n);

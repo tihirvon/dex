@@ -27,6 +27,8 @@
  * argument at index @first_idx is the first format argument */
 #define __FORMAT(fmt_idx, first_idx) __attribute__((format(printf, (fmt_idx), (first_idx))))
 
+#define ROUND_UP(x, r) (((x) + r - 1) & ~(r - 1))
+
 #ifndef DEBUG
 #define DEBUG 1
 #endif

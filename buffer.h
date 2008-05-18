@@ -15,10 +15,6 @@
 		view->cursor.offset = bi.offset; \
 	} while (0)
 
-#define BLOCK_SIZE 64
-#define MIN_ALLOC 64U
-#define ALLOC_ROUND(x) (((x) + MIN_ALLOC - 1) & ~(MIN_ALLOC - 1))
-
 struct change_head {
 	struct change_head *next;
 	struct change_head **prev;

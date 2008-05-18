@@ -8,7 +8,7 @@ static GBUF(arg);
 static void add_arg(struct parsed_command *pc, char *str)
 {
 	if (pc->alloc == pc->count) {
-		pc->alloc = (pc->count + 1 + 7) & ~7;
+		pc->alloc = ROUND_UP(pc->count + 1, 8);
 		xrenew(pc->argv, pc->alloc);
 	}
 	pc->argv[pc->count++] = str;
