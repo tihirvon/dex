@@ -1,5 +1,4 @@
 #include "window.h"
-#include "util.h"
 
 LIST_HEAD(windows);
 struct window *window;

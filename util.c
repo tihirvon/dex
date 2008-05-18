@@ -19,27 +19,6 @@ const char *editor_file(const char *name)
 	return filename;
 }
 
-unsigned int count_nl(const char *buf, unsigned int size)
-{
-	unsigned int i, nl = 0;
-	for (i = 0; i < size; i++) {
-		if (buf[i] == '\n')
-			nl++;
-	}
-	return nl;
-}
-
-unsigned int copy_count_nl(char *dst, const char *src, unsigned int len)
-{
-	unsigned int i, nl = 0;
-	for (i = 0; i < len; i++) {
-		dst[i] = src[i];
-		if (src[i] == '\n')
-			nl++;
-	}
-	return nl;
-}
-
 ssize_t xread(int fd, void *buf, size_t count)
 {
 	char *b = buf;
