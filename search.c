@@ -21,6 +21,7 @@ static int do_search_fwd(regex_t *regex)
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
 			SET_CURSOR(bi);
+			update_preferred_x();
 			return 1;
 		}
 	} while (block_iter_next_line(&bi));
@@ -56,6 +57,7 @@ static int do_search_bwd(regex_t *regex)
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
 			SET_CURSOR(bi);
+			update_preferred_x();
 			return 1;
 		}
 		cx = -1;
