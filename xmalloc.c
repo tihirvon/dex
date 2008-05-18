@@ -1,9 +1,5 @@
 #include "xmalloc.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 void malloc_fail(void)
 {
 	fprintf(stderr, "out of memory\n");

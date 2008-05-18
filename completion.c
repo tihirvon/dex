@@ -1,9 +1,8 @@
 #include "commands.h"
 #include "cmdline.h"
 #include "options.h"
-
-#include <sys/types.h>
-#include <dirent.h>
+#include "util.h"
+#include "gbuf.h"
 
 struct {
 	char *head;

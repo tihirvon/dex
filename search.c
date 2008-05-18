@@ -1,6 +1,5 @@
 #include "buffer.h"
 #include "search.h"
-#include "util.h"
 #include "gbuf.h"
 #include "window.h"
 

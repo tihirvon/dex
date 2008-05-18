@@ -1,12 +1,8 @@
 #include "term.h"
-#include "xmalloc.h"
+#include "common.h"
 
 #include <sys/ioctl.h>
-#include <unistd.h>
 #include <termios.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 char *term_keycodes[NR_SKEYS];
 struct term_cap term_cap;

@@ -1,3 +1,4 @@
+#include "common.h"
 #include "obuf.h"
 #include "term.h"
 #include "util.h"

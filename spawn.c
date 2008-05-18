@@ -1,6 +1,7 @@
 #include "spawn.h"
 #include "buffer.h"
 #include "window.h"
+#include "util.h"
 
 struct error_pattern {
 	/*

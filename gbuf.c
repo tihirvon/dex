@@ -3,7 +3,7 @@
  */
 
 #include "gbuf.h"
-#include "xmalloc.h"
+#include "common.h"
 
 char gbuf_empty_buffer[1];
 

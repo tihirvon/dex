@@ -1,5 +1,5 @@
 #include "history.h"
-#include "xmalloc.h"
+#include "common.h"
 #include "util.h"
 
 struct history_entry {

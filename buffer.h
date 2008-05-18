@@ -1,10 +1,10 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+#include "common.h"
 #include "iter.h"
 #include "list.h"
 #include "uchar.h"
-#include "util.h"
 #include "options.h"
 
 #define VIEW(item) container_of((item), struct view, node)

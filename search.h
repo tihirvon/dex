@@ -1,8 +1,6 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include <regex.h>
-
 enum search_direction {
 	SEARCH_FWD,
 	SEARCH_BWD,

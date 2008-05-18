@@ -1,42 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "xmalloc.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <sys/wait.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <ctype.h>
-#include <pwd.h>
-#include <regex.h>
-
-#ifndef DEBUG
-#define DEBUG 1
-#endif
-
-#if DEBUG <= 0
-#define BUG(...) do { } while (0)
-#define d_print(...) do { } while (0)
-#else
-#define BUG(...) bug(__FUNCTION__, __VA_ARGS__)
-#define d_print(...) debug_print(__FUNCTION__, __VA_ARGS__)
-#endif
-
-#define __STR(a) #a
-#define BUG_ON(a) \
-	do { \
-		if (unlikely(a)) \
-			BUG("%s\n", __STR(a)); \
-	} while (0)
+#include "common.h"
 
 extern char *home_dir;
 extern char *regexp_matches[];
@@ -57,9 +22,6 @@ void ui_start(void);
 void ui_end(void);
 void any_key(void);
 void update_everything(void);
-
-void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
-void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);
 
 #define mmap_empty ((void *)8UL)
 

@@ -1,10 +1,7 @@
 #include "uchar.h"
-#include "xmalloc.h"
+#include "common.h"
 
-#include <stdlib.h>
-#include <string.h>
 #include <wctype.h>
-#include <ctype.h>
 
 const char hex_tab[16] = "0123456789abcdef";
 

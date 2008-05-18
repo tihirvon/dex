@@ -1,3 +1,4 @@
+#include "common.h"
 #include "options.h"
 #include "buffer.h"
 #include "commands.h"

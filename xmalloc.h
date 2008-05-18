@@ -1,17 +1,7 @@
 #ifndef XMALLOC_H
 #define XMALLOC_H
 
-#include <stdlib.h>
-#include <string.h>
-
-#define likely(x)	__builtin_expect(!!(x), 1)
-#define unlikely(x)	__builtin_expect(!!(x), 0)
-
-#define __NORETURN	__attribute__((__noreturn__))
-
-/* Argument at index @fmt_idx is printf compatible format string and
- * argument at index @first_idx is the first format argument */
-#define __FORMAT(fmt_idx, first_idx) __attribute__((format(printf, (fmt_idx), (first_idx))))
+#include "common.h"
 
 #if defined(__GNUC__) && (__GNUC__ >= 3)
 #define __MALLOC	__attribute__((__malloc__))

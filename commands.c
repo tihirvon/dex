@@ -5,6 +5,7 @@
 #include "cmdline.h"
 #include "history.h"
 #include "spawn.h"
+#include "util.h"
 
 #define MAX_KEYS 4
 

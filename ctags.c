@@ -1,6 +1,7 @@
 #include "buffer.h"
 #include "window.h"
 #include "search.h"
+#include "util.h"
 
 struct tag_file {
 	struct stat st;

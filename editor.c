@@ -5,6 +5,7 @@
 #include "commands.h"
 #include "search.h"
 #include "history.h"
+#include "util.h"
 
 #include <locale.h>
 #include <langinfo.h>
