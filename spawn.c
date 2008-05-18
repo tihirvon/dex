@@ -1,4 +1,5 @@
 #include "spawn.h"
+#include "editor.h"
 #include "buffer.h"
 #include "window.h"
 #include "util.h"

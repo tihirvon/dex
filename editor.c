@@ -1,4 +1,5 @@
 #include "window.h"
+#include "editor.h"
 #include "term.h"
 #include "obuf.h"
 #include "cmdline.h"

@@ -16,11 +16,6 @@ const char *get_file_type(mode_t mode);
 int regexp_match(const char *pattern, const char *str);
 void free_regexp_matches(void);
 
-void ui_start(void);
-void ui_end(void);
-void any_key(void);
-void update_everything(void);
-
 #define mmap_empty ((void *)8UL)
 
 static inline void *xmmap(int fd, off_t offset, size_t len)

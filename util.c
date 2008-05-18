@@ -1,4 +1,5 @@
 #include "util.h"
+#include "editor.h"
 
 char *home_dir;
 
