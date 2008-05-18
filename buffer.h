@@ -21,10 +21,10 @@
 
 struct block {
 	struct list_head node;
-	unsigned int nl;
+	char *data;
 	unsigned int size;
 	unsigned int alloc;
-	char *data;
+	unsigned int nl;
 };
 
 struct block_iter {
