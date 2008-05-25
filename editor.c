@@ -506,9 +506,13 @@ void ui_end(void)
 void error_msg(const char *format, ...)
 {
 	va_list ap;
+	int pos = 0;
+
+	if (config_file)
+		pos = snprintf(error_buf, sizeof(error_buf), "%s:%d: ", config_file, config_line);
 
 	va_start(ap, format);
-	vsnprintf(error_buf, sizeof(error_buf), format, ap);
+	vsnprintf(error_buf + pos, sizeof(error_buf) - pos, format, ap);
 	va_end(ap);
 	update_flags |= UPDATE_STATUS_LINE;
 

@@ -1,6 +1,9 @@
 #include "util.h"
 #include "commands.h"
 
+const char *config_file;
+int config_line;
+
 void read_config(void)
 {
 	const char *filename;
@@ -22,6 +25,9 @@ void read_config(void)
 		return;
 	}
 
+	config_file = filename;
+	config_line = 1;
+
 	ptr = buf;
 	while (ptr < buf + size) {
 		size_t n = buf + size - ptr;
@@ -37,9 +43,13 @@ void read_config(void)
 		memcpy(line, ptr, n);
 		line[n] = 0;
 		handle_command(line);
+		config_line++;
 
 		ptr += n + 1;
 	}
 	free(line);
 	xmunmap(buf, st.st_size);
+
+	config_file = NULL;
+	config_line = 0;
 }

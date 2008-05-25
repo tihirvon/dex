@@ -26,6 +26,9 @@ struct parsed_command {
 extern const struct command commands[];
 extern const struct command *current_command;
 
+extern const char *config_file;
+extern int config_line;
+
 char *parse_command_arg(const char *cmd);
 int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos);
 void free_commands(struct parsed_command *pc);
