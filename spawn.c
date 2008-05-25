@@ -28,6 +28,7 @@ static const struct error_pattern error_patterns[] = {
 	{  2,  0,  1,  2, "^In file included from (.+):([0-9]+)[,:]" },
 	{  2,  0,  1,  2, "^ +from (.+):([0-9]+)[,:]" },
 	{  2,  2,  1, -1, "^(.+): (In function .*:)$" },
+	{  2, -1, -1, -1, "^cc1: warnings being treated as errors$" },
 	{  1,  0, -1, -1, "^make: \\*\\*\\* \\[.*\\] Error [0-9]+$" },
 	{  1,  0, -1, -1, "^collect2: ld returned [0-9]+ exit status$" },
 	{ -1, -1, -1, -1, NULL }
