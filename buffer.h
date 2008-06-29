@@ -141,7 +141,7 @@ void update_cursor(struct view *v);
 
 void update_preferred_x(void);
 void do_insert(const char *buf, unsigned int len);
-void do_delete(unsigned int len);
+char *do_delete(unsigned int *lenp);
 void delete(unsigned int len, int move_after);
 void insert(const char *buf, unsigned int len);
 void replace(unsigned int del_count, const char *inserted, int ins_count);

@@ -181,37 +181,35 @@ static unsigned int delete_in_block(unsigned int len)
 	return len;
 }
 
-void do_delete(unsigned int len)
+char *do_delete(unsigned int *lenp)
 {
-	unsigned int deleted = 0;
+	unsigned int len, deleted = 0;
+	char *buf;
 
+	buf = buffer_get_bytes(lenp);
+	len = *lenp;
 	while (deleted < len) {
 		unsigned int n = delete_in_block(len - deleted);
-		if (!n)
-			break;
+		BUG_ON(!n);
 		deleted += n;
 	}
+	return buf;
 }
 
 void delete(unsigned int len, int move_after)
 {
-	char *buf;
+	char *buf = do_delete(&len);
 
-	buf = buffer_get_bytes(&len);
 	if (len) {
 		record_delete(buf, len, move_after);
-		do_delete(len);
 		update_preferred_x();
 	}
 }
 
 void replace(unsigned int del_count, const char *inserted, int ins_count)
 {
-	char *deleted;
+	char *deleted = do_delete(&del_count);
 
-	deleted = buffer_get_bytes(&del_count);
-	if (del_count)
-		do_delete(del_count);
 	if (ins_count)
 		do_insert(inserted, ins_count);
 	if (del_count || ins_count) {
@@ -248,13 +246,11 @@ static void record_copy(char *buf, unsigned int len, int is_lines)
 
 void cut(unsigned int len, int is_lines)
 {
-	char *buf;
+	char *buf = do_delete(&len);
 
-	buf = buffer_get_bytes(&len);
 	if (len) {
 		record_copy(xmemdup(buf, len), len, is_lines);
 		record_delete(buf, len, 0);
-		do_delete(len);
 	}
 }
 
@@ -493,10 +489,8 @@ void insert_ch(unsigned int ch)
 		}
 		if (options.trim_whitespace) {
 			del_count = goto_beginning_of_whitespace();
-			if (del_count) {
-				deleted = buffer_get_bytes(&del_count);
-				do_delete(del_count);
-			}
+			if (del_count)
+				deleted = do_delete(&del_count);
 		}
 		if (indent) {
 			do_insert(indent, ins_count);
@@ -553,8 +547,7 @@ void join_lines(void)
 
 	undo_merge = UNDO_MERGE_NONE;
 	view->cursor = bi;
-	buf = buffer_get_bytes(&count);
-	do_delete(count);
+	buf = do_delete(&count);
 	do_insert(" ", 1);
 	record_replace(buf, count, 1);
 	update_preferred_x();
@@ -829,8 +822,7 @@ static void shift_right(int nr_lines, int count)
 			char *buf;
 			int size;
 
-			deleted = buffer_get_bytes(&bytes);
-			do_delete(bytes);
+			deleted = do_delete(&bytes);
 			level += count;
 
 			buf = alloc_indent(level, &size);
@@ -863,15 +855,13 @@ static void shift_left(int nr_lines, int count)
 				level = count;
 			if (options.expand_tab)
 				level *= options.indent_width;
-			buf = buffer_get_bytes(&level);
-			do_delete(level);
+			buf = do_delete(&level);
 			record_delete(buf, level, 0);
 		} else if (level) {
 			// replace whole indentation with sane one
 			char *deleted;
 
-			deleted = buffer_get_bytes(&bytes);
-			do_delete(bytes);
+			deleted = do_delete(&bytes);
 
 			if (level > count) {
 				char *buf;
