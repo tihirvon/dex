@@ -78,16 +78,19 @@ void buf_move_cursor(int x, int y)
 	obuf.x = x;
 }
 
-void buf_set_colors(int fg, int bg)
+void buf_set_color(const struct term_color *color)
 {
-	buf_escape(term_set_colors(fg, bg));
-	obuf.bg = bg;
+	if (!memcmp(color, &obuf.color, sizeof(*color)))
+		return;
+
+	buf_escape(term_set_color(color));
+	obuf.color = *color;
 }
 
 void buf_clear_eol(void)
 {
 	if (obuf.x < obuf.scroll_x + obuf.width) {
-		if (term_cap.ce && (obuf.bg == -1 || term_cap.ut)) {
+		if (term_cap.ce && (!(obuf.color.attr & ATTR_BG_IS_SET) || term_cap.ut)) {
 			buf_escape(term_cap.ce);
 		} else {
 			buf_set_bytes(' ', obuf.scroll_x + obuf.width - obuf.x);

@@ -85,7 +85,8 @@ void term_raw(void)
 
 void term_cooked(void)
 {
-	term_set_attributes(-1, -1, 0);
+	struct term_color c = { 0, 0, 0 };
+	term_set_color(&c);
 	tcsetattr(0, 0, &termios_save);
 }
 
@@ -209,11 +210,8 @@ int term_get_size(int *w, int *h)
 	return -1;
 }
 
-static void buffer_color(char x, int color)
+static void buffer_color(char x, unsigned char color)
 {
-	if (color < 0)
-		return;
-
 	buffer[buffer_pos++] = ';';
 	buffer[buffer_pos++] = x;
 	if (color < 8) {
@@ -227,11 +225,13 @@ static void buffer_color(char x, int color)
 	}
 }
 
-const char *term_set_attributes(int fg, int bg, unsigned int attr)
+const char *term_set_color(const struct term_color *color)
 {
-	if (term_cap.colors <= 16 && fg > 7) {
-		attr |= ATTR_BOLD;
-		fg &= 7;
+	struct term_color c = *color;
+
+	if (term_cap.colors <= 16 && c.fg > 7) {
+		c.attr |= ATTR_BOLD;
+		c.fg &= 7;
 	}
 
 	// max 35 bytes (3 + 6 * 2 + 2 * 9 + 2)
@@ -240,40 +240,37 @@ const char *term_set_attributes(int fg, int bg, unsigned int attr)
 	buffer[buffer_pos++] = '[';
 	buffer[buffer_pos++] = '0';
 
-	if (attr & ATTR_BOLD) {
+	if (c.attr & ATTR_BOLD) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '1';
 	}
-	if (attr & ATTR_LOW_INTENSITY) {
+	if (c.attr & ATTR_LOW_INTENSITY) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '2';
 	}
-	if (attr & ATTR_UNDERLINE) {
+	if (c.attr & ATTR_UNDERLINE) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '4';
 	}
-	if (attr & ATTR_BLINKING) {
+	if (c.attr & ATTR_BLINKING) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '5';
 	}
-	if (attr & ATTR_REVERSE_VIDEO) {
+	if (c.attr & ATTR_REVERSE_VIDEO) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '7';
 	}
-	if (attr & ATTR_INVISIBLE_TEXT) {
+	if (c.attr & ATTR_INVISIBLE_TEXT) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '8';
 	}
-	buffer_color('3', fg);
-	buffer_color('4', bg);
+	if (c.attr & ATTR_FG_IS_SET)
+		buffer_color('3', c.fg);
+	if (c.attr & ATTR_BG_IS_SET)
+		buffer_color('4', c.bg);
 	buffer[buffer_pos++] = 'm';
 	buffer[buffer_pos++] = 0;
 	return buffer;
-}
-
-const char *term_set_colors(int fg, int bg)
-{
-	return term_set_attributes(fg, bg, 0);
 }
 
 const char *term_move_cursor(int x, int y)

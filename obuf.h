@@ -2,6 +2,7 @@
 #define OBUF_H
 
 #include "uchar.h"
+#include "term.h"
 
 struct output_buffer {
 	unsigned char *buf;
@@ -20,7 +21,7 @@ struct output_buffer {
 
 	unsigned int tab_width;
 
-	int bg;
+	struct term_color color;
 };
 
 extern struct output_buffer obuf;
@@ -32,7 +33,7 @@ void buf_escape(const char *str);
 void buf_hide_cursor(void);
 void buf_show_cursor(void);
 void buf_move_cursor(int x, int y);
-void buf_set_colors(int fg, int bg);
+void buf_set_color(const struct term_color *color);
 void buf_clear_eol(void);
 void buf_flush(void);
 void buf_skip(uchar u, int utf8);

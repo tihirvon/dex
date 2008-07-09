@@ -17,6 +17,15 @@ int running;
 int nr_errors;
 char error_buf[256];
 
+static struct term_color default_color;
+static struct term_color selection_color = {
+	.fg = 0, .bg = 7, .attr = ATTR_FG_IS_SET | ATTR_BG_IS_SET
+};
+static struct term_color statusline_color = {
+	.fg = 0, .bg = 7, .attr = ATTR_FG_IS_SET | ATTR_BG_IS_SET
+};
+static struct term_color commandline_color;
+
 static int received_signal;
 static int cmdline_x;
 
@@ -138,7 +147,7 @@ static void print_status_line(void)
 	int lw, rw;
 
 	buf_move_cursor(0, window->h);
-	buf_set_colors(0, 7);
+	buf_set_color(&statusline_color);
 	lw = format_status(lbuf, sizeof(lbuf), lformat);
 	rw = format_status(rbuf, sizeof(rbuf), rformat);
 	if (lw + rw <= window->w) {
@@ -219,7 +228,7 @@ static void print_command(uchar prefix)
 static void print_command_line(void)
 {
 	buf_move_cursor(0, window->h + 1);
-	buf_set_colors(-1, -1);
+	buf_set_color(&commandline_color);
 	switch (input_mode) {
 	case INPUT_COMMAND:
 		print_command(':');
@@ -252,11 +261,11 @@ static void selection_check(void)
 {
 	if (view->sel.blk) {
 		if (!sel_started && cur_offset >= sel_so) {
-			buf_set_colors(0, 7);
+			buf_set_color(&selection_color);
 			sel_started = 1;
 		}
 		if (!sel_ended && cur_offset > sel_eo) {
-			buf_set_colors(-1, -1);
+			buf_set_color(&default_color);
 			sel_ended = 1;
 		}
 	}
@@ -922,7 +931,6 @@ int main(int argc, char *argv[])
 	obuf.alloc = 8192;
 	obuf.buf = xmalloc(obuf.alloc);
 	obuf.width = 80;
-	obuf.bg = -1;
 
 	read_config();
 	history_load(&command_history, editor_file("command-history"));

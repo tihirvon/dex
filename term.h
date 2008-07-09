@@ -87,7 +87,16 @@ enum {
 	ATTR_UNDERLINE      = 0x04,
 	ATTR_BLINKING       = 0x08,
 	ATTR_REVERSE_VIDEO  = 0x10,
-	ATTR_INVISIBLE_TEXT = 0x20
+	ATTR_INVISIBLE_TEXT = 0x20,
+	ATTR_FG_IS_SET      = 0x40,
+	ATTR_BG_IS_SET      = 0x80
+};
+
+
+struct term_color {
+	unsigned char fg;
+	unsigned char bg;
+	unsigned char attr;
 };
 
 enum {
@@ -115,20 +124,7 @@ int term_read_key(unsigned int *key, enum term_key_type *type);
 
 int term_get_size(int *w, int *h);
 
-/* set terminal attributes
- *
- * @fg_color  -1..255
- * @bg_color  -1..255
- * @attr      ATTR_* bits
- */
-const char *term_set_attributes(int fg, int bg, unsigned int attr);
-
-/* set colors
- *
- * @fg  -1..255
- * @bg  -1..255
- */
-const char *term_set_colors(int fg, int bg);
+const char *term_set_color(const struct term_color *color);
 
 /* move cursor (x and y are zero based) */
 const char *term_move_cursor(int x, int y);
