@@ -331,6 +331,12 @@ static void cmd_error(char **args)
 		info_msg("No errors");
 		return;
 	}
+	if (dir && cerr.count == 1) {
+		// this is much more useful than displaying "No more/previous errors"
+		cerr.pos = 0;
+		show_compile_error();
+		return;
+	}
 	if (dir == 'n') {
 		if (cerr.pos == cerr.count - 1) {
 			info_msg("No more errors");
