@@ -7,6 +7,7 @@ enum newline_sequence {
 };
 
 struct options {
+	int allow_incomplete_last_line;
 	int auto_indent;
 	int expand_tab;
 	int indent_width;

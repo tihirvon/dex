@@ -350,6 +350,19 @@ void paste(void)
 	}
 }
 
+static int would_become_empty(void)
+{
+	struct block *blk;
+	int size = 0;
+
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		size += blk->size;
+		if (size > 1)
+			return 0;
+	}
+	return 1;
+}
+
 void delete_ch(void)
 {
 	if (view->sel.blk) {
@@ -365,8 +378,11 @@ void delete_ch(void)
 
 		if (undo_merge != UNDO_MERGE_DELETE)
 			undo_merge = UNDO_MERGE_NONE;
-		if (buffer->get_char(&bi, &u)) {
-			if (buffer->utf8) {
+		if (buffer->next_char(&bi, &u)) {
+			if (u == '\n' && !options.allow_incomplete_last_line &&
+					block_iter_eof(&bi) && !would_become_empty()) {
+				/* don't make last line incomplete */
+			} else if (buffer->utf8) {
 				delete(u_char_size(u), 0);
 			} else {
 				delete(1, 0);

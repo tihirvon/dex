@@ -4,6 +4,7 @@
 #include "commands.h"
 
 struct options options = {
+	.allow_incomplete_last_line = 0,
 	.auto_indent = 1,
 	.expand_tab = 0,
 	.indent_width = 8,
@@ -35,6 +36,7 @@ static const char *bool_enum[] = { "false", "true", NULL };
 static const char *newline_enum[] = { "unix", "dos", NULL };
 
 static const struct option_description option_desc[] = {
+	BOOL_OPT("allow-incomplete-last-line", &options.allow_incomplete_last_line),
 	BOOL_OPT("auto-indent", &options.auto_indent),
 	BOOL_OPT("expand-tab", &options.expand_tab),
 	INT_OPT("indent-width", &options.indent_width),
