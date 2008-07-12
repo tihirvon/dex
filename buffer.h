@@ -56,7 +56,6 @@ struct buffer {
 
 	unsigned int (*next_char)(struct block_iter *i, uchar *up);
 	unsigned int (*prev_char)(struct block_iter *i, uchar *up);
-	int (*get_char)(struct block_iter *i, uchar *up);
 };
 
 struct view {

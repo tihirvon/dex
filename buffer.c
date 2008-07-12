@@ -340,11 +340,9 @@ static void buffer_set_callbacks(struct buffer *b)
 	if (b->utf8) {
 		b->next_char = block_iter_next_uchar;
 		b->prev_char = block_iter_prev_uchar;
-		b->get_char = block_iter_get_uchar;
 	} else {
 		b->next_char = block_iter_next_byte;
 		b->prev_char = block_iter_prev_byte;
-		b->get_char = block_iter_get_byte;
 	}
 }
 
