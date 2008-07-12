@@ -71,7 +71,7 @@ void fetch_eol(const struct block_iter *bi)
 		line_buffer_add(pos, src, avail);
 		pos += avail;
 
-		if (blk->node.next == &buffer->blocks)
+		if (blk->node.next == bi->head)
 			break;
 		blk = BLOCK(blk->node.next);
 		offset = 0;
