@@ -3,5 +3,6 @@
 config.mk
 editor
 tags
+callgrind.out.*
 
 !.gitignore
