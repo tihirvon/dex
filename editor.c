@@ -525,8 +525,6 @@ void error_msg(const char *format, ...)
 	va_end(ap);
 	update_flags |= UPDATE_STATUS_LINE;
 
-	d_print("%s\n", error_buf);
-
 	if (!running) {
 		if (current_command)
 			printf("%s: %s\n", current_command->name, error_buf);
@@ -544,8 +542,6 @@ void info_msg(const char *format, ...)
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
 	update_flags |= UPDATE_STATUS_LINE;
-
-	d_print("%s\n", error_buf);
 }
 
 char get_confirmation(const char *choices, const char *format, ...)
