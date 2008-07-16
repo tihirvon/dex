@@ -4,25 +4,27 @@
 const char *config_file;
 int config_line;
 
-void read_config(void)
+void read_config(const char *filename)
 {
-	const char *filename;
+	/* recursive */
+	const char *saved_config_file = config_file;
+	int saved_config_line = config_line;
+
 	struct stat st;
 	size_t size, alloc = 0;
 	char *buf, *ptr, *line = NULL;
 	int fd;
 
-	filename = editor_file("rc");
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
-		return;
+		goto out;
 	}
 	fstat(fd, &st);
 	size = st.st_size;
 	buf = xmmap(fd, 0, size);
 	close(fd);
 	if (!buf) {
-		return;
+		goto out;
 	}
 
 	config_file = filename;
@@ -49,7 +51,7 @@ void read_config(void)
 	}
 	free(line);
 	xmunmap(buf, st.st_size);
-
-	config_file = NULL;
-	config_line = 0;
+out:
+	config_file = saved_config_file;
+	config_line = saved_config_line;
 }

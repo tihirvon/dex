@@ -211,7 +211,7 @@ static void collect_completions(struct parsed_command *pc, const char *str)
 	cmd = find_command(pc->argv[name_idx]);
 	if (cmd) {
 		int argc = pc->args_before_cursor - name_idx;
-		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save")) {
+		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save") || !strcmp(cmd->name, "include")) {
 			collect_files(str);
 			return;
 		}

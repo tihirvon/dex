@@ -34,7 +34,7 @@ int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos);
 void free_commands(struct parsed_command *pc);
 void handle_command(const char *cmd);
 void handle_binding(enum term_key_type type, unsigned int key);
-void read_config(void);
+void read_config(const char *filename);
 
 const struct command *find_command(const char *name);
 void complete_command(void);

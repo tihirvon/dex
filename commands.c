@@ -387,6 +387,13 @@ static char *shell_unescape(const char *str)
 	return gbuf_steal(&buf);
 }
 
+static void cmd_include(char **args)
+{
+	if (!parse_args(&args, "", 1, 1))
+		return;
+	read_config(args[0]);
+}
+
 static void cmd_insert(char **args)
 {
 	const char *pf = parse_args(&args, "ekm", 1, 1);
@@ -835,6 +842,7 @@ const struct command commands[] = {
 	{ "eol", NULL, cmd_eol },
 	{ "erase-word", NULL, cmd_erase_word },
 	{ "error", NULL, cmd_error },
+	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
 	{ "join", NULL, cmd_join },
 	{ "left", NULL, cmd_left },
