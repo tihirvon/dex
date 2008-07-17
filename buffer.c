@@ -329,8 +329,14 @@ static struct buffer *buffer_new(void)
 	list_init(&b->blocks);
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
-	b->tab_width = 8;
 	b->utf8 = !!(term_flags & TERM_UTF8);
+
+	b->options.auto_indent = options.auto_indent;
+	b->options.expand_tab = options.expand_tab;
+	b->options.indent_width = options.indent_width;
+	b->options.tab_width = options.tab_width;
+	b->options.trim_whitespace = options.trim_whitespace;
+
 	b->newline = options.newline;
 	return b;
 }

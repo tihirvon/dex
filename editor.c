@@ -349,7 +349,7 @@ static void update_full(void)
 	struct block_iter bi = view->cursor;
 	int i;
 
-	obuf.tab_width = buffer->tab_width;
+	obuf.tab_width = buffer->options.tab_width;
 	obuf.scroll_x = view->vx;
 
 	for (i = 0; i < view->cy - view->vy; i++)
@@ -386,7 +386,7 @@ static void update_cursor_line(void)
 {
 	struct block_iter bi = view->cursor;
 
-	obuf.tab_width = buffer->tab_width;
+	obuf.tab_width = buffer->options.tab_width;
 	obuf.scroll_x = view->vx;
 	block_iter_bol(&bi);
 

@@ -52,7 +52,7 @@ struct buffer {
 
 	enum newline_sequence newline;
 
-	int tab_width;
+	struct local_options options;
 
 	unsigned int (*next_char)(struct block_iter *i, uchar *up);
 	unsigned int (*prev_char)(struct block_iter *i, uchar *up);

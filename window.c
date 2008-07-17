@@ -89,7 +89,7 @@ static void update_cursor_y(struct view *v)
 void update_cursor_x(struct view *v)
 {
 	struct block_iter bi = v->cursor;
-	unsigned int tw = v->buffer->tab_width;
+	unsigned int tw = v->buffer->options.tab_width;
 
 	block_iter_bol(&bi);
 	v->cx = 0;

@@ -16,7 +16,7 @@ void update_preferred_x(void)
 static void move_preferred_x(void)
 {
 	struct block_iter bi = view->cursor;
-	unsigned int tw = buffer->tab_width;
+	unsigned int tw = buffer->options.tab_width;
 	int x = 0;
 
 	block_iter_bol(&bi);
@@ -498,12 +498,12 @@ void insert_ch(unsigned int ch)
 		int ins_count = 0;
 		int del_count = 0;
 
-		if (options.auto_indent) {
+		if (buffer->options.auto_indent) {
 			indent = get_indent();
 			if (indent)
 				ins_count += strlen(indent);
 		}
-		if (options.trim_whitespace) {
+		if (buffer->options.trim_whitespace) {
 			del_count = goto_beginning_of_whitespace();
 			if (del_count)
 				deleted = do_delete(&del_count);
@@ -756,7 +756,7 @@ void erase_word(void)
 
 static int use_spaces_for_indent(void)
 {
-	return options.expand_tab || options.indent_width != buffer->tab_width;
+	return buffer->options.expand_tab || buffer->options.indent_width != buffer->options.tab_width;
 }
 
 static char *alloc_indent(int count, int *sizep)
@@ -765,7 +765,7 @@ static char *alloc_indent(int count, int *sizep)
 	int size;
 
 	if (use_spaces_for_indent()) {
-		size = options.indent_width * count;
+		size = buffer->options.indent_width * count;
 		indent = xnew(char, size);
 		memset(indent, ' ', size);
 	} else {
@@ -791,7 +791,7 @@ static int get_indent_info(const char *buf, int *sizep, int *levelp)
 			width++;
 			spaces++;
 		} else if (buf[pos] == '\t') {
-			int tw = buffer->tab_width;
+			int tw = buffer->options.tab_width;
 			width = (width + tw) / tw * tw;
 			tabs++;
 		} else {
@@ -800,12 +800,12 @@ static int get_indent_info(const char *buf, int *sizep, int *levelp)
 		bytes++;
 		pos++;
 
-		if (width % options.indent_width == 0 && sane)
+		if (width % buffer->options.indent_width == 0 && sane)
 			sane = use_spaces_for_indent() ? !tabs : !spaces;
 	}
 
 	*sizep = bytes;
-	*levelp = width / options.indent_width;
+	*levelp = width / buffer->options.indent_width;
 	return sane;
 }
 
@@ -864,7 +864,7 @@ static void shift_left(int nr_lines, int count)
 			if (n > level)
 				n = level;
 			if (use_spaces_for_indent())
-				n *= options.indent_width;
+				n *= buffer->options.indent_width;
 			buf = do_delete(&n);
 			record_delete(buf, n, 0);
 		} else if (bytes) {

@@ -771,11 +771,24 @@ static void cmd_select(char **args)
 
 static void cmd_set(char **args)
 {
-	const char *pf = parse_args(&args, "", 1, 2);
+	const char *pf = parse_args(&args, "gl", 1, 2);
+	unsigned int flags = 0;
 
 	if (!pf)
 		return;
-	set_option(args[0], args[1]);
+
+	while (*pf) {
+		switch (*pf) {
+		case 'g':
+			flags |= OPT_GLOBAL;
+			break;
+		case 'l':
+			flags |= OPT_LOCAL;
+			break;
+		}
+		pf++;
+	}
+	set_option(args[0], args[1], flags);
 }
 
 static void cmd_shift(char **args)
