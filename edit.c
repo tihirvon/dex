@@ -754,12 +754,17 @@ void erase_word(void)
 	}
 }
 
+static int use_spaces_for_indent(void)
+{
+	return options.expand_tab || options.indent_width != buffer->tab_width;
+}
+
 static char *alloc_indent(int count, int *sizep)
 {
 	char *indent;
 	int size;
 
-	if (options.expand_tab) {
+	if (use_spaces_for_indent()) {
 		size = options.indent_width * count;
 		indent = xnew(char, size);
 		memset(indent, ' ', size);
@@ -776,44 +781,32 @@ static int get_indent_info(const char *buf, int *sizep, int *levelp)
 {
 	int pos = 0;
 	int width = 0;
-	int level = 0;
-	// current indentation level
-	int cur_spaces = 0;
-	int cur_tabs = 0;
-	int cur_bytes = 0;
-	// totals
 	int spaces = 0;
 	int tabs = 0;
 	int bytes = 0;
+	int sane = 1;
 
 	while (buf[pos]) {
 		if (buf[pos] == ' ') {
 			width++;
-			cur_spaces++;
+			spaces++;
 		} else if (buf[pos] == '\t') {
-			int tw = options.tab_width;
+			int tw = buffer->tab_width;
 			width = (width + tw) / tw * tw;
-			cur_tabs++;
+			tabs++;
 		} else {
 			break;
 		}
-		cur_bytes++;
+		bytes++;
 		pos++;
 
-		if (width % options.indent_width == 0) {
-			spaces += cur_spaces;
-			tabs += cur_tabs;
-			bytes += cur_bytes;
-			level++;
-			cur_spaces = 0;
-			cur_tabs = 0;
-			cur_bytes = 0;
-		}
+		if (width % options.indent_width == 0 && sane)
+			sane = use_spaces_for_indent() ? !tabs : !spaces;
 	}
 
 	*sizep = bytes;
-	*levelp = level;
-	return options.expand_tab ? !tabs : !spaces;
+	*levelp = width / options.indent_width;
+	return sane;
 }
 
 static void shift_right(int nr_lines, int count)
@@ -866,19 +859,19 @@ static void shift_left(int nr_lines, int count)
 		if (level && sane) {
 			// indent is sane
 			char *buf;
+			int n = count;
 
-			if (level > count)
-				level = count;
-			if (options.expand_tab)
-				level *= options.indent_width;
-			buf = do_delete(&level);
-			record_delete(buf, level, 0);
-		} else if (level) {
+			if (n > level)
+				n = level;
+			if (use_spaces_for_indent())
+				n *= options.indent_width;
+			buf = do_delete(&n);
+			record_delete(buf, n, 0);
+		} else if (bytes) {
 			// replace whole indentation with sane one
 			char *deleted;
 
 			deleted = do_delete(&bytes);
-
 			if (level > count) {
 				char *buf;
 				int size;
