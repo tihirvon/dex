@@ -14,9 +14,6 @@ struct options options = {
 	.newline = NEWLINE_UNIX,
 };
 
-#define OPT_VAR_(prefix, var) prefix##var
-#define OPT_VAR(prefix, var) OPT_VAR_(prefix, var)
-
 #define INT_OPT(name, var)			{ name, OPT_INT, var, NULL }
 #define ENUM_OPT(name, var, enum_values)	{ name, OPT_ENUM, var, enum_values }
 
