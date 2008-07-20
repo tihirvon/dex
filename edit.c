@@ -777,36 +777,39 @@ static char *alloc_indent(int count, int *sizep)
 	return indent;
 }
 
-static int get_indent_info(const char *buf, int *sizep, int *levelp)
+struct indent_info {
+	int tabs;
+	int spaces;
+	int bytes;
+	int width;
+	int level;
+	int sane;
+};
+
+static void get_indent_info(const char *buf, struct indent_info *info)
 {
 	int pos = 0;
-	int width = 0;
-	int spaces = 0;
-	int tabs = 0;
-	int bytes = 0;
-	int sane = 1;
 
+	memset(info, 0, sizeof(struct indent_info));
+	info->sane = 1;
 	while (buf[pos]) {
 		if (buf[pos] == ' ') {
-			width++;
-			spaces++;
+			info->width++;
+			info->spaces++;
 		} else if (buf[pos] == '\t') {
 			int tw = buffer->options.tab_width;
-			width = (width + tw) / tw * tw;
-			tabs++;
+			info->width = (info->width + tw) / tw * tw;
+			info->tabs++;
 		} else {
 			break;
 		}
-		bytes++;
+		info->bytes++;
 		pos++;
 
-		if (width % buffer->options.indent_width == 0 && sane)
-			sane = use_spaces_for_indent() ? !tabs : !spaces;
+		if (info->width % buffer->options.indent_width == 0 && info->sane)
+			info->sane = use_spaces_for_indent() ? !info->tabs : !info->spaces;
 	}
-
-	*sizep = bytes;
-	*levelp = width / buffer->options.indent_width;
-	return sane;
+	info->level = info->width / buffer->options.indent_width;
 }
 
 static void shift_right(int nr_lines, int count)
@@ -817,27 +820,26 @@ static void shift_right(int nr_lines, int count)
 	indent = alloc_indent(count, &indent_size);
 	i = 0;
 	while (1) {
-		int bytes, level;
+		struct indent_info info;
 
 		fetch_eol(&view->cursor);
-		if (get_indent_info(line_buffer, &bytes, &level)) {
-			// indent is sane
+		get_indent_info(line_buffer, &info);
+		if (info.sane) {
 			// insert whitespace
 			do_insert(indent, indent_size);
 			record_insert(indent_size);
 		} else {
 			// replace whole indentation with sane one
+			int level = info.level + count;
 			char *deleted;
 			char *buf;
 			int size;
 
-			deleted = do_delete(&bytes);
-			level += count;
-
+			deleted = do_delete(&info.bytes);
 			buf = alloc_indent(level, &size);
 			do_insert(buf, size);
 			free(buf);
-			record_replace(deleted, bytes, size);
+			record_replace(deleted, info.bytes, size);
 		}
 		if (++i == nr_lines)
 			break;
@@ -852,36 +854,35 @@ static void shift_left(int nr_lines, int count)
 
 	i = 0;
 	while (1) {
-		int sane, bytes, level;
+		struct indent_info info;
 
 		fetch_eol(&view->cursor);
-		sane = get_indent_info(line_buffer, &bytes, &level);
-		if (level && sane) {
-			// indent is sane
+		get_indent_info(line_buffer, &info);
+		if (info.level && info.sane) {
 			char *buf;
 			int n = count;
 
-			if (n > level)
-				n = level;
+			if (n > info.level)
+				n = info.level;
 			if (use_spaces_for_indent())
 				n *= buffer->options.indent_width;
 			buf = do_delete(&n);
 			record_delete(buf, n, 0);
-		} else if (bytes) {
+		} else if (info.bytes) {
 			// replace whole indentation with sane one
 			char *deleted;
 
-			deleted = do_delete(&bytes);
-			if (level > count) {
+			deleted = do_delete(&info.bytes);
+			if (info.level > count) {
 				char *buf;
 				int size;
 
-				buf = alloc_indent(level - count, &size);
+				buf = alloc_indent(info.level - count, &size);
 				do_insert(buf, size);
 				free(buf);
-				record_replace(deleted, bytes, size);
+				record_replace(deleted, info.bytes, size);
 			} else {
-				record_delete(deleted, bytes, 0);
+				record_delete(deleted, info.bytes, 0);
 			}
 		}
 		if (++i == nr_lines)
