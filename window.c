@@ -29,14 +29,14 @@ struct view *window_add_buffer(struct buffer *b)
 
 void remove_view(void)
 {
-	struct list_head *next = view->node.next;
+	struct list_head *prev = view->node.prev;
 
 	view_delete(view);
 	if (list_empty(&window->views))
 		open_buffer(NULL);
-	if (next == &window->views)
-		next = next->next;
-	set_view(VIEW(next));
+	if (prev == &window->views)
+		prev = prev->next;
+	set_view(VIEW(prev));
 }
 
 void set_view(struct view *v)
