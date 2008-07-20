@@ -238,20 +238,17 @@ static void reverse_change(struct change *change)
 		change->buf = NULL;
 	} else if (change->del_count) {
 		// reverse replace
-		unsigned int count = change->ins_count;
-		char *buf = do_delete(&count);
+		unsigned int ins_count = change->ins_count;
+		char *buf = do_delete(ins_count);
 
-		BUG_ON(count != change->ins_count);
 		do_insert(change->buf, change->del_count);
 		free(change->buf);
 		change->buf = buf;
 		change->ins_count = change->del_count;
-		change->del_count = count;
+		change->del_count = ins_count;
 	} else {
 		// convert insert to delete
-		unsigned int count = change->ins_count;
-		change->buf = do_delete(&count);
-		BUG_ON(count != change->ins_count);
+		change->buf = do_delete(change->ins_count);
 		change->del_count = change->ins_count;
 		change->ins_count = 0;
 		update_preferred_x();
