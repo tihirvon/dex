@@ -302,6 +302,17 @@ unsigned int prepare_selection(void)
 			view->sel.offset = to;
 		}
 
+		if (block_iter_eof(&view->sel)) {
+			uchar u;
+
+			if (co == so) {
+				// both EOF
+				return 0;
+			}
+			// avoid deleting past eof
+			so -= buffer->prev_char(&view->sel, &u);
+		}
+
 		len = so - co;
 		if (view->sel_is_lines) {
 			bi = view->sel;
