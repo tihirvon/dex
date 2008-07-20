@@ -784,6 +784,7 @@ struct indent_info {
 	int width;
 	int level;
 	int sane;
+	int wsonly;
 };
 
 static void get_indent_info(const char *buf, struct indent_info *info)
@@ -810,6 +811,7 @@ static void get_indent_info(const char *buf, struct indent_info *info)
 			info->sane = use_spaces_for_indent() ? !info->tabs : !info->spaces;
 	}
 	info->level = info->width / buffer->options.indent_width;
+	info->wsonly = !buf[pos];
 }
 
 static void shift_right(int nr_lines, int count)
@@ -824,7 +826,15 @@ static void shift_right(int nr_lines, int count)
 
 		fetch_eol(&view->cursor);
 		get_indent_info(line_buffer, &info);
-		if (info.sane) {
+		if (info.wsonly) {
+			if (info.bytes) {
+				// remove indentation
+				char *deleted;
+
+				deleted = do_delete(&info.bytes);
+				record_delete(deleted, info.bytes, 0);
+			}
+		} else if (info.sane) {
 			// insert whitespace
 			do_insert(indent, indent_size);
 			record_insert(indent_size);
@@ -858,7 +868,15 @@ static void shift_left(int nr_lines, int count)
 
 		fetch_eol(&view->cursor);
 		get_indent_info(line_buffer, &info);
-		if (info.level && info.sane) {
+		if (info.wsonly) {
+			if (info.bytes) {
+				// remove indentation
+				char *deleted;
+
+				deleted = do_delete(&info.bytes);
+				record_delete(deleted, info.bytes, 0);
+			}
+		} else if (info.level && info.sane) {
 			char *buf;
 			int n = count;
 
