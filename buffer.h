@@ -121,7 +121,8 @@ enum input_special {
 // UPDATE_STATUS_LINE and so on.
 #define UPDATE_STATUS_LINE	(1 << 0)
 #define UPDATE_CURSOR_LINE	(1 << 1)
-#define UPDATE_FULL		(1 << 2)
+#define UPDATE_RANGE		(1 << 2)
+#define UPDATE_FULL		(1 << 3)
 
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;

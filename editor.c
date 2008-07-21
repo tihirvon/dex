@@ -346,7 +346,7 @@ static void print_line(struct block_iter *bi)
 	buf_clear_eol();
 }
 
-static void update_full(void)
+static void update_range(int y1, int y2)
 {
 	struct block_iter bi = view->cursor;
 	int i;
@@ -354,12 +354,17 @@ static void update_full(void)
 	obuf.tab_width = buffer->options.tab_width;
 	obuf.scroll_x = view->vx;
 
-	for (i = 0; i < view->cy - view->vy; i++)
+	for (i = 0; i < view->cy - y1; i++)
 		block_iter_prev_line(&bi);
+	for (i = 0; i < y1 - view->cy; i++)
+		block_iter_next_line(&bi);
 	block_iter_bol(&bi);
 
+	y1 -= view->vy;
+	y2 -= view->vy;
+
 	selection_init(&bi);
-	for (i = 0; i < window->h; i++) {
+	for (i = y1; i < y2; i++) {
 		if (block_iter_eof(&bi))
 			break;
 		buf_move_cursor(0, i);
@@ -367,13 +372,13 @@ static void update_full(void)
 	}
 	selection_check();
 
-	if (i < window->h) {
+	if (i < y2) {
 		// dummy empty line
 		buf_move_cursor(0, i++);
 		buf_clear_eol();
 	}
 
-	for (; i < window->h; i++) {
+	for (; i < y2; i++) {
 		buf_move_cursor(0, i);
 		buf_ch('~');
 		buf_clear_eol();
@@ -384,22 +389,9 @@ static void update_full(void)
 	print_command_line();
 }
 
-static void update_cursor_line(void)
+static void update_full(void)
 {
-	struct block_iter bi = view->cursor;
-
-	obuf.tab_width = buffer->options.tab_width;
-	obuf.scroll_x = view->vx;
-	block_iter_bol(&bi);
-
-	selection_init(&bi);
-	buf_move_cursor(0, view->cy - view->vy);
-	print_line(&bi);
-	selection_check();
-
-	obuf.scroll_x = 0;
-	print_status_line();
-	print_command_line();
+	update_range(view->vy, view->vy + window->h);
 }
 
 static void update_status_line(void)
@@ -808,9 +800,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			save_change_head != buffer->save_change_head) {
 		update_flags |= UPDATE_STATUS_LINE;
 
-		// full update when selecting and cursor moved
-		if (view->sel.blk)
-			update_flags |= UPDATE_FULL;
+		if (cy != view->cy && view->sel.blk)
+			update_flags |= UPDATE_RANGE;
+		if (cx != view->cx && view->sel.blk)
+			update_flags |= UPDATE_CURSOR_LINE;
 	}
 
 	if (!update_flags)
@@ -819,8 +812,17 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	buf_hide_cursor();
 	if (update_flags & UPDATE_FULL) {
 		update_full();
+	} else if (update_flags & UPDATE_RANGE) {
+		int y1 = cy;
+		int y2 = view->cy;
+		if (y1 > y2) {
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+		}
+		update_range(y1, y2 + 1);
 	} else if (update_flags & UPDATE_CURSOR_LINE) {
-		update_cursor_line();
+		update_range(view->cy, view->cy + 1);
 	} else if (update_flags & UPDATE_STATUS_LINE) {
 		update_status_line();
 	}
