@@ -329,7 +329,10 @@ unsigned int prepare_selection(void)
 			len += block_iter_bol(&bi);
 			SET_CURSOR(bi);
 		} else {
-			len++;
+			// character under cursor belongs to the selection
+			uchar u;
+			bi = view->sel;
+			len += buffer->next_char(&bi, &u);
 		}
 		return len;
 	} else {
