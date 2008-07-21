@@ -563,9 +563,11 @@ void join_lines(void)
 	uchar u;
 	char *buf;
 
-	if (!block_iter_next_line(&bi)) {
+	if (!block_iter_next_line(&bi))
 		return;
-	}
+	if (block_iter_eof(&bi))
+		return;
+
 	next = bi;
 	block_iter_prev_byte(&bi, &u);
 	count = 1;
