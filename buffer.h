@@ -44,6 +44,9 @@ struct buffer {
 
 	unsigned int nl;
 
+	// number of views pointing to this buffer
+	int ref;
+
 	char *filename;
 	char *abs_filename;
 

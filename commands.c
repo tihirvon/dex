@@ -213,25 +213,14 @@ static void cmd_center_cursor(char **args)
 static void cmd_close(char **args)
 {
 	const char *pf = parse_args(&args, "f", 0, 0);
-	struct window *w;
-	struct view *v;
-	int count = 0;
 
 	if (!pf)
 		return;
 
-	list_for_each_entry(w, &windows, node) {
-		list_for_each_entry(v, &w->views, node) {
-			if (v->buffer == view->buffer)
-				count++;
-		}
-	}
-	if (buffer_modified(buffer) && count == 1 && !*pf) {
+	if (buffer_modified(buffer) && buffer->ref == 1 && !*pf) {
 		error_msg("The buffer is modified. Save or run 'close -f' to close without saving.");
 		return;
 	}
-	if (count == 1)
-		free_buffer(view->buffer);
 	remove_view();
 }
 
