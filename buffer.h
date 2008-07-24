@@ -103,6 +103,26 @@ enum input_mode {
 	INPUT_SEARCH,
 };
 
+enum input_special {
+	/* not inputting special characters */
+	INPUT_SPECIAL_NONE,
+
+	/* not known yet (just started by hitting ^V) */
+	INPUT_SPECIAL_UNKNOWN,
+
+	/* accept any value 0-255 (3 octal digits) */
+	INPUT_SPECIAL_OCT,
+
+	/* accept any value 0-255 (3 decimal digits) */
+	INPUT_SPECIAL_DEC,
+
+	/* accept any value 0-255 (2 hexadecimal digits) */
+	INPUT_SPECIAL_HEX,
+
+	/* accept any valid unicode value (6 hexadecimal digits) */
+	INPUT_SPECIAL_UNICODE,
+};
+
 // from smallest update to largest. UPDATE_CURSOR_LINE includes
 // UPDATE_STATUS_LINE and so on.
 #define UPDATE_STATUS_LINE	(1 << 0)
@@ -116,6 +136,7 @@ extern struct buffer *buffer;
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern enum input_mode input_mode;
+extern enum input_special input_special;
 
 extern char *line_buffer;
 extern size_t line_buffer_len;

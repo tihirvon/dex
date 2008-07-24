@@ -13,6 +13,7 @@
 #include <signal.h>
 
 enum input_mode input_mode;
+enum input_special input_special;
 int running;
 int nr_errors;
 char error_buf[256];
@@ -623,6 +624,9 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case 0x15: // ^U
 			cmdline_delete_bol();
 			break;
+		case 0x16: // ^V
+			input_special = INPUT_SPECIAL_UNKNOWN;
+			break;
 
 		case 0x01: // ^A
 			cmdline_pos = 0;
@@ -827,6 +831,106 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	buf_flush();
 }
 
+static void insert_special(const char *buf, int size)
+{
+	buf_hide_cursor();
+	switch (input_mode) {
+	case INPUT_NORMAL:
+		insert(buf, size);
+		update_full();
+		break;
+	case INPUT_COMMAND:
+	case INPUT_SEARCH:
+		cmdline_insert_bytes(buf, size);
+		update_status_line();
+		break;
+	}
+	update_cursor(view);
+	restore_cursor();
+	buf_show_cursor();
+	buf_flush();
+}
+
+static void handle_raw(enum term_key_type type, unsigned int key)
+{
+	static int base;
+	static int max_chars;
+	static int value;
+	static int nr;
+	unsigned int n;
+
+	if (type != KEY_NORMAL) {
+		input_special = INPUT_SPECIAL_NONE;
+		return;
+	}
+	if (input_special == INPUT_SPECIAL_UNKNOWN) {
+		value = 0;
+		nr = 0;
+		switch (key) {
+		case 'o':
+		case 'O':
+			input_special = INPUT_SPECIAL_OCT;
+			base = 8;
+			max_chars = 3;
+			break;
+		case 'x':
+		case 'X':
+			input_special = INPUT_SPECIAL_HEX;
+			base = 16;
+			max_chars = 2;
+			break;
+		case 'u':
+		case 'U':
+			input_special = INPUT_SPECIAL_UNICODE;
+			base = 16;
+			max_chars = 6;
+			break;
+		default:
+			if (isdigit(key)) {
+				input_special = INPUT_SPECIAL_DEC;
+				base = 10;
+				max_chars = 3;
+			} else {
+				char buf[1] = { key };
+				insert_special(buf, 1);
+				input_special = INPUT_SPECIAL_NONE;
+				return;
+			}
+		}
+		return;
+	}
+
+	if (isdigit(key)) {
+		n = key - '0';
+	} else if (key >= 'a' && key <= 'f') {
+		n = key - 'a' + 10;
+	} else if (key >= 'A' && key <= 'F') {
+		n = key - 'A' + 10;
+	} else {
+		input_special = INPUT_SPECIAL_NONE;
+		return;
+	}
+	if ((base == 8 && n > 7) || (base == 10 && n > 9)) {
+		input_special = INPUT_SPECIAL_NONE;
+		return;
+	}
+	value *= base;
+	value += n;
+	if (++nr == max_chars) {
+		if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(value)) {
+			char buf[4];
+			int idx = 0;
+			u_set_char_raw(buf, &idx, value);
+			insert_special(buf, idx);
+		}
+		if (input_special != INPUT_SPECIAL_UNICODE && value <= 255) {
+			char buf[1] = { value };
+			insert_special(buf, 1);
+		}
+		input_special = INPUT_SPECIAL_NONE;
+	}
+}
+
 static void handle_signal(void)
 {
 	switch (received_signal) {
@@ -834,7 +938,10 @@ static void handle_signal(void)
 		update_everything();
 		break;
 	case SIGINT:
-		handle_key(KEY_NORMAL, 0x03);
+		if (input_special)
+			handle_raw(KEY_NORMAL, 0x03);
+		else
+			handle_key(KEY_NORMAL, 0x03);
 		break;
 	case SIGTSTP:
 		ui_end();
@@ -953,7 +1060,10 @@ int main(int argc, char *argv[])
 			if (term_read_key(&key, &type)) {
 				/* clear possible error message */
 				error_buf[0] = 0;
-				handle_key(type, key);
+				if (input_special)
+					handle_raw(type, key);
+				else
+					handle_key(type, key);
 			}
 		}
 	}

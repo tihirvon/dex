@@ -15,5 +15,6 @@ void cmdline_prev_char(void);
 void cmdline_next_char(void);
 void cmdline_clear(void);
 void cmdline_set_text(const char *text);
+void cmdline_insert_bytes(const char *buf, int size);
 
 #endif

@@ -416,6 +416,13 @@ static void cmd_insert(char **args)
 	free(buf);
 }
 
+static void cmd_insert_special(char **args)
+{
+	if (!parse_args(&args, "", 0, 0))
+		return;
+	input_special = INPUT_SPECIAL_UNKNOWN;
+}
+
 static void cmd_join(char **args)
 {
 	join_lines();
@@ -848,6 +855,7 @@ const struct command commands[] = {
 	{ "error", NULL, cmd_error },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
+	{ "insert-special", NULL, cmd_insert_special },
 	{ "join", NULL, cmd_join },
 	{ "left", NULL, cmd_left },
 	{ "line", NULL, cmd_line },

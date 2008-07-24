@@ -76,3 +76,9 @@ void cmdline_set_text(const char *text)
 	gbuf_add_str(&cmdline, text);
 	cmdline_pos = strlen(text);
 }
+
+void cmdline_insert_bytes(const char *buf, int size)
+{
+	gbuf_add_buf(&cmdline, buf, size);
+	cmdline_pos += size;
+}
