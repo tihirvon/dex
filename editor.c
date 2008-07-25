@@ -1055,6 +1055,7 @@ int main(int argc, char *argv[])
 	history_load(&search_history, editor_file("search-history"));
 
 	window = window_new();
+	update_window_sizes();
 	for (; i < argc; i++)
 		open_buffer(argv[i]);
 	if (list_empty(&window->views))
