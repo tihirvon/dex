@@ -18,7 +18,7 @@ struct tag_address {
 struct file_location {
 	struct list_head node;
 	char *filename;
-	int line;
+	int x, y;
 };
 
 static struct tag_file *tag_file;
@@ -136,7 +136,8 @@ static struct file_location *create_location(void)
 
 	loc = xnew(struct file_location, 1);
 	loc->filename = xstrdup(buffer->filename);
-	loc->line = view->cy + 1;
+	loc->x = view->cx;
+	loc->y = view->cy;
 	return loc;
 }
 
@@ -162,7 +163,9 @@ void pop_location(void)
 	v = open_buffer(loc->filename);
 	if (v) {
 		set_view(v);
-		move_to_line(loc->line);
+		move_to_line(loc->y + 1);
+		view->preferred_x = loc->x;
+		move_preferred_x();
 	}
 	free(loc->filename);
 	free(loc);
