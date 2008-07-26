@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "edit.h"
 #include "gbuf.h"
 
 unsigned int update_flags;

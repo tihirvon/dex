@@ -144,28 +144,14 @@ void update_cursor(struct view *v);
 void update_preferred_x(void);
 void do_insert(const char *buf, unsigned int len);
 char *do_delete(unsigned int len);
-void delete(unsigned int len, int move_after);
 void insert(const char *buf, unsigned int len);
 void replace(unsigned int del_count, const char *inserted, int ins_count);
-void cut(unsigned int len, int is_lines);
-void copy(unsigned int len, int is_lines);
 unsigned int count_bytes_eol(struct block_iter *bi);
-unsigned int prepare_selection(void);
 
-void select_start(int is_lines);
-void select_end(void);
-void paste(void);
 void delete_ch(void);
 void backspace(void);
 void insert_ch(unsigned int ch);
-void join_lines(void);
-void erase_word(void);
-void shift_lines(int count);
 
-void move_left(int count);
-void move_right(int count);
-void move_bol(void);
-void move_eol(void);
 void move_up(int count);
 void move_down(int count);
 void move_bof(void);
