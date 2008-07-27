@@ -414,7 +414,7 @@ void delete_ch(void)
 	}
 }
 
-void backspace(void)
+void erase(void)
 {
 	if (view->sel.blk) {
 		unsigned int len;

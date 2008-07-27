@@ -141,9 +141,9 @@ static const char *parse_args(char ***argsp, const char *flags, int min, int max
 	return pf;
 }
 
-static void cmd_backspace(char **args)
+static void cmd_erase(char **args)
 {
-	backspace();
+	erase();
 }
 
 static void cmd_bind(char **args)
@@ -827,7 +827,6 @@ static void cmd_up(char **args)
 }
 
 const struct command commands[] = {
-	{ "backspace", NULL, cmd_backspace },
 	{ "bind", NULL, cmd_bind },
 	{ "bof", NULL, cmd_bof },
 	{ "bol", NULL, cmd_bol },
@@ -843,6 +842,7 @@ const struct command commands[] = {
 	{ "down", NULL, cmd_down },
 	{ "eof", NULL, cmd_eof },
 	{ "eol", NULL, cmd_eol },
+	{ "erase", NULL, cmd_erase },
 	{ "erase-word", NULL, cmd_erase_word },
 	{ "error", NULL, cmd_error },
 	{ "include", NULL, cmd_include },

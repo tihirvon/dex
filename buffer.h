@@ -149,7 +149,7 @@ void replace(unsigned int del_count, const char *inserted, int ins_count);
 unsigned int count_bytes_eol(struct block_iter *bi);
 
 void delete_ch(void);
-void backspace(void);
+void erase(void);
 void insert_ch(unsigned int ch);
 
 void move_up(int count);

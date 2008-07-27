@@ -771,7 +771,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 				if (key == SKEY_DELETE) {
 					delete_ch();
 				} else if (key == SKEY_BACKSPACE) {
-					backspace();
+					erase();
 				} else {
 					handle_binding(type, key);
 				}
