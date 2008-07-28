@@ -37,6 +37,7 @@ extern struct global_options options;
 #define OPT_GLOBAL	(1 << 1)
 
 void set_option(const char *name, const char *value, unsigned int flags);
+void toggle_option(const char *name, unsigned int flags);
 void collect_options(const char *prefix);
 void collect_option_values(const char *name, const char *prefix);
 void init_options(void);

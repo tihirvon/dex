@@ -223,6 +223,8 @@ static void collect_completions(struct parsed_command *pc, const char *str)
 			}
 			return;
 		}
+		if (!strcmp(cmd->name, "toggle") && argc == 1)
+			collect_options(str);
 	}
 }
 

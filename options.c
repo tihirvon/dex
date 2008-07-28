@@ -158,52 +158,92 @@ set:
 		*global = val;
 }
 
-void set_option(const char *name, const char *value, unsigned int flags)
+static const struct option_description *find_option(const char *name, unsigned int flags)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
 		const struct option_description *desc = &option_desc[i];
-		void *local = NULL;
-		void *global = NULL;
 
 		if (strcmp(name, desc->name))
 			continue;
 		if (flags & OPT_LOCAL && !desc->local) {
 			error_msg("Option %s is not local", name);
-			return;
+			return NULL;
 		}
 		if (flags & OPT_GLOBAL && !desc->global) {
 			error_msg("Option %s is not global", name);
-			return;
+			return NULL;
 		}
-		if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
-			if (desc->local)
-				flags |= OPT_LOCAL;
-			if (desc->global)
-				flags |= OPT_GLOBAL;
-		}
-
-		if (flags & OPT_LOCAL)
-			local = (char *)&buffer->options + desc->offset;
-		if (flags & OPT_GLOBAL)
-			global = (char *)&options + desc->offset;
-
-		switch (desc->type) {
-		case OPT_INT:
-			set_int_opt(desc, value, local, global);
-			break;
-		case OPT_STR:
-			set_str_opt(desc, value, local, global);
-			break;
-		case OPT_ENUM:
-			set_enum_opt(desc, value, local, global);
-			break;
-		}
-		update_flags |= UPDATE_FULL;
-		return;
+		return desc;
 	}
 	error_msg("No such option %s", name);
+	return NULL;
+}
+
+void set_option(const char *name, const char *value, unsigned int flags)
+{
+	const struct option_description *desc = find_option(name, flags);
+	void *local = NULL;
+	void *global = NULL;
+
+	if (!desc)
+		return;
+
+	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
+		if (desc->local)
+			flags |= OPT_LOCAL;
+		if (desc->global)
+			flags |= OPT_GLOBAL;
+	}
+
+	if (flags & OPT_LOCAL)
+		local = (char *)&buffer->options + desc->offset;
+	if (flags & OPT_GLOBAL)
+		global = (char *)&options + desc->offset;
+
+	switch (desc->type) {
+	case OPT_INT:
+		set_int_opt(desc, value, local, global);
+		break;
+	case OPT_STR:
+		set_str_opt(desc, value, local, global);
+		break;
+	case OPT_ENUM:
+		set_enum_opt(desc, value, local, global);
+		break;
+	}
+	update_flags |= UPDATE_FULL;
+}
+
+void toggle_option(const char *name, unsigned int flags)
+{
+	const struct option_description *desc = find_option(name, flags);
+
+	if (!desc)
+		return;
+	if (desc->enum_values != bool_enum) {
+		error_msg("Option %s is not boolean.", name);
+		return;
+	}
+
+	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
+		/* doesn't make sense to toggle both local and global value */
+		if (desc->local)
+			flags |= OPT_LOCAL;
+		else if (desc->global)
+			flags |= OPT_GLOBAL;
+	}
+
+	if (flags & OPT_LOCAL) {
+		int *local = (int *)((char *)&buffer->options + desc->offset);
+		*local = !*local;
+	}
+	if (flags & OPT_GLOBAL) {
+		int *global = (int *)((char *)&options + desc->offset);
+		*global = !*global;
+	}
+	update_flags |= UPDATE_FULL;
 }
 
 void collect_options(const char *prefix)

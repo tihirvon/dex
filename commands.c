@@ -825,6 +825,28 @@ static void cmd_tag(char **args)
 	}
 }
 
+static void cmd_toggle(char **args)
+{
+	const char *pf = parse_args(&args, "gl", 1, 1);
+	unsigned int flags = 0;
+
+	if (!pf)
+		return;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'g':
+			flags |= OPT_GLOBAL;
+			break;
+		case 'l':
+			flags |= OPT_LOCAL;
+			break;
+		}
+		pf++;
+	}
+	toggle_option(args[0], flags);
+}
+
 static void cmd_undo(char **args)
 {
 	undo();
@@ -883,6 +905,7 @@ const struct command commands[] = {
 	{ "set", NULL, cmd_set },
 	{ "shift", NULL, cmd_shift },
 	{ "tag", "t", cmd_tag },
+	{ "toggle", NULL, cmd_toggle },
 	{ "undo", NULL, cmd_undo },
 	{ "up", NULL, cmd_up },
 	{ NULL, NULL, NULL }
