@@ -24,46 +24,52 @@ enum option_type {
 	OPT_ENUM,
 };
 
-#define L_OPT(_name, _type, member, _enum_values) {		\
+#define L_OPT(_name, _type, member, _enum_values, min, max) {	\
 	.name = _name,						\
 	.type = _type,						\
 	.local = 1,						\
 	.global = 0,						\
 	.offset = offsetof(struct local_options, member),	\
+	.int_min = min,						\
+	.int_max = max,						\
 	.enum_values = _enum_values,				\
 }
 
-#define G_OPT(_name, _type, member, _enum_values) {		\
+#define G_OPT(_name, _type, member, _enum_values, min, max) {	\
 	.name = _name,						\
 	.type = _type,						\
 	.local = 0,						\
 	.global = 1,						\
 	.offset = offsetof(struct global_options, member),	\
+	.int_min = min,						\
+	.int_max = max,						\
 	.enum_values = _enum_values,				\
 }
 
-#define C_OPT(_name, _type, member, _enum_values) {		\
+#define C_OPT(_name, _type, member, _enum_values, min, max) {	\
 	.name = _name,						\
 	.type = _type,						\
 	.local = 1,						\
 	.global = 1,						\
 	.offset = offsetof(struct local_options, member),	\
+	.int_min = min,						\
+	.int_max = max,						\
 	.enum_values = _enum_values,				\
 }
 
-#define L_INT(name, member) L_OPT(name, OPT_INT, member, NULL)
-#define G_INT(name, member) G_OPT(name, OPT_INT, member, NULL)
-#define C_INT(name, member) C_OPT(name, OPT_INT, member, NULL)
+#define L_INT(name, member, min, max) L_OPT(name, OPT_INT, member, NULL, min, max)
+#define G_INT(name, member, min, max) G_OPT(name, OPT_INT, member, NULL, min, max)
+#define C_INT(name, member, min, max) C_OPT(name, OPT_INT, member, NULL, min, max)
 
-#define G_STR(name, member) G_OPT(name, OPT_STR, member, NULL)
+#define G_STR(name, member) G_OPT(name, OPT_STR, member, NULL, 0, 0)
 
-#define L_ENUM(name, member, enum_values) L_OPT(name, OPT_ENUM, member, enum_values)
-#define G_ENUM(name, member, enum_values) G_OPT(name, OPT_ENUM, member, enum_values)
-#define C_ENUM(name, member, enum_values) C_OPT(name, OPT_ENUM, member, enum_values)
+#define L_ENUM(name, member, enum_values) L_OPT(name, OPT_ENUM, member, enum_values, 0, 0)
+#define G_ENUM(name, member, enum_values) G_OPT(name, OPT_ENUM, member, enum_values, 0, 0)
+#define C_ENUM(name, member, enum_values) C_OPT(name, OPT_ENUM, member, enum_values, 0, 0)
 
-#define L_BOOL(name, member) L_OPT(name, OPT_ENUM, member, bool_enum)
-#define G_BOOL(name, member) G_OPT(name, OPT_ENUM, member, bool_enum)
-#define C_BOOL(name, member) C_OPT(name, OPT_ENUM, member, bool_enum)
+#define L_BOOL(name, member) L_OPT(name, OPT_ENUM, member, bool_enum, 0, 0)
+#define G_BOOL(name, member) G_OPT(name, OPT_ENUM, member, bool_enum, 0, 0)
+#define C_BOOL(name, member) C_OPT(name, OPT_ENUM, member, bool_enum, 0, 0)
 
 struct option_description {
 	const char *name;
@@ -71,6 +77,8 @@ struct option_description {
 	unsigned local : 1;
 	unsigned global : 1;
 	unsigned offset : 16;
+	int int_min;
+	int int_max;
 	const char **enum_values;
 };
 
@@ -81,12 +89,12 @@ static const struct option_description option_desc[] = {
 	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line),
 	C_BOOL("auto-indent", auto_indent),
 	C_BOOL("expand-tab", expand_tab),
-	C_INT("indent-width", indent_width),
+	C_INT("indent-width", indent_width, 1, 8),
 	G_BOOL("move-wraps", move_wraps),
 	G_ENUM("newline", newline, newline_enum),
 	G_STR("statusline-left", statusline_left),
 	G_STR("statusline-right", statusline_right),
-	C_INT("tab-width", tab_width),
+	C_INT("tab-width", tab_width, 1, 8),
 	C_BOOL("trim-whitespace", trim_whitespace),
 };
 
@@ -107,6 +115,11 @@ static void set_int_opt(const struct option_description *desc, const char *value
 
 	if (!value || !parse_int(value, &val)) {
 		error_msg("Integer value for %s expected.", desc->name);
+		return;
+	}
+	if (val < desc->int_min || val > desc->int_max) {
+		error_msg("Value for %s must be in %d-%d range.", desc->name,
+			desc->int_min, desc->int_max);
 		return;
 	}
 	if (local)
