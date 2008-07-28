@@ -381,7 +381,7 @@ static void update_range(int y1, int y2)
 		current_line++;
 	}
 
-	if (i < y2) {
+	if (i < y2 && current_line == view->cy) {
 		// dummy empty line
 		update_color(0);
 		buf_move_cursor(0, i++);
@@ -812,7 +812,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			save_change_head != buffer->save_change_head) {
 		update_flags |= UPDATE_STATUS_LINE;
 
-		if (cy != view->cy && (view->sel.blk || currentline_color))
+		if (cy != view->cy)
 			update_flags |= UPDATE_RANGE;
 		if (cx != view->cx && view->sel.blk)
 			update_flags |= UPDATE_CURSOR_LINE;
