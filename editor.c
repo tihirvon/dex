@@ -172,7 +172,7 @@ static int get_char_width(int *idx)
 		char ch = cmdline.buffer[i++];
 
 		*idx = i;
-		if (ch >= 0x20)
+		if (ch >= 0x20 && ch != 0x7f)
 			return 1;
 		return 2;
 	}

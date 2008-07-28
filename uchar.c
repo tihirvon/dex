@@ -129,7 +129,7 @@ single_char:
 
 int u_char_width(uchar u)
 {
-	if (unlikely(u < 0x20))
+	if (unlikely(u < 0x20 || u == 0x7f))
 		return 2;
 
 	if (u < 0x1100U)

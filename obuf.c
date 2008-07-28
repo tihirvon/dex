@@ -159,7 +159,7 @@ int buf_put_char(uchar u, int utf8)
 		buf_flush();
 
 	if (u < 0x80 || !utf8) {
-		if (u >= 0x20) {
+		if (u >= 0x20 && u != 0x7f) {
 			obuf.buf[obuf.count++] = u;
 			obuf.x++;
 		} else if (u == '\t') {
@@ -173,7 +173,11 @@ int buf_put_char(uchar u, int utf8)
 			obuf.buf[obuf.count++] = '^';
 			obuf.x++;
 			if (space > 1) {
-				obuf.buf[obuf.count++] = u | 0x40;
+				if (u == 0x7f) {
+					obuf.buf[obuf.count++] = '?';
+				} else {
+					obuf.buf[obuf.count++] = u | 0x40;
+				}
 				obuf.x++;
 			}
 		}
