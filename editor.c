@@ -85,6 +85,8 @@ static int format_status(char *buf, int size, const char *format)
 	uchar u;
 
 	got_char = buffer_get_char(&u);
+	if (got_char)
+		u &= ~U_INVALID_MASK;
 	while (pos < size - 1 && *format) {
 		char ch = *format++;
 		if (ch != '%') {
