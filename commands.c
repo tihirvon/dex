@@ -273,10 +273,11 @@ static void cmd_delete_bol(char **args)
 static void cmd_delete_eol(char **args)
 {
 	struct block_iter bi = view->cursor;
-	unsigned int len = count_bytes_eol(&bi) - 1;
+	unsigned int len = count_bytes_eol(&bi);
 
 	undo_merge = UNDO_MERGE_NONE;
-	delete(len, 0);
+	if (len > 1)
+		delete(len - 1, 0);
 }
 
 static void cmd_down(char **args)
