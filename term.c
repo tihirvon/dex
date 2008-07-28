@@ -146,11 +146,16 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 			return 1;
 		}
 		if (input_buf[0] == '\033') {
-			/* 'esc key' or 'alt-key' */
-			*key = input_buf[1];
-			*type = KEY_META;
-			consume_input(2);
-			return 1;
+			if (input_buf_fill == 2) {
+				/* 'esc key' or 'alt-key' */
+				*key = input_buf[1];
+				*type = KEY_META;
+				consume_input(2);
+				return 1;
+			}
+			/* unknown escape sequence, avoid inserting it */
+			input_buf_fill = 0;
+			return 0;
 		}
 	}
 	/* > 0 bytes in buf */
