@@ -380,14 +380,16 @@ static void update_range(int y1, int y2)
 		print_line(&bi);
 		current_line++;
 	}
-	update_color(0);
 
 	if (i < y2) {
 		// dummy empty line
+		update_color(0);
 		buf_move_cursor(0, i++);
 		buf_clear_eol();
 	}
 
+	if (i < y2 && nontext_color)
+		buf_set_color(&nontext_color->color);
 	for (; i < y2; i++) {
 		buf_move_cursor(0, i);
 		buf_ch('~');
