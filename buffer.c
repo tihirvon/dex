@@ -243,6 +243,7 @@ void free_buffer(struct buffer *b)
 
 	free(b->filename);
 	free(b->abs_filename);
+	free_local_options(&b->options);
 	free(b);
 }
 

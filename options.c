@@ -345,3 +345,20 @@ void init_options(void)
 	options.statusline_left = xstrdup(" %f %m");
 	options.statusline_right = xstrdup(" %y,%X   %c %C   %p ");
 }
+
+void free_local_options(struct local_options *opt)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
+		const struct option_description *desc = &option_desc[i];
+
+		if (desc->type != OPT_STR)
+			continue;
+		if (desc->local) {
+			char **local = (char **)((char *)opt + desc->offset);
+			free(*local);
+			*local = NULL;
+		}
+	}
+}
