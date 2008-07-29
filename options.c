@@ -24,52 +24,55 @@ enum option_type {
 	OPT_ENUM,
 };
 
-#define L_OPT(_name, _type, member, _enum_values, min, max) {	\
+#define INT_OPT(_name, _local, _global, _offset, min, max) {	\
 	.name = _name,						\
-	.type = _type,						\
-	.local = 1,						\
-	.global = 0,						\
-	.offset = offsetof(struct local_options, member),	\
-	.int_min = min,						\
-	.int_max = max,						\
-	.enum_values = _enum_values,				\
+	.type = OPT_INT,					\
+	.local = _local,					\
+	.global = _global,					\
+	.offset = _offset,					\
+	{ {							\
+		.int_min = min,					\
+		.int_max = max,					\
+	} },							\
 }
 
-#define G_OPT(_name, _type, member, _enum_values, min, max) {	\
+#define ENUM_OPT(_name, _local, _global, _offset, _values) {	\
 	.name = _name,						\
-	.type = _type,						\
-	.local = 0,						\
-	.global = 1,						\
-	.offset = offsetof(struct global_options, member),	\
-	.int_min = min,						\
-	.int_max = max,						\
-	.enum_values = _enum_values,				\
+	.type = OPT_ENUM,					\
+	.local = _local,					\
+	.global = _global,					\
+	.offset = _offset,					\
+	{							\
+		.enum_values = _values,				\
+	},							\
 }
 
-#define C_OPT(_name, _type, member, _enum_values, min, max) {	\
+#define STR_OPT(_name, _local, _global, _offset) {		\
 	.name = _name,						\
-	.type = _type,						\
-	.local = 1,						\
-	.global = 1,						\
-	.offset = offsetof(struct local_options, member),	\
-	.int_min = min,						\
-	.int_max = max,						\
-	.enum_values = _enum_values,				\
+	.type = OPT_STR,					\
+	.local = _local,					\
+	.global = _global,					\
+	.offset = _offset,					\
 }
 
-#define L_INT(name, member, min, max) L_OPT(name, OPT_INT, member, NULL, min, max)
-#define G_INT(name, member, min, max) G_OPT(name, OPT_INT, member, NULL, min, max)
-#define C_INT(name, member, min, max) C_OPT(name, OPT_INT, member, NULL, min, max)
+#define L_OFFSET(member) offsetof(struct local_options, member)
+#define G_OFFSET(member) offsetof(struct global_options, member)
 
-#define G_STR(name, member) G_OPT(name, OPT_STR, member, NULL, 0, 0)
+#define L_INT(name, member, min, max) INT_OPT(name, 1, 0, L_OFFSET(member), min, max)
+#define G_INT(name, member, min, max) INT_OPT(name, 0, 1, G_OFFSET(member), min, max)
+#define C_INT(name, member, min, max) INT_OPT(name, 1, 1, G_OFFSET(member), min, max)
 
-#define L_ENUM(name, member, enum_values) L_OPT(name, OPT_ENUM, member, enum_values, 0, 0)
-#define G_ENUM(name, member, enum_values) G_OPT(name, OPT_ENUM, member, enum_values, 0, 0)
-#define C_ENUM(name, member, enum_values) C_OPT(name, OPT_ENUM, member, enum_values, 0, 0)
+#define L_ENUM(name, member, enum_values) ENUM_OPT(name, 1, 0, L_OFFSET(member), enum_values)
+#define G_ENUM(name, member, enum_values) ENUM_OPT(name, 0, 1, G_OFFSET(member), enum_values)
+#define C_ENUM(name, member, enum_values) ENUM_OPT(name, 1, 1, G_OFFSET(member), enum_values)
 
-#define L_BOOL(name, member) L_OPT(name, OPT_ENUM, member, bool_enum, 0, 0)
-#define G_BOOL(name, member) G_OPT(name, OPT_ENUM, member, bool_enum, 0, 0)
-#define C_BOOL(name, member) C_OPT(name, OPT_ENUM, member, bool_enum, 0, 0)
+#define L_STR(name, member) STR_OPT(name, 1, 0, L_OFFSET(member))
+#define G_STR(name, member) STR_OPT(name, 0, 1, G_OFFSET(member))
+#define C_STR(name, member) STR_OPT(name, 1, 1, G_OFFSET(member))
+
+#define L_BOOL(name, member) L_ENUM(name, member, bool_enum)
+#define G_BOOL(name, member) G_ENUM(name, member, bool_enum)
+#define C_BOOL(name, member) C_ENUM(name, member, bool_enum)
 
 struct option_description {
 	const char *name;
@@ -77,9 +80,13 @@ struct option_description {
 	unsigned local : 1;
 	unsigned global : 1;
 	unsigned offset : 16;
-	int int_min;
-	int int_max;
-	const char **enum_values;
+	union {
+		struct {
+			int int_min;
+			int int_max;
+		};
+		const char **enum_values;
+	};
 };
 
 static const char *bool_enum[] = { "false", "true", NULL };
