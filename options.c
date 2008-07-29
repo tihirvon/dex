@@ -46,6 +46,29 @@ static void default_str_set(char **local, char **global, const char *value)
 	update_flags |= UPDATE_FULL;
 }
 
+static void statusline_set(char **local, char **global, const char *value)
+{
+	static const char chars[] = "fmyxXcCp%";
+	int i = 0;
+
+	while (value[i]) {
+		char ch = value[i++];
+
+		if (ch == '%') {
+			ch = value[i++];
+			if (!ch) {
+				error_msg("Format character expected after '%%'.");
+				return;
+			}
+			if (!strchr(chars, ch)) {
+				error_msg("Invalid format character '%c'.", ch);
+				return;
+			}
+		}
+	}
+	default_str_set(local, global, value);
+}
+
 #define default_enum_set default_int_set
 #define default_bool_set default_enum_set
 
@@ -136,8 +159,8 @@ static const struct option_description option_desc[] = {
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),
 	G_BOOL("move-wraps", move_wraps, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_bool_set),
-	G_STR("statusline-left", statusline_left, default_str_set),
-	G_STR("statusline-right", statusline_right, default_str_set),
+	G_STR("statusline-left", statusline_left, statusline_set),
+	G_STR("statusline-right", statusline_right, statusline_set),
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
 	C_BOOL("trim-whitespace", trim_whitespace, default_bool_set),
 };
