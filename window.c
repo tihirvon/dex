@@ -144,11 +144,8 @@ void center_cursor(void)
 
 	view->vy = view->cy - hh;
 	if (view->vy + window->h > buffer->nl) {
-		/*
-		 * -2 makes the dummy line and one ~ line visible.
-		 * It is good to know that we are at end of the file.
-		 */
-		view->vy -= view->vy + window->h - buffer->nl - 2;
+		/* -1 makes one ~ line visible so that you know where the EOF is */
+		view->vy -= view->vy + window->h - buffer->nl - 1;
 	}
 }
 
