@@ -3,6 +3,7 @@
 #include "search.h"
 #include "gbuf.h"
 #include "window.h"
+#include "edit.h"
 
 #define MAX_SUBSTRINGS 32
 
@@ -267,47 +268,24 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 	return nr;
 }
 
-static void get_range(struct block_iter *bi, unsigned int *nr_bytes)
+static unsigned int get_range(struct block_iter *bi)
 {
-	struct block_iter sbi, ebi;
-	unsigned int so, eo, len;
+	struct block_iter eof;
 
-	if (!view->sel.blk) {
-		struct block_iter eof;
-
-		eof.head = &buffer->blocks;
-		eof.blk = BLOCK(buffer->blocks.prev);
-		eof.offset = eof.blk->size;
-		*nr_bytes = block_iter_get_offset(&eof);
-
-		bi->head = &buffer->blocks;
-		bi->blk = BLOCK(buffer->blocks.next);
-		bi->offset = 0;
-		return;
+	if (view->sel.blk) {
+		unsigned int len = prepare_selection();
+		*bi = view->cursor;
+		return len;
 	}
 
-	sbi = view->sel;
-	ebi = view->cursor;
-	so = block_iter_get_offset(&sbi);
-	eo = block_iter_get_offset(&ebi);
-	if (so > eo) {
-		struct block_iter tbi = sbi;
-		unsigned int to = so;
-		sbi = ebi;
-		ebi = tbi;
-		so = eo;
-		eo = to;
-	}
-	len = eo - so;
-	if (view->sel_is_lines) {
-		len += block_iter_bol(&sbi);
-		len += count_bytes_eol(&ebi);
-	} else {
-		len++;
-	}
+	bi->head = &buffer->blocks;
+	bi->blk = BLOCK(buffer->blocks.next);
+	bi->offset = 0;
 
-	*bi = sbi;
-	*nr_bytes = len;
+	eof.head = &buffer->blocks;
+	eof.blk = BLOCK(buffer->blocks.prev);
+	eof.offset = eof.blk->size;
+	return block_iter_get_offset(&eof);
 }
 
 void reg_replace(const char *pattern, const char *format, unsigned int flags)
@@ -334,7 +312,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		return;
 	}
 
-	get_range(&bi, &nr_bytes);
+	nr_bytes = get_range(&bi);
 
 	/* record multiple changes as one chain only when replacing all */
 	if (!(flags & REPLACE_CONFIRM))
