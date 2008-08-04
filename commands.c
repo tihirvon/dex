@@ -240,7 +240,11 @@ static void cmd_copy(char **args)
 	unsigned int len;
 
 	undo_merge = UNDO_MERGE_NONE;
-	len = prepare_selection();
+	if (view->sel.blk) {
+		len = prepare_selection();
+	} else {
+		len = select_current_line();
+	}
 	copy(len, view->sel_is_lines);
 	select_end();
 }
@@ -250,7 +254,11 @@ static void cmd_cut(char **args)
 	unsigned int len;
 
 	undo_merge = UNDO_MERGE_NONE;
-	len = prepare_selection();
+	if (view->sel.blk) {
+		len = prepare_selection();
+	} else {
+		len = select_current_line();
+	}
 	cut(len, view->sel_is_lines);
 	select_end();
 }

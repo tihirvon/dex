@@ -2,6 +2,7 @@
 #define EDIT_H
 
 unsigned int prepare_selection(void);
+unsigned int select_current_line(void);
 
 void delete(unsigned int len, int move_after);
 void cut(unsigned int len, int is_lines);

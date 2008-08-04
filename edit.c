@@ -287,66 +287,65 @@ unsigned int count_bytes_eol(struct block_iter *bi)
 
 unsigned int prepare_selection(void)
 {
-	if (view->sel.blk) {
-		// there is a selection
-		struct block_iter bi;
-		unsigned int so, co, len;
+	struct block_iter bi;
+	unsigned int so, co, len;
 
-		so = block_iter_get_offset(&view->sel);
-		co = buffer_offset();
-		if (co > so) {
-			unsigned int to;
-			struct block *tb;
+	so = block_iter_get_offset(&view->sel);
+	co = buffer_offset();
+	if (co > so) {
+		unsigned int to;
+		struct block *tb;
 
-			to = co;
-			co = so;
-			so = to;
+		to = co;
+		co = so;
+		so = to;
 
-			tb = view->cursor.blk;
-			view->cursor.blk = view->sel.blk;
-			view->sel.blk = tb;
+		tb = view->cursor.blk;
+		view->cursor.blk = view->sel.blk;
+		view->sel.blk = tb;
 
-			to = view->cursor.offset;
-			view->cursor.offset = view->sel.offset;
-			view->sel.offset = to;
-		}
-
-		if (block_iter_eof(&view->sel)) {
-			uchar u;
-
-			if (co == so) {
-				// both EOF
-				return 0;
-			}
-			// avoid deleting past eof
-			so -= buffer->prev_char(&view->sel, &u);
-		}
-
-		len = so - co;
-		if (view->sel_is_lines) {
-			bi = view->sel;
-			len += count_bytes_eol(&bi);
-
-			bi = view->cursor;
-			len += block_iter_bol(&bi);
-			SET_CURSOR(bi);
-		} else {
-			// character under cursor belongs to the selection
-			uchar u;
-			bi = view->sel;
-			len += buffer->next_char(&bi, &u);
-		}
-		return len;
-	} else {
-		// current line is the selection
-		struct block_iter bi = view->cursor;
-
-		block_iter_bol(&bi);
-		SET_CURSOR(bi);
-		view->sel_is_lines = 1;
-
-		return count_bytes_eol(&bi);
+		to = view->cursor.offset;
+		view->cursor.offset = view->sel.offset;
+		view->sel.offset = to;
 	}
+
+	if (block_iter_eof(&view->sel)) {
+		uchar u;
+
+		if (co == so) {
+			// both EOF
+			return 0;
+		}
+		// avoid deleting past eof
+		so -= buffer->prev_char(&view->sel, &u);
+	}
+
+	len = so - co;
+	if (view->sel_is_lines) {
+		bi = view->sel;
+		len += count_bytes_eol(&bi);
+
+		bi = view->cursor;
+		len += block_iter_bol(&bi);
+		SET_CURSOR(bi);
+	} else {
+		// character under cursor belongs to the selection
+		uchar u;
+		bi = view->sel;
+		len += buffer->next_char(&bi, &u);
+	}
+	return len;
+}
+
+unsigned int select_current_line(void)
+{
+	struct block_iter bi;
+
+	block_iter_bol(&view->cursor);
+	view->sel_is_lines = 1;
+
+	bi = view->cursor;
+	return count_bytes_eol(&bi);
 }
 
 void paste(void)
