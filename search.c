@@ -349,8 +349,10 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 	regfree(&re);
 
-	if (nr_substitutions)
+	if (nr_substitutions) {
 		update_flags |= UPDATE_FULL;
+		select_end();
+	}
 
 	if (nr_substitutions)
 		info_msg("%d substitutions on %d lines", nr_substitutions, nr_lines);
