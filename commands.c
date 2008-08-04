@@ -247,20 +247,26 @@ static void cmd_copy(char **args)
 	}
 	copy(len, view->sel_is_lines);
 	select_end();
+	move_preferred_x();
 }
 
 static void cmd_cut(char **args)
 {
 	unsigned int len;
+	int restore_col;
 
 	undo_merge = UNDO_MERGE_NONE;
 	if (view->sel.blk) {
 		len = prepare_selection();
+		restore_col = view->sel_is_lines;
 	} else {
 		len = select_current_line();
+		restore_col = 1;
 	}
 	cut(len, view->sel_is_lines);
 	select_end();
+	if (restore_col)
+		move_preferred_x();
 }
 
 static void cmd_delete(char **args)

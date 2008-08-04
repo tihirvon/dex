@@ -237,8 +237,6 @@ void select_start(int is_lines)
 
 void select_end(void)
 {
-	if (view->sel_is_lines)
-		move_preferred_x();
 	view->sel.blk = NULL;
 	view->sel.offset = 0;
 	view->sel_is_lines = 0;
