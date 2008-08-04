@@ -337,7 +337,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		}
 		if (flags & REPLACE_CANCEL)
 			break;
-		if (count >= nr_bytes)
+		if (count + 1 >= nr_bytes)
 			break;
 		nr_bytes -= count + 1;
 
