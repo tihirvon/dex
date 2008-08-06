@@ -14,8 +14,7 @@ static void restore_cursor_position(struct view *v)
 		/* most commands work on current view */
 		set_view(v);
 		move_to_line(y + 1);
-		view->preferred_x = x;
-		move_preferred_x();
+		move_to_column(x + 1);
 
 		if (save)
 			set_view(save);

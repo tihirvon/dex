@@ -164,8 +164,7 @@ void pop_location(void)
 	if (v) {
 		set_view(v);
 		move_to_line(loc->y + 1);
-		view->preferred_x = loc->x;
-		move_preferred_x();
+		move_to_column(loc->x + 1);
 	}
 	free(loc->filename);
 	free(loc);

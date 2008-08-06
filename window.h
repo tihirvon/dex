@@ -38,4 +38,10 @@ void prev_buffer(void);
 void center_cursor(void);
 void move_to_line(int line);
 
+static inline void move_to_column(int column)
+{
+	view->preferred_x = column - 1;
+	move_preferred_x();
+}
+
 #endif
