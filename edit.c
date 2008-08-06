@@ -17,20 +17,19 @@ void update_preferred_x(void)
 
 void move_preferred_x(void)
 {
-	struct block_iter bi = view->cursor;
 	unsigned int tw = buffer->options.tab_width;
 	int x = 0;
 
-	block_iter_bol(&bi);
+	block_iter_bol(&view->cursor);
 	while (x < view->preferred_x) {
 		uchar u;
 
-		if (!block_iter_next_uchar(&bi, &u))
+		if (!block_iter_next_uchar(&view->cursor, &u))
 			break;
 		if (u == '\t') {
 			x = (x + tw) / tw * tw;
 		} else if (u == '\n') {
-			block_iter_prev_byte(&bi, &u);
+			block_iter_prev_byte(&view->cursor, &u);
 			break;
 		} else if (u < 0x20) {
 			x += 2;
@@ -38,7 +37,6 @@ void move_preferred_x(void)
 			x++;
 		}
 	}
-	SET_CURSOR(bi);
 }
 
 static void alloc_for_insert(unsigned int len)
@@ -322,10 +320,7 @@ unsigned int prepare_selection(void)
 	if (view->sel_is_lines) {
 		bi = view->sel;
 		len += count_bytes_eol(&bi);
-
-		bi = view->cursor;
-		len += block_iter_bol(&bi);
-		SET_CURSOR(bi);
+		len += block_iter_bol(&view->cursor);
 	} else {
 		// character under cursor belongs to the selection
 		uchar u;
@@ -355,11 +350,8 @@ void paste(void)
 	if (!copy_buf)
 		return;
 	if (copy_is_lines) {
-		struct block_iter bi = view->cursor;
-
 		update_preferred_x();
-		block_iter_next_line(&bi);
-		SET_CURSOR(bi);
+		block_iter_next_line(&view->cursor);
 
 		record_insert(copy_len);
 		do_insert(copy_buf, copy_len);
@@ -422,13 +414,11 @@ void erase(void)
 		delete(len, 1);
 		select_end();
 	} else {
-		struct block_iter bi = view->cursor;
 		uchar u;
 
 		if (undo_merge != UNDO_MERGE_BACKSPACE)
 			undo_merge = UNDO_MERGE_NONE;
-		if (buffer->prev_char(&bi, &u)) {
-			SET_CURSOR(bi);
+		if (buffer->prev_char(&view->cursor, &u)) {
 			if (buffer->utf8) {
 				delete(u_char_size(u), 1);
 			} else {
@@ -491,16 +481,13 @@ static int goto_beginning_of_whitespace(void)
 	}
 
 	// count spaces and tabs before cursor
-	bi = view->cursor;
-	while (block_iter_prev_byte(&bi, &u)) {
+	while (block_iter_prev_byte(&view->cursor, &u)) {
 		if (u != '\t' && u != ' ') {
-			block_iter_next_byte(&bi, &u);
+			block_iter_next_byte(&view->cursor, &u);
 			break;
 		}
 		count++;
 	}
-
-	SET_CURSOR(bi);
 	return count;
 }
 
@@ -593,104 +580,84 @@ void join_lines(void)
 
 void move_left(int count)
 {
-	struct block_iter bi = view->cursor;
-
 	while (count > 0) {
 		uchar u;
 
-		if (!buffer->prev_char(&bi, &u))
+		if (!buffer->prev_char(&view->cursor, &u))
 			break;
 		if (!options.move_wraps && u == '\n') {
-			block_iter_next_byte(&bi, &u);
+			block_iter_next_byte(&view->cursor, &u);
 			break;
 		}
 		count--;
 	}
-	SET_CURSOR(bi);
-
 	update_preferred_x();
 }
 
 void move_right(int count)
 {
-	struct block_iter bi = view->cursor;
-
 	while (count > 0) {
 		uchar u;
 
-		if (!buffer->next_char(&bi, &u))
+		if (!buffer->next_char(&view->cursor, &u))
 			break;
 		if (!options.move_wraps && u == '\n') {
-			block_iter_prev_byte(&bi, &u);
+			block_iter_prev_byte(&view->cursor, &u);
 			break;
 		}
 		count--;
 	}
-	SET_CURSOR(bi);
-
 	update_preferred_x();
 }
 
 void move_bol(void)
 {
-	struct block_iter bi = view->cursor;
-	block_iter_bol(&bi);
-	SET_CURSOR(bi);
+	block_iter_bol(&view->cursor);
 	update_preferred_x();
 }
 
 void move_eol(void)
 {
-	struct block_iter bi = view->cursor;
-
 	while (1) {
 		uchar u;
 
-		if (!buffer->next_char(&bi, &u))
+		if (!buffer->next_char(&view->cursor, &u))
 			break;
 		if (u == '\n') {
-			block_iter_prev_byte(&bi, &u);
+			block_iter_prev_byte(&view->cursor, &u);
 			break;
 		}
 	}
-	SET_CURSOR(bi);
-
 	update_preferred_x();
 }
 
 void move_up(int count)
 {
-	struct block_iter bi = view->cursor;
-
 	while (count > 0) {
 		uchar u;
 
-		if (!buffer->prev_char(&bi, &u))
+		if (!buffer->prev_char(&view->cursor, &u))
 			break;
 		if (u == '\n') {
 			count--;
 			view->cy--;
 		}
 	}
-	SET_CURSOR(bi);
 	move_preferred_x();
 }
 
 void move_down(int count)
 {
-	struct block_iter bi = view->cursor;
-
 	while (count > 0) {
 		uchar u;
 
-		if (!buffer->next_char(&bi, &u))
+		if (!buffer->next_char(&view->cursor, &u))
 			break;
 		if (u == '\n') {
 			count--;
 			view->cy++;
 		}
 	}
-	SET_CURSOR(bi);
 	move_preferred_x();
 }
 
