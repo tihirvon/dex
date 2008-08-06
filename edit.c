@@ -922,7 +922,7 @@ void shift_lines(int count)
 			struct block_iter ti = si;
 			si = ei;
 			ei = ti;
-			SET_CURSOR(si);
+			view->cursor = si;
 			sel_offset = eo;
 			nr_bytes = so - eo;
 		}

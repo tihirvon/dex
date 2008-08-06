@@ -9,12 +9,6 @@
 
 #define VIEW(item) container_of((item), struct view, node)
 
-#define SET_CURSOR(bi) \
-	do { \
-		view->cursor.blk = bi.blk; \
-		view->cursor.offset = bi.offset; \
-	} while (0)
-
 struct change_head {
 	struct change_head *next;
 	struct change_head **prev;

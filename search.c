@@ -22,7 +22,7 @@ static int do_search_fwd(regex_t *regex)
 
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
-			SET_CURSOR(bi);
+			view->cursor = bi;
 			update_preferred_x();
 			return 1;
 		}
@@ -58,7 +58,7 @@ static int do_search_bwd(regex_t *regex)
 		if (offset >= 0) {
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
-			SET_CURSOR(bi);
+			view->cursor = bi;
 			update_preferred_x();
 			return 1;
 		}
