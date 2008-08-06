@@ -13,6 +13,7 @@ struct compile_error {
 	char *file;
 	char *msg;
 	int line;
+	int column;
 };
 
 struct compile_errors {

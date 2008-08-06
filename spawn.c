@@ -9,6 +9,7 @@ struct error_format {
 	int msg_idx;
 	int file_idx;
 	int line_idx;
+	int column_idx;
 	const char *pattern;
 };
 
@@ -110,6 +111,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 		e->msg = xstrdup(regexp_matches[p->msg_idx]);
 		e->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
 		e->line = p->line_idx < 0 ? -1 : atoi(regexp_matches[p->line_idx]);
+		e->column = p->column_idx < 0 ? -1 : atoi(regexp_matches[p->column_idx]);
 		add_error_msg(e, flags);
 	}
 	free_regexp_matches();
@@ -200,7 +202,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	}
 }
 
-static void goto_file_line(const char *filename, int line)
+static void goto_file_line(const char *filename, int line, int column)
 {
 	struct view *v = open_buffer(filename);
 
@@ -209,6 +211,8 @@ static void goto_file_line(const char *filename, int line)
 	}
 	set_view(v);
 	move_to_line(line);
+	if (column > 0)
+		move_to_column(column);
 }
 
 void show_compile_error(void)
@@ -216,11 +220,11 @@ void show_compile_error(void)
 	struct compile_error *e = cerr.errors[cerr.pos];
 
 	if (e->file && e->line > 0) {
-		goto_file_line(e->file, e->line);
+		goto_file_line(e->file, e->line, e->column);
 	} else if (e->file && cerr.pos + 1 < cerr.count) {
 		struct compile_error *next = cerr.errors[cerr.pos + 1];
 		if (next->file && next->line > 0)
-			goto_file_line(next->file, next->line);
+			goto_file_line(next->file, next->line, next->column);
 	}
 	info_msg("[%d/%d] %s", cerr.pos + 1, cerr.count, e->msg);
 }
@@ -259,8 +263,8 @@ static struct error_format *add_format(struct compiler_format *cf)
 
 void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc)
 {
-	const char *names[] = { "file", "line", "message" };
-	int idx[ARRAY_COUNT(names)] = { -1, -1, 0 };
+	const char *names[] = { "file", "line", "column", "message" };
+	int idx[ARRAY_COUNT(names)] = { -1, -1, -1, 0 };
 	struct error_format *p;
 	int i, j;
 
@@ -279,8 +283,9 @@ void add_error_fmt(const char *compiler, enum msg_importance importance, const c
 
 	p = add_format(add_compiler_format(compiler));
 	p->importance = importance;
-	p->msg_idx = idx[2];
+	p->msg_idx = idx[3];
 	p->file_idx = idx[0];
 	p->line_idx = idx[1];
+	p->column_idx = idx[2];
 	p->pattern = xstrdup(format);
 }
