@@ -20,7 +20,14 @@ parse_command_line()
 		-f)
 			shift
 			test $# -eq 0 && die "-f requires an argument"
-			. "$1"
+			case $1 in
+			*/*)
+				. "$1"
+				;;
+			*)
+				. "./$1"
+				;;
+			esac
 			;;
 		-*)
 			die "unrecognized option \`$1'"
