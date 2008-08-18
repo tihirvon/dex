@@ -85,8 +85,6 @@ void term_raw(void)
 
 void term_cooked(void)
 {
-	struct term_color c = { 0, 0, 0 };
-	term_set_color(&c);
 	tcsetattr(0, 0, &termios_save);
 }
 
