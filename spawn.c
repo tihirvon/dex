@@ -4,35 +4,23 @@
 #include "window.h"
 #include "util.h"
 
-struct error_pattern {
-	/*
-	 * 0  Useless.  Always ignored.
-	 * 1  Useful only if there are no other errors, redundant otherwise.
-	 *    E.g. a command in Makefile fails silently and make complains.
-	 * 2  Redundant.  The real error message follows.
-	 * 3  Important.
-	 */
-	int importance;
+struct error_format {
+	enum msg_importance importance;
 	int msg_idx;
 	int file_idx;
 	int line_idx;
 	const char *pattern;
 };
 
-static const struct error_pattern error_patterns[] = {
-	{  0,  0, -1, -1, "error: \\(Each undeclared identifier is reported only once" },
-	{  0,  0, -1, -1, "error: for each function it appears in.\\)" },
-	{  3,  4,  1,  2, "^(.+):([0-9]+):([0-9]+): (.*)" },
-	{  3,  3,  1,  2, "^(.+):([0-9]+): (.*)" },
-	{  3,  0,  1,  2, "^.* at (.+):([0-9]+):$" },
-	{  2,  0,  1,  2, "^In file included from (.+):([0-9]+)[,:]" },
-	{  2,  0,  1,  2, "^ +from (.+):([0-9]+)[,:]" },
-	{  2,  2,  1, -1, "^(.+): (In function .*:)$" },
-	{  2, -1, -1, -1, "^cc1: warnings being treated as errors$" },
-	{  1,  0, -1, -1, "^make: \\*\\*\\* \\[.*\\] Error [0-9]+$" },
-	{  1,  0, -1, -1, "^collect2: ld returned [0-9]+ exit status$" },
-	{ -1, -1, -1, -1, NULL }
+struct compiler_format {
+	char *compiler;
+	struct error_format *formats;
+	int nr_formats;
 };
+
+static struct compiler_format **compiler_formats;
+static int nr_compiler_formats;
+static struct compiler_format *compiler_format;
 
 struct compile_errors cerr;
 
@@ -90,7 +78,7 @@ static void add_error_msg(struct compile_error *e, unsigned int flags)
 
 static void handle_error_msg(char *str, unsigned int flags)
 {
-	const struct error_pattern *p;
+	const struct error_format *p;
 	struct compile_error *e;
 	char *nl = strchr(str, '\n');
 	int min_level, i;
@@ -100,8 +88,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 	fprintf(stderr, "%s\n", str);
 
 	for (i = 0; ; i++) {
-		p = &error_patterns[i];
-		if (!p->pattern) {
+		if (i == compiler_format->nr_formats) {
 			e = xnew(struct compile_error, 1);
 			e->msg = xstrdup(str);
 			e->file = NULL;
@@ -109,15 +96,16 @@ static void handle_error_msg(char *str, unsigned int flags)
 			add_error_msg(e, flags);
 			return;
 		}
+		p = &compiler_format->formats[i];
 		if (regexp_match(p->pattern, str))
 			break;
 	}
 
 	min_level = 0;
 	if (flags & SPAWN_IGNORE_REDUNDANT)
-		min_level = 3;
+		min_level = 2;
 
-	if (p->importance >= min_level || (p->importance == 1 && !cerr.count)) {
+	if (p->importance >= min_level) {
 		e = xnew(struct compile_error, 1);
 		e->msg = xstrdup(regexp_matches[p->msg_idx]);
 		e->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
@@ -139,13 +127,30 @@ static void read_stderr(int fd, unsigned int flags)
 	fclose(f);
 }
 
-void spawn(char **args, unsigned int flags)
+static struct compiler_format *find_compiler_format(const char *name)
+{
+	int i;
+
+	for (i = 0; i < nr_compiler_formats; i++) {
+		if (!strcmp(compiler_formats[i]->compiler, name))
+			return compiler_formats[i];
+	}
+	return NULL;
+}
+
+void spawn(char **args, unsigned int flags, const char *compiler)
 {
 	unsigned int mask = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
 	int quiet = (flags & mask) == mask;
 	pid_t pid;
 	int status;
 	int p[2];
+
+	compiler_format = NULL;
+	if (compiler)
+		compiler_format = find_compiler_format(compiler);
+	if (!compiler_format)
+		flags &= ~SPAWN_COLLECT_ERRORS;
 
 	if (flags & SPAWN_COLLECT_ERRORS && pipe(p)) {
 		error_msg("pipe: %s", strerror(errno));
@@ -218,4 +223,64 @@ void show_compile_error(void)
 			goto_file_line(next->file, next->line);
 	}
 	info_msg("[%d/%d] %s", cerr.pos + 1, cerr.count, e->msg);
+}
+
+static struct compiler_format *add_compiler_format(const char *name)
+{
+	struct compiler_format *cf = find_compiler_format(name);
+	size_t cur_alloc, new_alloc;
+
+	if (cf)
+		return cf;
+
+	cur_alloc = (nr_compiler_formats + 3) & ~3;
+	new_alloc = (nr_compiler_formats + 4) & ~3;
+	if (cur_alloc < new_alloc)
+		xrenew(compiler_formats, new_alloc);
+
+	cf = xnew(struct compiler_format, 1);
+	cf->compiler = xstrdup(name);
+	cf->formats = NULL;
+	cf->nr_formats = 0;
+	compiler_formats[nr_compiler_formats++] = cf;
+	return cf;
+}
+
+static struct error_format *add_format(struct compiler_format *cf)
+{
+	size_t cur_alloc, new_alloc;
+
+	cur_alloc = (cf->nr_formats + 3) & ~3;
+	new_alloc = (cf->nr_formats + 4) & ~3;
+	if (cur_alloc < new_alloc)
+		xrenew(cf->formats, new_alloc);
+	return &cf->formats[cf->nr_formats++];
+}
+
+void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc)
+{
+	const char *names[] = { "file", "line", "message" };
+	int idx[ARRAY_COUNT(names)] = { -1, -1, 0 };
+	struct error_format *p;
+	int i, j;
+
+	for (i = 0; desc[i]; i++) {
+		for (j = 0; j < ARRAY_COUNT(names); j++) {
+			if (!strcmp(desc[i], names[j])) {
+				idx[j] = i + 1;
+				break;
+			}
+		}
+		if (j == ARRAY_COUNT(names)) {
+			error_msg("Unknown substring name %s.", desc[i]);
+			return;
+		}
+	}
+
+	p = add_format(add_compiler_format(compiler));
+	p->importance = importance;
+	p->msg_idx = idx[2];
+	p->file_idx = idx[0];
+	p->line_idx = idx[1];
+	p->pattern = xstrdup(format);
 }

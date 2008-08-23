@@ -22,9 +22,16 @@ struct compile_errors {
 	int pos;
 };
 
+enum msg_importance {
+	USELESS,
+	REDUNDANT,
+	IMPORTANT,
+};
+
 extern struct compile_errors cerr;
 
-void spawn(char **args, unsigned int flags);
+void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc);
+void spawn(char **args, unsigned int flags, const char *compiler);
 void show_compile_error(void);
 
 #endif

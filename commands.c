@@ -405,6 +405,28 @@ static void cmd_error(char **args)
 	show_compile_error();
 }
 
+static void cmd_errorfmt(char **args)
+{
+	const char *pf = parse_args(&args, "ir", 2, -1);
+	enum msg_importance importance = IMPORTANT;
+
+	if (!pf)
+		return;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'i':
+			importance = USELESS;
+			break;
+		case 'r':
+			importance = REDUNDANT;
+			break;
+		}
+		pf++;
+	}
+	add_error_fmt(args[0], importance, args[1], args + 2);
+}
+
 static char *shell_unescape(const char *str)
 {
 	GBUF(buf);
@@ -626,7 +648,8 @@ static void cmd_right(char **args)
 
 static void cmd_run(char **args)
 {
-	const char *pf = parse_args(&args, "cdeijps", 1, -1);
+	const char *pf = parse_args(&args, "cdef=ijps", 1, -1);
+	const char *compiler = NULL;
 	unsigned int flags = 0;
 	int quoted = 0;
 
@@ -656,9 +679,21 @@ static void cmd_run(char **args)
 		case 's':
 			flags |= SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
 			break;
+		case 'f':
+			compiler = *args++;
+			break;
 		}
 		pf++;
 	}
+
+	if (compiler)
+		flags |= SPAWN_COLLECT_ERRORS;
+
+	if (flags & SPAWN_COLLECT_ERRORS && !compiler) {
+		error_msg("Error format parser must be specified when collecting error messages.");
+		return;
+	}
+
 	if (quoted) {
 		struct parsed_command pc;
 		char cmd[8192];
@@ -680,10 +715,10 @@ static void cmd_run(char **args)
 			free_commands(&pc);
 			return;
 		}
-		spawn(pc.argv, flags);
+		spawn(pc.argv, flags, compiler);
 		free_commands(&pc);
 	} else {
-		spawn(args, flags);
+		spawn(args, flags, compiler);
 	}
 }
 
@@ -925,6 +960,7 @@ const struct command commands[] = {
 	{ "erase", NULL, cmd_erase },
 	{ "erase-word", NULL, cmd_erase_word },
 	{ "error", NULL, cmd_error },
+	{ "errorfmt", NULL, cmd_errorfmt },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
 	{ "insert-special", NULL, cmd_insert_special },
