@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "edit.h"
 #include "window.h"
+#include "change.h"
 #include "term.h"
 #include "search.h"
 #include "cmdline.h"
