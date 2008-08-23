@@ -177,4 +177,6 @@ void error_msg(const char *format, ...) __FORMAT(1, 2);
 void info_msg(const char *format, ...) __FORMAT(1, 2);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 
+void filetype_changed(struct buffer *b);
+
 #endif

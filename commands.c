@@ -8,6 +8,7 @@
 #include "history.h"
 #include "spawn.h"
 #include "util.h"
+#include "filetype.h"
 
 #define MAX_KEYS 4
 
@@ -420,6 +421,29 @@ static void cmd_errorfmt(char **args)
 		pf++;
 	}
 	add_error_fmt(args[0], importance, args[1], args + 2);
+}
+
+static void cmd_filetype(char **args)
+{
+	const char *pf = parse_args(&args, "", 1, -1);
+	const char *cmd;
+
+	if (!pf)
+		return;
+
+	cmd = *args++;
+	if (!strcmp(cmd, "extension")) {
+		add_ft_extensions(args[0], args + 1);
+		return;
+	}
+	if (!strcmp(cmd, "match")) {
+		add_ft_match(args[0], args[1]);
+		return;
+	}
+	if (!strcmp(cmd, "content")) {
+		add_ft_content(args[0], args[1]);
+		return;
+	}
 }
 
 static char *shell_unescape(const char *str)
@@ -956,6 +980,7 @@ const struct command commands[] = {
 	{ "erase-word", NULL, cmd_erase_word },
 	{ "error", NULL, cmd_error },
 	{ "errorfmt", NULL, cmd_errorfmt },
+	{ "filetype", "ft", cmd_filetype },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
 	{ "insert-special", NULL, cmd_insert_special },

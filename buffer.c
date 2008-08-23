@@ -1,6 +1,7 @@
 #include "window.h"
 #include "util.h"
 #include "term.h"
+#include "filetype.h"
 
 struct view *view;
 struct buffer *buffer;
@@ -272,6 +273,26 @@ static struct view *find_view(const char *abs_filename)
 	return NULL;
 }
 
+static void guess_filetype(struct buffer *b)
+{
+	const char *ft = NULL;
+
+	if (BLOCK(b->blocks.next)->size) {
+		struct block_iter bi;
+
+		bi.blk = BLOCK(b->blocks.next);
+		bi.head = &b->blocks;
+		bi.offset = 0;
+		fetch_eol(&bi);
+		ft = find_ft(b->abs_filename, line_buffer);
+	} else if (b->abs_filename) {
+		ft = find_ft(b->abs_filename, NULL);
+	}
+	b->options.filetype = NULL;
+	if (ft)
+		b->options.filetype = xstrdup(ft);
+}
+
 struct view *open_buffer(const char *filename)
 {
 	struct buffer *b;
@@ -337,8 +358,14 @@ skip_read:
 		struct block *blk = block_new(ALLOC_ROUND(1));
 		list_add_before(&blk->node, &b->blocks);
 	}
+	guess_filetype(b);
+	filetype_changed(b);
 	buffer_set_callbacks(b);
 	return window_add_buffer(b);
+}
+
+void filetype_changed(struct buffer *b)
+{
 }
 
 static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)

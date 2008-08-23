@@ -7,20 +7,26 @@ enum newline_sequence {
 };
 
 struct local_options {
+	/* these have also global values */
 	int auto_indent;
 	int expand_tab;
 	int indent_width;
 	int tab_width;
 	int trim_whitespace;
+
+	/* only local */
+	char *filetype;
 };
 
 struct global_options {
+	/* these have also local values */
 	int auto_indent;
 	int expand_tab;
 	int indent_width;
 	int tab_width;
 	int trim_whitespace;
 
+	/* only global */
 	int allow_incomplete_last_line;
 	int move_wraps;
 

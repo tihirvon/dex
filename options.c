@@ -2,6 +2,7 @@
 #include "options.h"
 #include "buffer.h"
 #include "commands.h"
+#include "filetype.h"
 
 struct global_options options = {
 	.auto_indent = 1,
@@ -67,6 +68,19 @@ static void statusline_set(char **local, char **global, const char *value)
 		}
 	}
 	default_str_set(local, global, value);
+}
+
+static void filetype_set(char **local, char **global, const char *value)
+{
+	if (!is_ft(value)) {
+		error_msg("No such file type %s", value);
+		return;
+	}
+	free(*local);
+	*local = xstrdup(value);
+
+	filetype_changed(buffer);
+	update_flags |= UPDATE_FULL;
 }
 
 #define default_enum_set default_int_set
@@ -156,6 +170,7 @@ static const struct option_description option_desc[] = {
 	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
 	C_BOOL("expand-tab", expand_tab, default_bool_set),
+	L_STR("filetype", filetype, filetype_set),
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),
 	G_BOOL("move-wraps", move_wraps, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_bool_set),
