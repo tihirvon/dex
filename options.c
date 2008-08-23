@@ -17,6 +17,8 @@ struct global_options options = {
 
 	.statusline_left = NULL,
 	.statusline_right = NULL,
+
+	.display_special = 0,
 };
 
 enum option_type {
@@ -169,6 +171,7 @@ static const char *newline_enum[] = { "unix", "dos", NULL };
 static const struct option_description option_desc[] = {
 	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
+	G_BOOL("display-special", display_special, default_bool_set),
 	C_BOOL("expand-tab", expand_tab, default_bool_set),
 	L_STR("filetype", filetype, filetype_set),
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),

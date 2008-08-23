@@ -2,6 +2,7 @@
 #include "obuf.h"
 #include "term.h"
 #include "util.h"
+#include "options.h"
 
 struct output_buffer obuf;
 
@@ -114,7 +115,10 @@ static void skipped_too_much(uchar u)
 	if (obuf.alloc - obuf.count < 8)
 		buf_flush();
 	if (u == '\t') {
-		memset(obuf.buf + obuf.count, ' ', n);
+		char ch = ' ';
+		if (options.display_special)
+			ch = '-';
+		memset(obuf.buf + obuf.count, ch, n);
 		obuf.count += n;
 	} else if (u < 0x20) {
 		obuf.buf[obuf.count++] = u | 0x40;
@@ -148,6 +152,23 @@ void buf_skip(uchar u, int utf8)
 		skipped_too_much(u);
 }
 
+static void print_tab(unsigned int width)
+{
+	char ch = ' ';
+
+	if (options.display_special) {
+		obuf.buf[obuf.count++] = '>';
+		obuf.x++;
+		width--;
+		ch = '-';
+	}
+	if (width > 0) {
+		memset(obuf.buf + obuf.count, ch, width);
+		obuf.count += width;
+		obuf.x += width;
+	}
+}
+
 int buf_put_char(uchar u, int utf8)
 {
 	unsigned int space = obuf.scroll_x + obuf.width - obuf.x;
@@ -166,9 +187,7 @@ int buf_put_char(uchar u, int utf8)
 			width = (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
 			if (width > space)
 				width = space;
-			memset(obuf.buf + obuf.count, ' ', width);
-			obuf.count += width;
-			obuf.x += width;
+			print_tab(width);
 		} else {
 			obuf.buf[obuf.count++] = '^';
 			obuf.x++;

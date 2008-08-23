@@ -309,7 +309,9 @@ static void selection_init(struct block_iter *cur)
 
 static int is_non_text(uchar u)
 {
-	return u != '\t' && u != '\n' && (u < 0x20 || u == 0x7f || !u_is_unicode(u));
+	if (u < 0x20)
+		return (u != '\t' && u != '\n') || options.display_special;
+	return u == 0x7f || !u_is_unicode(u);
 }
 
 static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
@@ -343,8 +345,13 @@ static void print_line(struct block_iter *bi)
 	}
 	while (1) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		if (!screen_next_char(bi, &u) || u == '\n')
+		if (!screen_next_char(bi, &u))
 			break;
+		if (u == '\n') {
+			if (options.display_special)
+				buf_put_char('$', utf8);
+			break;
+		}
 
 		if (!buf_put_char(u, utf8)) {
 			screen_next_line(bi);
