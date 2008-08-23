@@ -14,7 +14,7 @@ void update_preferred_x(void)
 	view->preferred_x = view->cx;
 }
 
-static void move_preferred_x(void)
+void move_preferred_x(void)
 {
 	struct block_iter bi = view->cursor;
 	unsigned int tw = buffer->options.tab_width;

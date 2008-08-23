@@ -6,6 +6,7 @@
 #include "commands.h"
 #include "search.h"
 #include "history.h"
+#include "file-history.h"
 #include "util.h"
 
 #include <locale.h>
@@ -967,6 +968,20 @@ static void signal_handler(int signum)
 	received_signal = signum;
 }
 
+static void close_all_views(void)
+{
+	struct window *w;
+
+	list_for_each_entry(w, &windows, node) {
+		struct list_head *item = w->views.next;
+		while (item != &w->views) {
+			struct list_head *next = item->next;
+			view_delete(VIEW(item));
+			item = next;
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int i;
@@ -1044,6 +1059,7 @@ int main(int argc, char *argv[])
 	obuf.width = 80;
 
 	read_config(editor_file("rc"));
+	load_file_history();
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));
 
@@ -1071,5 +1087,7 @@ int main(int argc, char *argv[])
 	mkdir(editor_file(""), 0755);
 	history_save(&command_history, editor_file("command-history"));
 	history_save(&search_history, editor_file("search-history"));
+	close_all_views();
+	save_file_history();
 	return 0;
 }
