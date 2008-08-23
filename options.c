@@ -13,10 +13,14 @@ struct global_options options = {
 	.allow_incomplete_last_line = 0,
 	.move_wraps = 1,
 	.newline = NEWLINE_UNIX,
+
+	.statusline_left = NULL,
+	.statusline_right = NULL,
 };
 
 enum option_type {
 	OPT_INT,
+	OPT_STR,
 	OPT_ENUM,
 };
 
@@ -51,6 +55,8 @@ enum option_type {
 #define G_INT(name, member) G_OPT(name, OPT_INT, member, NULL)
 #define C_INT(name, member) C_OPT(name, OPT_INT, member, NULL)
 
+#define G_STR(name, member) G_OPT(name, OPT_STR, member, NULL)
+
 #define L_ENUM(name, member, enum_values) L_OPT(name, OPT_ENUM, member, enum_values)
 #define G_ENUM(name, member, enum_values) G_OPT(name, OPT_ENUM, member, enum_values)
 #define C_ENUM(name, member, enum_values) C_OPT(name, OPT_ENUM, member, enum_values)
@@ -78,6 +84,8 @@ static const struct option_description option_desc[] = {
 	C_INT("indent-width", indent_width),
 	G_BOOL("move-wraps", move_wraps),
 	G_ENUM("newline", newline, newline_enum),
+	G_STR("statusline-left", statusline_left),
+	G_STR("statusline-right", statusline_right),
 	C_INT("tab-width", tab_width),
 	C_BOOL("trim-whitespace", trim_whitespace),
 };
@@ -105,6 +113,18 @@ static void set_int_opt(const struct option_description *desc, const char *value
 		*local = val;
 	if (global)
 		*global = val;
+}
+
+static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
+{
+	if (local) {
+		free(*local);
+		*local = xstrdup(value);
+	}
+	if (global) {
+		free(*global);
+		*global = xstrdup(value);
+	}
 }
 
 static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
@@ -173,6 +193,9 @@ void set_option(const char *name, const char *value, unsigned int flags)
 		case OPT_INT:
 			set_int_opt(desc, value, local, global);
 			break;
+		case OPT_STR:
+			set_str_opt(desc, value, local, global);
+			break;
 		case OPT_ENUM:
 			set_enum_opt(desc, value, local, global);
 			break;
@@ -210,4 +233,10 @@ void collect_option_values(const char *name, const char *prefix)
 		}
 		break;
 	}
+}
+
+void init_options(void)
+{
+	options.statusline_left = xstrdup(" %f %m");
+	options.statusline_right = xstrdup(" %y,%X   %c %C   %p ");
 }

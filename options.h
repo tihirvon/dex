@@ -26,6 +26,9 @@ struct global_options {
 
 	// this is just the default for new files
 	enum newline_sequence newline;
+
+	char *statusline_left;
+	char *statusline_right;
 };
 
 extern struct global_options options;
@@ -36,5 +39,6 @@ extern struct global_options options;
 void set_option(const char *name, const char *value, unsigned int flags);
 void collect_options(const char *prefix);
 void collect_option_values(const char *name, const char *prefix);
+void init_options(void);
 
 #endif

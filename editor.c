@@ -142,16 +142,14 @@ static int format_status(char *buf, int size, const char *format)
 
 static void print_status_line(void)
 {
-	const char *lformat = " %f %m";
-	const char *rformat = " %y,%X   %c %C   %p ";
 	char lbuf[256];
 	char rbuf[256];
 	int lw, rw;
 
 	buf_move_cursor(0, window->h);
 	buf_set_color(&statusline_color);
-	lw = format_status(lbuf, sizeof(lbuf), lformat);
-	rw = format_status(rbuf, sizeof(rbuf), rformat);
+	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
+	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
 	if (lw + rw <= window->w) {
 		buf_add_bytes(lbuf, strlen(lbuf));
 		buf_set_bytes(' ', window->w - lw - rw);
@@ -916,6 +914,8 @@ int main(int argc, char *argv[])
 
 	if (term_init(term, flags))
 		return 1;
+
+	init_options();
 
 	window = window_new();
 	if (argc - i) {
