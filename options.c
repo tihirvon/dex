@@ -24,55 +24,85 @@ enum option_type {
 	OPT_ENUM,
 };
 
-#define INT_OPT(_name, _local, _global, _offset, min, max) {	\
+static void default_int_set(int *local, int *global, int value)
+{
+	if (local)
+		*local = value;
+	if (global)
+		*global = value;
+	update_flags |= UPDATE_FULL;
+}
+
+static void default_str_set(char **local, char **global, const char *value)
+{
+	if (local) {
+		free(*local);
+		*local = xstrdup(value);
+	}
+	if (global) {
+		free(*global);
+		*global = xstrdup(value);
+	}
+	update_flags |= UPDATE_FULL;
+}
+
+#define default_enum_set default_int_set
+#define default_bool_set default_enum_set
+
+#define INT_OPT(_name, _local, _global, _offset, _min, _max, _set) { \
 	.name = _name,						\
 	.type = OPT_INT,					\
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
-	{ {							\
-		.int_min = min,					\
-		.int_max = max,					\
+	{ .int_opt = {						\
+		.set = _set,					\
+		.min = _min,					\
+		.max = _max,					\
 	} },							\
 }
 
-#define ENUM_OPT(_name, _local, _global, _offset, _values) {	\
+#define ENUM_OPT(_name, _local, _global, _offset, _values, _set) { \
 	.name = _name,						\
 	.type = OPT_ENUM,					\
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
-	{							\
-		.enum_values = _values,				\
-	},							\
+	{ .enum_opt = {						\
+		.set = _set,					\
+		.values = _values,				\
+	} },							\
 }
 
-#define STR_OPT(_name, _local, _global, _offset) {		\
+#define STR_OPT(_name, _local, _global, _offset, _set) {	\
 	.name = _name,						\
 	.type = OPT_STR,					\
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
+	{ .str_opt = {						\
+		.set = _set,					\
+	} },							\
 }
 
 #define L_OFFSET(member) offsetof(struct local_options, member)
 #define G_OFFSET(member) offsetof(struct global_options, member)
 
-#define L_INT(name, member, min, max) INT_OPT(name, 1, 0, L_OFFSET(member), min, max)
-#define G_INT(name, member, min, max) INT_OPT(name, 0, 1, G_OFFSET(member), min, max)
-#define C_INT(name, member, min, max) INT_OPT(name, 1, 1, G_OFFSET(member), min, max)
+#define L_INT(name, member, min, max, set) INT_OPT(name, 1, 0, L_OFFSET(member), min, max, set)
+#define G_INT(name, member, min, max, set) INT_OPT(name, 0, 1, G_OFFSET(member), min, max, set)
+#define C_INT(name, member, min, max, set) INT_OPT(name, 1, 1, G_OFFSET(member), min, max, set)
 
-#define L_ENUM(name, member, enum_values) ENUM_OPT(name, 1, 0, L_OFFSET(member), enum_values)
-#define G_ENUM(name, member, enum_values) ENUM_OPT(name, 0, 1, G_OFFSET(member), enum_values)
-#define C_ENUM(name, member, enum_values) ENUM_OPT(name, 1, 1, G_OFFSET(member), enum_values)
+#define L_ENUM(name, member, values, set) ENUM_OPT(name, 1, 0, L_OFFSET(member), values, set)
+#define G_ENUM(name, member, values, set) ENUM_OPT(name, 0, 1, G_OFFSET(member), values, set)
+#define C_ENUM(name, member, values, set) ENUM_OPT(name, 1, 1, G_OFFSET(member), values, set)
 
-#define L_STR(name, member) STR_OPT(name, 1, 0, L_OFFSET(member))
-#define G_STR(name, member) STR_OPT(name, 0, 1, G_OFFSET(member))
-#define C_STR(name, member) STR_OPT(name, 1, 1, G_OFFSET(member))
+#define L_STR(name, member, set) STR_OPT(name, 1, 0, L_OFFSET(member), set)
+#define G_STR(name, member, set) STR_OPT(name, 0, 1, G_OFFSET(member), set)
+#define C_STR(name, member, set) STR_OPT(name, 1, 1, G_OFFSET(member), set)
 
-#define L_BOOL(name, member) L_ENUM(name, member, bool_enum)
-#define G_BOOL(name, member) G_ENUM(name, member, bool_enum)
-#define C_BOOL(name, member) C_ENUM(name, member, bool_enum)
+#define L_BOOL(name, member, set) L_ENUM(name, member, bool_enum, set)
+#define G_BOOL(name, member, set) G_ENUM(name, member, bool_enum, set)
+#define C_BOOL(name, member, set) C_ENUM(name, member, bool_enum, set)
 
 struct option_description {
 	const char *name;
@@ -82,10 +112,17 @@ struct option_description {
 	unsigned offset : 16;
 	union {
 		struct {
-			int int_min;
-			int int_max;
-		};
-		const char **enum_values;
+			void (*set)(int *local, int *global, int value);
+			int min;
+			int max;
+		} int_opt;
+		struct {
+			void (*set)(int *local, int *global, int value);
+			const char **values;
+		} enum_opt;
+		struct {
+			void (*set)(char **local, char **global, const char *value);
+		} str_opt;
 	};
 };
 
@@ -93,16 +130,16 @@ static const char *bool_enum[] = { "false", "true", NULL };
 static const char *newline_enum[] = { "unix", "dos", NULL };
 
 static const struct option_description option_desc[] = {
-	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line),
-	C_BOOL("auto-indent", auto_indent),
-	C_BOOL("expand-tab", expand_tab),
-	C_INT("indent-width", indent_width, 1, 8),
-	G_BOOL("move-wraps", move_wraps),
-	G_ENUM("newline", newline, newline_enum),
-	G_STR("statusline-left", statusline_left),
-	G_STR("statusline-right", statusline_right),
-	C_INT("tab-width", tab_width, 1, 8),
-	C_BOOL("trim-whitespace", trim_whitespace),
+	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
+	C_BOOL("auto-indent", auto_indent, default_bool_set),
+	C_BOOL("expand-tab", expand_tab, default_bool_set),
+	C_INT("indent-width", indent_width, 1, 8, default_int_set),
+	G_BOOL("move-wraps", move_wraps, default_bool_set),
+	G_ENUM("newline", newline, newline_enum, default_bool_set),
+	G_STR("statusline-left", statusline_left, default_str_set),
+	G_STR("statusline-right", statusline_right, default_str_set),
+	C_INT("tab-width", tab_width, 1, 8, default_int_set),
+	C_BOOL("trim-whitespace", trim_whitespace, default_bool_set),
 };
 
 static int parse_int(const char *value, int *ret)
@@ -124,27 +161,17 @@ static void set_int_opt(const struct option_description *desc, const char *value
 		error_msg("Integer value for %s expected.", desc->name);
 		return;
 	}
-	if (val < desc->int_min || val > desc->int_max) {
+	if (val < desc->int_opt.min || val > desc->int_opt.max) {
 		error_msg("Value for %s must be in %d-%d range.", desc->name,
-			desc->int_min, desc->int_max);
+			desc->int_opt.min, desc->int_opt.max);
 		return;
 	}
-	if (local)
-		*local = val;
-	if (global)
-		*global = val;
+	desc->int_opt.set(local, global, val);
 }
 
 static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
 {
-	if (local) {
-		free(*local);
-		*local = xstrdup(value);
-	}
-	if (global) {
-		free(*global);
-		*global = xstrdup(value);
-	}
+	desc->str_opt.set(local, global, value);
 }
 
 static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
@@ -152,7 +179,7 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 	int val;
 
 	if (!value) {
-		if (desc->enum_values != bool_enum) {
+		if (desc->enum_opt.values != bool_enum) {
 			error_msg("Invalid value for %s.", desc->name);
 			return;
 		}
@@ -160,8 +187,8 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 	} else {
 		int i;
 
-		for (i = 0; desc->enum_values[i]; i++) {
-			if (!strcasecmp(desc->enum_values[i], value)) {
+		for (i = 0; desc->enum_opt.values[i]; i++) {
+			if (!strcasecmp(desc->enum_opt.values[i], value)) {
 				val = i;
 				goto set;
 			}
@@ -172,10 +199,7 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 		}
 	}
 set:
-	if (local)
-		*local = val;
-	if (global)
-		*global = val;
+	desc->enum_opt.set(local, global, val);
 }
 
 static const struct option_description *find_option(const char *name, unsigned int flags)
@@ -233,7 +257,6 @@ void set_option(const char *name, const char *value, unsigned int flags)
 		set_enum_opt(desc, value, local, global);
 		break;
 	}
-	update_flags |= UPDATE_FULL;
 }
 
 void toggle_option(const char *name, unsigned int flags)
@@ -242,7 +265,7 @@ void toggle_option(const char *name, unsigned int flags)
 
 	if (!desc)
 		return;
-	if (desc->enum_values != bool_enum) {
+	if (desc->enum_opt.values != bool_enum) {
 		error_msg("Option %s is not boolean.", name);
 		return;
 	}
@@ -257,13 +280,12 @@ void toggle_option(const char *name, unsigned int flags)
 
 	if (flags & OPT_LOCAL) {
 		int *local = (int *)((char *)&buffer->options + desc->offset);
-		*local = !*local;
+		desc->enum_opt.set(local, NULL, !*local);
 	}
 	if (flags & OPT_GLOBAL) {
 		int *global = (int *)((char *)&options + desc->offset);
-		*global = !*global;
+		desc->enum_opt.set(NULL, global, !*global);
 	}
-	update_flags |= UPDATE_FULL;
 }
 
 void collect_options(const char *prefix)
@@ -287,9 +309,9 @@ void collect_option_values(const char *name, const char *prefix)
 		const struct option_description *desc = &option_desc[i];
 		if (desc->type != OPT_ENUM || strcmp(name, desc->name))
 			continue;
-		for (j = 0; desc->enum_values[j]; j++) {
-			if (!strncmp(prefix, desc->enum_values[j], len))
-				add_completion(xstrdup(desc->enum_values[j]));
+		for (j = 0; desc->enum_opt.values[j]; j++) {
+			if (!strncmp(prefix, desc->enum_opt.values[j], len))
+				add_completion(xstrdup(desc->enum_opt.values[j]));
 		}
 		break;
 	}
