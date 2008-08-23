@@ -88,58 +88,93 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 	return 0;
 }
 
-static const char *parse_flags(char ***argsp, const char *flags)
+/*
+ * Flags and first "--" are removed.
+ * Flag arguments are moved to beginning.
+ * Other arguments come right after flag arguments.
+ *
+ * Returns parsed flags (order is preserved).
+ */
+static const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 {
-	static char parsed[16];
-	int i, j, count = 0;
+	static char flags[16];
 	char **args = *argsp;
+	int argc;
+	int nr_flags = 0;
+	int nr_flag_args = 0;
+	int i, j;
 
-	parsed[0] = 0;
-	for (i = 0; args[i]; i++) {
-		const char *arg = args[i];
+	for (argc = 0; args[argc]; argc++)
+		;
+
+	i = 0;
+	while (args[i]) {
+		char *arg = args[i];
 
 		if (!strcmp(arg, "--")) {
-			i++;
+			/* move the NULL too */
+			memmove(args + i, args + i + 1, (argc - i) * sizeof(*args));
+			free(arg);
+			argc--;
 			break;
 		}
-		if (arg[0] != '-' || !arg[1])
-			break;
+		if (arg[0] != '-' || !arg[1]) {
+			i++;
+			continue;
+		}
+
 		for (j = 1; arg[j]; j++) {
 			char flag = arg[j];
-			if (!strchr(flags, flag)) {
+			char *flag_arg;
+			char *flagp = strchr(flag_desc, flag);
+
+			if (!flagp || flag == '=') {
 				error_msg("Invalid option -%c", flag);
 				return NULL;
 			}
-			if (!strchr(parsed, flag)) {
-				parsed[count++] = flag;
-				parsed[count] = 0;
+			flags[nr_flags++] = flag;
+			if (nr_flags == ARRAY_COUNT(flags)) {
+				error_msg("Too many options given.");
+				return NULL;
 			}
+			if (flagp[1] != '=')
+				continue;
+
+			if (j > 1 || arg[j + 1]) {
+				error_msg("Flag -%c must be given separately because it requires an argument.", flag);
+				return NULL;
+			}
+			flag_arg = args[i + 1];
+			if (!flag_arg) {
+				error_msg("Option -%c requires on argument.", flag);
+				return NULL;
+			}
+
+			/* move flag argument before any other arguments */
+			if (i != nr_flag_args) {
+				// farg1 arg1  arg2 -f   farg2 arg3
+				// farg1 farg2 arg1 arg2 arg3
+				int count = i - nr_flag_args;
+				memmove(args + nr_flag_args + 1, args + nr_flag_args, count * sizeof(*args));
+			}
+			args[nr_flag_args++] = flag_arg;
+			i++;
 		}
+
+		memmove(args + i, args + i + 1, (argc - i) * sizeof(*args));
+		free(arg);
+		argc--;
 	}
-	*argsp = args + i;
-	return parsed;
-}
-
-static const char *parse_args(char ***argsp, const char *flags, int min, int max)
-{
-	const char *pf = parse_flags(argsp, flags);
-
-	if (pf) {
-		char **args = *argsp;
-		int argc = 0;
-
-		while (args[argc])
-			argc++;
-		if (argc < min) {
-			error_msg("Not enough arguments");
-			return NULL;
-		}
-		if (max >= 0 && argc > max) {
-			error_msg("Too many arguments");
-			return NULL;
-		}
+	if (argc < min) {
+		error_msg("Not enough arguments");
+		return NULL;
 	}
-	return pf;
+	if (max >= 0 && argc > max) {
+		error_msg("Too many arguments");
+		return NULL;
+	}
+	flags[nr_flags] = 0;
+	return flags;
 }
 
 static void cmd_erase(char **args)
