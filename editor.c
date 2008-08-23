@@ -1039,15 +1039,6 @@ int main(int argc, char *argv[])
 
 	init_options();
 
-	window = window_new();
-	if (argc - i) {
-		for (; i < argc; i++)
-			open_buffer(argv[i]);
-	}
-	if (list_empty(&window->views))
-		open_buffer(NULL);
-	set_view(VIEW(window->views.next));
-
 	set_signal_handler(SIGWINCH, signal_handler);
 	set_signal_handler(SIGINT, signal_handler);
 	set_signal_handler(SIGTSTP, signal_handler);
@@ -1062,6 +1053,13 @@ int main(int argc, char *argv[])
 	load_file_history();
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));
+
+	window = window_new();
+	for (; i < argc; i++)
+		open_buffer(argv[i]);
+	if (list_empty(&window->views))
+		open_buffer(NULL);
+	set_view(VIEW(window->views.next));
 
 	error_buf[0] = 0;
 	running = 1;
