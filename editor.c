@@ -25,6 +25,7 @@ static struct hl_color *currentline_color;
 static struct hl_color *selection_color;
 static struct hl_color *statusline_color;
 static struct hl_color *commandline_color;
+static struct hl_color *nontext_color;
 
 static int received_signal;
 static int cmdline_x;
@@ -256,31 +257,27 @@ static void print_command_line(void)
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
 
-static void set_special_color(struct term_color *colorp)
+static void mask_color(struct term_color *color, const struct term_color *over)
 {
-	struct term_color color = *colorp;
-	struct term_color other = default_color->color;
-
-	if (color.fg == -2)
-		color.fg = other.fg;
-	if (color.bg == -2)
-		color.bg = other.bg;
-	if (color.attr & ATTR_KEEP)
-		color.attr = other.attr;
-	buf_set_color(&color);
+	if (over->fg != -2)
+		color->fg = over->fg;
+	if (over->bg != -2)
+		color->bg = over->bg;
+	if (!(over->attr & ATTR_KEEP))
+		color->attr = over->attr;
 }
 
-static void selection_check(void)
+static void update_color(int nontext)
 {
-	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo) {
-		set_special_color(&selection_color->color);
-		return;
-	}
-	if (current_line == view->cy && currentline_color) {
-		set_special_color(&currentline_color->color);
-	} else {
-		buf_set_color(&default_color->color);
-	}
+	struct term_color color = default_color->color;
+
+	if (nontext)
+		mask_color(&color, &nontext_color->color);
+	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo)
+		mask_color(&color, &selection_color->color);
+	else if (current_line == view->cy && currentline_color)
+		mask_color(&color, &currentline_color->color);
+	buf_set_color(&color);
 }
 
 static void selection_init(struct block_iter *cur)
@@ -310,11 +307,16 @@ static void selection_init(struct block_iter *cur)
 	}
 }
 
+static int is_non_text(uchar u)
+{
+	return u != '\t' && u != '\n' && (u < 0x20 || u == 0x7f || !u_is_unicode(u));
+}
+
 static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
 {
 	unsigned int count = buffer->next_char(bi, u);
 
-	selection_check();
+	update_color(nontext_color && is_non_text(*u));
 	cur_offset += count;
 	return count;
 }
@@ -378,7 +380,7 @@ static void update_range(int y1, int y2)
 		print_line(&bi);
 		current_line++;
 	}
-	selection_check();
+	update_color(0);
 
 	if (i < y2) {
 		// dummy empty line
@@ -1069,6 +1071,7 @@ int main(int argc, char *argv[])
 
 	read_config(editor_file("rc"));
 	currentline_color = find_color("currentline");
+	nontext_color = find_color("nontext");
 
 	set_signal_handler(SIGWINCH, signal_handler);
 	set_signal_handler(SIGINT, signal_handler);
