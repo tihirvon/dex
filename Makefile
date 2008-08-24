@@ -7,7 +7,7 @@ include scripts/lib.mk
 
 INSTALL_LOG	:=
 
-CFLAGS	+= -g
+CFLAGS	+= -g -DDATADIR=\"$(datadir)\"
 
 objs	:= buffer.o cmdline.o commands.o config.o edit.o editor.o gbuf.o iter.o obuf.o \
 	parse-command.o search.o term.o termcap.o terminfo.o uchar.o util.o \

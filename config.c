@@ -4,7 +4,7 @@
 const char *config_file;
 int config_line;
 
-void read_config(const char *filename)
+int read_config(const char *filename)
 {
 	/* recursive */
 	const char *saved_config_file = config_file;
@@ -14,6 +14,7 @@ void read_config(const char *filename)
 	size_t size, alloc = 0;
 	char *buf, *ptr, *line = NULL;
 	int fd;
+	int ret = -1;
 
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
@@ -51,7 +52,9 @@ void read_config(const char *filename)
 	}
 	free(line);
 	xmunmap(buf, st.st_size);
+	ret = 0;
 out:
 	config_file = saved_config_file;
 	config_line = saved_config_line;
+	return ret;
 }

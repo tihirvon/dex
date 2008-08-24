@@ -3,6 +3,7 @@
 #include "term.h"
 #include "filetype.h"
 #include "highlight.h"
+#include "commands.h"
 
 struct view *view;
 struct buffer *buffer;
@@ -346,6 +347,23 @@ static void guess_filetype(struct buffer *b)
 		b->options.filetype = xstrdup(ft);
 }
 
+static struct syntax *load_syntax(const char *filetype)
+{
+	char filename[1024];
+	struct syntax *syn;
+
+	snprintf(filename, sizeof(filename), "%s/.editor/syntax/%s", home_dir, filetype);
+	if (read_config(filename)) {
+		snprintf(filename, sizeof(filename), "%s/editor/syntax/%s", DATADIR, filetype);
+		if (read_config(filename))
+			return NULL;
+	}
+	syn = find_syntax(filetype);
+	if (syn)
+		update_syntax_colors(syn);
+	return syn;
+}
+
 struct view *open_buffer(const char *filename)
 {
 	struct buffer *b;
@@ -421,8 +439,11 @@ void filetype_changed(struct buffer *b)
 {
 	free_hl_list(&b->hl_head);
 	b->syn = NULL;
-	if (b->options.filetype)
+	if (b->options.filetype) {
 		b->syn = find_syntax(b->options.filetype);
+		if (!b->syn)
+			b->syn = load_syntax(b->options.filetype);
+	}
 	highlight_buffer(b);
 }
 
