@@ -267,9 +267,9 @@ const char *term_set_color(const struct term_color *color)
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '8';
 	}
-	if (c.attr & ATTR_FG_IS_SET)
+	if (c.fg >= 0)
 		buffer_color('3', c.fg);
-	if (c.attr & ATTR_BG_IS_SET)
+	if (c.bg >= 0)
 		buffer_color('4', c.bg);
 	buffer[buffer_pos++] = 'm';
 	buffer[buffer_pos++] = 0;

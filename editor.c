@@ -256,16 +256,31 @@ static void print_command_line(void)
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
 
+static void set_special_color(struct term_color *colorp)
+{
+	struct term_color color = *colorp;
+	struct term_color other = default_color->color;
+
+	if (color.fg == -2)
+		color.fg = other.fg;
+	if (color.bg == -2)
+		color.bg = other.bg;
+	if (color.attr & ATTR_KEEP)
+		color.attr = other.attr;
+	buf_set_color(&color);
+}
+
 static void selection_check(void)
 {
 	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo) {
-		buf_set_color(&selection_color->color);
+		set_special_color(&selection_color->color);
 		return;
 	}
-	if (current_line == view->cy && currentline_color)
-		buf_set_color(&currentline_color->color);
-	else
+	if (current_line == view->cy && currentline_color) {
+		set_special_color(&currentline_color->color);
+	} else {
 		buf_set_color(&default_color->color);
+	}
 }
 
 static void selection_init(struct block_iter *cur)
@@ -967,14 +982,14 @@ static void set_basic_colors(void)
 {
 	struct term_color none, c;
 
-	none.fg = 0;
-	none.bg = 0;
+	none.fg = -1;
+	none.bg = -1;
 	none.attr = 0;
 	default_color = set_highlight_color("default", &none);
 
 	c.fg = 0;
 	c.bg = 7;
-	c.attr = ATTR_FG_IS_SET | ATTR_BG_IS_SET;
+	c.attr = 0;
 	selection_color = set_highlight_color("selection", &c);
 	statusline_color = set_highlight_color("statusline", &c);
 	commandline_color = set_highlight_color("commandline", &none);

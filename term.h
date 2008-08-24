@@ -82,21 +82,20 @@ enum {
 };
 
 enum {
-	ATTR_BOLD           = 0x01,
-	ATTR_LOW_INTENSITY  = 0x02,
-	ATTR_UNDERLINE      = 0x04,
-	ATTR_BLINKING       = 0x08,
-	ATTR_REVERSE_VIDEO  = 0x10,
-	ATTR_INVISIBLE_TEXT = 0x20,
-	ATTR_FG_IS_SET      = 0x40,
-	ATTR_BG_IS_SET      = 0x80
+	ATTR_BOLD		= 0x01,
+	ATTR_LOW_INTENSITY	= 0x02,
+	ATTR_UNDERLINE		= 0x04,
+	ATTR_BLINKING		= 0x08,
+	ATTR_REVERSE_VIDEO	= 0x10,
+	ATTR_INVISIBLE_TEXT	= 0x20,
+	ATTR_KEEP		= 0x40,
 };
 
 
 struct term_color {
-	unsigned char fg;
-	unsigned char bg;
-	unsigned char attr;
+	short fg;
+	short bg;
+	unsigned short attr;
 };
 
 enum {
