@@ -21,12 +21,14 @@ int nr_errors;
 char error_buf[256];
 
 static struct hl_color *default_color;
+static struct hl_color *currentline_color;
 static struct hl_color *selection_color;
 static struct hl_color *statusline_color;
 static struct hl_color *commandline_color;
 
 static int received_signal;
 static int cmdline_x;
+static int current_line;
 
 static int add_status_str(char *buf, int size, int *posp, const char *str)
 {
@@ -260,7 +262,10 @@ static void selection_check(void)
 		buf_set_color(&selection_color->color);
 		return;
 	}
-	buf_set_color(&default_color->color);
+	if (current_line == view->cy && currentline_color)
+		buf_set_color(&currentline_color->color);
+	else
+		buf_set_color(&default_color->color);
 }
 
 static void selection_init(struct block_iter *cur)
@@ -346,6 +351,7 @@ static void update_range(int y1, int y2)
 		block_iter_next_line(&bi);
 	block_iter_bol(&bi);
 
+	current_line = y1;
 	y1 -= view->vy;
 	y2 -= view->vy;
 
@@ -355,6 +361,7 @@ static void update_range(int y1, int y2)
 			break;
 		buf_move_cursor(0, i);
 		print_line(&bi);
+		current_line++;
 	}
 	selection_check();
 
@@ -786,7 +793,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			save_change_head != buffer->save_change_head) {
 		update_flags |= UPDATE_STATUS_LINE;
 
-		if (cy != view->cy && view->sel.blk)
+		if (cy != view->cy && (view->sel.blk || currentline_color))
 			update_flags |= UPDATE_RANGE;
 		if (cx != view->cx && view->sel.blk)
 			update_flags |= UPDATE_CURSOR_LINE;
@@ -1046,6 +1053,7 @@ int main(int argc, char *argv[])
 	set_basic_colors();
 
 	read_config(editor_file("rc"));
+	currentline_color = find_color("currentline");
 
 	set_signal_handler(SIGWINCH, signal_handler);
 	set_signal_handler(SIGINT, signal_handler);
