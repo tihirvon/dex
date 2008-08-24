@@ -426,27 +426,37 @@ static void cmd_errorfmt(char **args)
 	add_error_fmt(args[0], importance, args[1], args + 2);
 }
 
+static void cmd_filetype_content(char **args)
+{
+	if (!parse_args(&args, "", 2, 2))
+		return;
+	add_ft_content(args[0], args[1]);
+}
+
+static void cmd_filetype_extension(char **args)
+{
+	if (!parse_args(&args, "", 2, -1))
+		return;
+	add_ft_extensions(args[0], args + 1);
+}
+
+static void cmd_filetype_match(char **args)
+{
+	if (!parse_args(&args, "", 2, 2))
+		return;
+	add_ft_match(args[0], args[1]);
+}
+
+static const struct command filetype_commands[] = {
+	{ "content", NULL, cmd_filetype_content },
+	{ "extension", "ext", cmd_filetype_extension },
+	{ "match", NULL, cmd_filetype_match },
+	{ NULL, NULL, NULL }
+};
+
 static void cmd_filetype(char **args)
 {
-	const char *pf = parse_args(&args, "", 1, -1);
-	const char *cmd;
-
-	if (!pf)
-		return;
-
-	cmd = *args++;
-	if (!strcmp(cmd, "extension")) {
-		add_ft_extensions(args[0], args + 1);
-		return;
-	}
-	if (!strcmp(cmd, "match")) {
-		add_ft_match(args[0], args[1]);
-		return;
-	}
-	if (!strcmp(cmd, "content")) {
-		add_ft_content(args[0], args[1]);
-		return;
-	}
+	run_command(filetype_commands, args);
 }
 
 static char *shell_unescape(const char *str)
