@@ -208,7 +208,7 @@ static void collect_completions(struct parsed_command *pc, const char *str)
 		collect_commands(str);
 		return;
 	}
-	cmd = find_command(pc->argv[name_idx]);
+	cmd = find_command(commands, pc->argv[name_idx]);
 	if (cmd) {
 		int argc = pc->args_before_cursor - name_idx;
 		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save") || !strcmp(cmd->name, "include")) {

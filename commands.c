@@ -54,6 +54,8 @@ static const char *special_names[NR_SKEYS] = {
 	"f12",
 };
 
+static void run_command(const struct command *cmds, char **av);
+
 static int parse_key(enum term_key_type *type, unsigned int *key, const char *str)
 {
 	int i, len = strlen(str);
@@ -719,7 +721,7 @@ static void cmd_repeat(char **args)
 		return;
 
 	count = atoi(args[0]);
-	cmd = find_command(args[1]);
+	cmd = find_command(commands, args[1]);
 	if (!cmd) {
 		error_msg("No such command: %s", args[1]);
 		return;
@@ -1140,12 +1142,12 @@ void handle_binding(enum term_key_type type, unsigned int key)
 	nr_pressed_keys = 0;
 }
 
-const struct command *find_command(const char *name)
+const struct command *find_command(const struct command *cmds, const char *name)
 {
 	int i;
 
-	for (i = 0; commands[i].name; i++) {
-		const struct command *cmd = &commands[i];
+	for (i = 0; cmds[i].name; i++) {
+		const struct command *cmd = &cmds[i];
 
 		if (!strcmp(name, cmd->name))
 			return cmd;
@@ -1155,9 +1157,15 @@ const struct command *find_command(const char *name)
 	return NULL;
 }
 
-static void run_command(char **av)
+static void run_command(const struct command *cmds, char **av)
 {
-	const struct command *cmd = find_command(av[0]);
+	const struct command *cmd;
+
+	if (!av[0]) {
+		error_msg("Subcommand required");
+		return;
+	}
+	cmd = find_command(cmds, av[0]);
 	if (cmd) {
 		current_command = cmd;
 		cmd->cmd(av + 1);
@@ -1184,7 +1192,7 @@ void handle_command(const char *cmd)
 			e++;
 
 		if (e > s)
-			run_command(pc.argv + s);
+			run_command(commands, pc.argv + s);
 
 		s = e + 1;
 	}
