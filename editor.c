@@ -8,6 +8,7 @@
 #include "history.h"
 #include "file-history.h"
 #include "util.h"
+#include "color.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -19,14 +20,10 @@ int running;
 int nr_errors;
 char error_buf[256];
 
-static struct term_color default_color;
-static struct term_color selection_color = {
-	.fg = 0, .bg = 7, .attr = ATTR_FG_IS_SET | ATTR_BG_IS_SET
-};
-static struct term_color statusline_color = {
-	.fg = 0, .bg = 7, .attr = ATTR_FG_IS_SET | ATTR_BG_IS_SET
-};
-static struct term_color commandline_color;
+static struct hl_color *default_color;
+static struct hl_color *selection_color;
+static struct hl_color *statusline_color;
+static struct hl_color *commandline_color;
 
 static int received_signal;
 static int cmdline_x;
@@ -149,7 +146,7 @@ static void print_status_line(void)
 	int lw, rw;
 
 	buf_move_cursor(0, window->h);
-	buf_set_color(&statusline_color);
+	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
 	if (lw + rw <= window->w) {
@@ -230,7 +227,7 @@ static void print_command(uchar prefix)
 static void print_command_line(void)
 {
 	buf_move_cursor(0, window->h + 1);
-	buf_set_color(&commandline_color);
+	buf_set_color(&commandline_color->color);
 	switch (input_mode) {
 	case INPUT_COMMAND:
 		print_command(':');
@@ -256,31 +253,22 @@ static void print_command_line(void)
 // selection start / end buffer byte offsets
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
-static int sel_started;
-static int sel_ended;
 
 static void selection_check(void)
 {
-	if (view->sel.blk) {
-		if (!sel_started && cur_offset >= sel_so) {
-			buf_set_color(&selection_color);
-			sel_started = 1;
-		}
-		if (!sel_ended && cur_offset > sel_eo) {
-			buf_set_color(&default_color);
-			sel_ended = 1;
-		}
+	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo) {
+		buf_set_color(&selection_color->color);
+		return;
 	}
+	buf_set_color(&default_color->color);
 }
 
 static void selection_init(struct block_iter *cur)
 {
+	cur_offset = block_iter_get_offset(cur);
+
 	if (view->sel.blk) {
 		struct block_iter si, ei;
-
-		sel_started = 0;
-		sel_ended = 0;
-		cur_offset = block_iter_get_offset(cur);
 
 		si = view->sel;
 		ei = view->cursor;
@@ -299,7 +287,6 @@ static void selection_init(struct block_iter *cur)
 			sel_so -= block_iter_bol(&si);
 			sel_eo += count_bytes_eol(&ei) - 1;
 		}
-		selection_check();
 	}
 }
 
@@ -317,7 +304,6 @@ static unsigned int screen_next_line(struct block_iter *bi)
 	unsigned int count = block_iter_next_line(bi);
 
 	cur_offset += count;
-	selection_check();
 	return count;
 }
 
@@ -970,6 +956,23 @@ static void signal_handler(int signum)
 	received_signal = signum;
 }
 
+static void set_basic_colors(void)
+{
+	struct term_color none, c;
+
+	none.fg = 0;
+	none.bg = 0;
+	none.attr = 0;
+	default_color = set_highlight_color("default", &none);
+
+	c.fg = 0;
+	c.bg = 7;
+	c.attr = ATTR_FG_IS_SET | ATTR_BG_IS_SET;
+	selection_color = set_highlight_color("selection", &c);
+	statusline_color = set_highlight_color("statusline", &c);
+	commandline_color = set_highlight_color("commandline", &none);
+}
+
 static void close_all_views(void)
 {
 	struct window *w;
@@ -1040,6 +1043,9 @@ int main(int argc, char *argv[])
 		return 1;
 
 	init_options();
+	set_basic_colors();
+
+	read_config(editor_file("rc"));
 
 	set_signal_handler(SIGWINCH, signal_handler);
 	set_signal_handler(SIGINT, signal_handler);
@@ -1051,7 +1057,6 @@ int main(int argc, char *argv[])
 	obuf.buf = xmalloc(obuf.alloc);
 	obuf.width = 80;
 
-	read_config(editor_file("rc"));
 	load_file_history();
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));

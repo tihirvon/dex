@@ -12,7 +12,7 @@ CFLAGS	+= -g -I.
 objs	:= buffer.o cmdline.o commands.o config.o edit.o editor.o gbuf.o iter.o obuf.o \
 	parse-command.o search.o term.o termcap.o terminfo.o uchar.o util.o \
 	view.o window.o xmalloc.o history.o ctags.o completion.o spawn.o options.o \
-	change.o file-history.o filetype.o
+	change.o file-history.o filetype.o color.o
 
 editor: $(objs)
 	$(call cmd,ld,)

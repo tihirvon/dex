@@ -9,6 +9,7 @@
 #include "spawn.h"
 #include "util.h"
 #include "filetype.h"
+#include "color.h"
 
 #define MAX_KEYS 4
 
@@ -467,6 +468,101 @@ static char *shell_unescape(const char *str)
 		gbuf_add_ch(&buf, ch);
 	}
 	return gbuf_steal(&buf);
+}
+
+static const char * const color_names[17] = {
+	"default",
+	"black", "red", "green", "yellow", "blue", "magenta", "cyan", "gray",
+	"darkgray", "lightred", "lightgreen", "lightyellow", "lightblue",
+	"lightmagenta", "lightcyan", "white",
+};
+
+static const char * const attr_names[5] = {
+	"bold", "lowintensity", "underline", "blink", "reverse"
+};
+
+static int parse_color(const char *str, int *val)
+{
+	char *end;
+	long lval;
+	int i;
+
+	lval = strtol(str, &end, 10);
+	if (*str && !*end) {
+		if (lval < -1 || lval > 255) {
+			error_msg("color value out of range");
+			return 0;
+		}
+		*val = lval;
+		return 1;
+	}
+	for (i = 0; i < ARRAY_COUNT(color_names); i++) {
+		if (!strcasecmp(str, color_names[i])) {
+			*val = i - 1;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int parse_attr(const char *str, unsigned char *attr)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(attr_names); i++) {
+		if (!strcasecmp(str, attr_names[i])) {
+			*attr |= 1 << i;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int parse_term_color(struct term_color *color, char **strs)
+{
+	int i, count = 0;
+
+	color->fg = 0;
+	color->bg = 0;
+	color->attr = 0;
+	for (i = 0; strs[i]; i++) {
+		const char *str = strs[i];
+		int val;
+
+		if (parse_color(str, &val)) {
+			if (count > 1) {
+				error_msg("too many colors");
+				return 0;
+			}
+			/* -1/default is terminal's default color */
+			if (val >= 0) {
+				if (!count) {
+					color->fg = val;
+					color->attr |= ATTR_FG_IS_SET;
+				} else {
+					color->bg = val;
+					color->attr |= ATTR_BG_IS_SET;
+				}
+			}
+			count++;
+		} else if (!parse_attr(str, &color->attr)) {
+			error_msg("invalid color or attribute %s", str);
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static void cmd_highlight(char **args)
+{
+	const char *pf = parse_args(&args, "", 2, -1);
+	struct term_color color;
+
+	if (!pf)
+		return;
+
+	if (parse_term_color(&color, args + 1))
+		set_highlight_color(args[0], &color);
 }
 
 static void cmd_include(char **args)
@@ -981,6 +1077,7 @@ const struct command commands[] = {
 	{ "error", NULL, cmd_error },
 	{ "errorfmt", NULL, cmd_errorfmt },
 	{ "filetype", "ft", cmd_filetype },
+	{ "highlight", "hi", cmd_highlight },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
 	{ "insert-special", NULL, cmd_insert_special },
