@@ -79,6 +79,9 @@ void cmdline_set_text(const char *text)
 
 void cmdline_insert_bytes(const char *buf, int size)
 {
-	gbuf_add_buf(&cmdline, buf, size);
-	cmdline_pos += size;
+	int i;
+
+	gbuf_make_space(&cmdline, cmdline_pos, size);
+	for (i = 0; i < size; i++)
+		cmdline.buffer[cmdline_pos++] = buf[i];
 }
