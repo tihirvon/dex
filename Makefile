@@ -9,10 +9,38 @@ INSTALL_LOG	:=
 
 CFLAGS	+= -g -DDATADIR=\"$(datadir)\"
 
-objs	:= buffer.o cmdline.o commands.o config.o edit.o editor.o gbuf.o iter.o obuf.o \
-	parse-command.o search.o term.o termcap.o terminfo.o uchar.o util.o \
-	view.o window.o xmalloc.o history.o ctags.o completion.o spawn.o options.o \
-	change.o file-history.o filetype.o color.o highlight.o syntax.o
+objs 	:= 			\
+	buffer.o		\
+	change.o		\
+	cmdline.o		\
+	color.o			\
+	commands.o		\
+	completion.o		\
+	config.o		\
+	ctags.o			\
+	edit.o			\
+	editor.o		\
+	file-history.o		\
+	filetype.o		\
+	gbuf.o			\
+	highlight.o		\
+	history.o		\
+	iter.o			\
+	obuf.o			\
+	options.o		\
+	parse-command.o		\
+	search.o		\
+	spawn.o			\
+	syntax.o		\
+	term.o			\
+	termcap.o		\
+	terminfo.o		\
+	uchar.o			\
+	util.o			\
+	view.o			\
+	window.o		\
+	xmalloc.o		\
+	# end
 
 editor: $(objs)
 	$(call cmd,ld,)
