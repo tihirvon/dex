@@ -18,18 +18,23 @@ syn addr complexvar '\$\{[a-zA-Z_][a-zA-Z_0-9]*\}'
 syn addc sq "'" "'"
 syn addc dq '"' '"'
 syn addc backtick '`' '`'
+syn addc arithmetic '\$\(\(' '\)\)'
 syn addc command '\$\(' '\)'
 syn addc comment '#' '\n'
 
 syn connect comment notice
 syn connect dq escoct eschex esc simplevar complexvar backtick
 syn connect default escape
-syn connect default  comment keyword sq dq simplevar complexvar builtin builtin2 operator command backtick
-syn connect backtick comment keyword sq dq simplevar complexvar builtin builtin2 operator command
-syn connect command  comment keyword sq dq simplevar complexvar builtin builtin2 operator command backtick
+syn connect default    comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect backtick   comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect command    comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect arithmetic comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect default backtick
+syn connect command backtick
+syn connect arithmetic backtick
 
 syn join string sq dq
-syn join variable simplevar complexvar
+syn join variable simplevar complexvar arithmetic
 syn join builtin builtin2
 
 syn end
