@@ -35,6 +35,7 @@ unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up);
 unsigned int block_iter_next_line(struct block_iter *bi);
 unsigned int block_iter_prev_line(struct block_iter *bi);
 unsigned int block_iter_bol(struct block_iter *bi);
+unsigned int block_iter_eol(struct block_iter *bi);
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset);
 unsigned int block_iter_get_offset(struct block_iter *bi);
 

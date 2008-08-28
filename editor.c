@@ -9,6 +9,7 @@
 #include "file-history.h"
 #include "util.h"
 #include "color.h"
+#include "highlight.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -257,6 +258,35 @@ static void print_command_line(void)
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
 
+static const struct hl_color *current_hl_color;
+static const struct hl_list *current_hl_list;
+static int current_hl_entry_idx;
+static int current_hl_entry_pos;
+
+static void advance_hl(unsigned int count)
+{
+	while (1) {
+		const struct hl_entry *e = &current_hl_list->entries[current_hl_entry_idx];
+		unsigned int avail = hl_entry_len(e) - current_hl_entry_pos;
+
+		BUG_ON(!current_hl_list->count);
+		if (avail >= count) {
+			union syntax_node *n = idx_to_syntax_node(buffer->syn, hl_entry_idx(e));
+			current_hl_entry_pos += count;
+			current_hl_color = n->any.color;
+			return;
+		}
+		count -= avail;
+		current_hl_entry_idx++;
+		current_hl_entry_pos = 0;
+		if (current_hl_entry_idx == current_hl_list->count) {
+			BUG_ON(current_hl_list->node.next == &buffer->hl_head);
+			current_hl_list = HL_LIST(current_hl_list->node.next);
+			current_hl_entry_idx = 0;
+		}
+	}
+}
+
 static void mask_color(struct term_color *color, const struct term_color *over)
 {
 	if (over->fg != -2)
@@ -269,8 +299,12 @@ static void mask_color(struct term_color *color, const struct term_color *over)
 
 static void update_color(int nontext)
 {
-	struct term_color color = default_color->color;
+	struct term_color color;
 
+	if (current_hl_color)
+		color = current_hl_color->color;
+	else
+		color = default_color->color;
 	if (nontext)
 		mask_color(&color, &nontext_color->color);
 	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo)
@@ -283,6 +317,15 @@ static void update_color(int nontext)
 static void selection_init(struct block_iter *cur)
 {
 	cur_offset = block_iter_get_offset(cur);
+
+	current_hl_color = NULL;
+	current_hl_list = NULL;
+	current_hl_entry_idx = 0;
+	current_hl_entry_pos = 0;
+	if (!list_empty(&buffer->hl_head)) {
+		current_hl_list = HL_LIST(buffer->hl_head.next);
+		advance_hl(cur_offset);
+	}
 
 	if (view->sel.blk) {
 		struct block_iter si, ei;
@@ -318,6 +361,8 @@ static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
 {
 	unsigned int count = buffer->next_char(bi, u);
 
+	if (current_hl_list)
+		advance_hl(count);
 	update_color(nontext_color && is_non_text(*u));
 	cur_offset += count;
 	return count;
@@ -327,6 +372,8 @@ static unsigned int screen_next_line(struct block_iter *bi)
 {
 	unsigned int count = block_iter_next_line(bi);
 
+	if (current_hl_list)
+		advance_hl(count);
 	cur_offset += count;
 	return count;
 }
@@ -1079,6 +1126,7 @@ int main(int argc, char *argv[])
 	set_basic_colors();
 
 	read_config(editor_file("rc"));
+	update_all_syntax_colors();
 	currentline_color = find_color("currentline");
 	nontext_color = find_color("nontext");
 

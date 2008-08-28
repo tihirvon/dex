@@ -51,6 +51,9 @@ struct buffer {
 
 	struct local_options options;
 
+	const struct syntax *syn;
+	struct list_head hl_head;
+
 	unsigned int (*next_char)(struct block_iter *i, uchar *up);
 	unsigned int (*prev_char)(struct block_iter *i, uchar *up);
 };
@@ -179,5 +182,7 @@ void info_msg(const char *format, ...) __FORMAT(1, 2);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 
 void filetype_changed(struct buffer *b);
+void highlight_buffer(struct buffer *b);
+void update_hl_insert(unsigned int lines, int count);
 
 #endif

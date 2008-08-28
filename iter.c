@@ -201,6 +201,24 @@ unsigned int block_iter_bol(struct block_iter *bi)
 	return count;
 }
 
+unsigned int block_iter_eol(struct block_iter *bi)
+{
+	unsigned int count = 0;
+
+	while (1) {
+		uchar u;
+
+		if (!block_iter_next_byte(bi, &u))
+			break;
+		if (u == '\n') {
+			block_iter_prev_byte(bi, &u);
+			break;
+		}
+		count++;
+	}
+	return count;
+}
+
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
 {
 	struct block *blk;

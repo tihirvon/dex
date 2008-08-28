@@ -128,6 +128,8 @@ void do_insert(const char *buf, unsigned int len)
 	update_flags |= UPDATE_CURSOR_LINE;
 	if (nl)
 		update_flags |= UPDATE_FULL;
+
+	update_hl_insert(nl, len);
 }
 
 void insert(const char *buf, unsigned int len)
@@ -200,6 +202,7 @@ char *do_delete(unsigned int len)
 		BUG_ON(!n);
 		deleted += n;
 	}
+	update_hl_insert(0, -len);
 	return buf;
 }
 

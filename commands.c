@@ -10,6 +10,8 @@
 #include "util.h"
 #include "filetype.h"
 #include "color.h"
+#include "syntax.h"
+#include "highlight.h"
 
 #define MAX_KEYS 4
 
@@ -99,7 +101,7 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
  *
  * Returns parsed flags (order is preserved).
  */
-static const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
+const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 {
 	static char flags[16];
 	char **args = *argsp;
@@ -1017,6 +1019,22 @@ static void cmd_shift(char **args)
 	shift_lines(count);
 }
 
+static const struct command syntax_commands[] = {
+	{ "addc", NULL, syn_addc },
+	{ "addr", NULL, syn_addr },
+	{ "addw", NULL, syn_addw },
+	{ "begin", NULL, syn_begin },
+	{ "connect", NULL, syn_connect },
+	{ "end", NULL, syn_end },
+	{ "join", NULL, syn_join },
+	{ NULL, NULL, NULL }
+};
+
+static void cmd_syntax(char **args)
+{
+	run_command(syntax_commands, args);
+}
+
 static void cmd_tag(char **args)
 {
 	const char *pf = parse_args(&args, "", 0, 1);
@@ -1118,6 +1136,7 @@ const struct command commands[] = {
 	{ "select", NULL, cmd_select },
 	{ "set", NULL, cmd_set },
 	{ "shift", NULL, cmd_shift },
+	{ "syntax", "syn", cmd_syntax },
 	{ "tag", "t", cmd_tag },
 	{ "toggle", NULL, cmd_toggle },
 	{ "undo", NULL, cmd_undo },

@@ -1,0 +1,104 @@
+#ifndef SYNTAX_H
+#define SYNTAX_H
+
+#include "common.h"
+#include "list.h"
+#include "color.h"
+
+#define SYNTAX_NODE_CONTEXT	0
+#define SYNTAX_NODE_PATTERN	1
+#define SYNTAX_NODE_WORD	2
+
+#define SYNTAX_FLAG_ICASE	(1 << 0)
+
+struct syntax_any {
+	char *name;
+	struct hl_color *color;
+	int type;
+	unsigned int flags;
+};
+
+struct syntax_word {
+	struct syntax_any any;
+
+	int nr_words;
+	char **words;
+
+	regex_t regex;
+};
+
+struct syntax_pattern {
+	struct syntax_any any;
+
+	char *pattern;
+
+	regex_t regex;
+};
+
+struct syntax_context {
+	struct syntax_any any;
+
+	int nr_nodes;
+	char *spattern;
+	char *epattern;
+	union syntax_node **nodes;
+
+	regex_t sregex;
+	regex_t eregex;
+};
+
+union syntax_node {
+	struct syntax_any any;
+	struct syntax_word word;
+	struct syntax_pattern pattern;
+	struct syntax_context context;
+};
+
+struct syntax_join {
+	char *name;
+	union syntax_node **nodes;
+	int nr_nodes;
+};
+
+struct syntax {
+	struct list_head node;
+	char *name;
+	union syntax_node **nodes;
+	int nr_nodes;
+
+	struct syntax_join *join;
+	int nr_join;
+};
+
+extern struct list_head syntaxes;
+
+void syn_begin(char **args);
+void syn_end(char **args);
+void syn_addw(char **args);
+void syn_addr(char **args);
+void syn_addc(char **args);
+void syn_connect(char **args);
+void syn_join(char **args);
+
+struct syntax *find_syntax(const char *name);
+
+static inline unsigned char get_syntax_node_idx(const struct syntax *syn, const union syntax_node *node)
+{
+	unsigned char idx;
+	for (idx = 0; syn->nodes[idx] != node; idx++)
+		;
+	return idx;
+}
+
+static inline union syntax_node *idx_to_syntax_node(const struct syntax *syn, unsigned char idx)
+{
+	BUG_ON(idx > 126);
+	return syn->nodes[idx];
+}
+
+static inline struct syntax_context *syntax_get_default_context(const struct syntax *syn)
+{
+	return &syn->nodes[0]->context;
+}
+
+#endif

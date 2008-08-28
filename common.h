@@ -35,6 +35,10 @@
 #define DEBUG 1
 #endif
 
+#ifndef DEBUG_SYNTAX
+#define DEBUG_SYNTAX DEBUG
+#endif
+
 #if DEBUG <= 0
 #define BUG(...) do { } while (0)
 #define d_print(...) do { } while (0)
