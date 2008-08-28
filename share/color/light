@@ -1,0 +1,23 @@
+hi keyword bold
+hi type bold
+hi label bold
+hi notice bold red
+hi numeric magenta
+hi constant magenta
+hi char magenta
+hi string magenta
+hi special bold red
+hi comment bold blue
+hi preproc blue
+hi error black yellow
+
+hi variable blue
+hi backtick red bold
+hi builtin bold
+hi operator bold
+
+# override background color for current line (hides whitespace errors)
+hi currentline keep default keep
+
+hi selection keep gray keep
+hi nontext blue keep

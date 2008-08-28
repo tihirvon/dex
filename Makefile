@@ -42,6 +42,32 @@ objs 	:= 			\
 	xmalloc.o		\
 	# end
 
+binding	:=	 		\
+	binding/default		\
+	# end
+
+color	:=			\
+	color/light		\
+	# end
+
+config	:=			\
+	filetype		\
+	rc			\
+	# end
+
+syntax	:=			\
+	syntax/c		\
+	syntax/editor		\
+	syntax/gitcommit	\
+	syntax/none		\
+	syntax/sh		\
+	# end
+
+binding	:= $(addprefix share/,$(binding))
+color	:= $(addprefix share/,$(color))
+config	:= $(addprefix share/,$(config))
+syntax	:= $(addprefix share/,$(syntax))
+
 editor: $(objs)
 	$(call cmd,ld,)
 
@@ -50,6 +76,10 @@ distclean	+= config.mk
 
 install: all
 	$(INSTALL) -m755 $(bindir) editor
+	$(INSTALL) -m644 $(datadir)/editor $(config)
+	$(INSTALL) -m644 $(datadir)/editor/binding $(binding)
+	$(INSTALL) -m644 $(datadir)/editor/color $(color)
+	$(INSTALL) -m644 $(datadir)/editor/syntax $(syntax)
 
 tags:
 	exuberant-ctags *.[ch]

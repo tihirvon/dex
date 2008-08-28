@@ -1,0 +1,4 @@
+syn begin none
+syn addr error '[ \t]+$'
+syn connect default error
+syn end

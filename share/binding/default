@@ -1,0 +1,51 @@
+# obvious bindings
+bind left left
+bind right right
+bind up up
+bind down down
+bind home bol
+bind end eol
+bind pgup pgup
+bind pgdown pgdown
+bind ^[ cancel
+
+# commonly used
+bind ^A bol
+#bind ^E eol
+bind ^F right
+bind ^B left
+bind ^U delete-bol
+bind ^K delete-eol
+bind ^W erase-word
+
+bind ^E undo
+bind ^R redo
+bind ^Y copy
+bind ^D cut
+bind ^P paste
+bind ^V "select -l"
+bind ^G center-cursor
+bind ^J join
+bind ^O "eol; insert -ek '\n'"
+bind ^S "bol; delete-eol; left; delete; insert -ek '\n'"
+bind ^C command
+bind ^L "command 'line '"
+bind ^T pop
+bind ^] tag
+
+bind M-/ search-fwd
+bind M-? search-bwd
+bind M-p search-prev
+bind M-n search-next
+bind M-f "search-fwd -w"
+bind M-b "search-bwd -w"
+bind M-s select
+bind M-t bof
+bind M-e eof
+bind M-m "run -pc 'man %s'"
+bind M-[ "error -p"
+bind M-] "error -n"
+bind M-, "shift -- -1"
+bind M-. "shift 1"
+bind M-< "shift -- -1"
+bind M-> shift

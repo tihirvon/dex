@@ -1,0 +1,17 @@
+include /usr/share/editor/binding/default
+include /usr/share/editor/color/light
+include /usr/share/editor/filetype
+
+errorfmt -i gcc "error: \(Each undeclared identifier is reported only once"
+errorfmt -i gcc "error: for each function it appears in.\)"
+errorfmt gcc "^(.+):([0-9]+):([0-9]+): (.*)" file line column message
+errorfmt gcc "^(.+):([0-9]+): (.*)" file line message
+errorfmt gcc "^.* at (.+):([0-9]+):$" file line
+errorfmt -r gcc "^In file included from (.+):([0-9]+)[,:]" file line
+errorfmt -r gcc "^ +from (.+):([0-9]+)[,:]" file line
+errorfmt -r gcc "^(.+): (In function .*:)$" file message
+errorfmt -r gcc "^cc1: warnings being treated as errors$"
+errorfmt -i gcc "^make: \*\*\* \[.*\] Error [0-9]+$"
+errorfmt -i gcc "^collect2: ld returned [0-9]+ exit status$"
+
+errorfmt grep "^([^:]+):([0-9]+):.*" file line

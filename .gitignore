@@ -6,3 +6,4 @@ tags
 callgrind.out.*
 
 !.gitignore
+!share/syntax/editor

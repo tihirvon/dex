@@ -1,0 +1,25 @@
+syn begin gitcommit
+
+syn addc onbranch ' On branch ' '\n'
+syn addr branch '.*'
+syn addr added ' Changes to be committed:$'
+syn addr modified ' Changed but not updated:$'
+syn addr untracked ' Untracked files:$'
+syn addr file '.*'
+syn addc label '	[a-z]+:' '\n'
+syn addr newfile '	.*$'
+syn addc comment '^#' '\n'
+
+syn connect default comment
+syn connect comment onbranch added modified untracked label newfile
+syn connect onbranch branch
+syn connect label file
+
+syn join comment onbranch
+syn join notice branch
+
+syn end
+
+hi added bold
+hi modified bold red
+hi untracked bold red
