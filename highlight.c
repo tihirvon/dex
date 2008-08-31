@@ -155,11 +155,6 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 		h->matches[h->nr_matches].eoc = eoc;
 		h->nr_matches++;
 
-		if (n->any.type == SYNTAX_NODE_CONTEXT) {
-			/* need to restart */
-			break;
-		}
-
 		offset = m.rm_eo;
 		if (offset == h->line_len && !len)
 			break;
