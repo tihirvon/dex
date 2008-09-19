@@ -28,6 +28,9 @@ struct window *window_new(void);
 struct view *window_add_buffer(struct buffer *b);
 
 struct view *open_buffer(const char *filename);
+struct view *open_empty_buffer(void);
+struct view *open_existing_file(const char *filename);
+
 int save_buffer(const char *filename, enum newline_sequence newline);
 void free_buffer(struct buffer *b);
 void remove_view(void);

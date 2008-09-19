@@ -81,6 +81,8 @@ void search_tag(const char *pattern)
 	} else {
 		if (do_search_fwd(&regex))
 			center_cursor();
+		else
+			error_msg("Tag not found.");
 	}
 	regfree(&regex);
 }

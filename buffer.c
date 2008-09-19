@@ -175,7 +175,7 @@ static void buffer_set_callbacks(struct buffer *b)
 	}
 }
 
-static struct view *empty_buffer(void)
+struct view *open_empty_buffer(void)
 {
 	struct buffer *b = buffer_new();
 	struct block *blk;
@@ -364,15 +364,12 @@ static struct syntax *load_syntax(const char *filetype)
 	return syn;
 }
 
-struct view *open_buffer(const char *filename)
+static struct view *do_open_buffer(const char *filename, int must_exist)
 {
 	struct buffer *b;
 	struct view *v;
 	char *absolute;
 	int fd;
-
-	if (!filename)
-		return empty_buffer();
 
 	absolute = path_absolute(filename);
 	if (!absolute) {
@@ -398,8 +395,14 @@ struct view *open_buffer(const char *filename)
 
 	fd = open(filename, O_RDWR);
 	if (fd < 0) {
-		if (errno == ENOENT)
+		if (errno == ENOENT) {
+			if (must_exist) {
+				error_msg("File %s does not exist.", filename);
+				free_buffer(b);
+				return NULL;
+			}
 			goto skip_read;
+		}
 		fd = open(filename, O_RDONLY);
 		if (fd < 0) {
 			error_msg("Error opening %s: %s", filename, strerror(errno));
@@ -433,6 +436,16 @@ skip_read:
 	filetype_changed(b);
 	buffer_set_callbacks(b);
 	return window_add_buffer(b);
+}
+
+struct view *open_buffer(const char *filename)
+{
+	return do_open_buffer(filename, 0);
+}
+
+struct view *open_existing_file(const char *filename)
+{
+	return do_open_buffer(filename, 1);
 }
 
 void filetype_changed(struct buffer *b)

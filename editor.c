@@ -1149,7 +1149,7 @@ int main(int argc, char *argv[])
 	for (; i < argc; i++)
 		open_buffer(argv[i]);
 	if (list_empty(&window->views))
-		open_buffer(NULL);
+		open_empty_buffer();
 	set_view(VIEW(window->views.next));
 
 	error_buf[0] = 0;

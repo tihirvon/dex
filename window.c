@@ -33,7 +33,7 @@ void remove_view(void)
 
 	view_delete(view);
 	if (list_empty(&window->views))
-		open_buffer(NULL);
+		open_empty_buffer();
 	if (prev == &window->views)
 		prev = prev->next;
 	set_view(VIEW(prev));

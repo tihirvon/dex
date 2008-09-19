@@ -660,7 +660,10 @@ static void cmd_open(char **args)
 	if (!pf)
 		return;
 
-	v = open_buffer(args[0]);
+	if (!args[0])
+		v = open_empty_buffer();
+	else
+		v = open_buffer(args[0]);
 	if (v)
 		set_view(v);
 }
