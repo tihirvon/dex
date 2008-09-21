@@ -33,7 +33,7 @@ static int do_search_fwd(regex_t *regex)
 static int do_search_bwd(regex_t *regex)
 {
 	struct block_iter bi = view->cursor;
-	int cx = view->cx_idx;
+	int cx = view->cx_char;
 	uchar u;
 
 	do {

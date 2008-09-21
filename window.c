@@ -93,7 +93,7 @@ void update_cursor_x(struct view *v)
 
 	block_iter_bol(&bi);
 	v->cx_display = 0;
-	v->cx_idx = 0;
+	v->cx_char = 0;
 	while (1) {
 		uchar u;
 
@@ -105,7 +105,7 @@ void update_cursor_x(struct view *v)
 		}
 		if (!v->buffer->next_char(&bi, &u))
 			break;
-		v->cx_idx++;
+		v->cx_char++;
 		if (u == '\t') {
 			v->cx_display = (v->cx_display + tw) / tw * tw;
 		} else if (u < 0x20) {

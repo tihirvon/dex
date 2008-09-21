@@ -73,7 +73,7 @@ struct view {
 	int cx_display;
 
 	// cursor x in characters (invalid utf8 character (byte) is one char)
-	int cx_idx;
+	int cx_char;
 
 	// top left corner
 	int vx, vy;

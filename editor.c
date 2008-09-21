@@ -113,8 +113,8 @@ static int format_status(char *buf, int size, const char *format)
 				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_display + 1));
 				break;
 			case 'X':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_idx + 1));
-				if (view->cx_display != view->cx_idx)
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_char + 1));
+				if (view->cx_display != view->cx_char)
 					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx_display + 1));
 				break;
 			case 'c':
