@@ -1000,6 +1000,14 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	input_special = INPUT_SPECIAL_NONE;
 }
 
+static void handle_input(enum term_key_type type, unsigned int key)
+{
+	if (input_special)
+		handle_raw(type, key);
+	else
+		handle_key(type, key);
+}
+
 static void handle_signal(void)
 {
 	switch (received_signal) {
@@ -1007,16 +1015,16 @@ static void handle_signal(void)
 		update_everything();
 		break;
 	case SIGINT:
-		if (input_special)
-			handle_raw(KEY_NORMAL, 0x03);
-		else
-			handle_key(KEY_NORMAL, 0x03);
+		handle_input(KEY_NORMAL, 0x03);
 		break;
 	case SIGTSTP:
 		ui_end();
 		kill(0, SIGSTOP);
 	case SIGCONT:
 		ui_start(0);
+		break;
+	case SIGQUIT:
+		handle_input(KEY_NORMAL, 0x1c);
 		break;
 	}
 	received_signal = 0;
@@ -1134,7 +1142,7 @@ int main(int argc, char *argv[])
 	set_signal_handler(SIGINT, signal_handler);
 	set_signal_handler(SIGTSTP, signal_handler);
 	set_signal_handler(SIGCONT, signal_handler);
-	set_signal_handler(SIGQUIT, SIG_IGN);
+	set_signal_handler(SIGQUIT, signal_handler);
 
 	obuf.alloc = 8192;
 	obuf.buf = xmalloc(obuf.alloc);
@@ -1165,10 +1173,7 @@ int main(int argc, char *argv[])
 			if (term_read_key(&key, &type)) {
 				/* clear possible error message */
 				error_buf[0] = 0;
-				if (input_special)
-					handle_raw(type, key);
-				else
-					handle_key(type, key);
+				handle_input(type, key);
 			}
 		}
 	}
