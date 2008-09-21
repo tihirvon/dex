@@ -108,8 +108,6 @@ void update_cursor_x(struct view *v)
 		v->cx_char++;
 		if (u == '\t') {
 			v->cx_display = (v->cx_display + tw) / tw * tw;
-		} else if (u < 0x20) {
-			v->cx_display += 2;
 		} else {
 			v->cx_display += u_char_width(u);
 		}
