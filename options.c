@@ -225,7 +225,7 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 
 	if (!value) {
 		if (desc->enum_opt.values != bool_enum) {
-			error_msg("Invalid value for %s.", desc->name);
+			error_msg("Option %s is not boolean.", desc->name);
 			return;
 		}
 		val = 1;
