@@ -347,18 +347,46 @@ void collect_options(const char *prefix)
 
 void collect_option_values(const char *name, const char *prefix)
 {
-	int len = strlen(prefix);
-	int i, j;
+	int i;
 
 	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
 		const struct option_description *desc = &option_desc[i];
-		if (desc->type != OPT_ENUM || strcmp(name, desc->name))
+
+		if (strcmp(name, desc->name))
 			continue;
-		for (j = 0; desc->enum_opt.values[j]; j++) {
-			if (!strncmp(prefix, desc->enum_opt.values[j], len))
-				add_completion(xstrdup(desc->enum_opt.values[j]));
+
+		if (!*prefix) {
+			/* complete value */
+			const char *ptr;
+			char buf[32];
+
+			if (desc->local) {
+				ptr = (const char *)&buffer->options + desc->offset;
+			} else {
+				ptr = (const char *)&options + desc->offset;
+			}
+			switch (desc->type) {
+			case OPT_INT:
+				snprintf(buf, sizeof(buf), "%d", *(int *)ptr);
+				add_completion(xstrdup(buf));
+				break;
+			case OPT_STR:
+				add_completion(xstrdup(*(const char **)ptr));
+				break;
+			case OPT_ENUM:
+				add_completion(xstrdup(desc->enum_opt.values[*(int *)ptr]));
+				break;
+			}
+		} else if (desc->type == OPT_ENUM) {
+			/* complete possible values */
+			int j, len = strlen(prefix);
+
+			for (j = 0; desc->enum_opt.values[j]; j++) {
+				if (!strncmp(prefix, desc->enum_opt.values[j], len))
+					add_completion(xstrdup(desc->enum_opt.values[j]));
+			}
+			break;
 		}
-		break;
 	}
 }
 
