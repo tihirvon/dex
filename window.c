@@ -92,8 +92,9 @@ void update_cursor_x(struct view *v)
 	unsigned int tw = v->buffer->options.tab_width;
 
 	block_iter_bol(&bi);
-	v->cx_display = 0;
+	v->cx = 0;
 	v->cx_char = 0;
+	v->cx_display = 0;
 	while (1) {
 		uchar u;
 
@@ -105,6 +106,8 @@ void update_cursor_x(struct view *v)
 		}
 		if (!v->buffer->next_char(&bi, &u))
 			break;
+
+		v->cx += buffer->utf8 ? u_char_size(u) : 1;
 		v->cx_char++;
 		if (u == '\t') {
 			v->cx_display = (v->cx_display + tw) / tw * tw;

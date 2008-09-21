@@ -65,8 +65,8 @@ struct view {
 
 	struct block_iter cursor;
 
-	// cursor y
-	int cy;
+	// cursor position
+	int cx, cy;
 
 	// visual cursor x
 	// character widths: wide 2, tab 1-8, control 2, invalid char 4

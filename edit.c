@@ -692,28 +692,23 @@ static int is_word_byte(unsigned char byte)
 char *get_word_under_cursor(void)
 {
 	struct block_iter bi = view->cursor;
-	GBUF(buf);
-	uchar ch;
+	int si, ei;
 
-	if (!block_iter_next_byte(&bi, &ch))
-		return NULL;
+	block_iter_bol(&bi);
+	fetch_eol(&bi);
 
-	while (is_word_byte(ch)) {
-		if (!block_iter_prev_byte(&bi, &ch))
-			break;
-
-	}
-	while (!is_word_byte(ch)) {
-		if (!block_iter_next_byte(&bi, &ch))
+	si = view->cx;
+	while (!is_word_byte(line_buffer[si])) {
+		if (!line_buffer[si])
 			return NULL;
+		si++;
 	}
-
-	do {
-		gbuf_add_ch(&buf, ch);
-		if (!block_iter_next_byte(&bi, &ch))
-			break;
-	} while (is_word_byte(ch));
-	return gbuf_steal(&buf);
+	ei = si;
+	while (si > 0 && is_word_byte(line_buffer[si - 1]))
+		si--;
+	while (is_word_byte(line_buffer[ei + 1]))
+		ei++;
+	return xstrndup(line_buffer + si, ei - si + 1);
 }
 
 void erase_word(void)
