@@ -926,7 +926,6 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	static int max_chars;
 	static int value;
 	static int nr;
-	unsigned int n;
 	char buf[4];
 
 	if (type != KEY_NORMAL) {
@@ -966,34 +965,39 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 		}
 	}
 
-	if (isdigit(key)) {
-		n = key - '0';
-	} else if (key >= 'a' && key <= 'f') {
-		n = key - 'a' + 10;
-	} else if (key >= 'A' && key <= 'F') {
-		n = key - 'A' + 10;
-	} else {
-		input_special = INPUT_SPECIAL_NONE;
-		return;
-	}
-	if ((base == 8 && n > 7) || (base == 10 && n > 9)) {
-		input_special = INPUT_SPECIAL_NONE;
-		return;
-	}
-	value *= base;
-	value += n;
-	if (++nr == max_chars) {
-		if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(value)) {
-			int idx = 0;
-			u_set_char_raw(buf, &idx, value);
-			insert_special(buf, idx);
+	if (key != '\r') {
+		unsigned int n;
+
+		if (isdigit(key)) {
+			n = key - '0';
+		} else if (key >= 'a' && key <= 'f') {
+			n = key - 'a' + 10;
+		} else if (key >= 'A' && key <= 'F') {
+			n = key - 'A' + 10;
+		} else {
+			input_special = INPUT_SPECIAL_NONE;
+			return;
 		}
-		if (input_special != INPUT_SPECIAL_UNICODE && value <= 255) {
-			buf[0] = value;
-			insert_special(buf, 1);
+		if ((base == 8 && n > 7) || (base == 10 && n > 9)) {
+			input_special = INPUT_SPECIAL_NONE;
+			return;
 		}
-		input_special = INPUT_SPECIAL_NONE;
+		value *= base;
+		value += n;
+		if (++nr < max_chars)
+			return;
 	}
+
+	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(value)) {
+		int idx = 0;
+		u_set_char_raw(buf, &idx, value);
+		insert_special(buf, idx);
+	}
+	if (input_special != INPUT_SPECIAL_UNICODE && value <= 255) {
+		buf[0] = value;
+		insert_special(buf, 1);
+	}
+	input_special = INPUT_SPECIAL_NONE;
 }
 
 static void handle_signal(void)
