@@ -212,6 +212,10 @@ static void set_int_opt(const struct option_description *desc, const char *value
 
 static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
 {
+	if (!value) {
+		error_msg("String value for %s expected.", desc->name);
+		return;
+	}
 	desc->str_opt.set(local, global, value);
 }
 
