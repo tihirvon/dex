@@ -43,7 +43,7 @@ void view_delete(struct view *v)
 
 	if (!--b->ref) {
 		if (b->abs_filename)
-			add_file_history(v->cx, v->cy, b->abs_filename);
+			add_file_history(v->cx_display, v->cy, b->abs_filename);
 		free_buffer(b);
 	}
 	list_del(&v->node);

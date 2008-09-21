@@ -92,7 +92,7 @@ void update_cursor_x(struct view *v)
 	unsigned int tw = v->buffer->options.tab_width;
 
 	block_iter_bol(&bi);
-	v->cx = 0;
+	v->cx_display = 0;
 	v->cx_idx = 0;
 	while (1) {
 		uchar u;
@@ -107,11 +107,11 @@ void update_cursor_x(struct view *v)
 			break;
 		v->cx_idx++;
 		if (u == '\t') {
-			v->cx = (v->cx + tw) / tw * tw;
+			v->cx_display = (v->cx_display + tw) / tw * tw;
 		} else if (u < 0x20) {
-			v->cx += 2;
+			v->cx_display += 2;
 		} else {
-			v->cx += u_char_width(u);
+			v->cx_display += u_char_width(u);
 		}
 	}
 }
@@ -122,10 +122,10 @@ void update_cursor(struct view *v)
 
 	update_cursor_x(v);
 	update_cursor_y(v);
-	if (v->cx - v->vx >= v->window->w)
-		v->vx = (v->cx - v->window->w + c) & ~(c - 1);
-	if (v->cx < v->vx)
-		v->vx = v->cx / c * c;
+	if (v->cx_display - v->vx >= v->window->w)
+		v->vx = (v->cx_display - v->window->w + c) & ~(c - 1);
+	if (v->cx_display < v->vx)
+		v->vx = v->cx_display / c * c;
 
 	if (v->cy < v->vy)
 		v->vy = v->cy;

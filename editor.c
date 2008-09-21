@@ -110,12 +110,12 @@ static int format_status(char *buf, int size, const char *format)
 				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
 				break;
 			case 'x':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx + 1));
+				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_display + 1));
 				break;
 			case 'X':
 				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_idx + 1));
-				if (view->cx != view->cx_idx)
-					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx + 1));
+				if (view->cx_display != view->cx_idx)
+					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx_display + 1));
 				break;
 			case 'c':
 				if (got_char)
@@ -470,7 +470,7 @@ static void restore_cursor(void)
 {
 	switch (input_mode) {
 	case INPUT_NORMAL:
-		buf_move_cursor(view->cx - view->vx, view->cy - view->vy);
+		buf_move_cursor(view->cx_display - view->vx, view->cy - view->vy);
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
@@ -805,7 +805,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 static void handle_key(enum term_key_type type, unsigned int key)
 {
 	struct change_head *save_change_head = buffer->save_change_head;
-	int cx = view->cx;
+	int cx = view->cx_display;
 	int cy = view->cy;
 	int vx = view->vx;
 	int vy = view->vy;
@@ -862,13 +862,13 @@ static void handle_key(enum term_key_type type, unsigned int key)
 
 	if (vx != view->vx || vy != view->vy) {
 		update_flags |= UPDATE_FULL;
-	} else if (cx != view->cx || cy != view->cy ||
+	} else if (cx != view->cx_display || cy != view->cy ||
 			save_change_head != buffer->save_change_head) {
 		update_flags |= UPDATE_STATUS_LINE;
 
 		if (cy != view->cy)
 			update_flags |= UPDATE_RANGE;
-		if (cx != view->cx && view->sel.blk)
+		if (cx != view->cx_display && view->sel.blk)
 			update_flags |= UPDATE_CURSOR_LINE;
 	}
 

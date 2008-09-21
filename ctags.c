@@ -136,7 +136,7 @@ static struct file_location *create_location(void)
 
 	loc = xnew(struct file_location, 1);
 	loc->filename = xstrdup(buffer->filename);
-	loc->x = view->cx;
+	loc->x = view->cx_display;
 	loc->y = view->cy;
 	return loc;
 }

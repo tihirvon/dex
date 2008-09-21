@@ -68,8 +68,9 @@ struct view {
 	// cursor y
 	int cy;
 
-	// cursor x (wide char 2, tab 1-8, control character 2, invalid char 4)
-	int cx;
+	// visual cursor x
+	// character widths: wide 2, tab 1-8, control 2, invalid char 4
+	int cx_display;
 
 	// cursor x in characters (invalid utf8 character (byte) is one char)
 	int cx_idx;
@@ -77,7 +78,7 @@ struct view {
 	// top left corner
 	int vx, vy;
 
-	// preferred cursor x (cx)
+	// preferred cursor x (preferred value for cx_display)
 	int preferred_x;
 
 	// Selection always starts at exact position of cursor and ends to
