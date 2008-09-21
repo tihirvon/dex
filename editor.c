@@ -543,7 +543,6 @@ void ui_start(int prompt)
 		buf_escape(term_cap.ks);
 
 	// use alternate buffer if possible
-/* 	term_write_str("\033[?47h"); */
 	if (term_cap.ti)
 		buf_escape(term_cap.ti);
 
@@ -554,8 +553,11 @@ void ui_start(int prompt)
 
 void ui_end(void)
 {
+	struct term_color color = { -1, -1, 0 };
+
+	buf_set_color(&color);
+
 	// back to main buffer
-/* 	term_write_str("\033[?47l"); */
 	if (term_cap.te)
 		buf_escape(term_cap.te);
 
