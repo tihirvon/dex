@@ -927,6 +927,7 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	static int value;
 	static int nr;
 	unsigned int n;
+	char buf[4];
 
 	if (type != KEY_NORMAL) {
 		input_special = INPUT_SPECIAL_NONE;
@@ -935,38 +936,34 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		value = 0;
 		nr = 0;
-		switch (key) {
-		case 'o':
-		case 'O':
-			input_special = INPUT_SPECIAL_OCT;
-			base = 8;
+		if (isdigit(key)) {
+			input_special = INPUT_SPECIAL_DEC;
+			base = 10;
 			max_chars = 3;
-			break;
-		case 'x':
-		case 'X':
-			input_special = INPUT_SPECIAL_HEX;
-			base = 16;
-			max_chars = 2;
-			break;
-		case 'u':
-		case 'U':
-			input_special = INPUT_SPECIAL_UNICODE;
-			base = 16;
-			max_chars = 6;
-			break;
-		default:
-			if (isdigit(key)) {
-				input_special = INPUT_SPECIAL_DEC;
-				base = 10;
+		} else {
+			switch (tolower(key)) {
+			case 'o':
+				input_special = INPUT_SPECIAL_OCT;
+				base = 8;
 				max_chars = 3;
-			} else {
-				char buf[1] = { key };
+				break;
+			case 'x':
+				input_special = INPUT_SPECIAL_HEX;
+				base = 16;
+				max_chars = 2;
+				break;
+			case 'u':
+				input_special = INPUT_SPECIAL_UNICODE;
+				base = 16;
+				max_chars = 6;
+				break;
+			default:
+				buf[0] = key;
 				insert_special(buf, 1);
 				input_special = INPUT_SPECIAL_NONE;
-				return;
 			}
+			return;
 		}
-		return;
 	}
 
 	if (isdigit(key)) {
@@ -987,13 +984,12 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	value += n;
 	if (++nr == max_chars) {
 		if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(value)) {
-			char buf[4];
 			int idx = 0;
 			u_set_char_raw(buf, &idx, value);
 			insert_special(buf, idx);
 		}
 		if (input_special != INPUT_SPECIAL_UNICODE && value <= 255) {
-			char buf[1] = { value };
+			buf[0] = value;
 			insert_special(buf, 1);
 		}
 		input_special = INPUT_SPECIAL_NONE;
