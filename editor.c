@@ -920,12 +920,63 @@ static void insert_special(const char *buf, int size)
 	buf_flush();
 }
 
+static struct {
+	int base;
+	int max_chars;
+	int value;
+	int nr;
+} raw_input;
+
+static void raw_status(void)
+{
+	int i, value = raw_input.value;
+	const char *str = "";
+	char buf[7];
+
+	if (input_special == INPUT_SPECIAL_UNKNOWN) {
+		info_msg("Insert special character");
+		goto update;
+	}
+
+	for (i = 0; i < raw_input.nr; i++) {
+		buf[raw_input.nr - i - 1] = hex_tab[value % raw_input.base];
+		value /= raw_input.base;
+	}
+	while (i < raw_input.max_chars)
+		buf[i++] = ' ';
+	buf[i] = 0;
+
+	switch (input_special) {
+	case INPUT_SPECIAL_NONE:
+		break;
+	case INPUT_SPECIAL_UNKNOWN:
+		break;
+	case INPUT_SPECIAL_OCT:
+		str = "oct";
+		break;
+	case INPUT_SPECIAL_DEC:
+		str = "dec";
+		break;
+	case INPUT_SPECIAL_HEX:
+		str = "hex";
+		break;
+	case INPUT_SPECIAL_UNICODE:
+		str = "unicode, hex";
+		break;
+	}
+
+	info_msg("Insert %s <%s>", str, buf);
+update:
+	buf_hide_cursor();
+	update_status_line();
+	restore_cursor();
+	buf_show_cursor();
+	update_flags = 0;
+	buf_flush();
+}
+
 static void handle_raw(enum term_key_type type, unsigned int key)
 {
-	static int base;
-	static int max_chars;
-	static int value;
-	static int nr;
 	char buf[4];
 
 	if (type != KEY_NORMAL) {
@@ -933,28 +984,28 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 		return;
 	}
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
-		value = 0;
-		nr = 0;
+		raw_input.value = 0;
+		raw_input.nr = 0;
 		if (isdigit(key)) {
 			input_special = INPUT_SPECIAL_DEC;
-			base = 10;
-			max_chars = 3;
+			raw_input.base = 10;
+			raw_input.max_chars = 3;
 		} else {
 			switch (tolower(key)) {
 			case 'o':
 				input_special = INPUT_SPECIAL_OCT;
-				base = 8;
-				max_chars = 3;
+				raw_input.base = 8;
+				raw_input.max_chars = 3;
 				break;
 			case 'x':
 				input_special = INPUT_SPECIAL_HEX;
-				base = 16;
-				max_chars = 2;
+				raw_input.base = 16;
+				raw_input.max_chars = 2;
 				break;
 			case 'u':
 				input_special = INPUT_SPECIAL_UNICODE;
-				base = 16;
-				max_chars = 6;
+				raw_input.base = 16;
+				raw_input.max_chars = 6;
 				break;
 			default:
 				buf[0] = key;
@@ -978,23 +1029,23 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 			input_special = INPUT_SPECIAL_NONE;
 			return;
 		}
-		if ((base == 8 && n > 7) || (base == 10 && n > 9)) {
+		if ((raw_input.base == 8 && n > 7) || (raw_input.base == 10 && n > 9)) {
 			input_special = INPUT_SPECIAL_NONE;
 			return;
 		}
-		value *= base;
-		value += n;
-		if (++nr < max_chars)
+		raw_input.value *= raw_input.base;
+		raw_input.value += n;
+		if (++raw_input.nr < raw_input.max_chars)
 			return;
 	}
 
-	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(value)) {
+	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
 		int idx = 0;
-		u_set_char_raw(buf, &idx, value);
+		u_set_char_raw(buf, &idx, raw_input.value);
 		insert_special(buf, idx);
 	}
-	if (input_special != INPUT_SPECIAL_UNICODE && value <= 255) {
-		buf[0] = value;
+	if (input_special != INPUT_SPECIAL_UNICODE && raw_input.value <= 255) {
+		buf[0] = raw_input.value;
 		insert_special(buf, 1);
 	}
 	input_special = INPUT_SPECIAL_NONE;
@@ -1006,6 +1057,8 @@ static void handle_input(enum term_key_type type, unsigned int key)
 		handle_raw(type, key);
 	else
 		handle_key(type, key);
+	if (input_special)
+		raw_status();
 }
 
 static void set_signal_handler(int signum, void (*handler)(int))
