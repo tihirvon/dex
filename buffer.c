@@ -489,30 +489,43 @@ static void check_incomplete_last_line(void)
 
 int save_buffer(const char *filename, enum newline_sequence newline)
 {
+	/* try to use temporary file first, safer */
+	int ren = 1;
 	struct block *blk;
 	char tmp[PATH_MAX];
 	WBUF(wbuf);
-	int len, rc;
+	int rc, len;
+	unsigned int size;
+	mode_t mode = buffer->st.st_mode ? buffer->st.st_mode : 0666 & ~get_umask();
+
+	if (!strncmp(filename, "/tmp/", 5))
+		ren = 0;
 
 	len = strlen(filename);
-	if (len + 8 > PATH_MAX) {
-		errno = ENAMETOOLONG;
-		error_msg("Error making temporary path name: %s", strerror(errno));
-		return -1;
+	if (len + 8 > PATH_MAX)
+		ren = 0;
+	if (ren) {
+		memcpy(tmp, filename, len);
+		tmp[len] = '.';
+		memset(tmp + len + 1, 'X', 6);
+		tmp[len + 7] = 0;
+		wbuf.fd = mkstemp(tmp);
+		if (wbuf.fd < 0) {
+			ren = 0;
+		} else {
+			fchmod(wbuf.fd, mode);
+		}
 	}
-
-	memcpy(tmp, filename, len);
-	tmp[len] = '.';
-	memset(tmp + len + 1, 'X', 6);
-	tmp[len + 7] = 0;
-	wbuf.fd = mkstemp(tmp);
-	if (wbuf.fd < 0) {
-		error_msg("Error creating temporary file: %s", strerror(errno));
-		return -1;
+	if (!ren) {
+		wbuf.fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, mode);
+		if (wbuf.fd < 0) {
+			error_msg("Error opening file: %s", strerror(errno));
+			return -1;
+		}
 	}
-	fchmod(wbuf.fd, buffer->st.st_mode ? buffer->st.st_mode : 0666 & ~get_umask());
 
 	rc = 0;
+	size = 0;
 	list_for_each_entry(blk, &buffer->blocks, node) {
 		if (blk->size) {
 			if (newline == NEWLINE_DOS)
@@ -522,14 +535,21 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 			if (rc)
 				break;
 		}
+		size += blk->size;
 	}
 	if (rc || wbuf_flush(&wbuf)) {
 		error_msg("Write error: %s", strerror(errno));
-		unlink(tmp);
+		if (ren)
+			unlink(tmp);
 		close(wbuf.fd);
 		return -1;
 	}
-	if (rename(tmp, filename)) {
+	if (!ren && ftruncate(wbuf.fd, size)) {
+		error_msg("Truncate failed: %s", strerror(errno));
+		close(wbuf.fd);
+		return -1;
+	}
+	if (ren && rename(tmp, filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
 		unlink(tmp);
 		close(wbuf.fd);
