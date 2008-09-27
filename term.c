@@ -66,8 +66,11 @@ void term_raw(void)
 	tcgetattr(0, &termios);
 	termios_save = termios;
 
-	/* disable buffering and echo */
-	termios.c_lflag &= ~(ICANON | ECHO);
+	/* disable buffering
+	 * disable echo
+	 * disable generation of signals (free some control keys)
+	 */
+	termios.c_lflag &= ~(ICANON | ECHO | ISIG);
 
 	/* disable CR to NL conversion (differentiate ^J from enter)
 	 * disable flow control (free ^Q and ^S)

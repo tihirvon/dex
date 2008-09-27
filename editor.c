@@ -28,7 +28,7 @@ static struct hl_color *statusline_color;
 static struct hl_color *commandline_color;
 static struct hl_color *nontext_color;
 
-static int received_signal;
+static int resized;
 static int cmdline_x;
 static int current_line;
 
@@ -641,6 +641,11 @@ char get_confirmation(const char *choices, const char *format, ...)
 		enum term_key_type type;
 
 		if (term_read_key(&key, &type) && type == KEY_NORMAL) {
+			if (key == 0x03) {
+				/* ^C, clear confirmation message */
+				error_buf[0] = 0;
+				return 0;
+			}
 			if (key == '\r' && def)
 				return def;
 			key = tolower(key);
@@ -648,19 +653,9 @@ char get_confirmation(const char *choices, const char *format, ...)
 				return key;
 			if (key == def)
 				return key;
-		} else {
-			int sig = received_signal;
-
-			received_signal = 0;
-			switch (sig) {
-			case SIGWINCH:
-				update_everything();
-				break;
-			case SIGINT:
-				/* ^C, clear confirmation message */
-				error_buf[0] = 0;
-				return 0;
-			}
+		} else if (resized) {
+			resized = 0;
+			update_everything();
 		}
 	}
 }
@@ -819,14 +814,17 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		case INPUT_NORMAL:
 			switch (type) {
 			case KEY_NORMAL:
-				if (key < 0x20 && key != '\t' && key != '\r') {
+				if (key == '\t') {
+					insert_ch('\t');
+				} else if (key == '\r') {
+					insert_ch('\n');
+				} else if (key == 0x1a) {
+					ui_end();
+					kill(0, SIGSTOP);
+				} else if (key < 0x20) {
 					handle_binding(type, key);
 				} else {
-					if (key == '\r') {
-						insert_ch('\n');
-					} else {
-						insert_ch(key);
-					}
+					insert_ch(key);
 				}
 				break;
 			case KEY_META:
@@ -1010,40 +1008,30 @@ static void handle_input(enum term_key_type type, unsigned int key)
 		handle_key(type, key);
 }
 
-static void handle_signal(void)
-{
-	switch (received_signal) {
-	case SIGWINCH:
-		update_everything();
-		break;
-	case SIGINT:
-		handle_input(KEY_NORMAL, 0x03);
-		break;
-	case SIGTSTP:
-		ui_end();
-		kill(0, SIGSTOP);
-	case SIGCONT:
-		ui_start(0);
-		break;
-	case SIGQUIT:
-		handle_input(KEY_NORMAL, 0x1c);
-		break;
-	}
-	received_signal = 0;
-}
-
 static void set_signal_handler(int signum, void (*handler)(int))
 {
 	struct sigaction act;
-	sigfillset(&act.sa_mask);
-	act.sa_flags = 0;
+
+	memset(&act, 0, sizeof(act));
+	sigemptyset(&act.sa_mask);
 	act.sa_handler = handler;
 	sigaction(signum, &act, NULL);
 }
 
-static void signal_handler(int signum)
+static void handle_sigtstp(int signum)
 {
-	received_signal = signum;
+	ui_end();
+	kill(0, SIGSTOP);
+}
+
+static void handle_sigcont(int signum)
+{
+	ui_start(0);
+}
+
+static void handle_sigwinch(int signum)
+{
+	resized = 1;
 }
 
 static void set_basic_colors(void)
@@ -1140,11 +1128,17 @@ int main(int argc, char *argv[])
 	currentline_color = find_color("currentline");
 	nontext_color = find_color("nontext");
 
-	set_signal_handler(SIGWINCH, signal_handler);
-	set_signal_handler(SIGINT, signal_handler);
-	set_signal_handler(SIGTSTP, signal_handler);
-	set_signal_handler(SIGCONT, signal_handler);
-	set_signal_handler(SIGQUIT, signal_handler);
+	/* Terminal does not generate signals for control keys. */
+	set_signal_handler(SIGINT, SIG_IGN);
+	set_signal_handler(SIGQUIT, SIG_IGN);
+
+	/* Terminal does not generate signal for ^Z but someone can send
+	 * us SIGSTOP or SIGTSTP nevertheless.
+	 */
+	set_signal_handler(SIGTSTP, handle_sigtstp);
+
+	set_signal_handler(SIGCONT, handle_sigcont);
+	set_signal_handler(SIGWINCH, handle_sigwinch);
 
 	obuf.alloc = 8192;
 	obuf.buf = xmalloc(obuf.alloc);
@@ -1167,8 +1161,9 @@ int main(int argc, char *argv[])
 	ui_start(nr_errors);
 
 	while (running) {
-		if (received_signal) {
-			handle_signal();
+		if (resized) {
+			resized = 0;
+			update_everything();
 		} else {
 			unsigned int key;
 			enum term_key_type type;
