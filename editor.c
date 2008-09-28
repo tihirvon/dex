@@ -534,10 +534,8 @@ static void any_key(void)
 	term_read_key(&key, &type);
 }
 
-void ui_start(int prompt)
+static void update_terminal_settings(void)
 {
-	term_raw();
-
 	// turn keypad on (makes cursor keys work)
 	if (term_cap.ks)
 		buf_escape(term_cap.ks);
@@ -545,7 +543,12 @@ void ui_start(int prompt)
 	// use alternate buffer if possible
 	if (term_cap.ti)
 		buf_escape(term_cap.ti);
+}
 
+void ui_start(int prompt)
+{
+	term_raw();
+	update_terminal_settings();
 	if (prompt)
 		any_key();
 	update_everything();
@@ -655,6 +658,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 				return key;
 		} else if (resized) {
 			resized = 0;
+			update_terminal_settings();
 			update_everything();
 		}
 	}
@@ -1216,6 +1220,7 @@ int main(int argc, char *argv[])
 	while (running) {
 		if (resized) {
 			resized = 0;
+			update_terminal_settings();
 			update_everything();
 		} else {
 			unsigned int key;
