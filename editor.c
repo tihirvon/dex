@@ -559,15 +559,12 @@ void ui_end(void)
 	struct term_color color = { -1, -1, 0 };
 
 	buf_set_color(&color);
+	buf_move_cursor(0, window->h + 1);
+	buf_show_cursor();
 
 	// back to main buffer
 	if (term_cap.te)
 		buf_escape(term_cap.te);
-
-	buf_move_cursor(0, window->h + 1);
-	buf_ch('\n');
-	buf_clear_eol();
-	buf_show_cursor();
 
 	// turn keypad off
 	if (term_cap.ke)
