@@ -210,7 +210,7 @@ static void collect_completions(struct parsed_command *pc)
 			return;
 		}
 		if (!strcmp(cmd->name, "toggle") && argc == 1)
-			collect_options(completion.parsed);
+			collect_toggleable_options(completion.parsed);
 	}
 }
 

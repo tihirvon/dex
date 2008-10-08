@@ -355,6 +355,18 @@ void collect_options(const char *prefix)
 	}
 }
 
+void collect_toggleable_options(const char *prefix)
+{
+	int len = strlen(prefix);
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
+		const struct option_description *desc = &option_desc[i];
+		if (desc->type == OPT_ENUM && !strncmp(prefix, desc->name, len))
+			add_completion(xstrdup(desc->name));
+	}
+}
+
 void collect_option_values(const char *name, const char *prefix)
 {
 	int i;
