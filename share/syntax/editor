@@ -10,4 +10,10 @@ syn connect default comment sq dq
 
 syn join string sq dq
 
+syn addr trailingws '[ \t]+$'
+syn addr indenterror '^	* +\t+'
+syn connect default trailingws indenterror
+syn connect comment trailingws indenterror
+syn join error trailingws indenterror
+
 syn end
