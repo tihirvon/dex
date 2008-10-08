@@ -13,7 +13,6 @@ syn addr eschex '\\x[0-9a-fA-F]{1,2}'
 syn addr esc '\\[tnr\\"`]'
 syn addr simplevar '\$([a-zA-Z_][a-zA-Z_0-9]*|#|\?|@|[0-9])'
 syn addr escape '\\.'
-syn addr esceol '\\\n'
 
 syn addr complexvar '\$\{[a-zA-Z_][a-zA-Z_0-9]*\}'
 syn addc sq "'" "'"
@@ -25,11 +24,10 @@ syn addc comment '#' '\n'
 
 syn connect comment notice
 syn connect dq escoct eschex esc simplevar complexvar backtick
-syn connect default escape
-syn connect default    comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect backtick   comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect command    comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect arithmetic comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect default    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect backtick   escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect command    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect arithmetic escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
 syn connect default backtick
 syn connect command backtick
 syn connect arithmetic backtick
