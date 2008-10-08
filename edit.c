@@ -900,6 +900,7 @@ void shift_lines(int count)
 {
 	int nr_lines = 1;
 	int sel_offset = 0;
+	int swap = 0;
 
 	if (view->sel.blk) {
 		struct block_iter si, ei, bi;
@@ -916,6 +917,7 @@ void shift_lines(int count)
 		eo = block_iter_get_offset(&ei);
 		sel_offset = so;
 		nr_bytes = eo - so;
+		swap = 1;
 		if (so > eo) {
 			struct block_iter ti = si;
 			si = ei;
@@ -923,6 +925,7 @@ void shift_lines(int count)
 			view->cursor = si;
 			sel_offset = eo;
 			nr_bytes = so - eo;
+			swap = 0;
 		}
 		nr_bytes++;
 
@@ -934,6 +937,10 @@ void shift_lines(int count)
 			nr_bytes--;
 		}
 	}
+
+	view->preferred_x += buffer->options.indent_width * count;
+	if (view->preferred_x < 0)
+		view->preferred_x = 0;
 
 	begin_change_chain();
 	block_iter_bol(&view->cursor);
@@ -950,4 +957,12 @@ void shift_lines(int count)
 	// make sure sel points to valid block
 	if (view->sel.blk)
 		block_iter_goto_offset(&view->sel, sel_offset);
+
+	// restore cursor position as well as possible
+	if (swap) {
+		struct block_iter tmp = view->sel;
+		view->sel = view->cursor;
+		view->cursor = tmp;
+	}
+	move_preferred_x();
 }
