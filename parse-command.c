@@ -96,7 +96,7 @@ char *parse_command_arg(const char *cmd, int tilde)
 	while (1) {
 		char ch = cmd[pos];
 
-		if (!ch || ch == '#' || ch == ';' || isspace(ch))
+		if (!ch || ch == ';' || isspace(ch))
 			break;
 
 		pos++;
@@ -122,7 +122,7 @@ static int find_end(const char *cmd, int *posp)
 	while (1) {
 		char ch = cmd[pos];
 
-		if (!ch || ch == '#' || ch == ';' || isspace(ch))
+		if (!ch || ch == ';' || isspace(ch))
 			break;
 
 		pos++;
@@ -180,7 +180,7 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 			pc->args_before_cursor = pc->count;
 		}
 
-		if (!cmd[pos] || cmd[pos] == '#' || cmd[pos] == ';')
+		if (!cmd[pos] || cmd[pos] == ';')
 			break;
 
 		sidx = pos;
@@ -215,7 +215,7 @@ int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 	while (1) {
 		if (parse_command(pc, cmd, &pos))
 			return -1;
-		if (!cmd[pos] || cmd[pos] == '#')
+		if (!cmd[pos])
 			break;
 		pos++;
 	}

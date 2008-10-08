@@ -4,6 +4,18 @@
 const char *config_file;
 int config_line;
 
+static int is_command(const char *str, int len)
+{
+	int i;
+	for (i = 0; i < len; i++) {
+		if (str[i] == '#')
+			return 0;
+		if (!isspace(str[i]))
+			return 1;
+	}
+	return 0;
+}
+
 int read_config(const char *filename)
 {
 	/* recursive */
@@ -39,15 +51,16 @@ int read_config(const char *filename)
 		if (end)
 			n = end - ptr;
 
-		if (alloc < n + 1) {
-			alloc = ROUND_UP(n + 1, 64);
-			xrenew(line, alloc);
+		if (is_command(ptr, n)) {
+			if (alloc < n + 1) {
+				alloc = ROUND_UP(n + 1, 64);
+				xrenew(line, alloc);
+			}
+			memcpy(line, ptr, n);
+			line[n] = 0;
+			handle_command(line);
 		}
-		memcpy(line, ptr, n);
-		line[n] = 0;
-		handle_command(line);
 		config_line++;
-
 		ptr += n + 1;
 	}
 	free(line);
