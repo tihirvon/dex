@@ -7,7 +7,7 @@ include scripts/lib.mk
 
 INSTALL_LOG	:=
 
-CFLAGS	+= -g -DDATADIR=\"$(datadir)\"
+CFLAGS	+= -DDATADIR=\"$(datadir)\"
 
 objs 	:= 			\
 	buffer.o		\
