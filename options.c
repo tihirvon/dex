@@ -304,14 +304,22 @@ void set_option(const char *name, const char *value, unsigned int flags)
 	}
 }
 
+static void toggle(int *valuep, const char **values)
+{
+	int value = *valuep + 1;
+	if (!values[value])
+		value = 0;
+	*valuep = value;
+}
+
 void toggle_option(const char *name, unsigned int flags)
 {
 	const struct option_description *desc = find_option(name, flags);
 
 	if (!desc)
 		return;
-	if (desc->enum_opt.values != bool_enum) {
-		error_msg("Option %s is not boolean.", name);
+	if (desc->type != OPT_ENUM) {
+		error_msg("Option %s is not toggleable.", name);
 		return;
 	}
 
@@ -325,11 +333,13 @@ void toggle_option(const char *name, unsigned int flags)
 
 	if (flags & OPT_LOCAL) {
 		int *local = (int *)((char *)&buffer->options + desc->offset);
-		desc->enum_opt.set(local, NULL, !*local);
+		toggle(local, desc->enum_opt.values);
+		desc->enum_opt.set(local, NULL, *local);
 	}
 	if (flags & OPT_GLOBAL) {
 		int *global = (int *)((char *)&options + desc->offset);
-		desc->enum_opt.set(NULL, global, !*global);
+		toggle(global, desc->enum_opt.values);
+		desc->enum_opt.set(NULL, global, *global);
 	}
 }
 
