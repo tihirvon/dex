@@ -87,11 +87,11 @@ static void parse_dq(const char *cmd, int *posp)
 	*posp = pos;
 }
 
-char *parse_command_arg(const char *cmd)
+char *parse_command_arg(const char *cmd, int tilde)
 {
 	int pos = 0;
 
-	if (cmd[pos] == '~')
+	if (tilde && cmd[pos] == '~')
 		parse_home(cmd, &pos);
 	while (1) {
 		char ch = cmd[pos];
@@ -197,7 +197,7 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 			pc->args_before_cursor = pc->count;
 		}
 
-		add_arg(pc, parse_command_arg(cmd + sidx));
+		add_arg(pc, parse_command_arg(cmd + sidx, 1));
 	}
 	add_arg(pc, NULL);
 	*posp = pos;

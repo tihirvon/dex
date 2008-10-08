@@ -5,6 +5,10 @@
 #include "gbuf.h"
 
 struct {
+	// part of string which is to be replaced
+	char *escaped;
+	char *parsed;
+
 	char *head;
 	char *tail;
 	char **matches;
@@ -14,6 +18,8 @@ struct {
 
 	// should we add space after completed string if we have only one match?
 	int add_space;
+
+	int tilde_expanded;
 } completion;
 
 void add_completion(char *str)
@@ -102,6 +108,52 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 	closedir(dir);
 }
 
+static void collect_files(void)
+{
+	const char *slash;
+	char *dir, *dirprefix, *fileprefix;
+	char *str = parse_command_arg(completion.escaped, 0);
+
+	if (strcmp(completion.parsed, str)) {
+		// ~ was expanded
+		completion.tilde_expanded = 1;
+		slash = strrchr(str, '/');
+		if (!slash) {
+			// complete ~ to ~/ or ~user to ~user/
+			int len = strlen(str);
+			char *s = xmalloc(len + 2);
+			memcpy(s, str, len);
+			s[len] = '/';
+			s[len + 1] = 0;
+			add_completion(s);
+			free(str);
+			return;
+		}
+		dirprefix = xstrndup(str, slash - str + 1);
+		fileprefix = xstrdup(slash + 1);
+		slash = strrchr(completion.parsed, '/');
+		dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
+		do_collect_files(dir, dirprefix, fileprefix);
+		free(dirprefix);
+		free(fileprefix);
+		free(dir);
+		free(str);
+		return;
+	}
+	slash = strrchr(completion.parsed, '/');
+	if (!slash) {
+		do_collect_files("./", "", completion.parsed);
+		free(str);
+		return;
+	}
+	dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
+	fileprefix = xstrdup(slash + 1);
+	do_collect_files(dir, dir, fileprefix);
+	free(fileprefix);
+	free(dir);
+	free(str);
+}
+
 static int strptrcmp(const void *ap, const void *bp)
 {
 	const char *a = *(const char **)ap;
@@ -109,75 +161,9 @@ static int strptrcmp(const void *ap, const void *bp)
 	return strcmp(a, b);
 }
 
-static void collect_files(const char *prefix)
+static void collect_and_sort_files(void)
 {
-	GBUF(buf);
-	const char *slash;
-	int pos = 0;
-
-	if (*prefix == '~') {
-		int len;
-
-		slash = strchr(prefix + 1, '/');
-		if (slash) {
-			len = slash - prefix - 1;
-		} else {
-			len = strlen(prefix + 1);
-		}
-
-		if (!len) {
-			// replace ~ with $HOME
-			gbuf_add_str(&buf, home_dir);
-			pos = 1;
-		} else {
-			const char *str = get_home_dir(prefix + 1, len);
-			if (str) {
-				gbuf_add_str(&buf, str);
-				pos = 1 + len;
-			}
-		}
-	}
-	slash = strrchr(prefix + pos, '/');
-	if (slash) {
-		// prefix starts with
-		//
-		// ~/
-		// ~user/
-		// ~invaliduser/     (NOTE: can still be valid directory!)
-		// /
-		// foo/
-		char *dirprefix = xstrndup(prefix, slash - prefix + 1);
-		gbuf_add_buf(&buf, prefix + pos, slash - prefix - pos + 1);
-		do_collect_files(buf.buffer, dirprefix, slash + 1);
-		free(dirprefix);
-	} else {
-		// prefix is (no slashes at all)
-		//
-		// ~
-		// ~user
-		// ~invaliduser
-		// ~partialuser
-		// foo
-		if (pos) {
-			// buf is valid home directory (~ or ~user expanded)
-			// complete prefix + pos relative to the directory
-			char *dirprefix = xnew(char, pos + 2);
-			memcpy(dirprefix, prefix, pos);
-			dirprefix[pos] = '/';
-			dirprefix[pos + 1] = 0;
-			gbuf_add_ch(&buf, '/');
-			do_collect_files(buf.buffer, dirprefix, prefix + pos);
-			free(dirprefix);
-		} else {
-			if (*prefix == '~') {
-				// FIXME: complete usernames
-				// fallback to completing filenames
-			}
-			// complete prefix relative to "."
-			do_collect_files("./", "", prefix);
-		}
-	}
-	gbuf_free(&buf);
+	collect_files();
 	if (completion.count > 1)
 		qsort(completion.matches, completion.count, sizeof(*completion.matches), strptrcmp);
 	if (completion.count == 1) {
@@ -188,7 +174,7 @@ static void collect_files(const char *prefix)
 	}
 }
 
-static void collect_completions(struct parsed_command *pc, const char *str)
+static void collect_completions(struct parsed_command *pc)
 {
 	const struct command *cmd;
 	int name_idx;
@@ -205,26 +191,26 @@ static void collect_completions(struct parsed_command *pc, const char *str)
 	}
 
 	if (name_idx < 0) {
-		collect_commands(str);
+		collect_commands(completion.parsed);
 		return;
 	}
 	cmd = find_command(commands, pc->argv[name_idx]);
 	if (cmd) {
 		int argc = pc->args_before_cursor - name_idx;
 		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save") || !strcmp(cmd->name, "include")) {
-			collect_files(str);
+			collect_and_sort_files();
 			return;
 		}
 		if (!strcmp(cmd->name, "set")) {
 			if (argc == 1) {
-				collect_options(str);
+				collect_options(completion.parsed);
 			} else if (argc == 2) {
-				collect_option_values(pc->argv[pc->args_before_cursor - 1], str);
+				collect_option_values(pc->argv[pc->args_before_cursor - 1], completion.parsed);
 			}
 			return;
 		}
 		if (!strcmp(cmd->name, "toggle") && argc == 1)
-			collect_options(str);
+			collect_options(completion.parsed);
 	}
 }
 
@@ -232,7 +218,6 @@ static void init_completion(void)
 {
 	struct parsed_command pc;
 	const char *cmd = cmdline.buffer;
-	char *str, *parsed;
 	int rc;
 
 	rc = parse_commands(&pc, cmd, cmdline_pos);
@@ -241,16 +226,13 @@ static void init_completion(void)
 		free_commands(&pc);
 		return;
 	}
-	str = xstrndup(cmd + pc.comp_so, pc.comp_eo - pc.comp_so);
-	parsed = parse_command_arg(str);
-
+	completion.escaped = xstrndup(cmd + pc.comp_so, pc.comp_eo - pc.comp_so);
+	completion.parsed = parse_command_arg(completion.escaped, 1);
 	completion.head = xstrndup(cmd, pc.comp_so);
 	completion.tail = xstrdup(cmd + pc.comp_eo);
 	completion.add_space = 1;
 
-	collect_completions(&pc, parsed);
-	free(parsed);
-	free(str);
+	collect_completions(&pc);
 	free_commands(&pc);
 }
 
@@ -259,9 +241,12 @@ static char *shell_escape(const char *str)
 	GBUF(buf);
 	int i;
 
+	if (str[0] == '~' && !completion.tilde_expanded)
+		gbuf_add_ch(&buf, '\\');
+
 	for (i = 0; str[i]; i++) {
 		char ch = str[i];
-		if (ch == ' ' || ch == '\'' || ch == '"' || (ch == '~' && !i)) {
+		if (ch == ' ' || ch == '\'' || ch == '"') {
 			gbuf_add_ch(&buf, '\\');
 			gbuf_add_ch(&buf, ch);
 		} else {
@@ -309,6 +294,8 @@ void reset_completion(void)
 {
 	int i;
 
+	free(completion.escaped);
+	free(completion.parsed);
 	free(completion.head);
 	free(completion.tail);
 	for (i = 0; i < completion.count; i++)
