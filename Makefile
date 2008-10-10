@@ -57,6 +57,7 @@ config	:=			\
 
 syntax	:=			\
 	syntax/c		\
+	syntax/config		\
 	syntax/editor		\
 	syntax/gitcommit	\
 	syntax/none		\
