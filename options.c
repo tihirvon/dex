@@ -74,7 +74,7 @@ static void statusline_set(char **local, char **global, const char *value)
 
 static void filetype_set(char **local, char **global, const char *value)
 {
-	if (!is_ft(value)) {
+	if (strcmp(value, "none") && !is_ft(value)) {
 		error_msg("No such file type %s", value);
 		return;
 	}

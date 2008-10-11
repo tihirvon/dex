@@ -158,6 +158,7 @@ static struct buffer *buffer_new(void)
 	b->options.indent_width = options.indent_width;
 	b->options.tab_width = options.tab_width;
 	b->options.trim_whitespace = options.trim_whitespace;
+	b->options.filetype = xstrdup("none");
 
 	b->newline = options.newline;
 	list_init(&b->hl_head);
@@ -342,9 +343,10 @@ static void guess_filetype(struct buffer *b)
 	} else if (b->abs_filename) {
 		ft = find_ft(b->abs_filename, NULL);
 	}
-	b->options.filetype = NULL;
-	if (ft)
+	if (ft) {
+		free(b->options.filetype);
 		b->options.filetype = xstrdup(ft);
+	}
 }
 
 static struct syntax *load_syntax(const char *filetype)
@@ -451,12 +453,11 @@ struct view *open_existing_file(const char *filename)
 void filetype_changed(struct buffer *b)
 {
 	free_hl_list(&b->hl_head);
-	b->syn = NULL;
-	if (b->options.filetype) {
-		b->syn = find_syntax(b->options.filetype);
-		if (!b->syn)
-			b->syn = load_syntax(b->options.filetype);
-	}
+
+	/* even "none" can have syntax */
+	b->syn = find_syntax(b->options.filetype);
+	if (!b->syn)
+		b->syn = load_syntax(b->options.filetype);
 	highlight_buffer(b);
 }
 
