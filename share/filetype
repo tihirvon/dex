@@ -15,6 +15,3 @@ ft content sh '^#!.*/bash(\s|$)'
 ft content perl '^#!.*/perl(\s|$)'
 ft match sh '.*/PKGBUILD'
 ft match config '^/etc/.*'
-
-# unknown file type
-ft match none '.*'
