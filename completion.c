@@ -241,6 +241,9 @@ static char *shell_escape(const char *str)
 	GBUF(buf);
 	int i;
 
+	if (!str[0])
+		return xstrdup("\"\"");
+
 	if (str[0] == '~' && !completion.tilde_expanded)
 		gbuf_add_ch(&buf, '\\');
 
