@@ -13,6 +13,7 @@ ft extension make mk mak
 ft content sh '^#!.*/sh(\s|$)'
 ft content sh '^#!.*/bash(\s|$)'
 ft content perl '^#!.*/perl(\s|$)'
+ft match sh '.*/PKGBUILD'
 ft match config '^/etc/.*'
 
 # unknown file type
