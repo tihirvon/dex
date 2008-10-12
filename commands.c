@@ -663,7 +663,7 @@ static void cmd_open(char **args)
 	if (!args[0])
 		v = open_empty_buffer();
 	else
-		v = open_buffer(args[0]);
+		v = open_buffer(args[0], OF_LOAD_BUFFER);
 	if (v)
 		set_view(v);
 }

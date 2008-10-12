@@ -1220,7 +1220,7 @@ int main(int argc, char *argv[])
 	window = window_new();
 	update_window_sizes();
 	for (; i < argc; i++)
-		open_buffer(argv[i]);
+		open_buffer(argv[i], 0);
 	if (list_empty(&window->views))
 		open_empty_buffer();
 	set_view(VIEW(window->views.next));

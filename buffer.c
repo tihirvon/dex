@@ -366,7 +366,7 @@ static struct syntax *load_syntax(const char *filetype)
 	return syn;
 }
 
-static struct view *do_open_buffer(const char *filename, int must_exist)
+struct view *open_buffer(const char *filename, unsigned int flags)
 {
 	struct buffer *b;
 	struct view *v;
@@ -394,7 +394,7 @@ static struct view *do_open_buffer(const char *filename, int must_exist)
 	b->filename = xstrdup(filename);
 	b->abs_filename = absolute;
 
-	if (load_buffer(b, must_exist)) {
+	if (flags & OF_LOAD_BUFFER && load_buffer(b, flags & OF_FILE_MUST_EXIST)) {
 		free_buffer(b);
 		return NULL;
 	}
@@ -443,16 +443,6 @@ skip_read:
 	filetype_changed(b);
 	buffer_set_callbacks(b);
 	return 0;
-}
-
-struct view *open_buffer(const char *filename)
-{
-	return do_open_buffer(filename, 0);
-}
-
-struct view *open_existing_file(const char *filename)
-{
-	return do_open_buffer(filename, 1);
 }
 
 void filetype_changed(struct buffer *b)

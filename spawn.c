@@ -204,7 +204,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 
 static void goto_file_line(const char *filename, int line, int column)
 {
-	struct view *v = open_buffer(filename);
+	struct view *v = open_buffer(filename, OF_LOAD_BUFFER);
 
 	if (!v) {
 		return;

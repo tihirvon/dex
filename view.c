@@ -30,11 +30,16 @@ struct view *view_new(struct window *w, struct buffer *b)
 	v->buffer = b;
 	v->window = w;
 
-	v->cursor.head = &b->blocks;
-	v->cursor.blk = BLOCK(b->blocks.next);
-
-	restore_cursor_position(v);
+	if (!list_empty(&b->blocks))
+		view_init(v);
 	return v;
+}
+
+void view_init(struct view *v)
+{
+	v->cursor.head = &v->buffer->blocks;
+	v->cursor.blk = BLOCK(v->buffer->blocks.next);
+	restore_cursor_position(v);
 }
 
 void view_delete(struct view *v)

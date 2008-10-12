@@ -32,6 +32,7 @@ void remove_view(void)
 	struct list_head *prev = view->node.prev;
 
 	view_delete(view);
+	view = NULL;
 	if (list_empty(&window->views))
 		open_empty_buffer();
 	if (prev == &window->views)
@@ -41,6 +42,27 @@ void remove_view(void)
 
 void set_view(struct view *v)
 {
+	/* on demand loading */
+	while (list_empty(&v->buffer->blocks)) {
+		if (!load_buffer(v->buffer, 0)) {
+			view_init(v);
+			break;
+		}
+
+		/* failed to read the file */
+		view_delete(v);
+
+		/* try to keep original view */
+		if (view)
+			return;
+
+		if (list_empty(&window->views)) {
+			v = open_empty_buffer();
+			break;
+		}
+		v = VIEW(window->views.next);
+	}
+
 	view = v;
 	buffer = v->buffer;
 	window = v->window;

@@ -22,14 +22,17 @@ extern int nr_pressed_keys;
 extern int running;
 
 struct view *view_new(struct window *w, struct buffer *b);
+void view_init(struct view *v);
 void view_delete(struct view *v);
 
 struct window *window_new(void);
 struct view *window_add_buffer(struct buffer *b);
 
-struct view *open_buffer(const char *filename);
+#define OF_LOAD_BUFFER		0x01
+#define OF_FILE_MUST_EXIST	0x03
+
+struct view *open_buffer(const char *filename, unsigned int flags);
 struct view *open_empty_buffer(void);
-struct view *open_existing_file(const char *filename);
 int load_buffer(struct buffer *b, int must_exist);
 
 int save_buffer(const char *filename, enum newline_sequence newline);
