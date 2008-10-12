@@ -423,7 +423,7 @@ int load_buffer(struct buffer *b, int must_exist)
 
 	fstat(fd, &b->st);
 	if (!S_ISREG(b->st.st_mode)) {
-		error_msg("Can't open %s", get_file_type(b->st.st_mode));
+		error_msg("Can't open %s %s", get_file_type(b->st.st_mode), b->filename);
 		close(fd);
 		return -1;
 	}
