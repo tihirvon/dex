@@ -180,13 +180,17 @@ struct view *open_empty_buffer(void)
 {
 	struct buffer *b = buffer_new();
 	struct block *blk;
+	struct view *v;
 
 	// at least one block required
 	blk = block_new(ALLOC_ROUND(1));
 	list_add_before(&blk->node, &b->blocks);
 
 	buffer_set_callbacks(b);
-	return window_add_buffer(b);
+	v = window_add_buffer(b);
+	v->cursor.head = &v->buffer->blocks;
+	v->cursor.blk = BLOCK(v->buffer->blocks.next);
+	return v;
 }
 
 static void read_crlf_blocks(struct buffer *b, const char *buf)
@@ -384,7 +388,9 @@ struct view *open_buffer(const char *filename, unsigned int flags)
 		free(absolute);
 		if (v->window != window) {
 			// open the buffer in other window to current window
-			return window_add_buffer(v->buffer);
+			struct view *new = window_add_buffer(v->buffer);
+			new->cursor = v->cursor;
+			return new;
 		}
 		// the file was already open in current window
 		return v;
@@ -398,7 +404,12 @@ struct view *open_buffer(const char *filename, unsigned int flags)
 		free_buffer(b);
 		return NULL;
 	}
-	return window_add_buffer(b);
+	v = window_add_buffer(b);
+	if (flags & OF_LOAD_BUFFER) {
+		v->cursor.head = &v->buffer->blocks;
+		v->cursor.blk = BLOCK(v->buffer->blocks.next);
+	}
+	return v;
 }
 
 int load_buffer(struct buffer *b, int must_exist)

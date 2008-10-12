@@ -655,7 +655,7 @@ static void cmd_next(char **args)
 static void cmd_open(char **args)
 {
 	const char *pf = parse_args(&args, "", 0, -1);
-	struct view *v = NULL;
+	unsigned int open_flags = OF_LOAD_BUFFER;
 	int i;
 
 	if (!pf)
@@ -666,13 +666,13 @@ static void cmd_open(char **args)
 		return;
 	}
 	for (i = 0; args[i]; i++) {
-		if (v)
-			open_buffer(args[i], 0);
-		else
-			v = open_buffer(args[i], OF_LOAD_BUFFER);
+		/* load first immediately, others on demand */
+		struct view *v = open_buffer(args[i], open_flags);
+		if (v && open_flags) {
+			set_view(v);
+			open_flags = 0;
+		}
 	}
-	if (v)
-		set_view(v);
 }
 
 static void cmd_paste(char **args)

@@ -1,4 +1,5 @@
 #include "window.h"
+#include "file-history.h"
 
 LIST_HEAD(windows);
 struct window *window;
@@ -21,7 +22,6 @@ struct view *window_add_buffer(struct buffer *b)
 	BUG_ON(!b);
 	BUG_ON(!window);
 
-	// FIXME: don't allow multiple buffers (views) on same window
 	v = view_new(window, b);
 	list_add_before(&v->node, &window->views);
 	return v;
@@ -40,12 +40,27 @@ void remove_view(void)
 	set_view(VIEW(prev));
 }
 
+static void restore_cursor_from_history(void)
+{
+	int x, y;
+
+	if (!find_file_in_history(buffer->abs_filename, &x, &y))
+		return;
+
+	move_to_line(y + 1);
+	move_to_column(x + 1);
+}
+
 void set_view(struct view *v)
 {
+	int restore_cursor = 0;
+
 	/* on demand loading */
 	while (list_empty(&v->buffer->blocks)) {
 		if (!load_buffer(v->buffer, 0)) {
-			view_init(v);
+			v->cursor.head = &v->buffer->blocks;
+			v->cursor.blk = BLOCK(v->buffer->blocks.next);
+			restore_cursor = 1;
 			break;
 		}
 
@@ -68,6 +83,9 @@ void set_view(struct view *v)
 	window = v->window;
 
 	window->view = v;
+
+	if (restore_cursor)
+		restore_cursor_from_history();
 
 	update_flags |= UPDATE_FULL;
 }
