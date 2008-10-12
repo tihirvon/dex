@@ -966,3 +966,24 @@ void shift_lines(int count)
 	}
 	move_preferred_x();
 }
+
+void clear_lines(void)
+{
+	unsigned int del_count, ins_count = 0;
+	char *indent, *deleted;
+
+	indent = get_indent();
+
+	block_iter_eol(&view->cursor);
+	del_count = block_iter_bol(&view->cursor);
+	deleted = do_delete(del_count);
+	if (indent) {
+		ins_count = strlen(indent);
+		do_insert(indent, ins_count);
+		free(indent);
+	}
+	record_replace(deleted, del_count, ins_count);
+	move_right(ins_count);
+
+	undo_merge = UNDO_MERGE_NONE;
+}

@@ -27,7 +27,7 @@ bind ^V "select -l"
 bind ^G center-cursor
 bind ^J join
 bind ^O "eol; insert -ek '\n'"
-bind ^S "bol; delete-eol; left; delete; insert -ek '\n'"
+bind ^S clear
 bind ^C command
 bind ^L "command 'line '"
 bind ^T pop

@@ -253,6 +253,15 @@ static void cmd_center_cursor(char **args)
 	center_cursor();
 }
 
+static void cmd_clear(char **args)
+{
+	const char *pf = parse_args(&args, "", 0, 0);
+
+	if (!pf)
+		return;
+	clear_lines();
+}
+
 static void cmd_close(char **args)
 {
 	const char *pf = parse_args(&args, "f", 0, 0);
@@ -1102,6 +1111,7 @@ const struct command commands[] = {
 	{ "bol", NULL, cmd_bol },
 	{ "cancel", NULL, cmd_cancel },
 	{ "center-cursor", NULL, cmd_center_cursor },
+	{ "clear", NULL, cmd_clear },
 	{ "close", "cl", cmd_close },
 	{ "command", NULL, cmd_command },
 	{ "copy", NULL, cmd_copy },
