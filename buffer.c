@@ -371,7 +371,6 @@ static struct view *do_open_buffer(const char *filename, int must_exist)
 	struct buffer *b;
 	struct view *v;
 	char *absolute;
-	int fd;
 
 	absolute = path_absolute(filename);
 	if (!absolute) {
@@ -395,21 +394,29 @@ static struct view *do_open_buffer(const char *filename, int must_exist)
 	b->filename = xstrdup(filename);
 	b->abs_filename = absolute;
 
-	fd = open(filename, O_RDWR);
+	if (load_buffer(b, must_exist)) {
+		free_buffer(b);
+		return NULL;
+	}
+	return window_add_buffer(b);
+}
+
+int load_buffer(struct buffer *b, int must_exist)
+{
+	int fd = open(b->filename, O_RDWR);
+
 	if (fd < 0) {
 		if (errno == ENOENT) {
 			if (must_exist) {
-				error_msg("File %s does not exist.", filename);
-				free_buffer(b);
-				return NULL;
+				error_msg("File %s does not exist.", b->filename);
+				return -1;
 			}
 			goto skip_read;
 		}
-		fd = open(filename, O_RDONLY);
+		fd = open(b->filename, O_RDONLY);
 		if (fd < 0) {
-			error_msg("Error opening %s: %s", filename, strerror(errno));
-			free_buffer(b);
-			return NULL;
+			error_msg("Error opening %s: %s", b->filename, strerror(errno));
+			return -1;
 		}
 		b->ro = 1;
 	}
@@ -418,15 +425,13 @@ static struct view *do_open_buffer(const char *filename, int must_exist)
 	if (!S_ISREG(b->st.st_mode)) {
 		error_msg("Can't open %s", get_file_type(b->st.st_mode));
 		close(fd);
-		free_buffer(b);
-		return NULL;
+		return -1;
 	}
 
 	if (read_blocks(b, fd)) {
-		error_msg("Error reading %s: %s", filename, strerror(errno));
+		error_msg("Error reading %s: %s", b->filename, strerror(errno));
 		close(fd);
-		free_buffer(b);
-		return NULL;
+		return -1;
 	}
 	close(fd);
 skip_read:
@@ -437,7 +442,7 @@ skip_read:
 	guess_filetype(b);
 	filetype_changed(b);
 	buffer_set_callbacks(b);
-	return window_add_buffer(b);
+	return 0;
 }
 
 struct view *open_buffer(const char *filename)
