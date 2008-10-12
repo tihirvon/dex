@@ -12,7 +12,6 @@ hi preproc blue
 hi error black yellow
 
 hi variable blue
-hi backtick red bold
 hi builtin bold
 hi operator bold
 

@@ -35,6 +35,7 @@ syn connect arithmetic backtick
 syn join string sq dq
 syn join variable simplevar complexvar arithmetic
 syn join builtin builtin2
+syn join special backtick command
 
 syn addr trailingws '[ \t]+$'
 syn addr indenterror '^	* +\t+'
