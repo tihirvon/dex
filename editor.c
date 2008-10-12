@@ -19,6 +19,7 @@ enum input_mode input_mode;
 enum input_special input_special;
 int running;
 int nr_errors;
+int msg_is_error;
 char error_buf[256];
 
 static struct hl_color *default_color;
@@ -26,6 +27,8 @@ static struct hl_color *currentline_color;
 static struct hl_color *selection_color;
 static struct hl_color *statusline_color;
 static struct hl_color *commandline_color;
+static struct hl_color *errormsg_color;
+static struct hl_color *infomsg_color;
 static struct hl_color *nontext_color;
 
 static int resized;
@@ -231,12 +234,13 @@ static void print_command(uchar prefix)
 static void print_command_line(void)
 {
 	buf_move_cursor(0, window->h + 1);
-	buf_set_color(&commandline_color->color);
 	switch (input_mode) {
 	case INPUT_COMMAND:
+		buf_set_color(&commandline_color->color);
 		print_command(':');
 		break;
 	case INPUT_SEARCH:
+		buf_set_color(&commandline_color->color);
 		print_command(current_search_direction() == SEARCH_FWD ? '/' : '?');
 		break;
 	default:
@@ -244,10 +248,17 @@ static void print_command_line(void)
 		obuf.scroll_x = 0;
 		if (error_buf[0]) {
 			int i;
+			if (msg_is_error) {
+				buf_set_color(&errormsg_color->color);
+			} else {
+				buf_set_color(&infomsg_color->color);
+			}
 			for (i = 0; error_buf[i]; i++) {
 				if (!buf_put_char(error_buf[i], term_flags & TERM_UTF8))
 					break;
 			}
+		} else {
+			buf_set_color(&commandline_color->color);
 		}
 		buf_clear_eol();
 		break;
@@ -585,6 +596,7 @@ void error_msg(const char *format, ...)
 	va_start(ap, format);
 	vsnprintf(error_buf + pos, sizeof(error_buf) - pos, format, ap);
 	va_end(ap);
+	msg_is_error = 1;
 	update_flags |= UPDATE_STATUS_LINE;
 
 	if (!running) {
@@ -603,6 +615,7 @@ void info_msg(const char *format, ...)
 	va_start(ap, format);
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
+	msg_is_error = 0;
 	update_flags |= UPDATE_STATUS_LINE;
 }
 
@@ -1103,6 +1116,8 @@ static void set_basic_colors(void)
 	selection_color = set_highlight_color("selection", &c);
 	statusline_color = set_highlight_color("statusline", &c);
 	commandline_color = set_highlight_color("commandline", &none);
+	errormsg_color = set_highlight_color("errormsg", &none);
+	infomsg_color = set_highlight_color("infomsg", &none);
 }
 
 static void close_all_views(void)
