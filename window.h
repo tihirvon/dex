@@ -30,6 +30,7 @@ struct view *window_add_buffer(struct buffer *b);
 
 #define OF_LOAD_BUFFER		0x01
 #define OF_FILE_MUST_EXIST	0x03
+#define OF_TEMPORARY		0x04
 
 struct view *open_buffer(const char *filename, unsigned int flags);
 struct view *open_empty_buffer(void);

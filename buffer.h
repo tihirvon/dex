@@ -86,6 +86,9 @@ struct view {
 	// lines or not.
 	struct block_iter sel;
 	unsigned sel_is_lines : 1;
+
+	// set if view was opened by e.g. tag command
+	unsigned temporary : 1;
 };
 
 enum undo_merge {

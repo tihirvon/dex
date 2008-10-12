@@ -78,6 +78,12 @@ void set_view(struct view *v)
 		v = VIEW(window->views.next);
 	}
 
+	/*
+	 * close untouched view opened by tag command
+	 */
+	if (view && view != v && view->temporary && !view->buffer->change_head.prev)
+		view_delete(view);
+
 	view = v;
 	buffer = v->buffer;
 	window = v->window;
