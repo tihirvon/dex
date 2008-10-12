@@ -654,16 +654,23 @@ static void cmd_next(char **args)
 
 static void cmd_open(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 1);
-	struct view *v;
+	const char *pf = parse_args(&args, "", 0, -1);
+	struct view *v = NULL;
+	int i;
 
 	if (!pf)
 		return;
 
-	if (!args[0])
-		v = open_empty_buffer();
-	else
-		v = open_buffer(args[0], OF_LOAD_BUFFER);
+	if (!args[0]) {
+		set_view(open_empty_buffer());
+		return;
+	}
+	for (i = 0; args[i]; i++) {
+		if (v)
+			open_buffer(args[i], 0);
+		else
+			v = open_buffer(args[i], OF_LOAD_BUFFER);
+	}
 	if (v)
 		set_view(v);
 }
