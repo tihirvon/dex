@@ -114,51 +114,35 @@ static int input_get_byte(unsigned char *ch)
 	return 1;
 }
 
-int term_read_key(unsigned int *key, enum term_key_type *type)
+static int read_special(unsigned int *key, enum term_key_type *type)
+{
+	int i;
+
+	for (i = 0; i < NR_SKEYS; i++) {
+		int len;
+
+		if (!term_keycodes[i])
+			continue;
+
+		len = strlen(term_keycodes[i]);
+		if (len > input_buf_fill) {
+			/* FIXME: this might be a truncated escape sequence */
+			continue;
+		}
+		if (strncmp(term_keycodes[i], input_buf, len))
+			continue;
+		*key = i;
+		*type = KEY_SPECIAL;
+		consume_input(len);
+		return 1;
+	}
+	return 0;
+}
+
+static int read_simple(unsigned int *key, enum term_key_type *type)
 {
 	unsigned char ch;
 
-	if (!input_buf_fill) {
-		int rc = read(0, input_buf, sizeof(input_buf));
-		if (rc <= 0)
-			return 0;
-		input_buf_fill = rc;
-	}
-
-	if (input_buf_fill > 1) {
-		int i;
-
-		for (i = 0; i < NR_SKEYS; i++) {
-			int len;
-
-			if (!term_keycodes[i])
-				continue;
-
-			len = strlen(term_keycodes[i]);
-			if (len > input_buf_fill) {
-				/* FIXME: this might be trucated escape sequence */
-				continue;
-			}
-			if (strncmp(term_keycodes[i], input_buf, len))
-				continue;
-			*key = i;
-			*type = KEY_SPECIAL;
-			consume_input(len);
-			return 1;
-		}
-		if (input_buf[0] == '\033') {
-			if (input_buf_fill == 2) {
-				/* 'esc key' or 'alt-key' */
-				*key = input_buf[1];
-				*type = KEY_META;
-				consume_input(2);
-				return 1;
-			}
-			/* unknown escape sequence, avoid inserting it */
-			input_buf_fill = 0;
-			return 0;
-		}
-	}
 	/* > 0 bytes in buf */
 	input_get_byte(&ch);
 
@@ -202,6 +186,35 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 	}
 	*type = KEY_NORMAL;
 	return 1;
+}
+
+int term_read_key(unsigned int *key, enum term_key_type *type)
+{
+	if (!input_buf_fill) {
+		int rc = read(0, input_buf, sizeof(input_buf));
+		if (rc <= 0)
+			return 0;
+		input_buf_fill = rc;
+	}
+
+	if (input_buf_fill > 1) {
+		if (read_special(key, type))
+			return 1;
+
+		if (input_buf[0] == '\033') {
+			if (input_buf_fill == 2) {
+				/* 'esc key' or 'alt-key' */
+				*key = input_buf[1];
+				*type = KEY_META;
+				consume_input(2);
+				return 1;
+			}
+			/* unknown escape sequence, avoid inserting it */
+			input_buf_fill = 0;
+			return 0;
+		}
+	}
+	return read_simple(key, type);
 }
 
 int term_get_size(int *w, int *h)
