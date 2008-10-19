@@ -142,7 +142,7 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 		m.rm_so += offset;
 		m.rm_eo += offset;
 
-		d_print("s=%d e=%d line_len=%d %s\n", m.rm_so, m.rm_eo, h->line_len, n->any.name);
+		ds_print("s=%d e=%d line_len=%d %s\n", m.rm_so, m.rm_eo, h->line_len, n->any.name);
 		if (!len)
 			break;
 
@@ -167,7 +167,7 @@ static int highlight_line_context(struct highlighter *h)
 	int eflags = 0;
 	int i, offset;
 
-	d_print("line: '%s'\n", h->line + h->offset);
+	ds_print("line: '%s'\n", h->line + h->offset);
 	if (h->offset > 0)
 		eflags |= REG_NOTBOL;
 
@@ -198,10 +198,10 @@ static int highlight_line_context(struct highlighter *h)
 
 		if (offset > m->match.rm_so) {
 			/* ignore overlapping pattern */
-			d_print("ignoring %s %d %d\n", m->node->any.name, offset, m->match.rm_so);
+			ds_print("ignoring %s %d %d\n", m->node->any.name, offset, m->match.rm_so);
 			continue;
 		}
-		d_print("M %-16s %d %d %d\n", m->node->any.name, offset, m->match.rm_so, m->match.rm_eo);
+		ds_print("M %-16s %d %d %d\n", m->node->any.name, offset, m->match.rm_so, m->match.rm_eo);
 
 		if (offset < m->match.rm_so)
 			add_node(h, (const union syntax_node *)context, m->match.rm_so - offset, HL_ENTRY_NORMAL);
@@ -214,13 +214,13 @@ static int highlight_line_context(struct highlighter *h)
 				/* current context ends */
 				add_node(h, m->node, m->match.rm_eo - m->match.rm_so, HL_ENTRY_EOC);
 				pop_syntax_context(&h->stack);
-				d_print("back %s => %s\n", context->any.name, h->stack.contexts[h->stack.level]->any.name);
+				ds_print("back %s => %s\n", context->any.name, h->stack.contexts[h->stack.level]->any.name);
 				return offset == h->line_len;
 			} else {
 				/* new context begins */
 				add_node(h, m->node, m->match.rm_eo - m->match.rm_so, HL_ENTRY_SOC);
 				push_syntax_context(&h->stack, c);
-				d_print("new %s => %s\n", context->any.name, c->any.name);
+				ds_print("new %s => %s\n", context->any.name, c->any.name);
 				return offset == h->line_len;
 			}
 		}

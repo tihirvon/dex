@@ -682,7 +682,7 @@ static void verify_hl_size(void)
 	list_for_each_entry(blk, &buffer->blocks, node)
 		size += blk->size;
 
-	d_print("%d %d\n", hl_size, size);
+	ds_print("%d %d\n", hl_size, size);
 	if (size) {
 		blk = BLOCK(buffer->blocks.prev);
 		if (blk->data[blk->size - 1] != '\n')
@@ -741,11 +741,11 @@ static void update_contexts(const struct syntax *syn, struct list_head *head,
 
 			if (type == HL_ENTRY_EOC) {
 				pop_syntax_context(ptr);
-				d_print("%3d back %s\n", pos, ptr->contexts[ptr->level]->any.name);
+				ds_print("%3d back %s\n", pos, ptr->contexts[ptr->level]->any.name);
 			}
 			if (type == HL_ENTRY_SOC) {
 				push_syntax_context(ptr, &idx_to_syntax_node(syn, hl_entry_idx(e))->context);
-				d_print("%3d new %s\n", pos, ptr->contexts[ptr->level]->any.name);
+				ds_print("%3d new %s\n", pos, ptr->contexts[ptr->level]->any.name);
 			}
 			while (new_pos > stop) {
 				if (!b)
@@ -867,16 +867,16 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 		highlight_line(&h);
 	}
 
-	d_print("a=%d b=%d\n", offset_a, offset_b);
+	ds_print("a=%d b=%d\n", offset_a, offset_b);
 
 	for (i = 0; i <= a.level; i++)
-		d_print("a context[%d] = %s\n", i, a.contexts[i]->any.name);
+		ds_print("a context[%d] = %s\n", i, a.contexts[i]->any.name);
 
 	for (i = 0; i <= b.level; i++)
-		d_print("b context[%d] = %s\n", i, b.contexts[i]->any.name);
+		ds_print("b context[%d] = %s\n", i, b.contexts[i]->any.name);
 
 	for (i = 0; i <= h.stack.level; i++)
-		d_print("h context[%d] = %s\n", i, h.stack.contexts[i]->any.name);
+		ds_print("h context[%d] = %s\n", i, h.stack.contexts[i]->any.name);
 
 	if (h.stack.level != b.level || memcmp(h.stack.contexts, b.contexts, sizeof(h.stack.contexts[0]) * (h.stack.level + 1))) {
 		/* Syntax context changed.  We need to highlight to EOF. */
