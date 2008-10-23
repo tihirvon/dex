@@ -93,22 +93,58 @@ void term_cooked(void)
 
 static char input_buf[256];
 static int input_buf_fill;
+static int input_can_be_truncated;
 
 static void consume_input(int len)
 {
 	input_buf_fill -= len;
-	if (input_buf_fill)
+	if (input_buf_fill) {
 		memmove(input_buf, input_buf + len, input_buf_fill);
+
+		/* keys are sent faster than we can read */
+		input_can_be_truncated = 1;
+	}
+}
+
+static int fill_buffer(void)
+{
+	int rc;
+
+	if (input_buf_fill == sizeof(input_buf))
+		return 0;
+
+	if (!input_buf_fill)
+		input_can_be_truncated = 0;
+
+	rc = read(0, input_buf + input_buf_fill, sizeof(input_buf) - input_buf_fill);
+	if (rc <= 0)
+		return 0;
+	input_buf_fill += rc;
+	return 1;
+}
+
+static int fill_buffer_timeout(void)
+{
+	unsigned int esc_timeout = 1000;
+	struct timeval tv = {
+		.tv_sec = esc_timeout / 1000,
+		.tv_usec = (esc_timeout % 1000) * 1000
+	};
+	fd_set set;
+	int rc;
+
+	FD_ZERO(&set);
+	FD_SET(0, &set);
+	rc = select(1, &set, NULL, NULL, &tv);
+	if (rc > 0 && fill_buffer())
+		return 1;
+	return 0;
 }
 
 static int input_get_byte(unsigned char *ch)
 {
-	if (!input_buf_fill) {
-		int rc = read(0, input_buf, sizeof(input_buf));
-		if (rc <= 0)
-			return 0;
-		input_buf_fill = rc;
-	}
+	if (!input_buf_fill && !fill_buffer())
+		return 0;
 	*ch = input_buf[0];
 	consume_input(1);
 	return 1;
@@ -116,6 +152,7 @@ static int input_get_byte(unsigned char *ch)
 
 static int read_special(unsigned int *key, enum term_key_type *type)
 {
+	int possibly_truncated = 0;
 	int i;
 
 	for (i = 0; i < NR_SKEYS; i++) {
@@ -126,7 +163,9 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 
 		len = strlen(term_keycodes[i]);
 		if (len > input_buf_fill) {
-			/* FIXME: this might be a truncated escape sequence */
+			/* this might be a truncated escape sequence */
+			if (!strncmp(term_keycodes[i], input_buf, len))
+				possibly_truncated = 1;
 			continue;
 		}
 		if (strncmp(term_keycodes[i], input_buf, len))
@@ -136,6 +175,8 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		consume_input(len);
 		return 1;
 	}
+	if (possibly_truncated && input_can_be_truncated && fill_buffer())
+		return read_special(key, type);
 	return 0;
 }
 
@@ -190,19 +231,20 @@ static int read_simple(unsigned int *key, enum term_key_type *type)
 
 int term_read_key(unsigned int *key, enum term_key_type *type)
 {
-	if (!input_buf_fill) {
-		int rc = read(0, input_buf, sizeof(input_buf));
-		if (rc <= 0)
-			return 0;
-		input_buf_fill = rc;
-	}
+	if (!input_buf_fill && !fill_buffer())
+		return 0;
 
-	if (input_buf_fill > 1) {
-		if (read_special(key, type))
-			return 1;
-
-		if (input_buf[0] == '\033') {
-			if (input_buf_fill == 2) {
+	if (input_buf[0] == '\033') {
+		if (input_buf_fill > 1 || input_can_be_truncated) {
+			if (read_special(key, type))
+				return 1;
+		}
+		if (input_buf_fill == 1) {
+			/* sometimes alt-key gets split into two reads */
+			fill_buffer_timeout();
+		}
+		if (input_buf_fill > 1) {
+			if (input_buf_fill == 2 || input_buf[2] == '\033') {
 				/* 'esc key' or 'alt-key' */
 				*key = input_buf[1];
 				*type = KEY_META;
