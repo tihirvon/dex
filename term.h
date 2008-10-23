@@ -102,7 +102,6 @@ enum {
 	TERM_USE_TERMINFO	= 0x01,
 	TERM_USE_TERMCAP	= 0x02,
 	TERM_UTF8		= 0x04,
-	TERM_ESC_META		= 0x08
 };
 
 extern struct term_cap term_cap;

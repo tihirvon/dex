@@ -1154,10 +1154,6 @@ int main(int argc, char *argv[])
 			flags &= ~TERM_USE_TERMINFO;
 			continue;
 		}
-		if (strcmp(opt, "-m") == 0) {
-			flags |= TERM_ESC_META;
-			continue;
-		}
 		if (strcmp(opt, "--help") == 0) {
 			return 0;
 		}

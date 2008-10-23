@@ -80,8 +80,8 @@ void term_raw(void)
 	/* read at least 1 char on each read() */
 	termios.c_cc[VMIN] = 1;
 
-	if (!(term_flags & TERM_ESC_META))
-		termios.c_cc[VTIME] = 0;
+	/* read blocks until there are MIN(VMIN, requested) bytes available */
+	termios.c_cc[VTIME] = 0;
 
 	tcsetattr(0, 0, &termios);
 }
