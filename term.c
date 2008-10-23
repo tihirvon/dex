@@ -152,6 +152,15 @@ static int input_get_byte(unsigned char *ch)
 
 static int read_special(unsigned int *key, enum term_key_type *type)
 {
+	static const struct {
+		int key;
+		const char *code;
+	} builtin[] = {
+		{ SKEY_LEFT,	"\e[D" },
+		{ SKEY_RIGHT,	"\e[C" },
+		{ SKEY_UP,	"\e[A" },
+		{ SKEY_DOWN,	"\e[B" },
+	};
 	int possibly_truncated = 0;
 	int i;
 
@@ -175,6 +184,23 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		consume_input(len);
 		return 1;
 	}
+	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
+		int len = strlen(builtin[i].code);
+
+		if (len > input_buf_fill) {
+			/* this might be a truncated escape sequence */
+			if (!strncmp(builtin[i].code, input_buf, len))
+				possibly_truncated = 1;
+			continue;
+		}
+		if (strncmp(builtin[i].code, input_buf, len))
+			continue;
+		*key = builtin[i].key;
+		*type = KEY_SPECIAL;
+		consume_input(len);
+		return 1;
+	}
+
 	if (possibly_truncated && input_can_be_truncated && fill_buffer())
 		return read_special(key, type);
 	return 0;
