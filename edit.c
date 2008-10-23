@@ -987,3 +987,25 @@ void clear_lines(void)
 
 	undo_merge = UNDO_MERGE_NONE;
 }
+
+void new_line(void)
+{
+	unsigned int ins_count = 1;
+
+	block_iter_eol(&view->cursor);
+
+	if (buffer->options.auto_indent) {
+		char *indent = get_indent();
+		if (indent) {
+			ins_count += strlen(indent);
+			do_insert(indent, ins_count - 1);
+			free(indent);
+		}
+	}
+	do_insert("\n", 1);
+
+	record_insert(ins_count);
+	move_right(ins_count);
+
+	undo_merge = UNDO_MERGE_NONE;
+}

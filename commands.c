@@ -656,6 +656,16 @@ static void cmd_line(char **args)
 		move_to_line(line);
 }
 
+static void cmd_new_line(char **args)
+{
+	const char *pf = parse_args(&args, "", 0, 0);
+
+	if (!pf)
+		return;
+
+	new_line();
+}
+
 static void cmd_next(char **args)
 {
 	next_buffer();
@@ -1134,6 +1144,7 @@ const struct command commands[] = {
 	{ "join", NULL, cmd_join },
 	{ "left", NULL, cmd_left },
 	{ "line", NULL, cmd_line },
+	{ "new-line", NULL, cmd_new_line },
 	{ "next", NULL, cmd_next },
 	{ "open", "o", cmd_open },
 	{ "paste", NULL, cmd_paste },

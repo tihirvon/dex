@@ -26,7 +26,7 @@ bind ^P paste
 bind ^V "select -l"
 bind ^G center-cursor
 bind ^J join
-bind ^O "eol; insert -ek '\n'"
+bind ^O new-line
 bind ^S clear
 bind ^C command
 bind ^L "command 'line '"
