@@ -19,6 +19,7 @@ struct global_options options = {
 	.statusline_right = NULL,
 
 	.display_special = 0,
+	.esc_timeout = 100,
 };
 
 enum option_type {
@@ -173,6 +174,7 @@ static const struct option_description option_desc[] = {
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
 	G_BOOL("display-special", display_special, default_bool_set),
 	C_BOOL("expand-tab", expand_tab, default_bool_set),
+	G_INT("esc-timeout", esc_timeout, 0, 2000, default_int_set),
 	L_STR("filetype", filetype, filetype_set),
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),
 	G_BOOL("move-wraps", move_wraps, default_bool_set),

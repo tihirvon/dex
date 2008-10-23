@@ -37,6 +37,7 @@ struct global_options {
 	char *statusline_right;
 
 	int display_special;
+	int esc_timeout;
 };
 
 extern struct global_options options;

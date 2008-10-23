@@ -1,5 +1,6 @@
 #include "term.h"
 #include "common.h"
+#include "options.h"
 
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -125,10 +126,9 @@ static int fill_buffer(void)
 
 static int fill_buffer_timeout(void)
 {
-	unsigned int esc_timeout = 1000;
 	struct timeval tv = {
-		.tv_sec = esc_timeout / 1000,
-		.tv_usec = (esc_timeout % 1000) * 1000
+		.tv_sec = options.esc_timeout / 1000,
+		.tv_usec = (options.esc_timeout % 1000) * 1000
 	};
 	fd_set set;
 	int rc;
