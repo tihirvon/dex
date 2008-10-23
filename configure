@@ -21,6 +21,8 @@ check_cflags()
 prefix=/usr/local
 bindir=
 datadir=
+DEBUG=1
+DEBUG_SYNTAX=1
 
 USAGE="
 Options:
@@ -31,6 +33,9 @@ Options:
 Also many standard variables like CC are recognized."
 
 parse_command_line "$@"
+
+CFLAGS="$CFLAGS -DDEBUG=$DEBUG"
+CFLAGS="$CFLAGS -DDEBUG_SYNTAX=$DEBUG_SYNTAX"
 
 var_default bindir "${prefix}/bin"
 var_default datadir "${prefix}/share"
