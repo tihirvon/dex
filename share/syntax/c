@@ -17,7 +17,7 @@ syn addr escchar "'(\\\\[1-3][0-7]{2}|\\\\0?[0-7]{2}|\\\\0{0,2}[0-7]|\\\\x[0-9a-
 # maximum value is 377 (255)
 syn addr escoct '\\([1-3][0-7]{2}|0?[0-7]{2}|0{0,2}[0-7])'
 syn addr eschex '\\x[0-9a-fA-F]{1,2}'
-syn addr esc '\\[tnr\\"]'
+syn addr esc '\\[enrt\\"]'
 
 # 0 or more flags, optional width, optional precision, optional length
 # f=[#0 +-]*
