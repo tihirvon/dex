@@ -193,7 +193,7 @@ void goto_tag(const char *name)
 
 	if (buffer->filename)
 		loc = create_location();
-	v = open_buffer(ta.filename, OF_FILE_MUST_EXIST | OF_TEMPORARY);
+	v = open_buffer(ta.filename, OF_LOAD_BUFFER | OF_FILE_MUST_EXIST | OF_TEMPORARY);
 	if (!v) {
 		free(ta.filename);
 		free(ta.pattern);
