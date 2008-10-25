@@ -4,7 +4,7 @@
 #include "util.h"
 #include "gbuf.h"
 
-struct {
+static struct {
 	// part of string which is to be replaced
 	char *escaped;
 	char *parsed;

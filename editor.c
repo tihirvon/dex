@@ -18,9 +18,10 @@
 enum input_mode input_mode;
 enum input_special input_special;
 int running;
-int nr_errors;
-int msg_is_error;
-char error_buf[256];
+
+static int nr_errors;
+static int msg_is_error;
+static char error_buf[256];
 
 static struct hl_color *default_color;
 static struct hl_color *currentline_color;
