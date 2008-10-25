@@ -11,6 +11,8 @@
 
 #define SYNTAX_FLAG_ICASE	(1 << 0)
 
+#define WORD_HASH_SIZE 64
+
 struct syntax_any {
 	char *name;
 	struct hl_color *color;
@@ -18,13 +20,15 @@ struct syntax_any {
 	unsigned int flags;
 };
 
+struct hash_word {
+	struct hash_word *next;
+	char *word;
+};
+
 struct syntax_word {
 	struct syntax_any any;
 
-	int nr_words;
-	char **words;
-
-	regex_t regex;
+	struct hash_word **hash;
 };
 
 struct syntax_pattern {
@@ -80,6 +84,7 @@ void syn_addc(char **args);
 void syn_connect(char **args);
 void syn_join(char **args);
 
+unsigned int str_hash(const char *str);
 struct syntax *find_syntax(const char *name);
 
 static inline unsigned char get_syntax_node_idx(const struct syntax *syn, const union syntax_node *node)

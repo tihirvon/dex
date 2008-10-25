@@ -7,6 +7,16 @@ LIST_HEAD(syntaxes);
 
 static struct syntax *cur_syntax;
 
+unsigned int str_hash(const char *str)
+{
+	unsigned int hash = 0;
+	int i;
+
+	for (i = 0; str[i]; i++)
+		hash = (hash << 5) - hash + str[i];
+	return hash;
+}
+
 static int regexp_compile(regex_t *regex, const char *pattern, unsigned int flags)
 {
 	char error[1024];
@@ -51,43 +61,6 @@ static char *unescape_pattern(const char *str)
 	return buf;
 }
 
-static void compile_words(void)
-{
-	int i;
-
-	for (i = 0; i < cur_syntax->nr_nodes; i++) {
-		struct syntax_word *w = (struct syntax_word *)cur_syntax->nodes[i];
-		char *pattern;
-		int j, len, pos = 0;
-
-		if (w->any.type != SYNTAX_NODE_WORD)
-			continue;
-
-		// \<(word1|word2)\>
-		len = 6;
-		for (j = 0; j < w->nr_words; j++)
-			len += strlen(w->words[j]) + 1;
-
-		pattern = xnew(char, len);
-		pattern[pos++] = '\\';
-		pattern[pos++] = '<';
-		pattern[pos++] = '(';
-		for (j = 0; j < w->nr_words; j++) {
-			int l = strlen(w->words[j]);
-			memcpy(pattern + pos, w->words[j], l);
-			pos += l;
-			pattern[pos++] = '|';
-		}
-		pattern[pos - 1] = ')';
-		pattern[pos++] = '\\';
-		pattern[pos++] = '>';
-		pattern[pos] = 0;
-
-		regexp_compile(&w->regex, pattern, w->any.flags);
-		free(pattern);
-	}
-}
-
 static void add_node(union syntax_node *n, int type, const char *name, unsigned int flags)
 {
 	n->any.name = xstrdup(name);
@@ -125,7 +98,6 @@ void syn_end(char **args)
 		error_msg("No syntax definition has been started.");
 		return;
 	}
-	compile_words();
 	list_add_before(&cur_syntax->node, &syntaxes);
 	cur_syntax = NULL;
 }
@@ -139,14 +111,6 @@ static union syntax_node *find_syntax_node(const char *name)
 			return cur_syntax->nodes[i];
 	}
 	return NULL;
-}
-
-static int count_args(char **args)
-{
-	int i;
-	for (i = 0; args[i]; i++)
-		;
-	return i;
 }
 
 void syn_addw(char **args)
@@ -176,11 +140,24 @@ void syn_addw(char **args)
 	} else {
 		w = xnew0(struct syntax_word, 1);
 		add_node((union syntax_node *)w, SYNTAX_NODE_WORD, name, flags);
+		w->hash = xnew0(struct hash_word *, WORD_HASH_SIZE);
 	}
+	for (i = 1; args[i]; i++) {
+		unsigned int hash_pos;
+		struct hash_word *new, *next;
+		int len = strlen(args[i]);
+		char *str = xmalloc(len + 2);
 
-	xrenew(w->words, w->nr_words + count_args(args + 1));
-	for (i = 1; args[i]; i++)
-		w->words[w->nr_words++] = xstrdup(args[i]);
+		str[0] = len;
+		memcpy(str + 1, args[i], len + 1);
+		hash_pos = str_hash(str) % WORD_HASH_SIZE;
+
+		next = w->hash[hash_pos];
+		new = xnew(struct hash_word, 1);
+		new->word = str;
+		new->next = next;
+		w->hash[hash_pos] = new;
+	}
 }
 
 void syn_addr(char **args)

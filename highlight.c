@@ -161,6 +161,50 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 	}
 }
 
+static void add_word_matches(struct highlighter *h, const union syntax_node *n)
+{
+	int i;
+
+	if (h->used_words == h->word_count)
+		return;
+
+	for (i = 0; i < h->word_count; i++) {
+		struct hl_word *hw = &h->words[i];
+		const struct hash_word *hash_w;
+
+		if (hw->used)
+			continue;
+
+		hash_w = n->word.hash[hw->hash % WORD_HASH_SIZE];
+		while (hash_w) {
+			struct hl_match *m;
+			const unsigned char *word = hash_w->word;
+			int len = *word++;
+
+			if (len != hw->len || memcmp(word, h->line + hw->offset, len)) {
+				hash_w = hash_w->next;
+				continue;
+			}
+
+			if (h->nr_matches == h->alloc) {
+				h->alloc += 16;
+				xrenew(h->matches, h->alloc);
+			}
+
+			m = &h->matches[h->nr_matches];
+			m->node = n;
+			m->match.rm_so = hw->offset;
+			m->match.rm_eo = hw->offset + len;
+			m->eoc = 0;
+			h->nr_matches++;
+
+			hw->used = 1;
+			h->used_words++;
+			break;
+		}
+	}
+}
+
 static int highlight_line_context(struct highlighter *h)
 {
 	const struct syntax_context *context = h->stack.contexts[h->stack.level];
@@ -179,7 +223,7 @@ static int highlight_line_context(struct highlighter *h)
 
 		switch (n->any.type) {
 		case SYNTAX_NODE_WORD:
-			add_matches(h, n, &n->word.regex);
+			add_word_matches(h, n);
 			break;
 		case SYNTAX_NODE_PATTERN:
 			add_matches(h, n, &n->pattern.regex);
@@ -232,8 +276,46 @@ static int highlight_line_context(struct highlighter *h)
 	return 1;
 }
 
+static void find_words(struct highlighter *h)
+{
+	char buf[256];
+	int i;
+
+	h->word_count = 0;
+	h->used_words = 0;
+	for (i = 0; i < h->line_len; i++) {
+		char ch = h->line[i];
+		struct hl_word *hlw;
+
+		if (!isalpha(ch) && ch != '_')
+			continue;
+
+		if (h->word_count == h->word_alloc) {
+			h->word_alloc += 8;
+			xrenew(h->words, h->word_alloc);
+		}
+
+		hlw = &h->words[h->word_count];
+		hlw->offset = i++;
+		while (i < h->line_len) {
+			ch = h->line[i];
+			if (!isalnum(ch) && ch != '_')
+				break;
+			i++;
+		}
+		hlw->len = i - hlw->offset;
+		hlw->used = 0;
+		buf[0] = hlw->len;
+		memcpy(buf + 1, h->line + hlw->offset, hlw->len);
+		buf[hlw->len + 1] = 0;
+		hlw->hash = str_hash(buf);
+		h->word_count++;
+	}
+}
+
 void highlight_line(struct highlighter *h)
 {
+	find_words(h);
 	while (!highlight_line_context(h))
 		;
 }

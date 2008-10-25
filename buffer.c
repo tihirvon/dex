@@ -709,6 +709,7 @@ void highlight_buffer(struct buffer *b)
 		h.offset = 0;
 		highlight_line(&h);
 	}
+	free(h.words);
 	free(h.matches);
 	free(h.stack.contexts);
 }
@@ -788,6 +789,7 @@ static void update_hl_eof(void)
 		h.offset = 0;
 		highlight_line(&h);
 	}
+	free(h.words);
 	free(h.matches);
 	free(h.stack.contexts);
 	free(a.contexts);
@@ -928,6 +930,7 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 		else
 			update_flags |= UPDATE_CURSOR_LINE;
 	}
+	free(h.words);
 	free(h.matches);
 	free(h.stack.contexts);
 	free(a.contexts);

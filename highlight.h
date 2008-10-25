@@ -59,6 +59,13 @@ struct syntax_context_stack {
 	unsigned int alloc;
 };
 
+struct hl_word {
+	unsigned int hash;
+	int offset;
+	int len;
+	int used;
+};
+
 struct highlighter {
 	struct list_head *headp;
 	const struct syntax *syn;
@@ -72,6 +79,11 @@ struct highlighter {
 	struct hl_match *matches;
 	int nr_matches;
 	int alloc;
+
+	struct hl_word *words;
+	int word_count;
+	int word_alloc;
+	int used_words;
 };
 
 void copy_syntax_context_stack(struct syntax_context_stack *dst, const struct syntax_context_stack *src);
