@@ -885,7 +885,7 @@ static void cmd_save(char **args)
 	const char *pf = parse_args(&args, "dfu", 0, 1);
 	char *absolute;
 	struct stat st;
-	int force;
+	int force = 0;
 	int newline = buffer->newline;
 
 	if (!pf)
