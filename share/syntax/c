@@ -4,6 +4,7 @@ syn addw keyword if else for while do continue switch case break default return 
 syn addw keyword const static inline register extern volatile auto restrict
 syn addw keyword sizeof typedef
 syn addw type struct union enum void char short int long float double signed unsigned
+syn addw type size_t ssize_t off_t ptrdiff_t time_t va_list FILE DIR
 syn addw notice FIXME TODO XXX
 syn addr label '^[ \t]*[a-zA-Z_][a-zA-Z_0-9]*:'
 syn addr oct '\<0[0-7]+(U|UL|ULL|LU|LLU)?\>'
