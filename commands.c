@@ -880,6 +880,32 @@ static void cmd_run(char **args)
 	}
 }
 
+static int stat_changed(const struct stat *a, const struct stat *b)
+{
+	return a->st_mtime != b->st_mtime ||
+		a->st_mode != b->st_mode ||
+		a->st_dev != b->st_dev ||
+		a->st_ino != b->st_ino;
+}
+
+static int check_modification(void)
+{
+	struct stat st;
+
+	if (stat(buffer->abs_filename, &st)) {
+		if (errno != ENOENT) {
+			error_msg("stat failed for %s: %s",
+				buffer->abs_filename,
+				strerror(errno));
+			return -1;
+		}
+	} else if (stat_changed(&buffer->st, &st)) {
+		error_msg("File has been modified by someone else. Use -f to force saving.");
+		return 1;
+	}
+	return 0;
+}
+
 static void cmd_save(char **args)
 {
 	const char *pf = parse_args(&args, "dfu", 0, 1);
@@ -916,6 +942,8 @@ static void cmd_save(char **args)
 			error_msg("Use -f to force saving read-only file.");
 			return;
 		}
+		if (!force && check_modification())
+			return;
 		save_buffer(buffer->abs_filename, newline);
 		return;
 	}
