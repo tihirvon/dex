@@ -564,6 +564,7 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 		close(wbuf.fd);
 		return -1;
 	}
+	fstat(wbuf.fd, &buffer->st);
 	close(wbuf.fd);
 
 	buffer->save_change_head = buffer->cur_change_head;
