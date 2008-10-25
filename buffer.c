@@ -332,7 +332,7 @@ static struct view *find_view(const char *abs_filename)
 	return NULL;
 }
 
-static void guess_filetype(struct buffer *b)
+void guess_filetype(struct buffer *b)
 {
 	const char *ft = NULL;
 

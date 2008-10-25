@@ -185,6 +185,7 @@ void error_msg(const char *format, ...) __FORMAT(1, 2);
 void info_msg(const char *format, ...) __FORMAT(1, 2);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 
+void guess_filetype(struct buffer *b);
 void filetype_changed(struct buffer *b);
 void highlight_buffer(struct buffer *b);
 void update_hl_insert(unsigned int lines, int count);

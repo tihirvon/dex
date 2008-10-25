@@ -887,6 +887,7 @@ static void cmd_save(char **args)
 	struct stat st;
 	int force = 0;
 	int newline = buffer->newline;
+	mode_t old_mode = buffer->st.st_mode;
 
 	if (!pf)
 		return;
@@ -951,6 +952,13 @@ static void cmd_save(char **args)
 	free(buffer->abs_filename);
 	buffer->filename = xstrdup(args[0]);
 	buffer->abs_filename = absolute;
+
+	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
+		/* new file and most likely user has not changed the filetype */
+		guess_filetype(buffer);
+		filetype_changed(buffer);
+		update_flags |= UPDATE_FULL;
+	}
 }
 
 static void do_search_next(char **args, enum search_direction dir)
