@@ -18,7 +18,8 @@ static void parse_home(const char *cmd, int *posp)
 {
 	int len, pos = *posp;
 	const char *username = cmd + pos + 1;
-	const char *str;
+	struct passwd *passwd;
+	char buf[64];
 
 	for (len = 0; username[len]; len++) {
 		char ch = username[len];
@@ -34,10 +35,16 @@ static void parse_home(const char *cmd, int *posp)
 		return;
 	}
 
-	str = get_home_dir(username, len);
-	if (!str)
+	if (len >= sizeof(buf))
 		return;
-	gbuf_add_str(&arg, str);
+
+	memcpy(buf, username, len);
+	buf[len] = 0;
+	passwd = getpwnam(buf);
+	if (!passwd)
+		return;
+
+	gbuf_add_str(&arg, passwd->pw_dir);
 	*posp = pos + 1 + len;
 }
 
