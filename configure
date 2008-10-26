@@ -22,7 +22,7 @@ prefix=/usr/local
 bindir=
 datadir=
 DEBUG=1
-DEBUG_SYNTAX=1
+DEBUG_SYNTAX=0
 
 USAGE="
 Options:
