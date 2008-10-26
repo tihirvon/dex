@@ -16,10 +16,16 @@ struct window {
 	int w, h;
 };
 
+enum editor_status {
+	EDITOR_INITIALIZING,
+	EDITOR_RUNNING,
+	EDITOR_EXITING,
+};
+
 extern struct window *window;
 extern struct list_head windows;
 extern int nr_pressed_keys;
-extern int running;
+extern enum editor_status editor_status;
 
 struct view *view_new(struct window *w, struct buffer *b);
 void view_init(struct view *v);

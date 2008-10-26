@@ -17,7 +17,7 @@
 
 enum input_mode input_mode;
 enum input_special input_special;
-int running;
+enum editor_status editor_status;
 
 static int nr_errors;
 static int msg_is_error;
@@ -598,7 +598,7 @@ void error_msg(const char *format, ...)
 	msg_is_error = 1;
 	update_flags |= UPDATE_STATUS_LINE;
 
-	if (!running) {
+	if (editor_status == EDITOR_INITIALIZING) {
 		if (current_command)
 			printf("%s: %s\n", current_command->name, error_buf);
 		else
@@ -1221,11 +1221,14 @@ int main(int argc, char *argv[])
 		open_empty_buffer();
 	set_view(VIEW(window->views.next));
 
+	/* You can have "quit" in the rc file for testing purposes. */
+	if (editor_status == EDITOR_INITIALIZING)
+		editor_status = EDITOR_RUNNING;
+
 	error_buf[0] = 0;
-	running = 1;
 	ui_start(nr_errors);
 
-	while (running) {
+	while (editor_status == EDITOR_RUNNING) {
 		if (resized) {
 			resized = 0;
 			update_terminal_settings();

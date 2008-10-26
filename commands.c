@@ -731,7 +731,7 @@ static void cmd_quit(char **args)
 	if (!pf)
 		return;
 	if (pf[0]) {
-		running = 0;
+		editor_status = EDITOR_EXITING;
 		return;
 	}
 	list_for_each_entry(w, &windows, node) {
@@ -742,7 +742,7 @@ static void cmd_quit(char **args)
 			}
 		}
 	}
-	running = 0;
+	editor_status = EDITOR_EXITING;
 }
 
 static void cmd_redo(char **args)
