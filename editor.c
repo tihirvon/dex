@@ -1187,6 +1187,9 @@ int main(int argc, char *argv[])
 	init_options();
 	set_basic_colors();
 
+	window = window_new();
+	update_window_sizes();
+
 	read_config(editor_file("rc"));
 	update_all_syntax_colors();
 	currentline_color = find_color("currentline");
@@ -1212,8 +1215,6 @@ int main(int argc, char *argv[])
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));
 
-	window = window_new();
-	update_window_sizes();
 	for (; i < argc; i++)
 		open_buffer(argv[i], 0);
 	if (list_empty(&window->views))
