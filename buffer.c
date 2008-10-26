@@ -416,38 +416,33 @@ struct view *open_buffer(const char *filename, unsigned int flags)
 
 int load_buffer(struct buffer *b, int must_exist)
 {
-	int fd = open(b->filename, O_RDWR);
+	int fd = open(b->filename, O_RDONLY);
 
 	if (fd < 0) {
-		if (errno == ENOENT) {
-			if (must_exist) {
-				error_msg("File %s does not exist.", b->filename);
-				return -1;
-			}
-			goto skip_read;
-		}
-		fd = open(b->filename, O_RDONLY);
-		if (fd < 0) {
+		if (errno != ENOENT) {
 			error_msg("Error opening %s: %s", b->filename, strerror(errno));
 			return -1;
 		}
-		b->ro = 1;
-	}
+		if (must_exist) {
+			error_msg("File %s does not exist.", b->filename);
+			return -1;
+		}
+	} else {
+		fstat(fd, &b->st);
+		b->ro = !(b->st.st_mode & S_IWUSR);
+		if (!S_ISREG(b->st.st_mode)) {
+			error_msg("Can't open %s %s", get_file_type(b->st.st_mode), b->filename);
+			close(fd);
+			return -1;
+		}
 
-	fstat(fd, &b->st);
-	if (!S_ISREG(b->st.st_mode)) {
-		error_msg("Can't open %s %s", get_file_type(b->st.st_mode), b->filename);
+		if (read_blocks(b, fd)) {
+			error_msg("Error reading %s: %s", b->filename, strerror(errno));
+			close(fd);
+			return -1;
+		}
 		close(fd);
-		return -1;
 	}
-
-	if (read_blocks(b, fd)) {
-		error_msg("Error reading %s: %s", b->filename, strerror(errno));
-		close(fd);
-		return -1;
-	}
-	close(fd);
-skip_read:
 	if (list_empty(&b->blocks)) {
 		struct block *blk = block_new(ALLOC_ROUND(1));
 		list_add_before(&blk->node, &b->blocks);
