@@ -197,16 +197,30 @@ void undo(void)
 	buffer->cur_change_head = head->next;
 }
 
-void redo(void)
+void redo(unsigned int change_id)
 {
 	struct change_head *head = buffer->cur_change_head;
 	struct change *change;
 
 	undo_merge = UNDO_MERGE_NONE;
-	if (!head->prev)
-		return;
 
-	head = head->prev[head->nr_prev - 1];
+	if (!head->prev) {
+		/* don't complain if change_id is 0 */
+		if (change_id)
+			error_msg("Nothing to redo.");
+		return;
+	}
+
+	if (change_id) {
+		if (--change_id >= head->nr_prev) {
+			error_msg("There are only %d possible changes to redo.", head->nr_prev);
+			return;
+		}
+	} else if (head->nr_prev > 1) {
+		info_msg("Redoing first of %d possible changes.", head->nr_prev);
+	}
+
+	head = head->prev[change_id];
 	change = (struct change *)head;
 	if (is_change_chain_barrier(change)) {
 		int count = 0;

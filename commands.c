@@ -747,7 +747,20 @@ static void cmd_quit(char **args)
 
 static void cmd_redo(char **args)
 {
-	redo();
+	const char *pf = parse_args(&args, "", 0, 1);
+	int change_id = 0;
+
+	if (!pf)
+		return;
+
+	if (args[0]) {
+		change_id = atoi(args[0]);
+		if (change_id <= 0) {
+			error_msg("Invalid change id: %s", args[0]);
+			return;
+		}
+	}
+	redo(change_id);
 }
 
 static void cmd_repeat(char **args)
