@@ -521,26 +521,18 @@ static void update_everything(void)
 
 static void debug_blocks(void)
 {
+#if DEBUG > 0
 	struct block *blk;
-	unsigned int count = 0;
 
-	list_for_each_entry(blk, &buffer->blocks, node)
-		count++;
-	BUG_ON(!count);
+	BUG_ON(list_empty(&buffer->blocks));
 
 	list_for_each_entry(blk, &buffer->blocks, node) {
-		unsigned int nl;
-
-		if (count > 1)
-			BUG_ON(!blk->size);
-
+		BUG_ON(!blk->size && buffer->blocks.next->next != &buffer->blocks);
 		BUG_ON(blk->size > blk->alloc);
-		nl = count_nl(blk->data, blk->size);
-		BUG_ON(nl != blk->nl);
-		if (blk == view->cursor.blk) {
-			BUG_ON(view->cursor.offset > blk->size);
-		}
+		BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
+		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
 	}
+#endif
 }
 
 static void any_key(void)
