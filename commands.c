@@ -886,32 +886,14 @@ static int stat_changed(const struct stat *a, const struct stat *b)
 		a->st_ino != b->st_ino;
 }
 
-static int check_modification(void)
-{
-	struct stat st;
-
-	if (stat(buffer->abs_filename, &st)) {
-		if (errno != ENOENT) {
-			error_msg("stat failed for %s: %s",
-				buffer->abs_filename,
-				strerror(errno));
-			return -1;
-		}
-	} else if (stat_changed(&buffer->st, &st)) {
-		error_msg("File has been modified by someone else. Use -f to force saving.");
-		return 1;
-	}
-	return 0;
-}
-
 static void cmd_save(char **args)
 {
 	const char *pf = parse_args(&args, "dfu", 0, 1);
-	char *absolute;
-	struct stat st;
+	char *absolute = buffer->abs_filename;
 	int force = 0;
 	int newline = buffer->newline;
 	mode_t old_mode = buffer->st.st_mode;
+	struct stat st;
 
 	if (!pf)
 		return;
@@ -931,8 +913,14 @@ static void cmd_save(char **args)
 		pf++;
 	}
 
-	if (!args[0]) {
-		if (!buffer->abs_filename) {
+	if (args[0]) {
+		absolute = path_absolute(args[0]);
+		if (!absolute) {
+			error_msg("Failed to make absolute path: %s", strerror(errno));
+			return;
+		}
+	} else {
+		if (!absolute) {
 			error_msg("No filename.");
 			return;
 		}
@@ -940,51 +928,46 @@ static void cmd_save(char **args)
 			error_msg("Use -f to force saving read-only file.");
 			return;
 		}
-		if (!force && check_modification())
-			return;
-		save_buffer(buffer->abs_filename, newline);
-		return;
 	}
 
-	// ignore read-only flag when filename is explicitly given
-	absolute = path_absolute(args[0]);
-	if (!absolute) {
-		error_msg("Failed to make absolute path: %s", strerror(errno));
-		return;
-	}
 	if (stat(absolute, &st)) {
 		if (errno != ENOENT) {
 			error_msg("stat failed for %s: %s", absolute, strerror(errno));
-			free(absolute);
-			return;
+			goto error;
 		}
 	} else {
+		if (absolute == buffer->abs_filename && !force && stat_changed(&buffer->st, &st)) {
+			error_msg("File has been modified by someone else. Use -f to force overwrite.");
+			goto error;
+		}
 		if (S_ISDIR(st.st_mode)) {
 			error_msg("Will not overwrite directory %s", absolute);
-			free(absolute);
-			return;
+			goto error;
 		}
-		if (!force) {
+		if (absolute != buffer->abs_filename && !force) {
 			error_msg("Use -f to overwrite %s %s.", get_file_type(st.st_mode), absolute);
-			free(absolute);
-			return;
+			goto error;
 		}
 	}
-	if (save_buffer(absolute, newline)) {
-		free(absolute);
-		return;
-	}
-	free(buffer->filename);
-	free(buffer->abs_filename);
-	buffer->filename = xstrdup(args[0]);
-	buffer->abs_filename = absolute;
+	if (save_buffer(absolute, newline))
+		goto error;
 
+	if (absolute != buffer->abs_filename) {
+		free(buffer->filename);
+		free(buffer->abs_filename);
+		buffer->filename = xstrdup(args[0]);
+		buffer->abs_filename = absolute;
+	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
 		guess_filetype(buffer);
 		filetype_changed(buffer);
 		update_flags |= UPDATE_FULL;
 	}
+	return;
+error:
+	if (absolute != buffer->abs_filename)
+		free(absolute);
 }
 
 static void do_search_next(char **args, enum search_direction dir)
