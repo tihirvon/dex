@@ -28,7 +28,6 @@ extern int nr_pressed_keys;
 extern enum editor_status editor_status;
 
 struct view *view_new(struct window *w, struct buffer *b);
-void view_init(struct view *v);
 void view_delete(struct view *v);
 
 struct window *window_new(void);
