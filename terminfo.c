@@ -570,6 +570,11 @@ static int get_bool(int idx)
 {
 	if (idx >= nr_bools)
 		return 0;
+	/*
+	 * 0 absent
+	 * 1 present
+	 * 2 cancelled
+	 */
 	return bools[idx] == 1;
 }
 
@@ -580,7 +585,11 @@ static int get_num(int idx)
 	if (idx >= nr_nums)
 		return -1;
 	val = get_u16le(nums + idx * 2);
-	if (val == 0xffff)
+	/*
+	 * -1 missing
+	 * -2 cancelled
+	 */
+	if (val >= 0xfffe)
 		return -1;
 	return val;
 }
@@ -592,7 +601,11 @@ static char *get_str(int idx)
 	if (idx >= nr_strs)
 		return NULL;
 	offset = get_u16le(offsets + idx * 2);
-	if (offset == 0xffff)
+	/*
+	 * -1 missing
+	 * -2 cancelled
+	 */
+	if (offset >= 0xfffe)
 		return NULL;
 	return xstrdup(strs + offset);
 }
@@ -603,7 +616,7 @@ static int validate(void)
 	int i;
 
 	for (i = 0; i < nr_bools; i++) {
-		if (bools[i] != 1 && bools[i] != 0) {
+		if ((unsigned char)bools[i] > 2) {
 			d_print("bool %3d: %d\n", i, bools[i]);
 			valid = 0;
 		}
@@ -611,7 +624,7 @@ static int validate(void)
 
 	for (i = 0; i < nr_nums; i++) {
 		unsigned short num = get_u16le(nums + i * 2);
-		if (num > 32767 && num != 0xffff) {
+		if (num > 32767 && num < 0xfffe) {
 			d_print("num %3d: negative\n", i);
 			valid = 0;
 		}
@@ -619,7 +632,7 @@ static int validate(void)
 
 	for (i = 0; i < nr_strs; i++) {
 		unsigned short offset = get_u16le(offsets + i * 2);
-		if (offset == 0xffff)
+		if (offset >= 0xfffe)
 			continue;
 		if (offset > 32767) {
 			d_print("str %3d: negative\n", i);
@@ -679,7 +692,7 @@ int terminfo_get_caps(const char *filename)
 		return -1;
 	if (size < 12)
 		goto corrupt;
-	
+
 	/* validate header */
 	if (buf[0] != 0x1A || buf[1] != 0x01)
 		return -2;
