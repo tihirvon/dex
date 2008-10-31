@@ -205,6 +205,8 @@ void goto_tag(const char *name)
 	}
 	if (loc)
 		list_add_after(&loc->node, &location_head);
+	else
+		info_msg("Can't save current location because there's no filename.");
 
 	set_view(v);
 	if (ta.pattern) {
