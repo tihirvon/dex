@@ -774,13 +774,13 @@ struct indent_info {
 	int wsonly;
 };
 
-static void get_indent_info(const char *buf, struct indent_info *info)
+static void get_indent_info(const char *buf, int len, struct indent_info *info)
 {
 	int pos = 0;
 
 	memset(info, 0, sizeof(struct indent_info));
 	info->sane = 1;
-	while (buf[pos]) {
+	while (pos < len) {
 		if (buf[pos] == ' ') {
 			info->width++;
 			info->spaces++;
@@ -798,7 +798,7 @@ static void get_indent_info(const char *buf, struct indent_info *info)
 			info->sane = use_spaces_for_indent() ? !info->tabs : !info->spaces;
 	}
 	info->level = info->width / buffer->options.indent_width;
-	info->wsonly = !buf[pos];
+	info->wsonly = pos == len;
 }
 
 static void shift_right(int nr_lines, int count)
@@ -812,7 +812,7 @@ static void shift_right(int nr_lines, int count)
 		struct indent_info info;
 
 		fetch_eol(&view->cursor);
-		get_indent_info(line_buffer, &info);
+		get_indent_info(line_buffer, line_buffer_len, &info);
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
@@ -854,7 +854,7 @@ static void shift_left(int nr_lines, int count)
 		struct indent_info info;
 
 		fetch_eol(&view->cursor);
-		get_indent_info(line_buffer, &info);
+		get_indent_info(line_buffer, line_buffer_len, &info);
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
@@ -1036,6 +1036,7 @@ static void add_paragraph_line(struct gbuf *buf, const char *str, int len)
 
 void format_paragraph(int text_width)
 {
+	struct indent_info info;
 	unsigned int len;
 	char *sel;
 	int i;
@@ -1052,6 +1053,7 @@ void format_paragraph(int text_width)
 		return;
 
 	sel = do_delete(len);
+	get_indent_info(sel, len, &info);
 	i = 0;
 	while (1) {
 		int w, start;
@@ -1069,7 +1071,8 @@ void format_paragraph(int text_width)
 				ws_idx = i++;
 				while (i < len && isspace(sel[i]))
 					i++;
-				if (w + dot + 1 >= text_width) {
+				if (info.width + w + dot + 1 >= text_width) {
+					gbuf_add_buf(&buf, sel, info.bytes);
 					add_paragraph_line(&buf, sel + start, ws_idx - start);
 					w = 0;
 					break;
@@ -1080,7 +1083,8 @@ void format_paragraph(int text_width)
 				u_char u = u_get_char(sel, &i);
 				w += u_char_width(u);
 				dot = u == '.' || u == '?' || u == '!';
-				if (w >= text_width && ws_idx >= 0) {
+				if (info.width + w >= text_width && ws_idx >= 0) {
+					gbuf_add_buf(&buf, sel, info.bytes);
 					add_paragraph_line(&buf, sel + start, ws_idx - start);
 					w = 0;
 					i = ws_idx + 1;
@@ -1090,6 +1094,7 @@ void format_paragraph(int text_width)
 		}
 
 		if (w) {
+			gbuf_add_buf(&buf, sel, info.bytes);
 			add_paragraph_line(&buf, sel + start, i - start);
 			w = 0;
 		}
