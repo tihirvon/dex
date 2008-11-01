@@ -283,7 +283,7 @@ static void find_words(struct highlighter *h)
 
 	h->word_count = 0;
 	h->used_words = 0;
-	for (i = 0; i < h->line_len; i++) {
+	for (i = h->offset; i < h->line_len; i++) {
 		char ch = h->line[i];
 		struct hl_word *hlw;
 
@@ -316,8 +316,16 @@ static void find_words(struct highlighter *h)
 void highlight_line(struct highlighter *h)
 {
 	find_words(h);
-	while (!highlight_line_context(h))
-		;
+	while (1) {
+		int i;
+
+		if (highlight_line_context(h))
+			break;
+
+		/* no need to call find_words() again, just mark words unused */
+		for (i = 0; i < h->word_count; i++)
+			h->words[i].used = h->words[i].offset < h->offset;
+	}
 }
 
 void free_hl_list(struct list_head *head)
