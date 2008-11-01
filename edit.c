@@ -1009,3 +1009,98 @@ void new_line(void)
 
 	undo_merge = UNDO_MERGE_NONE;
 }
+
+static void add_paragraph_line(struct gbuf *buf, const char *str, int len)
+{
+	int i = 0;
+	int dot = 0;
+
+	while (i < len) {
+		if (isspace(str[i])) {
+			i++;
+			while (i < len && isspace(str[i]))
+				i++;
+			if (i == len)
+				break;
+			gbuf_add_ch(buf, ' ');
+			if (dot)
+				gbuf_add_ch(buf, ' ');
+		} else {
+			char ch = str[i++];
+			gbuf_add_ch(buf, ch);
+			dot = ch == '.' || ch == '?' || ch == '!';
+		}
+	}
+	gbuf_add_ch(buf, '\n');
+}
+
+void format_paragraph(int text_width)
+{
+	unsigned int len;
+	char *sel;
+	int i;
+	GBUF(buf);
+
+	undo_merge = UNDO_MERGE_NONE;
+
+	if (!view->sel.blk)
+		return;
+
+	view->sel_is_lines = 1;
+	len = prepare_selection();
+	if (!len)
+		return;
+
+	sel = do_delete(len);
+	i = 0;
+	while (1) {
+		int w, start;
+		int ws_idx = -1;
+		int dot = 0;
+
+		while (i < len && isspace(sel[i]))
+			i++;
+		if (i == len)
+			break;
+
+		start = i;
+		while (i < len) {
+			if (isspace(sel[i])) {
+				ws_idx = i++;
+				while (i < len && isspace(sel[i]))
+					i++;
+				if (w + dot + 1 >= text_width) {
+					add_paragraph_line(&buf, sel + start, ws_idx - start);
+					w = 0;
+					break;
+				}
+				w += dot + 1;
+				dot = 0;
+			} else {
+				u_char u = u_get_char(sel, &i);
+				w += u_char_width(u);
+				dot = u == '.' || u == '?' || u == '!';
+				if (w >= text_width && ws_idx >= 0) {
+					add_paragraph_line(&buf, sel + start, ws_idx - start);
+					w = 0;
+					i = ws_idx + 1;
+					break;
+				}
+			}
+		}
+
+		if (w) {
+			add_paragraph_line(&buf, sel + start, i - start);
+			w = 0;
+		}
+	}
+
+	if (buf.len)
+		do_insert(buf.buffer, buf.len);
+	record_replace(sel, len, buf.len);
+	move_right(buf.len);
+	gbuf_free(&buf);
+
+	update_flags |= UPDATE_FULL;
+	select_end();
+}

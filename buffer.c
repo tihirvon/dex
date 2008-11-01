@@ -157,6 +157,7 @@ static struct buffer *buffer_new(void)
 	b->options.expand_tab = options.expand_tab;
 	b->options.indent_width = options.indent_width;
 	b->options.tab_width = options.tab_width;
+	b->options.text_width = options.text_width;
 	b->options.trim_whitespace = options.trim_whitespace;
 	b->options.filetype = xstrdup("none");
 

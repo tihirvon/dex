@@ -12,6 +12,7 @@ struct local_options {
 	int expand_tab;
 	int indent_width;
 	int tab_width;
+	int text_width;
 	int trim_whitespace;
 
 	/* only local */
@@ -24,6 +25,7 @@ struct global_options {
 	int expand_tab;
 	int indent_width;
 	int tab_width;
+	int text_width;
 	int trim_whitespace;
 
 	/* only global */

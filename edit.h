@@ -15,6 +15,7 @@ void erase_word(void);
 void shift_lines(int count);
 void clear_lines(void);
 void new_line(void);
+void format_paragraph(int pw);
 void move_left(int count);
 void move_right(int count);
 void move_bol(void);

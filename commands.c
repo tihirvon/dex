@@ -470,6 +470,22 @@ static void cmd_filetype(char **args)
 	run_command(filetype_commands, args);
 }
 
+static void cmd_format_paragraph(char **args)
+{
+	const char *pf = parse_args(&args, "", 0, 1);
+	int text_width = buffer->options.text_width;
+
+	if (!pf)
+		return;
+	if (args[0])
+		text_width = atoi(args[0]);
+	if (text_width <= 0) {
+		error_msg("Paragraph width must be positive.");
+		return;
+	}
+	format_paragraph(text_width);
+}
+
 static char *shell_unescape(const char *str)
 {
 	GBUF(buf);
@@ -1167,6 +1183,7 @@ const struct command commands[] = {
 	{ "error", NULL, cmd_error },
 	{ "errorfmt", NULL, cmd_errorfmt },
 	{ "filetype", "ft", cmd_filetype },
+	{ "format-paragraph", "fp", cmd_format_paragraph },
 	{ "highlight", "hi", cmd_highlight },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
