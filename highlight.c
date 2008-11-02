@@ -175,15 +175,19 @@ static void add_word_matches(struct highlighter *h, const union syntax_node *n)
 		if (hw->used)
 			continue;
 
-		hash_w = n->word.hash[hw->hash % WORD_HASH_SIZE];
-		while (hash_w) {
+		for (hash_w = n->word.hash[hw->hash % WORD_HASH_SIZE]; hash_w; hash_w = hash_w->next) {
 			struct hl_match *m;
 			const unsigned char *word = hash_w->word;
 			int len = *word++;
 
-			if (len != hw->len || memcmp(word, h->line + hw->offset, len)) {
-				hash_w = hash_w->next;
+			if (len != hw->len)
 				continue;
+			if (n->any.flags & SYNTAX_FLAG_ICASE) {
+				if (strncasecmp(word, h->line + hw->offset, len))
+					continue;
+			} else {
+				if (memcmp(word, h->line + hw->offset, len))
+					continue;
 			}
 
 			if (h->nr_matches == h->alloc) {

@@ -12,8 +12,12 @@ unsigned int str_hash(const char *str)
 	unsigned int hash = 0;
 	int i;
 
-	for (i = 0; str[i]; i++)
-		hash = (hash << 5) - hash + str[i];
+	for (i = 0; str[i]; i++) {
+		unsigned int ch = str[i];
+		if (ch >= 'A' && ch <= 'Z')
+			ch += 'a' - 'A';
+		hash = (hash << 5) - hash + ch;
+	}
 	return hash;
 }
 
