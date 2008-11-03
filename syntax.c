@@ -86,7 +86,7 @@ static int too_many_nodes(void)
 {
 	static int warn = 1;
 
-	if (nr_syntax_nodes < 0x3f)
+	if (nr_syntax_nodes < 1 << 14)
 		return 0;
 	if (warn)
 		error_msg("Too many syntax nodes.");

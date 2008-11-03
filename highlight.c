@@ -58,7 +58,7 @@ void copy_syntax_context_stack(struct syntax_context_stack *dst, const struct sy
 	}
 }
 
-static void add_hl_entry_at(struct hl_list *list, unsigned char desc, unsigned char len)
+static void add_hl_entry_at(struct hl_list *list, unsigned int desc, unsigned char len)
 {
 	struct hl_entry *e;
 
@@ -69,17 +69,19 @@ static void add_hl_entry_at(struct hl_list *list, unsigned char desc, unsigned c
 		list = new;
 	}
 	e = &list->entries[list->count++];
-	e->desc = desc;
+	e->desc_high = get_hl_entry_desc_high(desc);
+	e->desc_low = get_hl_entry_desc_low(desc);
 	e->len = len;
 }
 
-static void add_hl_entry(struct list_head *head, unsigned char desc, unsigned char len)
+static void add_hl_entry(struct list_head *head, unsigned int desc, unsigned char len)
 {
 	BUG_ON(!len);
 	if (list_empty(head)) {
 		struct hl_list *list = xnew(struct hl_list, 1);
 		struct hl_entry *e = &list->entries[0];
-		e->desc = desc;
+		e->desc_high = get_hl_entry_desc_high(desc);
+		e->desc_low = get_hl_entry_desc_low(desc);
 		e->len = len;
 		list->count = 1;
 		list_add_before(&list->node, head);
@@ -88,14 +90,14 @@ static void add_hl_entry(struct list_head *head, unsigned char desc, unsigned ch
 	add_hl_entry_at(HL_LIST(head->prev), desc, len);
 }
 
-static void add_highlight(struct list_head *head, unsigned char desc, int len)
+static void add_highlight(struct list_head *head, unsigned int desc, int len)
 {
 	int i;
 
 	if (head->prev != head) {
 		struct hl_list *last = HL_LIST(head->prev);
 		struct hl_entry *entry = &last->entries[last->count - 1];
-		if (entry->desc == desc && hl_entry_type(entry) == HL_ENTRY_NORMAL) {
+		if (hl_entry_desc(entry) == desc && hl_entry_type(entry) == HL_ENTRY_NORMAL) {
 			int sum = entry->len + len;
 			if (sum <= 255) {
 				entry->len = sum;
@@ -113,12 +115,12 @@ static void add_highlight(struct list_head *head, unsigned char desc, int len)
 
 void merge_highlight_entry(struct list_head *head, const struct hl_entry *e)
 {
-	add_highlight(head, e->desc, e->len);
+	add_highlight(head, hl_entry_desc(e), e->len);
 }
 
 static void add_node(struct highlighter *h, const union syntax_node *node, int len, unsigned int type)
 {
-	add_highlight(h->headp, get_syntax_node_idx(node) | type, len);
+	add_highlight(h->headp, make_hl_entry_desc(type, get_syntax_node_idx(node)), len);
 }
 
 static int hl_match_cmp(const void *ap, const void *bp)
@@ -425,7 +427,7 @@ void split_hl_list(struct list_head *head, unsigned int offset, struct list_head
 				if (left)
 					list->count++;
 
-				add_highlight(other, e->desc, right);
+				add_highlight(other, hl_entry_desc(e), right);
 
 				for (i = i + 1; i < count; i++) {
 					e = &list->entries[i];

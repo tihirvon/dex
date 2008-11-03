@@ -3,18 +3,17 @@
 
 #include "syntax.h"
 
-/*
- * Most syntax nodes are very short so 8 bits seems optimal.
- *
- * We also limit number of syntax nodes to 64 which is more than enough for
- * anything sane.
- */
 struct hl_entry {
 	/*
-	 * top 2 bits is type
-	 * bottom 6 bits is index to syntax->nodes[]
+	 * top 2 bits:     type (HL_ENTRY_*)
+	 * bottom 6 bits:  high bits of index to syntax_nodes[]
 	 */
-	unsigned char desc;
+	unsigned char desc_high;
+
+	/* low bits of index to syntax_nodes[] */
+	unsigned char desc_low;
+
+	/* length of highlight in bytes */
 	unsigned char len;
 };
 
@@ -26,17 +25,32 @@ struct hl_entry {
 
 static inline unsigned int hl_entry_type(const struct hl_entry *e)
 {
-	return e->desc & 0xc0;
+	return e->desc_high & 0xc0;
 }
 
 static inline unsigned int hl_entry_idx(const struct hl_entry *e)
 {
-	return e->desc & 0x3f;
+	return ((e->desc_high & 0x3f) << 8) | e->desc_low;
 }
 
-static inline int hl_entry_is_eoc(const struct hl_entry *e)
+static inline unsigned int hl_entry_desc(const struct hl_entry *e)
 {
-	return hl_entry_type(e) == HL_ENTRY_EOC;
+	return (e->desc_high << 8) | e->desc_low;
+}
+
+static inline unsigned int make_hl_entry_desc(unsigned int type, unsigned int idx)
+{
+	return (type << 8) | idx;
+}
+
+static inline unsigned int get_hl_entry_desc_high(unsigned int desc)
+{
+	return desc >> 8;
+}
+
+static inline unsigned int get_hl_entry_desc_low(unsigned int desc)
+{
+	return desc & 0xff;
 }
 
 #define HL_LIST(ptr) container_of(ptr, struct hl_list, node)
