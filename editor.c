@@ -289,7 +289,7 @@ static void advance_hl(unsigned int count)
 
 		BUG_ON(!current_hl_list->count);
 		if (avail >= count) {
-			union syntax_node *n = idx_to_syntax_node(buffer->syn, hl_entry_idx(e));
+			union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
 			current_hl_entry_pos += count;
 			current_hl_color = n->any.color;
 			return;

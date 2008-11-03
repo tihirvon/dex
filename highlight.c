@@ -2,11 +2,13 @@
 #include "syntax.h"
 #include "highlight.h"
 
-static void update_join_color(struct syntax *syn, union syntax_node *node)
+static int nr_updated_node_colors;
+
+static void update_join_color(union syntax_node *node)
 {
 	int i, j;
-	for (i = 0; i < syn->nr_join; i++) {
-		const struct syntax_join *join = &syn->join[i];
+	for (i = 0; i < nr_syntax_joins; i++) {
+		const struct syntax_join *join = &syntax_joins[i];
 		for (j = 0; j < join->nr_nodes; j++) {
 			if (join->nodes[j] == node) {
 				node->any.color = find_color(join->name);
@@ -16,24 +18,23 @@ static void update_join_color(struct syntax *syn, union syntax_node *node)
 	}
 }
 
-void update_syntax_colors(struct syntax *syntax)
+void update_syntax_colors(void)
 {
 	int i;
 
-	for (i = 0; i < syntax->nr_nodes; i++) {
-		union syntax_node *node = syntax->nodes[i];
+	for (i = nr_updated_node_colors; i < nr_syntax_nodes; i++) {
+		union syntax_node *node = syntax_nodes[i];
 		node->any.color = find_color(node->any.name);
 		if (!node->any.color)
-			update_join_color(syntax, node);
+			update_join_color(node);
 	}
+	nr_updated_node_colors = nr_syntax_nodes;
 }
 
 void update_all_syntax_colors(void)
 {
-	struct syntax *s;
-
-	list_for_each_entry(s, &syntaxes, node)
-		update_syntax_colors(s);
+	nr_updated_node_colors = 0;
+	update_syntax_colors();
 }
 
 void push_syntax_context(struct syntax_context_stack *stack, const struct syntax_context *c)
@@ -117,7 +118,7 @@ void merge_highlight_entry(struct list_head *head, const struct hl_entry *e)
 
 static void add_node(struct highlighter *h, const union syntax_node *node, int len, unsigned int type)
 {
-	add_highlight(h->headp, get_syntax_node_idx(h->syn, node) | type, len);
+	add_highlight(h->headp, get_syntax_node_idx(node) | type, len);
 }
 
 static int hl_match_cmp(const void *ap, const void *bp)

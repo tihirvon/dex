@@ -67,14 +67,14 @@ struct syntax_join {
 struct syntax {
 	struct list_head node;
 	char *name;
-	union syntax_node **nodes;
-	int nr_nodes;
-
-	struct syntax_join *join;
-	int nr_join;
+	struct syntax_context *root;
 };
 
-extern struct list_head syntaxes;
+extern union syntax_node **syntax_nodes;
+extern int nr_syntax_nodes;
+
+extern struct syntax_join *syntax_joins;
+extern int nr_syntax_joins;
 
 void syn_begin(char **args);
 void syn_end(char **args);
@@ -87,23 +87,23 @@ void syn_join(char **args);
 unsigned int str_hash(const char *str);
 struct syntax *find_syntax(const char *name);
 
-static inline unsigned char get_syntax_node_idx(const struct syntax *syn, const union syntax_node *node)
+static inline unsigned char get_syntax_node_idx(const union syntax_node *node)
 {
 	unsigned char idx;
-	for (idx = 0; syn->nodes[idx] != node; idx++)
+	for (idx = 0; syntax_nodes[idx] != node; idx++)
 		;
 	return idx;
 }
 
-static inline union syntax_node *idx_to_syntax_node(const struct syntax *syn, unsigned char idx)
+static inline union syntax_node *idx_to_syntax_node(unsigned char idx)
 {
 	BUG_ON(idx > 0x3f);
-	return syn->nodes[idx];
+	return syntax_nodes[idx];
 }
 
 static inline struct syntax_context *syntax_get_default_context(const struct syntax *syn)
 {
-	return &syn->nodes[0]->context;
+	return syn->root;
 }
 
 #endif

@@ -30,7 +30,7 @@ struct hl_color *set_highlight_color(const char *name, const struct term_color *
 	return c;
 }
 
-struct hl_color *find_color(const char *name)
+static struct hl_color *find_real_color(const char *name)
 {
 	int i;
 
@@ -38,5 +38,18 @@ struct hl_color *find_color(const char *name)
 		if (!strcmp(hl_colors[i]->name, name))
 			return hl_colors[i];
 	}
+	return NULL;
+}
+
+struct hl_color *find_color(const char *name)
+{
+	struct hl_color *color = find_real_color(name);
+	const char *dot;
+
+	if (color)
+		return color;
+	dot = strchr(name, '.');
+	if (dot)
+		return find_real_color(dot + 1);
 	return NULL;
 }

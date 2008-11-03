@@ -367,7 +367,7 @@ static struct syntax *load_syntax(const char *filetype)
 	}
 	syn = find_syntax(filetype);
 	if (syn)
-		update_syntax_colors(syn);
+		update_syntax_colors();
 	return syn;
 }
 
@@ -596,7 +596,7 @@ static void verify_hl_list(struct list_head *head, const char *suffix)
 		for (i = 0; i < list->count; i++) {
 			static const char *names[] = { " ", "{", "}" };
 			struct hl_entry *e = &list->entries[i];
-			union syntax_node *n = idx_to_syntax_node(buffer->syn, hl_entry_idx(e));
+			union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
 			fprintf(f, "%3d %s %s\n", hl_entry_len(e), names[hl_entry_type(e) >> 6], n->any.name);
 		}
 	}
@@ -635,7 +635,7 @@ static void full_debug(void)
 			struct hl_entry *e = &list->entries[i];
 			unsigned int len = hl_entry_len(e);
 			char *bytes = buffer_get_bytes(&len);
-			union syntax_node *n = idx_to_syntax_node(buffer->syn, hl_entry_idx(e));
+			union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
 			xrenew(bytes, len + 1);
 			bytes[len] = 0;
 			switch (hl_entry_type(e)) {
@@ -742,7 +742,7 @@ static void update_contexts(const struct syntax *syn, struct list_head *head,
 				ds_print("%3d back %s\n", pos, ptr->contexts[ptr->level]->any.name);
 			}
 			if (type == HL_ENTRY_SOC) {
-				push_syntax_context(ptr, &idx_to_syntax_node(syn, hl_entry_idx(e))->context);
+				push_syntax_context(ptr, &idx_to_syntax_node(hl_entry_idx(e))->context);
 				ds_print("%3d new %s\n", pos, ptr->contexts[ptr->level]->any.name);
 			}
 			while (new_pos > stop) {

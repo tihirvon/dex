@@ -103,7 +103,7 @@ static inline void init_syntax_context_stack(struct syntax_context_stack *stack,
 	push_syntax_context(stack, root);
 }
 
-void update_syntax_colors(struct syntax *syntax);
+void update_syntax_colors(void);
 void update_all_syntax_colors(void);
 
 void merge_highlight_entry(struct list_head *head, const struct hl_entry *e);

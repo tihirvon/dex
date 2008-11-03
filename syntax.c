@@ -3,9 +3,14 @@
 #include "buffer.h"
 #include "commands.h"
 
-LIST_HEAD(syntaxes);
-
+static LIST_HEAD(syntaxes);
 static struct syntax *cur_syntax;
+
+union syntax_node **syntax_nodes;
+int nr_syntax_nodes;
+
+struct syntax_join *syntax_joins;
+int nr_syntax_joins;
 
 unsigned int str_hash(const char *str)
 {
@@ -65,13 +70,38 @@ static char *unescape_pattern(const char *str)
 	return buf;
 }
 
+static const char *get_real_node_name(const char *name)
+{
+	static char buf[64];
+	const char *dot = strchr(name, '.');
+
+	if (dot || !cur_syntax)
+		return name;
+
+	snprintf(buf, sizeof(buf), "%s.%s", cur_syntax->name, name);
+	return buf;
+}
+
+static int too_many_nodes(void)
+{
+	static int warn = 1;
+
+	if (nr_syntax_nodes < 0x3f)
+		return 0;
+	if (warn)
+		error_msg("Too many syntax nodes.");
+	warn = 0;
+	return 1;
+}
+
 static void add_node(union syntax_node *n, int type, const char *name, unsigned int flags)
 {
-	n->any.name = xstrdup(name);
+	n->any.name = xstrdup(get_real_node_name(name));
 	n->any.type = type;
 	n->any.flags = flags;
-	xrenew(cur_syntax->nodes, cur_syntax->nr_nodes + 1);
-	cur_syntax->nodes[cur_syntax->nr_nodes++] = n;
+	if (nr_syntax_nodes == ROUND_UP(nr_syntax_nodes, 32))
+		xrenew(syntax_nodes, ROUND_UP(nr_syntax_nodes + 1, 32));
+	syntax_nodes[nr_syntax_nodes++] = n;
 }
 
 void syn_begin(char **args)
@@ -85,11 +115,15 @@ void syn_begin(char **args)
 		error_msg("Syntax definition already started.");
 		return;
 	}
+	if (too_many_nodes())
+		return;
+
 	cur_syntax = xnew0(struct syntax, 1);
 	cur_syntax->name = xstrdup(args[0]);
 
 	/* context "default" always exists */
 	c = xnew0(struct syntax_context, 1);
+	cur_syntax->root = c;
 	add_node((union syntax_node *)c, SYNTAX_NODE_CONTEXT, "default", 0);
 }
 
@@ -108,11 +142,12 @@ void syn_end(char **args)
 
 static union syntax_node *find_syntax_node(const char *name)
 {
+	const char *real_name = get_real_node_name(name);
 	int i;
 
-	for (i = 0; i < cur_syntax->nr_nodes; i++) {
-		if (!strcmp(cur_syntax->nodes[i]->any.name, name))
-			return cur_syntax->nodes[i];
+	for (i = 0; i < nr_syntax_nodes; i++) {
+		if (!strcmp(syntax_nodes[i]->any.name, real_name))
+			return syntax_nodes[i];
 	}
 	return NULL;
 }
@@ -142,6 +177,9 @@ void syn_addw(char **args)
 	if (n) {
 		w = &n->word;
 	} else {
+		if (too_many_nodes())
+			return;
+
 		w = xnew0(struct syntax_word, 1);
 		add_node((union syntax_node *)w, SYNTAX_NODE_WORD, name, flags);
 		w->hash = xnew0(struct hash_word *, WORD_HASH_SIZE);
@@ -186,6 +224,9 @@ void syn_addr(char **args)
 		return;
 	}
 
+	if (too_many_nodes())
+		return;
+
 	p = xnew0(struct syntax_pattern, 1);
 	p->pattern = unescape_pattern(pattern);
 	if (!regexp_compile(&p->regex, p->pattern, flags)) {
@@ -215,6 +256,9 @@ void syn_addc(char **args)
 		error_msg("Syntax node %s already exists.", name);
 		return;
 	}
+
+	if (too_many_nodes())
+		return;
 
 	c = xnew0(struct syntax_context, 1);
 	c->spattern = unescape_pattern(args[1]);
@@ -269,18 +313,18 @@ void syn_connect(char **args)
 
 static struct syntax_join *get_join(const char *name)
 {
-	int i, nr = cur_syntax->nr_join;
+	int i;
 
-	for (i = 0; i < nr; i++) {
-		if (!strcmp(cur_syntax->join[i].name, name))
-			return &cur_syntax->join[i];
+	for (i = 0; i < nr_syntax_joins; i++) {
+		if (!strcmp(syntax_joins[i].name, name))
+			return &syntax_joins[i];
 	}
-	xrenew(cur_syntax->join, nr + 1);
-	cur_syntax->join[nr].name = xstrdup(name);
-	cur_syntax->join[nr].nodes = NULL;
-	cur_syntax->join[nr].nr_nodes = 0;
-	cur_syntax->nr_join++;
-	return &cur_syntax->join[nr];
+	if (nr_syntax_joins == ROUND_UP(nr_syntax_joins, 32))
+		xrenew(syntax_joins, ROUND_UP(nr_syntax_joins + 1, 32));
+	syntax_joins[nr_syntax_joins].name = xstrdup(name);
+	syntax_joins[nr_syntax_joins].nodes = NULL;
+	syntax_joins[nr_syntax_joins].nr_nodes = 0;
+	return &syntax_joins[nr_syntax_joins++];
 }
 
 void syn_join(char **args)
@@ -291,7 +335,7 @@ void syn_join(char **args)
 	if (!parse_args(&args, "", 2, -1))
 		return;
 
-	join = get_join(args[0]);
+	join = get_join(get_real_node_name(args[0]));
 	for (i = 1; args[i]; i++) {
 		union syntax_node *node = find_syntax_node(args[i]);
 
