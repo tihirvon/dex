@@ -97,7 +97,7 @@ static inline unsigned char get_syntax_node_idx(const struct syntax *syn, const 
 
 static inline union syntax_node *idx_to_syntax_node(const struct syntax *syn, unsigned char idx)
 {
-	BUG_ON(idx > 126);
+	BUG_ON(idx > 0x3f);
 	return syn->nodes[idx];
 }
 

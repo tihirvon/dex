@@ -26,7 +26,7 @@ struct hl_entry {
 
 static inline unsigned int hl_entry_type(const struct hl_entry *e)
 {
-	return e->desc & 0xe0;
+	return e->desc & 0xc0;
 }
 
 static inline unsigned int hl_entry_idx(const struct hl_entry *e)
