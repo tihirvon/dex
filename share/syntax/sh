@@ -23,7 +23,7 @@ syn addc command '\$\(' '\)'
 syn addc comment '#' '\n'
 
 syn connect comment notice
-syn connect dq escoct eschex esc simplevar complexvar backtick
+syn connect dq escoct eschex esc simplevar complexvar backtick command
 syn connect default    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
 syn connect backtick   escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
 syn connect command    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
