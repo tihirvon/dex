@@ -41,9 +41,13 @@
 
 #if DEBUG <= 0
 #define BUG(...) do { } while (0)
-#define d_print(...) do { } while (0)
 #else
 #define BUG(...) bug(__FUNCTION__, __VA_ARGS__)
+#endif
+
+#if DEBUG <= 1
+#define d_print(...) do { } while (0)
+#else
 #define d_print(...) debug_print(__FUNCTION__, __VA_ARGS__)
 #endif
 
