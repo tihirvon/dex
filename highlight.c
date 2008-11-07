@@ -130,9 +130,8 @@ static int hl_match_cmp(const void *ap, const void *bp)
 	return a->match.rm_so - b->match.rm_so;
 }
 
-static void add_matches(struct highlighter *h, const union syntax_node *n, const regex_t *regex)
+static void add_matches(struct highlighter *h, const union syntax_node *n, const regex_t *regex, int eoc)
 {
-	int eoc = n->any.type == SYNTAX_NODE_CONTEXT && &n->context.eregex == regex;
 	int offset = h->offset;
 	int eflags = 0;
 	regmatch_t m;
@@ -224,7 +223,7 @@ static int highlight_line_context(struct highlighter *h)
 
 	h->nr_matches = 0;
 	if (h->stack.level)
-		add_matches(h, (const union syntax_node *)context, &context->eregex);
+		add_matches(h, (const union syntax_node *)context, &context->eregex, 1);
 	for (i = 0; i < context->nr_nodes; i++) {
 		const union syntax_node *n = context->nodes[i];
 
@@ -233,10 +232,10 @@ static int highlight_line_context(struct highlighter *h)
 			add_word_matches(h, n);
 			break;
 		case SYNTAX_NODE_PATTERN:
-			add_matches(h, n, &n->pattern.regex);
+			add_matches(h, n, &n->pattern.regex, 0);
 			break;
 		case SYNTAX_NODE_CONTEXT:
-			add_matches(h, n, &n->context.sregex);
+			add_matches(h, n, &n->context.sregex, 0);
 			break;
 		}
 	}
