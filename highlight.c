@@ -158,8 +158,6 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 		h->nr_matches++;
 
 		offset = m.rm_eo;
-		if (offset == h->line_len && !len)
-			break;
 	}
 }
 
