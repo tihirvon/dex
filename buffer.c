@@ -578,6 +578,46 @@ static void init_highlighter(struct highlighter *h, struct buffer *b)
 	h->syn = b->syn;
 }
 
+static void init_highlighter_heredoc(struct highlighter *h)
+{
+	const struct syntax_context *c;
+	struct block_iter bi;
+	unsigned int offset;
+	int eflags = 0;
+	regmatch_t m[2];
+
+	if (!h->stack.level) {
+		BUG_ON(h->stack.heredoc_offset >= 0);
+		return;
+	}
+	c = h->stack.contexts[h->stack.level];
+	if (!(c->any.flags & SYNTAX_FLAG_HEREDOC)) {
+		BUG_ON(h->stack.heredoc_offset >= 0);
+		return;
+	}
+
+	BUG_ON(h->stack.heredoc_offset < 0);
+
+	bi.head = &buffer->blocks;
+	bi.blk = BLOCK(buffer->blocks.next);
+	bi.offset = 0;
+	block_iter_goto_offset(&bi, h->stack.heredoc_offset);
+	offset = block_iter_bol(&bi);
+	fetch_line(&bi);
+
+	if (offset > 0)
+		eflags |= REG_NOTBOL;
+	if (regexec(&c->sregex, hl_buffer + offset, 2, m, eflags)) {
+		return;
+	}
+	if (m[1].rm_so >= 0) {
+		const char *str = hl_buffer + m[1].rm_so + offset;
+		int str_len = m[1].rm_eo - m[1].rm_so;
+
+		build_heredoc_eregex(h, c, str, str_len);
+	}
+}
+
 static int verify_count;
 static int verify_counter;
 
@@ -738,12 +778,19 @@ static void update_contexts(const struct syntax *syn, struct list_head *head,
 			unsigned int type = hl_entry_type(e);
 
 			if (type == HL_ENTRY_EOC) {
+				const struct syntax_context *c = ptr->contexts[ptr->level];
+				if (c->any.flags & SYNTAX_FLAG_HEREDOC)
+					ptr->heredoc_offset = -1;
 				pop_syntax_context(ptr);
 				ds_print("%3d back %s\n", pos, ptr->contexts[ptr->level]->any.name);
 			}
 			if (type == HL_ENTRY_SOC) {
-				push_syntax_context(ptr, &idx_to_syntax_node(hl_entry_idx(e))->context);
-				ds_print("%3d new %s\n", pos, ptr->contexts[ptr->level]->any.name);
+				const struct syntax_context *c;
+				c = &idx_to_syntax_node(hl_entry_idx(e))->context;
+				if (c->any.flags & SYNTAX_FLAG_HEREDOC)
+					ptr->heredoc_offset = pos;
+				push_syntax_context(ptr, c);
+				ds_print("%3d new %s\n", pos, c->any.name);
 			}
 			while (new_pos > stop) {
 				if (!b)
@@ -781,6 +828,7 @@ static void update_hl_eof(void)
 
 	init_highlighter(&h, buffer);
 	copy_syntax_context_stack(&h.stack, &a);
+	init_highlighter_heredoc(&h);
 
 	/* highlight to eof */
 	while (!block_iter_eof(&bi)) {
@@ -790,6 +838,8 @@ static void update_hl_eof(void)
 		h.offset = 0;
 		highlight_line(&h);
 	}
+	if (h.heredoc_context)
+		regfree(&h.heredoc_eregex);
 	free(h.words);
 	free(h.matches);
 	free(h.stack.contexts);
@@ -803,6 +853,8 @@ static int hl_context_stacks_equal(
 	const struct syntax_context_stack *b)
 {
 	if (a->level != b->level)
+		return 0;
+	if (a->heredoc_offset >= 0 || b->heredoc_offset >= 0)
 		return 0;
 	return !memcmp(a->contexts, b->contexts, sizeof(a->contexts[0]) * (a->level + 1));
 }
@@ -865,6 +917,7 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 	init_highlighter(&h, buffer);
 	h.headp = &new_list;
 	copy_syntax_context_stack(&h.stack, &a);
+	init_highlighter_heredoc(&h);
 
 	/* highlight the modified lines */
 	for (i = 0; i <= ins_nl; i++) {
@@ -940,6 +993,8 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 		else
 			update_flags |= UPDATE_CURSOR_LINE;
 	}
+	if (h.heredoc_context)
+		regfree(&h.heredoc_eregex);
 	free(h.words);
 	free(h.matches);
 	free(h.stack.contexts);

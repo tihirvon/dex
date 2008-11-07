@@ -71,6 +71,7 @@ struct syntax_context_stack {
 	const struct syntax_context **contexts;
 	int level;
 	unsigned int alloc;
+	int heredoc_offset;
 };
 
 struct hl_word {
@@ -83,6 +84,9 @@ struct hl_word {
 struct highlighter {
 	struct list_head *headp;
 	const struct syntax *syn;
+
+	const struct syntax_context *heredoc_context;
+	regex_t heredoc_eregex;
 
 	const char *line;
 	unsigned int line_len;
@@ -114,12 +118,15 @@ static inline void init_syntax_context_stack(struct syntax_context_stack *stack,
 	stack->contexts = NULL;
 	stack->level = -1;
 	stack->alloc = 0;
+	stack->heredoc_offset = -1;
 	push_syntax_context(stack, root);
 }
 
 void update_syntax_colors(void);
 void update_all_syntax_colors(void);
 
+int build_heredoc_eregex(struct highlighter *h, const struct syntax_context *context,
+	const char *str, int len);
 void merge_highlight_entry(struct list_head *head, const struct hl_entry *e);
 void highlight_line(struct highlighter *h);
 void free_hl_list(struct list_head *head);

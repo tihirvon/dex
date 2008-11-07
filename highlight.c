@@ -56,6 +56,7 @@ void copy_syntax_context_stack(struct syntax_context_stack *dst, const struct sy
 	} else {
 		dst->contexts = NULL;
 	}
+	dst->heredoc_offset = src->heredoc_offset;
 }
 
 static void add_hl_entry_at(struct hl_list *list, unsigned int desc, unsigned char len)
@@ -128,6 +129,102 @@ static int hl_match_cmp(const void *ap, const void *bp)
 	const struct hl_match *a = (const struct hl_match *)ap;
 	const struct hl_match *b = (const struct hl_match *)bp;
 	return a->match.rm_so - b->match.rm_so;
+}
+
+static char *build_pattern(const char *str, const char *x, int xlen)
+{
+	int s, d;
+	int len = strlen(str);
+	char *buf = xnew(char, len + xlen + 1);
+
+	s = 0;
+	d = 0;
+	while (str[s]) {
+		if (str[s] == '\\' && str[s + 1]) {
+			if (x && str[s + 1] == '1') {
+				memcpy(buf + d, x, xlen);
+				x = NULL;
+				d += xlen;
+				s += 2;
+				continue;
+			}
+			if (str[s + 1] == 'n') {
+				buf[d++] = '\n';
+				s += 2;
+				continue;
+			}
+			if (str[s + 1] == 't') {
+				buf[d++] = '\t';
+				s += 2;
+				continue;
+			}
+			buf[d++] = str[s++];
+		}
+		buf[d++] = str[s++];
+	}
+	buf[d] = 0;
+	return buf;
+}
+
+int build_heredoc_eregex(struct highlighter *h, const struct syntax_context *context,
+	const char *str, int len)
+{
+	char *pattern;
+	int err, cflags = REG_EXTENDED | REG_NEWLINE;
+
+	pattern = build_pattern(context->epattern, str, len);
+	if (context->any.flags & SYNTAX_FLAG_ICASE)
+		cflags |= REG_ICASE;
+	err = regcomp(&h->heredoc_eregex, pattern, cflags);
+	free(pattern);
+	if (err) {
+		regfree(&h->heredoc_eregex);
+		return 0;
+	}
+	h->heredoc_context = context;
+	return 1;
+}
+
+static void add_heredoc_matches(struct highlighter *h, const struct syntax_context *c)
+{
+	int offset = h->offset;
+	int eflags = 0;
+	regmatch_t m[2];
+
+	if (offset > 0)
+		eflags |= REG_NOTBOL;
+	while (!regexec(&c->sregex, h->line + offset, 2, m, eflags)) {
+		const char *str;
+		int str_len;
+		int len = m[0].rm_eo - m[0].rm_so;
+
+		m[0].rm_so += offset;
+		m[0].rm_eo += offset;
+
+		ds_print("s=%d e=%d line_len=%d %s\n", m[0].rm_so, m[0].rm_eo, h->line_len, c->any.name);
+		if (!len)
+			break;
+
+		if (m[1].rm_so < 0)
+			break;
+
+		str = h->line + m[1].rm_so + offset;
+		str_len = m[1].rm_eo - m[1].rm_so;
+		if (!build_heredoc_eregex(h, c, str, str_len))
+			break;
+
+		if (h->nr_matches == h->alloc) {
+			h->alloc += 16;
+			xrenew(h->matches, h->alloc);
+		}
+		h->matches[h->nr_matches].node = (const union syntax_node *)c;
+		h->matches[h->nr_matches].match = m[0];
+		h->matches[h->nr_matches].eoc = 0;
+		h->nr_matches++;
+
+		offset = m[0].rm_eo;
+		break;
+	}
 }
 
 static void add_matches(struct highlighter *h, const union syntax_node *n, const regex_t *regex, int eoc)
@@ -220,8 +317,14 @@ static int highlight_line_context(struct highlighter *h)
 		eflags |= REG_NOTBOL;
 
 	h->nr_matches = 0;
-	if (h->stack.level)
-		add_matches(h, (const union syntax_node *)context, &context->eregex, 1);
+	if (h->stack.level) {
+		if (context->any.flags & SYNTAX_FLAG_HEREDOC) {
+			BUG_ON(h->heredoc_context != context);
+			add_matches(h, (const union syntax_node *)context, &h->heredoc_eregex, 1);
+		} else {
+			add_matches(h, (const union syntax_node *)context, &context->eregex, 1);
+		}
+	}
 	for (i = 0; i < context->nr_nodes; i++) {
 		const union syntax_node *n = context->nodes[i];
 
@@ -233,7 +336,18 @@ static int highlight_line_context(struct highlighter *h)
 			add_matches(h, n, &n->pattern.regex, 0);
 			break;
 		case SYNTAX_NODE_CONTEXT:
-			add_matches(h, n, &n->context.sregex, 0);
+			if (n->any.flags & SYNTAX_FLAG_HEREDOC) {
+				/* Although syntax highlighter does not allow here-docs inside here-docs
+				 * we don't do BUG_ON(h->heredoc_context) because we might not really
+				 * be _in_ the here-doc yet.  We really should set h->heredoc_context
+				 * only when going into that context, not when possible here-doc context
+				 * start is found.  But that would be complicated.
+				 */
+				if (!h->heredoc_context)
+					add_heredoc_matches(h, &n->context);
+			} else {
+				add_matches(h, n, &n->context.sregex, 0);
+			}
 			break;
 		}
 	}
@@ -263,6 +377,10 @@ static int highlight_line_context(struct highlighter *h)
 				add_node(h, m->node, m->match.rm_eo - m->match.rm_so, HL_ENTRY_EOC);
 				pop_syntax_context(&h->stack);
 				ds_print("back %s => %s\n", context->any.name, h->stack.contexts[h->stack.level]->any.name);
+				if (context == h->heredoc_context) {
+					h->heredoc_context = NULL;
+					regfree(&h->heredoc_eregex);
+				}
 				return offset == h->line_len;
 			} else {
 				/* new context begins */

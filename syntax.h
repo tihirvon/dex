@@ -10,6 +10,7 @@
 #define SYNTAX_NODE_WORD	2
 
 #define SYNTAX_FLAG_ICASE	(1 << 0)
+#define SYNTAX_FLAG_HEREDOC	(1 << 1)
 
 #define WORD_HASH_SIZE 64
 

@@ -239,7 +239,7 @@ void syn_addr(char **args)
 
 void syn_addc(char **args)
 {
-	const char *pf = parse_args(&args, "i", 3, 3);
+	const char *pf = parse_args(&args, "hi", 3, 3);
 	const char *name;
 	union syntax_node *n;
 	struct syntax_context *c;
@@ -247,8 +247,17 @@ void syn_addc(char **args)
 
 	if (!pf)
 		return;
-	if (*pf)
-		flags |= SYNTAX_FLAG_ICASE;
+	while (*pf) {
+		switch (*pf) {
+		case 'h':
+			flags |= SYNTAX_FLAG_HEREDOC;
+			break;
+		case 'i':
+			flags |= SYNTAX_FLAG_ICASE;
+			break;
+		}
+		pf++;
+	}
 	name = args[0];
 
 	n = find_syntax_node(name);
@@ -268,7 +277,7 @@ void syn_addc(char **args)
 		free(c);
 		return;
 	}
-	if (!regexp_compile(&c->eregex, c->epattern, flags)) {
+	if (!(flags & SYNTAX_FLAG_HEREDOC) && !regexp_compile(&c->eregex, c->epattern, flags)) {
 		regfree(&c->sregex);
 		free(c->epattern);
 		free(c->spattern);
