@@ -21,21 +21,25 @@ syn addc backtick '`' '`'
 syn addc arithmetic '\$\(\(' '\)\)'
 syn addc command '\$\(' '\)'
 syn addc comment '#' '\n'
+syn addc -h heredoc '<<-?([a-zA-Z_][a-zA-Z0-9_]*)' '^\1$'
+syn addc -h heredocsq "<<-?'(.*)'" '^\1\n'
+syn addc -h heredocdq '<<-?"(.*)"' '^\1\n'
 
 syn connect comment notice
-syn connect dq escoct eschex esc simplevar complexvar backtick command
+syn connect dq        escoct eschex esc simplevar complexvar backtick command
+syn connect heredoc   escoct eschex esc simplevar complexvar backtick command
 syn connect default    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
 syn connect backtick   escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
 syn connect command    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
 syn connect arithmetic escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect default backtick
+syn connect default backtick heredoc heredocsq heredocdq
 syn connect command backtick
 syn connect arithmetic backtick
 
-syn join string sq dq
+syn join string sq dq heredoc heredocsq heredocdq
 syn join variable simplevar complexvar arithmetic
 syn join builtin builtin2
-syn join special backtick command
+syn join special backtick command:start command:end
 
 syn addr trailingws '[ \t]+$'
 syn addr indenterror '^	* +\t+'
