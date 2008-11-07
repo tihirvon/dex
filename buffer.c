@@ -798,6 +798,15 @@ static void update_hl_eof(void)
 	verify_hl_list(&buffer->hl_head, "final");
 }
 
+static int hl_context_stacks_equal(
+	const struct syntax_context_stack *a,
+	const struct syntax_context_stack *b)
+{
+	if (a->level != b->level)
+		return 0;
+	return !memcmp(a->contexts, b->contexts, sizeof(a->contexts[0]) * (a->level + 1));
+}
+
 /*
  * NOTE: This is called after delete too.
  *
@@ -877,7 +886,7 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 	for (i = 0; i <= h.stack.level; i++)
 		ds_print("h context[%d] = %s\n", i, h.stack.contexts[i]->any.name);
 
-	if (h.stack.level != b.level || memcmp(h.stack.contexts, b.contexts, sizeof(h.stack.contexts[0]) * (h.stack.level + 1))) {
+	if (!hl_context_stacks_equal(&h.stack, &b)) {
 		/* Syntax context changed.  We need to highlight to EOF. */
 		struct hl_entry *e;
 
