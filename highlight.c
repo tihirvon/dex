@@ -314,6 +314,22 @@ static void add_word_matches(struct highlighter *h, const union syntax_node *n)
 	}
 }
 
+static void debug_match(const char *msg, const struct highlighter *h, const struct hl_match *m)
+{
+#if DEBUG_SYNTAX > 0
+	char buf[1024];
+	int pos, len = m->match.rm_eo - m->match.rm_so;
+
+	pos = snprintf(buf, sizeof(buf), "%s %s O=%d L=%d '",
+		msg, m->node->any.name, m->match.rm_so, len);
+	memcpy(buf + pos, h->line + m->match.rm_so, len);
+	pos += len;
+	buf[pos++] = '\'';
+	buf[pos++] = 0;
+	ds_print("%s\n", buf);
+#endif
+}
+
 static int highlight_line_context(struct highlighter *h)
 {
 	const struct syntax_context *context = h->stack.contexts[h->stack.level];
@@ -368,10 +384,10 @@ static int highlight_line_context(struct highlighter *h)
 
 		if (offset > m->match.rm_so) {
 			/* ignore overlapping pattern */
-			ds_print("ignoring %s %d %d\n", m->node->any.name, offset, m->match.rm_so);
+			debug_match("ignoring", h, m);
 			continue;
 		}
-		ds_print("M %-16s %d %d %d\n", m->node->any.name, offset, m->match.rm_so, m->match.rm_eo);
+		debug_match("match", h, m);
 
 		if (offset < m->match.rm_so)
 			add_node(h, (const union syntax_node *)context, m->match.rm_so - offset, HL_ENTRY_NORMAL);
