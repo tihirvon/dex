@@ -43,6 +43,9 @@ struct syntax_pattern {
 struct syntax_context {
 	struct syntax_any any;
 
+	struct hl_color *scolor;
+	struct hl_color *ecolor;
+
 	int nr_nodes;
 	char *spattern;
 	char *epattern;
@@ -59,10 +62,24 @@ union syntax_node {
 	struct syntax_context context;
 };
 
+enum syntax_node_specifier {
+	/* For all nodes */
+	SPECIFIER_NORMAL,
+
+	/* For contexts only.  Example: sh.command:start, sh.command:end */
+	SPECIFIER_CONTEXT_START,
+	SPECIFIER_CONTEXT_END,
+};
+
+struct syntax_join_item {
+	union syntax_node *node;
+	enum syntax_node_specifier specifier;
+};
+
 struct syntax_join {
 	char *name;
-	union syntax_node **nodes;
-	int nr_nodes;
+	struct syntax_join_item *items;
+	int nr_items;
 };
 
 struct syntax {

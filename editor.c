@@ -290,8 +290,15 @@ static void advance_hl(unsigned int count)
 		BUG_ON(!current_hl_list->count);
 		if (avail >= count) {
 			union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
+			unsigned int type = hl_entry_type(e);
 			current_hl_entry_pos += count;
-			current_hl_color = n->any.color;
+			current_hl_color = NULL;
+			if (type == HL_ENTRY_SOC)
+				current_hl_color = n->context.scolor;
+			if (type == HL_ENTRY_EOC)
+				current_hl_color = n->context.ecolor;
+			if (!current_hl_color)
+				current_hl_color = n->any.color;
 			return;
 		}
 		count -= avail;

@@ -4,18 +4,17 @@
 
 static int nr_updated_node_colors;
 
-static void update_join_color(union syntax_node *node)
+static struct hl_color *find_join_color(union syntax_node *node, enum syntax_node_specifier specifier)
 {
 	int i, j;
 	for (i = 0; i < nr_syntax_joins; i++) {
 		const struct syntax_join *join = &syntax_joins[i];
-		for (j = 0; j < join->nr_nodes; j++) {
-			if (join->nodes[j] == node) {
-				node->any.color = find_color(join->name);
-				return;
-			}
+		for (j = 0; j < join->nr_items; j++) {
+			if (join->items[j].node == node && join->items[j].specifier == specifier)
+				return find_color(join->name);
 		}
 	}
+	return NULL;
 }
 
 void update_syntax_colors(void)
@@ -24,9 +23,22 @@ void update_syntax_colors(void)
 
 	for (i = nr_updated_node_colors; i < nr_syntax_nodes; i++) {
 		union syntax_node *node = syntax_nodes[i];
+		if (node->any.type == SYNTAX_NODE_CONTEXT) {
+			char name[64];
+
+			snprintf(name, sizeof(name), "%s:start", node->any.name);
+			node->context.scolor = find_color(name);
+			if (!node->context.scolor)
+				node->context.scolor = find_join_color(node, SPECIFIER_CONTEXT_START);
+
+			snprintf(name, sizeof(name), "%s:end", node->any.name);
+			node->context.ecolor = find_color(name);
+			if (!node->context.ecolor)
+				node->context.ecolor = find_join_color(node, SPECIFIER_CONTEXT_END);
+		}
 		node->any.color = find_color(node->any.name);
 		if (!node->any.color)
-			update_join_color(node);
+			node->any.color = find_join_color(node, SPECIFIER_NORMAL);
 	}
 	nr_updated_node_colors = nr_syntax_nodes;
 }

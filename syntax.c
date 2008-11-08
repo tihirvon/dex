@@ -331,9 +331,27 @@ static struct syntax_join *get_join(const char *name)
 	if (nr_syntax_joins == ROUND_UP(nr_syntax_joins, 32))
 		xrenew(syntax_joins, ROUND_UP(nr_syntax_joins + 1, 32));
 	syntax_joins[nr_syntax_joins].name = xstrdup(name);
-	syntax_joins[nr_syntax_joins].nodes = NULL;
-	syntax_joins[nr_syntax_joins].nr_nodes = 0;
+	syntax_joins[nr_syntax_joins].items = NULL;
+	syntax_joins[nr_syntax_joins].nr_items = 0;
 	return &syntax_joins[nr_syntax_joins++];
+}
+
+static int parse_specifier(const char *name, enum syntax_node_specifier *specifier)
+{
+	static const char * const names[] = {
+		"start",
+		"end",
+	};
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(names); i++) {
+		if (!strcmp(names[i], name)) {
+			*specifier = i + 1;
+			return 1;
+		}
+	}
+	error_msg("Invalid specifier %s.", name);
+	return 0;
 }
 
 void syn_join(char **args)
@@ -346,14 +364,33 @@ void syn_join(char **args)
 
 	join = get_join(get_real_node_name(args[0]));
 	for (i = 1; args[i]; i++) {
-		union syntax_node *node = find_syntax_node(args[i]);
+		char *name = args[i];
+		char *colon = strchr(name, ':');
+		union syntax_node *node;
+		enum syntax_node_specifier specifier = SPECIFIER_NORMAL;
 
+		if (colon)
+			*colon = 0;
+
+		node = find_syntax_node(name);
 		if (!node) {
-			error_msg("No such syntax node %s", args[i]);
+			error_msg("No such syntax node %s", name);
 			continue;
 		}
-		xrenew(join->nodes, join->nr_nodes + 1);
-		join->nodes[join->nr_nodes++] = node;
+		if (colon) {
+			*colon = ':';
+			if (!parse_specifier(colon + 1, &specifier))
+				continue;
+			if (specifier != SPECIFIER_NORMAL && node->any.type != SYNTAX_NODE_CONTEXT) {
+				error_msg("Specifiers :start and :end are allowed for contexts only.");
+				continue;
+			}
+		}
+		if (join->nr_items == ROUND_UP(join->nr_items, 4))
+			xrenew(join->items, ROUND_UP(join->nr_items + 1, 4));
+		join->items[join->nr_items].node = node;
+		join->items[join->nr_items].specifier = specifier;
+		join->nr_items++;
 	}
 }
 
