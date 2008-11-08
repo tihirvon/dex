@@ -101,7 +101,6 @@ struct highlighter {
 	struct hl_word *words;
 	int word_count;
 	int word_alloc;
-	int used_words;
 };
 
 void copy_syntax_context_stack(struct syntax_context_stack *dst, const struct syntax_context_stack *src);

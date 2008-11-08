@@ -274,9 +274,6 @@ static void add_word_matches(struct highlighter *h, const union syntax_node *n)
 {
 	int i;
 
-	if (h->used_words == h->word_count)
-		return;
-
 	for (i = 0; i < h->word_count; i++) {
 		struct hl_word *hw = &h->words[i];
 		const struct hash_word *hash_w;
@@ -312,7 +309,6 @@ static void add_word_matches(struct highlighter *h, const union syntax_node *n)
 			h->nr_matches++;
 
 			hw->used = 1;
-			h->used_words++;
 			break;
 		}
 	}
@@ -416,7 +412,6 @@ static void find_words(struct highlighter *h)
 	int i;
 
 	h->word_count = 0;
-	h->used_words = 0;
 	for (i = h->offset; i < h->line_len; i++) {
 		char ch = h->line[i];
 		struct hl_word *hlw;
