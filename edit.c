@@ -1083,7 +1083,7 @@ void format_paragraph(int text_width)
 				u_char u = u_get_char(sel, &i);
 				w += u_char_width(u);
 				dot = u == '.' || u == '?' || u == '!';
-				if (info.width + w >= text_width && ws_idx >= 0) {
+				if (info.width + w > text_width && ws_idx >= 0) {
 					gbuf_add_buf(&buf, sel, info.bytes);
 					add_paragraph_line(&buf, sel + start, ws_idx - start);
 					w = 0;
