@@ -156,10 +156,10 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		int key;
 		const char *code;
 	} builtin[] = {
-		{ SKEY_LEFT,	"\e[D" },
-		{ SKEY_RIGHT,	"\e[C" },
-		{ SKEY_UP,	"\e[A" },
-		{ SKEY_DOWN,	"\e[B" },
+		{ SKEY_LEFT,	"\033[D" },
+		{ SKEY_RIGHT,	"\033[C" },
+		{ SKEY_UP,	"\033[A" },
+		{ SKEY_DOWN,	"\033[B" },
 	};
 	int possibly_truncated = 0;
 	int i;
