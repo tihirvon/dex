@@ -1080,8 +1080,14 @@ void format_paragraph(int text_width)
 				w += dot + 1;
 				dot = 0;
 			} else {
-				uchar u = u_get_char(sel, &i);
-				w += u_char_width(u);
+				uchar u;
+				if (buffer->utf8) {
+					u = u_get_char(sel, &i);
+					w += u_char_width(u);
+				} else {
+					u = sel[i++];
+					w++;
+				}
 				dot = u == '.' || u == '?' || u == '!';
 				if (info.width + w > text_width && ws_idx >= 0) {
 					gbuf_add_buf(&buf, sel, info.bytes);
