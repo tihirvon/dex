@@ -1080,7 +1080,7 @@ void format_paragraph(int text_width)
 				w += dot + 1;
 				dot = 0;
 			} else {
-				u_char u = u_get_char(sel, &i);
+				uchar u = u_get_char(sel, &i);
 				w += u_char_width(u);
 				dot = u == '.' || u == '?' || u == '!';
 				if (info.width + w > text_width && ws_idx >= 0) {
