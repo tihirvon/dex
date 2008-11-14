@@ -163,13 +163,22 @@ static int input_get_byte(unsigned char *ch)
 static int read_special(unsigned int *key, enum term_key_type *type)
 {
 	static const struct {
-		int key;
+		enum term_key_type type;
+		unsigned int key;
 		const char *code;
 	} builtin[] = {
-		{ SKEY_LEFT,	"\033[D" },
-		{ SKEY_RIGHT,	"\033[C" },
-		{ SKEY_UP,	"\033[A" },
-		{ SKEY_DOWN,	"\033[B" },
+		{ KEY_SPECIAL, SKEY_LEFT,	"\033[D" },
+		{ KEY_SPECIAL, SKEY_RIGHT,	"\033[C" },
+		{ KEY_SPECIAL, SKEY_UP,		"\033[A" },
+		{ KEY_SPECIAL, SKEY_DOWN,	"\033[B" },
+		/* keypad */
+		{ KEY_SPECIAL, SKEY_HOME,	"\033[1~" },
+		{ KEY_SPECIAL, SKEY_END,	"\033[4~" },
+		{ KEY_NORMAL, '/',		"\033Oo" },
+		{ KEY_NORMAL, '*',		"\033Oj" },
+		{ KEY_NORMAL, '-',		"\033Om" },
+		{ KEY_NORMAL, '+',		"\033Ok" },
+		{ KEY_NORMAL, '\r',		"\033OM" },
 	};
 	int possibly_truncated = 0;
 	int i;
@@ -206,7 +215,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		if (strncmp(builtin[i].code, input_buf, len))
 			continue;
 		*key = builtin[i].key;
-		*type = KEY_SPECIAL;
+		*type = builtin[i].type;
 		consume_input(len);
 		return 1;
 	}
