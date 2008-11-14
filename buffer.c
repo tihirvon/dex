@@ -246,18 +246,36 @@ static void read_lf_blocks(struct buffer *b, const char *buf)
 
 static int read_blocks(struct buffer *b, int fd)
 {
-	char *nl, *buf = xmmap(fd, 0, b->st.st_size);
+	size_t pos, size = b->st.st_size;
+	char *nl, *buf = xmmap(fd, 0, size);
 
 	if (!buf)
 		return -1;
 
-	nl = memchr(buf, '\n', b->st.st_size);
+	nl = memchr(buf, '\n', size);
 	if (nl > buf && nl[-1] == '\r') {
 		b->newline = NEWLINE_DOS;
 		read_crlf_blocks(b, buf);
 	} else {
 		read_lf_blocks(b, buf);
 	}
+
+	for (pos = 0; pos < size; pos++) {
+		if ((unsigned char)buf[pos] >= 0x80) {
+			char str[5];
+			int len = 4, idx = 0;
+			uchar u;
+
+			if (len > size - pos)
+				len = size - pos;
+			memcpy(str, buf + pos, len);
+			str[len] = 0;
+			u = u_get_char(buf, &idx);
+			b->utf8 = !(u & U_INVALID_MASK);
+			break;
+		}
+	}
+
 	xmunmap(buf, b->st.st_size);
 	return 0;
 }
