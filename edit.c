@@ -1034,6 +1034,62 @@ static void add_paragraph_line(struct gbuf *buf, const char *str, int len)
 	gbuf_add_ch(buf, '\n');
 }
 
+static int is_ws_line(const struct block_iter *i)
+{
+	struct block_iter bi = *i;
+	uchar ch;
+
+	while (block_iter_next_byte(&bi, &ch)) {
+		if (ch == '\n')
+			return 1;
+		if (!isspace(ch))
+			return 0;
+	}
+	return 1;
+}
+
+/*
+ * Goto beginning of current paragraph or beginning of next paragraph
+ * if not currently on a paragraph.
+ */
+static void goto_bop(void)
+{
+	int in_paragraph = 1;
+
+	block_iter_bol(&view->cursor);
+	while (is_ws_line(&view->cursor)) {
+		in_paragraph = 0;
+		if (!block_iter_next_line(&view->cursor))
+			break;
+	}
+	while (in_paragraph && block_iter_prev_line(&view->cursor)) {
+		block_iter_bol(&view->cursor);
+		if (is_ws_line(&view->cursor)) {
+			block_iter_next_line(&view->cursor);
+			break;
+		}
+	}
+}
+
+static unsigned int goto_eop(struct block_iter *bi)
+{
+	unsigned int count = 0;
+
+	while (1) {
+		unsigned int c;
+
+		if (is_ws_line(bi))
+			break;
+		c = block_iter_next_line(bi);
+		if (!c) {
+			count += block_iter_eol(bi);
+			break;
+		}
+		count += c;
+	}
+	return count;
+}
+
 void format_paragraph(int text_width)
 {
 	struct indent_info info;
@@ -1044,11 +1100,15 @@ void format_paragraph(int text_width)
 
 	undo_merge = UNDO_MERGE_NONE;
 
-	if (!view->sel.blk)
-		return;
-
-	view->sel_is_lines = 1;
-	len = prepare_selection();
+	if (view->sel.blk) {
+		view->sel_is_lines = 1;
+		len = prepare_selection();
+	} else {
+		struct block_iter bi;
+		goto_bop();
+		bi = view->cursor;
+		len = goto_eop(&bi);
+	}
 	if (!len)
 		return;
 
