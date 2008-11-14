@@ -1,5 +1,6 @@
 #include "term.h"
 #include "common.h"
+#include "util.h"
 #include "options.h"
 
 #include <sys/ioctl.h>
@@ -28,9 +29,16 @@ static void buffer_num(unsigned int num)
 	} while (pos);
 }
 
-int term_init(const char *term, unsigned int flags)
+static int load_terminfo_caps(const char *path, const char *term)
 {
 	char filename[512];
+
+	snprintf(filename, sizeof(filename), "%s/%c/%s", path, term[0], term);
+	return terminfo_get_caps(filename);
+}
+
+int term_init(const char *term, unsigned int flags)
+{
 	int rc;
 
 	term_flags = flags;
@@ -42,15 +50,17 @@ int term_init(const char *term, unsigned int flags)
 
 	rc = -2;
 	if (flags & TERM_USE_TERMINFO) {
-		/*
-		 * /etc/terminfo?
-		 */
 		const char *path = getenv("TERMINFO");
 
-		if (path == NULL || path[0] == 0)
-			path = "/usr/share/terminfo";
-		snprintf(filename, sizeof(filename), "%s/%c/%s", path, term[0], term);
-		rc = terminfo_get_caps(filename);
+		if (path == NULL || path[0] == 0) {
+			char buf[1024];
+			snprintf(buf, sizeof(buf), "%s/.terminfo", home_dir);
+			rc = load_terminfo_caps(buf, term);
+			if (rc)
+				rc = load_terminfo_caps("/usr/share/terminfo", term);
+		} else {
+			rc = load_terminfo_caps(path, term);
+		}
 	}
 
 	if (rc && flags & TERM_USE_TERMCAP) {
