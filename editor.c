@@ -405,7 +405,7 @@ static unsigned int screen_next_line(struct block_iter *bi)
 
 static void print_line(struct block_iter *bi)
 {
-	int utf8 = buffer->utf8;
+	int utf8 = term_flags & TERM_UTF8;
 	uchar u;
 
 	while (obuf.x < obuf.scroll_x) {
