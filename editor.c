@@ -132,6 +132,9 @@ static int format_status(char *buf, int size, const char *format)
 			case 'p':
 				w += add_status_pos(buf, size, &pos);
 				break;
+			case 'E':
+				w += add_status_str(buf, size, &pos, buffer->utf8 ? "UTF-8" : "8-bit");
+				break;
 			case '%':
 				buf[pos++] = '%';
 				break;

@@ -53,7 +53,7 @@ static void default_str_set(char **local, char **global, const char *value)
 
 static void statusline_set(char **local, char **global, const char *value)
 {
-	static const char chars[] = "fmyxXcCp%";
+	static const char chars[] = "fmyxXcCpE%";
 	int i = 0;
 
 	while (value[i]) {
