@@ -40,6 +40,7 @@ syn join string sq dq heredoc heredocsq heredocdq
 syn join variable simplevar complexvar arithmetic
 syn join builtin builtin2
 syn join special backtick command:start command:end
+syn join special escoct eschex esc
 
 syn addr trailingws '[ \t]+$'
 syn addr indenterror '^	* +\t+'
