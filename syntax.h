@@ -29,7 +29,7 @@ struct hash_word {
 struct syntax_word {
 	struct syntax_any any;
 
-	struct hash_word **hash;
+	struct hash_word *hash[WORD_HASH_SIZE];
 };
 
 struct syntax_pattern {

@@ -182,7 +182,6 @@ void syn_addw(char **args)
 
 		w = xnew0(struct syntax_word, 1);
 		add_node((union syntax_node *)w, SYNTAX_NODE_WORD, name, flags);
-		w->hash = xnew0(struct hash_word *, WORD_HASH_SIZE);
 	}
 	for (i = 1; args[i]; i++) {
 		unsigned int hash_pos;
