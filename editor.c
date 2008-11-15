@@ -1148,6 +1148,7 @@ int main(int argc, char *argv[])
 	int i;
 	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
 	const char *term = NULL;
+	const char *rc = NULL;
 	const char *charset;
 
 	init_misc();
@@ -1170,6 +1171,14 @@ int main(int argc, char *argv[])
 			term = opt + 3;
 			continue;
 		}
+		if (!strcmp(opt, "-r") || !strcmp(opt, "--rc")) {
+			if (++i == argc) {
+				fprintf(stderr, "missing argument for option %s\n", opt);
+				return 1;
+			}
+			rc = argv[i];
+			continue;
+		}
 		if (strcmp(opt, "--") == 0) {
 			i++;
 			break;
@@ -1180,6 +1189,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "invalid option flag %s\n", opt);
 		return 1;
 	}
+
+	if (!rc)
+		rc = editor_file("rc");
 
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
@@ -1200,7 +1212,7 @@ int main(int argc, char *argv[])
 	window = window_new();
 	update_window_sizes();
 
-	read_config(editor_file("rc"));
+	read_config(rc);
 	update_all_syntax_colors();
 	currentline_color = find_color("currentline");
 	nontext_color = find_color("nontext");
