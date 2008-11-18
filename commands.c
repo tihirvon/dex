@@ -844,7 +844,7 @@ static void cmd_run(char **args)
 	while (*pf) {
 		switch (*pf) {
 		case '1':
-			flags |= SPAWN_COLLECT_ERRORS | SPAWN_ERRORS_STDOUT;
+			flags |= SPAWN_COLLECT_ERRORS | SPAWN_PIPE_STDOUT;
 			break;
 		case 'c':
 			quoted = 1;
@@ -876,6 +876,9 @@ static void cmd_run(char **args)
 
 	if (compiler)
 		flags |= SPAWN_COLLECT_ERRORS;
+
+	if (flags & SPAWN_COLLECT_ERRORS && !(flags & SPAWN_PIPE_STDOUT))
+		flags |= SPAWN_PIPE_STDERR;
 
 	if (flags & SPAWN_COLLECT_ERRORS && !compiler) {
 		error_msg("Error parser must be specified when collecting error messages.");

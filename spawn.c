@@ -157,7 +157,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 		}
 	}
 
-	if (flags & SPAWN_COLLECT_ERRORS && pipe(p)) {
+	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && pipe(p)) {
 		error_msg("pipe: %s", strerror(errno));
 		return;
 	}
@@ -183,12 +183,10 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 			if (flags & SPAWN_REDIRECT_STDERR)
 				dup2(dev_null, 2);
 		}
-		if (flags & SPAWN_COLLECT_ERRORS) {
-			if (flags & SPAWN_ERRORS_STDOUT)
-				dup2(p[1], 1);
-			else
-				dup2(p[1], 2);
-		}
+		if (flags & SPAWN_PIPE_STDERR)
+			dup2(p[1], 2);
+		if (flags & SPAWN_PIPE_STDOUT)
+			dup2(p[1], 1);
 		for (i = 3; i < 30; i++)
 			close(i);
 		execvp(args[0], args);
