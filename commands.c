@@ -878,7 +878,7 @@ static void cmd_run(char **args)
 		flags |= SPAWN_COLLECT_ERRORS;
 
 	if (flags & SPAWN_COLLECT_ERRORS && !compiler) {
-		error_msg("Error format parser must be specified when collecting error messages.");
+		error_msg("Error parser must be specified when collecting error messages.");
 		return;
 	}
 
