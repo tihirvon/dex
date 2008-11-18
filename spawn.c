@@ -180,8 +180,12 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 			if (flags & SPAWN_REDIRECT_STDERR)
 				dup2(dev_null, 2);
 		}
-		if (flags & SPAWN_COLLECT_ERRORS)
-			dup2(p[1], 2);
+		if (flags & SPAWN_COLLECT_ERRORS) {
+			if (flags & SPAWN_ERRORS_STDOUT)
+				dup2(p[1], 1);
+			else
+				dup2(p[1], 2);
+		}
 		for (i = 3; i < 30; i++)
 			close(i);
 		execvp(args[0], args);

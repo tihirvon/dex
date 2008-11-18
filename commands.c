@@ -833,7 +833,7 @@ static void cmd_right(char **args)
 
 static void cmd_run(char **args)
 {
-	const char *pf = parse_args(&args, "cdef=ijps", 1, -1);
+	const char *pf = parse_args(&args, "1cdef=ijps", 1, -1);
 	const char *compiler = NULL;
 	unsigned int flags = 0;
 	int quoted = 0;
@@ -843,6 +843,9 @@ static void cmd_run(char **args)
 
 	while (*pf) {
 		switch (*pf) {
+		case '1':
+			flags |= SPAWN_COLLECT_ERRORS | SPAWN_ERRORS_STDOUT;
+			break;
 		case 'c':
 			quoted = 1;
 			break;
