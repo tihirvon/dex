@@ -149,10 +149,13 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	int p[2];
 
 	compiler_format = NULL;
-	if (compiler)
+	if (compiler) {
 		compiler_format = find_compiler_format(compiler);
-	if (!compiler_format)
-		flags &= ~SPAWN_COLLECT_ERRORS;
+		if (!compiler_format) {
+			error_msg("No such error parser %s", compiler);
+			return;
+		}
+	}
 
 	if (flags & SPAWN_COLLECT_ERRORS && pipe(p)) {
 		error_msg("pipe: %s", strerror(errno));
