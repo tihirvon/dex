@@ -6,10 +6,10 @@
 
 struct error_format {
 	enum msg_importance importance;
-	int msg_idx;
-	int file_idx;
-	int line_idx;
-	int column_idx;
+	signed char msg_idx;
+	signed char file_idx;
+	signed char line_idx;
+	signed char column_idx;
 	const char *pattern;
 };
 
