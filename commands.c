@@ -108,7 +108,13 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 	int argc;
 	int nr_flags = 0;
 	int nr_flag_args = 0;
+	int flags_after_arg = 1;
 	int i, j;
+
+	if (*flag_desc == '-') {
+		flag_desc++;
+		flags_after_arg = 0;
+	}
 
 	for (argc = 0; args[argc]; argc++)
 		;
@@ -125,6 +131,8 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 			break;
 		}
 		if (arg[0] != '-' || !arg[1]) {
+			if (!flags_after_arg)
+				break;
 			i++;
 			continue;
 		}
@@ -472,7 +480,7 @@ static void cmd_filetype(char **args)
 
 static void cmd_filter(char **args)
 {
-	const char *pf = parse_args(&args, "", 1, -1);
+	const char *pf = parse_args(&args, "-", 1, -1);
 
 	if (!pf)
 		return;
@@ -861,7 +869,7 @@ static void cmd_right(char **args)
 
 static void cmd_run(char **args)
 {
-	const char *pf = parse_args(&args, "1cdef=ijps", 1, -1);
+	const char *pf = parse_args(&args, "-1cdef=ijps", 1, -1);
 	const char *compiler = NULL;
 	unsigned int flags = 0;
 	int quoted = 0;
