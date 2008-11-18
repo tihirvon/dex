@@ -470,6 +470,34 @@ static void cmd_filetype(char **args)
 	run_command(filetype_commands, args);
 }
 
+static void cmd_filter(char **args)
+{
+	const char *pf = parse_args(&args, "", 1, -1);
+
+	if (!pf)
+		return;
+
+	if (view->sel.blk) {
+		spawn_unfiltered_len = prepare_selection();
+	} else {
+		struct block *blk;
+
+		spawn_unfiltered_len = 0;
+		list_for_each_entry(blk, &buffer->blocks, node)
+			spawn_unfiltered_len += blk->size;
+		move_bof();
+	}
+
+	spawn_unfiltered = buffer_get_bytes(&spawn_unfiltered_len);
+	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT, NULL);
+
+	free(spawn_unfiltered);
+	replace(spawn_unfiltered_len, spawn_filtered, spawn_filtered_len);
+	free(spawn_filtered);
+
+	select_end();
+}
+
 static void cmd_format_paragraph(char **args)
 {
 	const char *pf = parse_args(&args, "", 0, 1);
@@ -1189,6 +1217,7 @@ const struct command commands[] = {
 	{ "error", NULL, cmd_error },
 	{ "errorfmt", NULL, cmd_errorfmt },
 	{ "filetype", "ft", cmd_filetype },
+	{ "filter", "f", cmd_filter },
 	{ "format-paragraph", "fp", cmd_format_paragraph },
 	{ "highlight", "hi", cmd_highlight },
 	{ "include", NULL, cmd_include },

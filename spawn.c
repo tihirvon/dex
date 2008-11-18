@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "window.h"
 #include "util.h"
+#include "gbuf.h"
 
 struct error_format {
 	enum msg_importance importance;
@@ -24,6 +25,11 @@ static int nr_compiler_formats;
 static struct compiler_format *compiler_format;
 
 struct compile_errors cerr;
+
+char *spawn_unfiltered;
+int spawn_unfiltered_len;
+char *spawn_filtered;
+int spawn_filtered_len;
 
 static void free_compile_error(struct compile_error *e)
 {
@@ -129,6 +135,78 @@ static void read_stderr(int fd, unsigned int flags)
 	fclose(f);
 }
 
+static void filter(int rfd, int wfd)
+{
+	unsigned int wlen = 0;
+	GBUF(buf);
+	int rc;
+
+	if (!spawn_unfiltered_len) {
+		close(wfd);
+		wfd = -1;
+	}
+	while (1) {
+		fd_set rfds, wfds;
+		fd_set *wfdsp = NULL;
+		int fd_high = rfd;
+
+		FD_ZERO(&rfds);
+		FD_SET(rfd, &rfds);
+
+		if (wfd >= 0) {
+			FD_ZERO(&wfds);
+			FD_SET(wfd, &wfds);
+			wfdsp = &wfds;
+		}
+		if (wfd > fd_high)
+			fd_high = wfd;
+
+		rc = select(fd_high + 1, &rfds, wfdsp, NULL, NULL);
+		if (rc < 0) {
+			if (errno == EINTR)
+				continue;
+			error_msg("select: %s", strerror(errno));
+			break;
+		}
+
+		if (FD_ISSET(rfd, &rfds)) {
+			char data[8192];
+
+			rc = read(rfd, data, sizeof(data));
+			if (rc < 0) {
+				error_msg("read: %s", strerror(errno));
+				break;
+			}
+			if (!rc) {
+				if (wlen < spawn_unfiltered_len)
+					error_msg("Command did not read all data.");
+				break;
+			}
+			gbuf_add_buf(&buf, data, rc);
+		}
+		if (wfdsp && FD_ISSET(wfd, &wfds)) {
+			rc = write(wfd, spawn_unfiltered + wlen, spawn_unfiltered_len - wlen);
+			if (rc < 0) {
+				error_msg("write: %s", strerror(errno));
+				break;
+			}
+			wlen += rc;
+			if (wlen == spawn_unfiltered_len) {
+				close(wfd);
+				wfd = -1;
+			}
+		}
+	}
+
+	if (buf.len) {
+		spawn_filtered_len = buf.len;
+		spawn_filtered = gbuf_steal(&buf);
+	} else {
+		spawn_filtered_len = 0;
+		spawn_filtered = NULL;
+	}
+}
+
 static struct compiler_format *find_compiler_format(const char *name)
 {
 	int i;
@@ -146,7 +224,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	int quiet = (flags & mask) == mask;
 	pid_t pid;
 	int status;
-	int p[2];
+	int p[2], fp[2];
 
 	compiler_format = NULL;
 	if (compiler) {
@@ -158,6 +236,10 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	}
 
 	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && pipe(p)) {
+		error_msg("pipe: %s", strerror(errno));
+		return;
+	}
+	if (flags & SPAWN_FILTER && pipe(fp)) {
 		error_msg("pipe: %s", strerror(errno));
 		return;
 	}
@@ -183,6 +265,8 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 			if (flags & SPAWN_REDIRECT_STDERR)
 				dup2(dev_null, 2);
 		}
+		if (flags & SPAWN_FILTER)
+			dup2(fp[0], 0);
 		if (flags & SPAWN_PIPE_STDERR)
 			dup2(p[1], 2);
 		if (flags & SPAWN_PIPE_STDOUT)
@@ -196,6 +280,12 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 		close(p[1]);
 		read_stderr(p[0], flags);
 		close(p[0]);
+	} else if (flags & SPAWN_FILTER) {
+		close(fp[0]);
+		close(p[1]);
+		filter(p[0], fp[1]);
+		close(p[0]);
+		close(fp[1]);
 	}
 	while (wait(&status) < 0 && errno == EINTR)
 		;
