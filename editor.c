@@ -31,12 +31,156 @@ static struct hl_color *commandline_color;
 static struct hl_color *errormsg_color;
 static struct hl_color *infomsg_color;
 static struct hl_color *nontext_color;
+static struct hl_color *tab_bar_color;
+static struct hl_color *tab_active_color;
+static struct hl_color *tab_inactive_color;
 
 static int screen_w = 80;
 static int screen_h = 24;
 static int resized;
 static int cmdline_x;
 static int current_line;
+
+static void update_tab_title(struct view *v, int idx, int skip)
+{
+	char buf[512];
+	const char *filename = v->buffer->filename;
+
+	if (!filename)
+		filename = "(No name)";
+	if (skip > 0) {
+		if (term_flags & TERM_UTF8)
+			filename += u_skip_chars(filename, &skip);
+		else
+			filename += skip;
+	}
+	snprintf(buf, sizeof(buf), " %d %s%s ",
+		idx + 1,
+		filename,
+		buffer_modified(v->buffer) ? " [+]" : "");
+	if (skip >= 0) {
+		buf_add_bytes(buf, v->tt_truncated_width);
+	} else {
+		if (term_flags & TERM_UTF8)
+			v->tt_width = u_str_width(buf);
+		else
+			v->tt_width = strlen(buf);
+		v->tt_truncated_width = v->tt_width;
+	}
+}
+
+static void print_tab_bar(void)
+{
+	/* index of left-most visible tab */
+	static int left_idx;
+	struct view *v;
+	int trunc_min_w = 20;
+	int count = 0, total_len = 0;
+	int trunc_count = 0, max_trunc_w = 0;
+	int idx;
+
+	list_for_each_entry(v, &window->views, node) {
+		if (v == view) {
+			/* make sure current tab is visible */
+			if (left_idx > count)
+				left_idx = count;
+			/* title of current tab changes ofter */
+			update_tab_title(v, count, -1);
+		}
+		if (!v->tt_width)
+			update_tab_title(v, count, -1);
+		if (v->tt_width > trunc_min_w) {
+			max_trunc_w += v->tt_width - trunc_min_w;
+			trunc_count++;
+		}
+		total_len += v->tt_width;
+		count++;
+	}
+
+	if (total_len <= window->w) {
+		left_idx = 0;
+	} else {
+		int extra = total_len - window->w;
+
+		if (extra <= max_trunc_w) {
+			/* All tabs fit to screen after truncating some titles */
+			int avg = extra / trunc_count;
+			int mod = extra % trunc_count;
+
+			idx = 0;
+			list_for_each_entry(v, &window->views, node) {
+				int w = v->tt_width - trunc_min_w;
+				if (w > 0) {
+					w = avg;
+					if (mod) {
+						w++;
+						mod--;
+					}
+				}
+				if (w > 0)
+					v->tt_truncated_width = v->tt_width - w;
+				idx++;
+			}
+			left_idx = 0;
+		} else {
+			/* Need to truncate all long titles but there's still
+			 * not enough space for all tabs */
+			int min_left_idx, max_left_idx, w;
+
+			idx = 0;
+			list_for_each_entry(v, &window->views, node) {
+				w = v->tt_width - trunc_min_w;
+				if (w > 0)
+					v->tt_truncated_width = v->tt_width - w;
+				idx++;
+			}
+
+			w = 0;
+			max_left_idx = count;
+			list_for_each_entry_reverse(v, &window->views, node) {
+				w += v->tt_truncated_width;
+				if (w > window->w)
+					break;
+				max_left_idx--;
+			}
+
+			w = 0;
+			min_left_idx = count;
+			list_for_each_entry_reverse(v, &window->views, node) {
+				if (w || v == view)
+					w += v->tt_truncated_width;
+				if (w > window->w)
+					break;
+				min_left_idx--;
+			}
+			if (left_idx < min_left_idx)
+				left_idx = min_left_idx;
+			if (left_idx > max_left_idx)
+				left_idx = max_left_idx;
+		}
+	}
+
+	buf_move_cursor(window->x, window->y - 1);
+	buf_set_color(&tab_inactive_color->color);
+
+	idx = -1;
+	list_for_each_entry(v, &window->views, node) {
+		if (++idx < left_idx)
+			continue;
+
+		if (obuf.x + v->tt_truncated_width > window->w)
+			break;
+
+		if (v == view)
+			buf_set_color(&tab_active_color->color);
+		update_tab_title(v, idx, v->tt_width - v->tt_truncated_width);
+		obuf.x += v->tt_truncated_width;
+		if (v == view)
+			buf_set_color(&tab_inactive_color->color);
+	}
+	buf_set_color(&tab_bar_color->color);
+	buf_clear_eol();
+}
 
 static int add_status_str(char *buf, int size, int *posp, const char *str)
 {
@@ -513,8 +657,9 @@ static void restore_cursor(void)
 
 static void update_window_sizes(void)
 {
+	window->y = options.show_tab_bar;
 	window->w = screen_w;
-	window->h = screen_h - 2;
+	window->h = screen_h - window->y - 2;
 	obuf.width = screen_w;
 }
 
@@ -534,6 +679,8 @@ static void update_everything(void)
 	update_screen_size();
 	update_cursor(view);
 	buf_hide_cursor();
+	if (options.show_tab_bar)
+		print_tab_bar();
 	update_full();
 	restore_cursor();
 	buf_show_cursor();
@@ -836,6 +983,10 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 static void handle_key(enum term_key_type type, unsigned int key)
 {
 	struct change_head *save_change_head = buffer->save_change_head;
+	struct view *v = view;
+	int update_tab_bar = 0;
+	int show_tab_bar = options.show_tab_bar;
+	int is_modified = buffer_modified(buffer);
 	int cx = view->cx_display;
 	int cy = view->cy;
 	int vx = view->vx;
@@ -905,11 +1056,24 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		if (cx != view->cx_display && view->sel.blk)
 			update_flags |= UPDATE_CURSOR_LINE;
 	}
+	if (v != view) {
+		update_flags |= UPDATE_FULL;
+		update_tab_bar = 1;
+	} else if (is_modified != buffer_modified(buffer)) {
+		update_tab_bar = 1;
+	}
+	if (show_tab_bar != options.show_tab_bar) {
+		update_window_sizes();
+		update_flags |= UPDATE_FULL;
+		update_tab_bar = 1;
+	}
 
 	if (!update_flags)
 		return;
 
 	buf_hide_cursor();
+	if (options.show_tab_bar && update_tab_bar)
+		print_tab_bar();
 	if (update_flags & UPDATE_FULL) {
 		update_full();
 	} else if (update_flags & UPDATE_RANGE) {
@@ -1138,6 +1302,21 @@ static void set_basic_colors(void)
 	commandline_color = set_highlight_color("commandline", &none);
 	errormsg_color = set_highlight_color("errormsg", &none);
 	infomsg_color = set_highlight_color("infomsg", &none);
+
+	c.fg = -1;
+	c.bg = 7;
+	c.attr = ATTR_UNDERLINE;
+	tab_bar_color = set_highlight_color("tabbar", &c);
+
+	c.fg = -1;
+	c.bg = -1;
+	c.attr = ATTR_BOLD;
+	tab_active_color = set_highlight_color("activetab", &c);
+
+	c.fg = 0;
+	c.bg = 7;
+	c.attr = 0;
+	tab_inactive_color = set_highlight_color("inactivetab", &c);
 }
 
 static void close_all_views(void)

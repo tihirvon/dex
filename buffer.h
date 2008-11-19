@@ -81,6 +81,10 @@ struct view {
 	// preferred cursor x (preferred value for cx_display)
 	int preferred_x;
 
+	// tab title
+	int tt_width;
+	int tt_truncated_width;
+
 	// Selection always starts at exact position of cursor and ends to
 	// current position of cursor regardless of whether your are selecting
 	// lines or not.

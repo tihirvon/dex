@@ -40,6 +40,7 @@ struct global_options {
 
 	int display_special;
 	int esc_timeout;
+	int show_tab_bar;
 };
 
 extern struct global_options options;

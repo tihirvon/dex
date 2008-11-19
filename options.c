@@ -21,6 +21,7 @@ struct global_options options = {
 
 	.display_special = 0,
 	.esc_timeout = 100,
+	.show_tab_bar = 0,
 };
 
 enum option_type {
@@ -180,6 +181,7 @@ static const struct option_description option_desc[] = {
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),
 	G_BOOL("move-wraps", move_wraps, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_bool_set),
+	G_BOOL("show-tab-bar", show_tab_bar, default_int_set),
 	G_STR("statusline-left", statusline_left, statusline_set),
 	G_STR("statusline-right", statusline_right, statusline_set),
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
