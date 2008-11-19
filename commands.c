@@ -742,6 +742,7 @@ static void cmd_next(char **args)
 static void cmd_open(char **args)
 {
 	const char *pf = parse_args(&args, "", 0, -1);
+	struct view *old_view = view;
 	int i, first = 1;
 
 	if (!pf)
@@ -749,12 +750,14 @@ static void cmd_open(char **args)
 
 	if (!args[0]) {
 		set_view(open_empty_buffer());
+		prev_view = old_view;
 		return;
 	}
 	for (i = 0; args[i]; i++) {
 		struct view *v = open_buffer(args[i], 0);
 		if (v && first) {
 			set_view(v);
+			prev_view = old_view;
 			first = 0;
 		}
 	}

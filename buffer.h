@@ -134,6 +134,7 @@ enum input_special {
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
 extern struct buffer *buffer;
+extern struct view *prev_view;
 
 extern enum undo_merge undo_merge;
 extern unsigned int update_flags;

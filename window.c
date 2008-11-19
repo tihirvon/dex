@@ -29,15 +29,20 @@ struct view *window_add_buffer(struct buffer *b)
 
 void remove_view(void)
 {
-	struct list_head *prev = view->node.prev;
+	struct list_head *node = view->node.next;
 
 	view_delete(view);
 	view = NULL;
+
+	if (prev_view) {
+		set_view(prev_view);
+		return;
+	}
 	if (list_empty(&window->views))
 		open_empty_buffer();
-	if (prev == &window->views)
-		prev = prev->next;
-	set_view(VIEW(prev));
+	if (node == &window->views)
+		node = node->prev;
+	set_view(VIEW(node));
 }
 
 static void restore_cursor_from_history(void)
@@ -77,6 +82,12 @@ void set_view(struct view *v)
 		}
 		v = VIEW(window->views.next);
 	}
+
+	if (view == v)
+		return;
+
+	/* forget previous view when changing view using any other command but open */
+	prev_view = NULL;
 
 	/*
 	 * close untouched view opened by tag command

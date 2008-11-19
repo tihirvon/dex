@@ -16,6 +16,9 @@ void view_delete(struct view *v)
 {
 	struct buffer *b = v->buffer;
 
+	if (v == prev_view)
+		prev_view = NULL;
+
 	if (!--b->ref) {
 		if (b->abs_filename)
 			add_file_history(v->cx_display, v->cy, b->abs_filename);

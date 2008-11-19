@@ -7,6 +7,7 @@
 
 struct view *view;
 struct buffer *buffer;
+struct view *prev_view;
 enum undo_merge undo_merge;
 
 /*
