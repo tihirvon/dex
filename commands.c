@@ -191,6 +191,11 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 	return flags;
 }
 
+static int no_args(char **args)
+{
+	return !!parse_args(&args, "", 0, 0);
+}
+
 static void cmd_bind(char **args)
 {
 	const char *pf = parse_args(&args, "", 2, 2);
@@ -234,35 +239,32 @@ error:
 
 static void cmd_bof(char **args)
 {
-	move_bof();
+	if (no_args(args))
+		move_bof();
 }
 
 static void cmd_bol(char **args)
 {
-	move_bol();
+	if (no_args(args))
+		move_bol();
 }
 
 static void cmd_cancel(char **args)
 {
-	select_end();
+	if (no_args(args))
+		select_end();
 }
 
 static void cmd_center_cursor(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 0);
-
-	if (!pf)
-		return;
-	center_cursor();
+	if (no_args(args))
+		center_cursor();
 }
 
 static void cmd_clear(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 0);
-
-	if (!pf)
-		return;
-	clear_lines();
+	if (no_args(args))
+		clear_lines();
 }
 
 static void cmd_close(char **args)
@@ -292,6 +294,9 @@ static void cmd_copy(char **args)
 {
 	unsigned int len;
 
+	if (!no_args(args))
+		return;
+
 	undo_merge = UNDO_MERGE_NONE;
 	if (view->sel.blk) {
 		len = prepare_selection();
@@ -307,6 +312,9 @@ static void cmd_cut(char **args)
 {
 	unsigned int len;
 	int restore_col;
+
+	if (!no_args(args))
+		return;
 
 	undo_merge = UNDO_MERGE_NONE;
 	if (view->sel.blk) {
@@ -324,48 +332,58 @@ static void cmd_cut(char **args)
 
 static void cmd_delete(char **args)
 {
-	delete_ch();
+	if (no_args(args))
+		delete_ch();
 }
 
 static void cmd_delete_bol(char **args)
 {
-	undo_merge = UNDO_MERGE_NONE;
-	delete(block_iter_bol(&view->cursor), 1);
+	if (no_args(args)) {
+		undo_merge = UNDO_MERGE_NONE;
+		delete(block_iter_bol(&view->cursor), 1);
+	}
 }
 
 static void cmd_delete_eol(char **args)
 {
-	struct block_iter bi = view->cursor;
-	unsigned int len = count_bytes_eol(&bi);
+	if (no_args(args)) {
+		struct block_iter bi = view->cursor;
+		unsigned int len = count_bytes_eol(&bi);
 
-	undo_merge = UNDO_MERGE_NONE;
-	if (len > 1)
-		delete(len - 1, 0);
+		undo_merge = UNDO_MERGE_NONE;
+		if (len > 1)
+			delete(len - 1, 0);
+	}
 }
 
 static void cmd_down(char **args)
 {
-	move_down(1);
+	if (no_args(args))
+		move_down(1);
 }
 
 static void cmd_eof(char **args)
 {
-	move_eof();
+	if (no_args(args))
+		move_eof();
 }
 
 static void cmd_eol(char **args)
 {
-	move_eol();
+	if (no_args(args))
+		move_eol();
 }
 
 static void cmd_erase(char **args)
 {
-	erase();
+	if (no_args(args))
+		erase();
 }
 
 static void cmd_erase_word(char **args)
 {
-	erase_word();
+	if (no_args(args))
+		erase_word();
 }
 
 static void cmd_error(char **args)
@@ -680,19 +698,20 @@ static void cmd_insert(char **args)
 
 static void cmd_insert_special(char **args)
 {
-	if (!parse_args(&args, "", 0, 0))
-		return;
-	input_special = INPUT_SPECIAL_UNKNOWN;
+	if (no_args(args))
+		input_special = INPUT_SPECIAL_UNKNOWN;
 }
 
 static void cmd_join(char **args)
 {
-	join_lines();
+	if (no_args(args))
+		join_lines();
 }
 
 static void cmd_left(char **args)
 {
-	move_left(1);
+	if (no_args(args))
+		move_left(1);
 }
 
 static void cmd_line(char **args)
@@ -710,17 +729,14 @@ static void cmd_line(char **args)
 
 static void cmd_new_line(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 0);
-
-	if (!pf)
-		return;
-
-	new_line();
+	if (no_args(args))
+		new_line();
 }
 
 static void cmd_next(char **args)
 {
-	next_buffer();
+	if (no_args(args))
+		next_buffer();
 }
 
 static void cmd_open(char **args)
@@ -746,32 +762,38 @@ static void cmd_open(char **args)
 
 static void cmd_paste(char **args)
 {
-	paste();
+	if (no_args(args))
+		paste();
 }
 
 static void cmd_pgdown(char **args)
 {
-	move_down(window->h - 1);
+	if (no_args(args))
+		move_down(window->h - 1);
 }
 
 static void cmd_pgup(char **args)
 {
-	move_up(window->h - 1);
+	if (no_args(args))
+		move_up(window->h - 1);
 }
 
 static void cmd_pop(char **args)
 {
-	pop_location();
+	if (no_args(args))
+		pop_location();
 }
 
 static void cmd_prev(char **args)
 {
-	prev_buffer();
+	if (no_args(args))
+		prev_buffer();
 }
 
 static void cmd_push(char **args)
 {
-	push_location();
+	if (no_args(args))
+		push_location();
 }
 
 static void cmd_quit(char **args)
@@ -864,7 +886,8 @@ static void cmd_replace(char **args)
 
 static void cmd_right(char **args)
 {
-	move_right(1);
+	if (no_args(args))
+		move_right(1);
 }
 
 static void cmd_run(char **args)
@@ -1080,12 +1103,14 @@ static void cmd_search_fwd(char **args)
 
 static void cmd_search_next(char **args)
 {
-	search_next();
+	if (no_args(args))
+		search_next();
 }
 
 static void cmd_search_prev(char **args)
 {
-	search_prev();
+	if (no_args(args))
+		search_prev();
 }
 
 static void cmd_select(char **args)
@@ -1195,12 +1220,14 @@ static void cmd_toggle(char **args)
 
 static void cmd_undo(char **args)
 {
-	undo();
+	if (no_args(args))
+		undo();
 }
 
 static void cmd_up(char **args)
 {
-	move_up(1);
+	if (no_args(args))
+		move_up(1);
 }
 
 static void cmd_view(char **args)
