@@ -1203,6 +1203,31 @@ static void cmd_up(char **args)
 	move_up(1);
 }
 
+static void cmd_view(char **args)
+{
+	const char *pf = parse_args(&args, "", 1, 1);
+	struct list_head *node;
+	int idx;
+
+	if (!pf)
+		return;
+
+	idx = atoi(args[0]) - 1;
+	if (idx < 0) {
+		error_msg("View number must be positive.");
+		return;
+	}
+
+	node = window->views.next;
+	while (node != &window->views) {
+		if (!idx--) {
+			set_view(VIEW(node));
+			return;
+		}
+		node = node->next;
+	}
+}
+
 const struct command commands[] = {
 	{ "bind", NULL, cmd_bind },
 	{ "bof", NULL, cmd_bof },
@@ -1262,6 +1287,7 @@ const struct command commands[] = {
 	{ "toggle", NULL, cmd_toggle },
 	{ "undo", NULL, cmd_undo },
 	{ "up", NULL, cmd_up },
+	{ "view", "v", cmd_view },
 	{ NULL, NULL, NULL }
 };
 
