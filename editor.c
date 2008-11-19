@@ -45,7 +45,7 @@ static int add_status_str(char *buf, int size, int *posp, const char *str)
 	len = strlen(str);
 	w = len;
 	if (term_flags & TERM_UTF8)
-		w = u_strlen(str);
+		w = u_str_width(str);
 	if (len < size) {
 		memcpy(buf + pos, str, len);
 		*posp = pos + len;
