@@ -191,11 +191,6 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 	return flags;
 }
 
-static void cmd_erase(char **args)
-{
-	erase();
-}
-
 static void cmd_bind(char **args)
 {
 	const char *pf = parse_args(&args, "", 2, 2);
@@ -361,6 +356,11 @@ static void cmd_eof(char **args)
 static void cmd_eol(char **args)
 {
 	move_eol();
+}
+
+static void cmd_erase(char **args)
+{
+	erase();
 }
 
 static void cmd_erase_word(char **args)
