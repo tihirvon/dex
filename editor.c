@@ -32,6 +32,8 @@ static struct hl_color *errormsg_color;
 static struct hl_color *infomsg_color;
 static struct hl_color *nontext_color;
 
+static int screen_w = 80;
+static int screen_h = 24;
 static int resized;
 static int cmdline_x;
 static int current_line;
@@ -156,7 +158,7 @@ static void print_status_line(void)
 	char rbuf[256];
 	int lw, rw;
 
-	buf_move_cursor(0, window->h);
+	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
@@ -166,7 +168,7 @@ static void print_status_line(void)
 		buf_add_bytes(rbuf, strlen(rbuf));
 	} else {
 		buf_add_bytes(lbuf, strlen(lbuf));
-		buf_move_cursor(window->w - rw, window->h);
+		buf_move_cursor(window->x + window->w - rw, window->y + window->h);
 		buf_add_bytes(rbuf, strlen(rbuf));
 	}
 }
@@ -237,7 +239,7 @@ static void print_command(uchar prefix)
 
 static void print_command_line(void)
 {
-	buf_move_cursor(0, window->h + 1);
+	buf_move_cursor(0, screen_h - 1);
 	switch (input_mode) {
 	case INPUT_COMMAND:
 		buf_set_color(&commandline_color->color);
@@ -458,7 +460,7 @@ static void update_range(int y1, int y2)
 	for (i = y1; i < y2; i++) {
 		if (block_iter_eof(&bi))
 			break;
-		buf_move_cursor(0, i);
+		buf_move_cursor(window->x, window->y + i);
 		print_line(&bi);
 		current_line++;
 	}
@@ -466,14 +468,14 @@ static void update_range(int y1, int y2)
 	if (i < y2 && current_line == view->cy) {
 		// dummy empty line
 		update_color(0);
-		buf_move_cursor(0, i++);
+		buf_move_cursor(window->x, window->y + i++);
 		buf_clear_eol();
 	}
 
 	if (i < y2 && nontext_color)
 		buf_set_color(&nontext_color->color);
 	for (; i < y2; i++) {
-		buf_move_cursor(0, i);
+		buf_move_cursor(window->x, window->y + i);
 		buf_ch('~');
 		buf_clear_eol();
 	}
@@ -498,29 +500,38 @@ static void restore_cursor(void)
 {
 	switch (input_mode) {
 	case INPUT_NORMAL:
-		buf_move_cursor(view->cx_display - view->vx, view->cy - view->vy);
+		buf_move_cursor(
+			window->x + view->cx_display - view->vx,
+			window->y + view->cy - view->vy);
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
-		buf_move_cursor(cmdline_x, window->h + 1);
+		buf_move_cursor(cmdline_x, screen_h - 1);
 		break;
 	}
 }
 
 static void update_window_sizes(void)
 {
-	int w, h;
+	window->w = screen_w;
+	window->h = screen_h - 2;
+	obuf.width = screen_w;
+}
 
-	if (!term_get_size(&w, &h) && w > 2 && h > 2) {
-		window->w = w;
-		window->h = h - 2;
-		obuf.width = w;
+static void update_screen_size(void)
+{
+	if (!term_get_size(&screen_w, &screen_h)) {
+		if (screen_w < 3)
+			screen_w = 3;
+		if (screen_h < 3)
+			screen_h = 3;
+		update_window_sizes();
 	}
 }
 
 static void update_everything(void)
 {
-	update_window_sizes();
+	update_screen_size();
 	update_cursor(view);
 	buf_hide_cursor();
 	update_full();
@@ -579,7 +590,7 @@ void ui_end(void)
 	struct term_color color = { -1, -1, 0 };
 
 	buf_set_color(&color);
-	buf_move_cursor(0, window->h + 1);
+	buf_move_cursor(0, screen_h - 1);
 	buf_show_cursor();
 
 	// back to main buffer
@@ -1210,7 +1221,7 @@ int main(int argc, char *argv[])
 	set_basic_colors();
 
 	window = window_new();
-	update_window_sizes();
+	update_screen_size();
 
 	read_config(rc);
 	update_all_syntax_colors();

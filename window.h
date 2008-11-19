@@ -9,9 +9,12 @@ struct window {
 	struct list_head node;
 	struct list_head views;
 
-	// current view. always exists
+	/* current view. always exists */
 	struct view *view;
 
+	/* Coordinates and size of editable area not including tabs,
+	 * status line and command line.
+	 */
 	int x, y;
 	int w, h;
 };
