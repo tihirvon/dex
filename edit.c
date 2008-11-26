@@ -238,10 +238,12 @@ void select_start(int is_lines)
 
 void select_end(void)
 {
-	view->sel.blk = NULL;
-	view->sel.offset = 0;
-	view->sel_is_lines = 0;
-	update_flags |= UPDATE_FULL;
+	if (view->sel.blk) {
+		view->sel.blk = NULL;
+		view->sel.offset = 0;
+		view->sel_is_lines = 0;
+		update_flags |= UPDATE_FULL;
+	}
 }
 
 static void record_copy(char *buf, unsigned int len, int is_lines)
