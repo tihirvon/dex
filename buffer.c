@@ -25,6 +25,58 @@ static char *hl_buffer;
 static size_t hl_buffer_len;
 static size_t hl_buffer_alloc;
 
+void init_selection(struct selection_info *info)
+{
+	uchar u;
+
+	info->si = view->cursor;
+	info->ei = view->sel;
+	info->so = block_iter_get_offset(&info->si);
+	info->eo = block_iter_get_offset(&info->ei);
+	info->swapped = 0;
+	info->nr_lines = 1;
+	info->nr_chars = 0;
+	if (info->so > info->eo) {
+		struct block_iter bi = info->si;
+		unsigned int o = info->so;
+		info->si = info->ei;
+		info->ei = bi;
+		info->so = info->eo;
+		info->eo = o;
+		info->swapped = 1;
+	}
+	if (block_iter_eof(&info->ei)) {
+		if (info->so == info->eo)
+			return;
+		info->eo -= buffer->prev_char(&info->ei, &u);
+	}
+	if (view->sel_is_lines) {
+		info->so -= block_iter_bol(&info->si);
+		info->eo += count_bytes_eol(&info->ei);
+	} else {
+		// character under cursor belongs to the selection
+		info->eo += buffer->next_char(&info->ei, &u);
+	}
+}
+
+void fill_selection_info(struct selection_info *info)
+{
+	struct block_iter bi = info->si;
+	int nr_bytes = info->eo - info->so;
+	uchar u, prev_char = 0;
+
+	while (nr_bytes && buffer->next_char(&bi, &u)) {
+		if (prev_char == '\n')
+			info->nr_lines++;
+		info->nr_chars++;
+		prev_char = u;
+		if (buffer->utf8)
+			nr_bytes -= u_char_size(u);
+		else
+			nr_bytes--;
+	}
+}
+
 char *buffer_get_bytes(unsigned int *lenp)
 {
 	struct block *blk = view->cursor.blk;

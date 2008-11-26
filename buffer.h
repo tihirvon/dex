@@ -95,6 +95,16 @@ struct view {
 	unsigned temporary : 1;
 };
 
+struct selection_info {
+	struct block_iter si;
+	struct block_iter ei;
+	unsigned int so;
+	unsigned int eo;
+	int swapped;
+	int nr_lines;
+	int nr_chars;
+};
+
 enum undo_merge {
 	UNDO_MERGE_NONE,
 	UNDO_MERGE_INSERT,
@@ -152,6 +162,9 @@ static inline int buffer_modified(struct buffer *b)
 {
 	return b->save_change_head != b->cur_change_head;
 }
+
+void init_selection(struct selection_info *info);
+void fill_selection_info(struct selection_info *info);
 
 unsigned int buffer_offset(void);
 void move_offset(unsigned int offset);

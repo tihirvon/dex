@@ -281,51 +281,11 @@ unsigned int count_bytes_eol(struct block_iter *bi)
 
 unsigned int prepare_selection(void)
 {
-	struct block_iter bi;
-	unsigned int so, co, len;
-
-	so = block_iter_get_offset(&view->sel);
-	co = buffer_offset();
-	if (co > so) {
-		unsigned int to;
-		struct block *tb;
-
-		to = co;
-		co = so;
-		so = to;
-
-		tb = view->cursor.blk;
-		view->cursor.blk = view->sel.blk;
-		view->sel.blk = tb;
-
-		to = view->cursor.offset;
-		view->cursor.offset = view->sel.offset;
-		view->sel.offset = to;
-	}
-
-	if (block_iter_eof(&view->sel)) {
-		uchar u;
-
-		if (co == so) {
-			// both EOF
-			return 0;
-		}
-		// avoid deleting past eof
-		so -= buffer->prev_char(&view->sel, &u);
-	}
-
-	len = so - co;
-	if (view->sel_is_lines) {
-		bi = view->sel;
-		len += count_bytes_eol(&bi);
-		len += block_iter_bol(&view->cursor);
-	} else {
-		// character under cursor belongs to the selection
-		uchar u;
-		bi = view->sel;
-		len += buffer->next_char(&bi, &u);
-	}
-	return len;
+	struct selection_info info;
+	init_selection(&info);
+	view->cursor = info.si;
+	view->sel = info.ei;
+	return info.eo - info.so;
 }
 
 unsigned int select_current_line(void)
@@ -894,43 +854,15 @@ static void shift_left(int nr_lines, int count)
 void shift_lines(int count)
 {
 	int nr_lines = 1;
-	int sel_offset = 0;
-	int swap = 0;
+	struct selection_info info;
 
 	if (view->sel.blk) {
-		struct block_iter si, ei, bi;
-		unsigned int so, eo;
-		uchar u, prev_char = 0;
-		int nr_bytes;
-
 		view->sel_is_lines = 1;
-
-		si = view->cursor;
-		ei = view->sel;
-
-		so = block_iter_get_offset(&si);
-		eo = block_iter_get_offset(&ei);
-		sel_offset = so;
-		nr_bytes = eo - so;
-		swap = 1;
-		if (so > eo) {
-			struct block_iter ti = si;
-			si = ei;
-			ei = ti;
-			view->cursor = si;
-			sel_offset = eo;
-			nr_bytes = so - eo;
-			swap = 0;
-		}
-		nr_bytes++;
-
-		bi = si;
-		while (nr_bytes && block_iter_next_byte(&bi, &u)) {
-			if (prev_char == '\n')
-				nr_lines++;
-			prev_char = u;
-			nr_bytes--;
-		}
+		init_selection(&info);
+		fill_selection_info(&info);
+		view->cursor = info.si;
+		view->sel = info.ei;
+		nr_lines = info.nr_lines;
 	}
 
 	view->preferred_x += buffer->options.indent_width * count;
@@ -949,15 +881,16 @@ void shift_lines(int count)
 	if (nr_lines > 1)
 		update_flags |= UPDATE_FULL;
 
-	// make sure sel points to valid block
-	if (view->sel.blk)
-		block_iter_goto_offset(&view->sel, sel_offset);
+	if (view->sel.blk) {
+		// make sure sel points to valid block
+		block_iter_goto_offset(&view->sel, info.so);
 
-	// restore cursor position as well as possible
-	if (swap) {
-		struct block_iter tmp = view->sel;
-		view->sel = view->cursor;
-		view->cursor = tmp;
+		// restore cursor position as well as possible
+		if (!info.swapped) {
+			struct block_iter tmp = view->sel;
+			view->sel = view->cursor;
+			view->cursor = tmp;
+		}
 	}
 	move_preferred_x();
 }

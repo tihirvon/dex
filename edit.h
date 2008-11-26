@@ -1,6 +1,8 @@
 #ifndef EDIT_H
 #define EDIT_H
 
+#include "iter.h"
+
 unsigned int prepare_selection(void);
 unsigned int select_current_line(void);
 
