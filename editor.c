@@ -18,6 +18,7 @@
 enum input_mode input_mode;
 enum input_special input_special;
 enum editor_status editor_status;
+char misc_status[32];
 
 static int nr_errors;
 static int msg_is_error;
@@ -281,6 +282,10 @@ static int format_status(char *buf, int size, const char *format)
 			case 'E':
 				w += add_status_str(buf, size, &pos, buffer->utf8 ? "UTF-8" : "8-bit");
 				break;
+			case 'M':
+				if (misc_status[0])
+					w += add_status_str(buf, size, &pos, misc_status);
+				break;
 			case '%':
 				buf[pos++] = '%';
 				break;
@@ -302,6 +307,18 @@ static void print_status_line(void)
 	char rbuf[256];
 	int lw, rw;
 
+	if (view->sel.blk) {
+		struct selection_info info;
+
+		init_selection(&info);
+		fill_selection_info(&info);
+		if (view->sel_is_lines) {
+			snprintf(misc_status, sizeof(misc_status), "[%d lines]", info.nr_lines);
+		} else {
+			snprintf(misc_status, sizeof(misc_status), "[%d chars]", info.nr_chars);
+		}
+	}
+
 	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
@@ -315,6 +332,8 @@ static void print_status_line(void)
 		buf_move_cursor(window->x + window->w - rw, window->y + window->h);
 		buf_add_bytes(rbuf, strlen(rbuf));
 	}
+
+	misc_status[0] = 0;
 }
 
 static int get_char_width(int *idx)
