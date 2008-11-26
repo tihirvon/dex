@@ -160,7 +160,7 @@ void pop_location(void)
 		return;
 	loc = container_of(location_head.next, struct file_location, node);
 	list_del(&loc->node);
-	v = open_buffer(loc->filename, OF_LOAD_BUFFER);
+	v = open_buffer(loc->filename, OF_LOAD_BUFFER | OF_FILE_MUST_EXIST | OF_TEMPORARY);
 	if (v) {
 		set_view(v);
 		move_to_line(loc->y + 1);
