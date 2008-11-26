@@ -220,8 +220,9 @@ static struct compiler_format *find_compiler_format(const char *name)
 
 void spawn(char **args, unsigned int flags, const char *compiler)
 {
-	unsigned int mask = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
-	int quiet = (flags & mask) == mask;
+	unsigned int stdout_quiet = flags & (SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDOUT);
+	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
+	int quiet = stdout_quiet && stderr_quiet && !(flags & SPAWN_COLLECT_ERRORS);
 	pid_t pid;
 	int status;
 	int p[2], fp[2];
