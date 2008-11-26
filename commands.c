@@ -763,6 +763,34 @@ static void cmd_open(char **args)
 	}
 }
 
+static void cmd_pass_through(char **args)
+{
+	const char *pf = parse_args(&args, "-s", 1, -1);
+	unsigned int del_len = 0;
+	int strip_nl;
+
+	if (!pf)
+		return;
+
+	strip_nl = *pf == 's';
+
+	spawn_unfiltered = NULL;
+	spawn_unfiltered_len = 0;
+	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDERR, NULL);
+
+	if (view->sel.blk) {
+		del_len = prepare_selection();
+		select_end();
+	}
+	if (strip_nl && spawn_filtered_len > 0 && spawn_filtered[spawn_filtered_len - 1] == '\n') {
+		if (--spawn_filtered_len > 0 && spawn_filtered[spawn_filtered_len - 1] == '\r')
+			spawn_filtered_len--;
+	}
+
+	replace(del_len, spawn_filtered, spawn_filtered_len);
+	free(spawn_filtered);
+}
+
 static void cmd_paste(char **args)
 {
 	if (no_args(args))
@@ -1292,6 +1320,7 @@ const struct command commands[] = {
 	{ "new-line", NULL, cmd_new_line },
 	{ "next", NULL, cmd_next },
 	{ "open", "o", cmd_open },
+	{ "pass-through", "pt", cmd_pass_through },
 	{ "paste", NULL, cmd_paste },
 	{ "pgdown", NULL, cmd_pgdown },
 	{ "pgup", NULL, cmd_pgup },
