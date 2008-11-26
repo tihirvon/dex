@@ -515,7 +515,7 @@ static void cmd_filter(char **args)
 	}
 
 	spawn_unfiltered = buffer_get_bytes(&spawn_unfiltered_len);
-	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT, NULL);
+	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDERR, NULL);
 
 	free(spawn_unfiltered);
 	replace(spawn_unfiltered_len, spawn_filtered, spawn_filtered_len);
