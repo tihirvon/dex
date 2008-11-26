@@ -6,7 +6,7 @@ void record_delete(char *buf, unsigned int len, int move_after);
 void record_replace(char *deleted, unsigned int del_count, unsigned int ins_count);
 void begin_change_chain(void);
 void end_change_chain(void);
-void undo(void);
-void redo(unsigned int change_id);
+int undo(void);
+int redo(unsigned int change_id);
 
 #endif

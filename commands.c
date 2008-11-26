@@ -865,7 +865,8 @@ static void cmd_redo(char **args)
 			return;
 		}
 	}
-	redo(change_id);
+	if (redo(change_id))
+		select_end();
 }
 
 static void cmd_repeat(char **args)
@@ -1251,8 +1252,10 @@ static void cmd_toggle(char **args)
 
 static void cmd_undo(char **args)
 {
-	if (no_args(args))
-		undo();
+	if (no_args(args)) {
+		if (undo())
+			select_end();
+	}
 }
 
 static void cmd_up(char **args)

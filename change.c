@@ -166,14 +166,14 @@ static void reverse_change(struct change *change)
 	}
 }
 
-void undo(void)
+int undo(void)
 {
 	struct change_head *head = buffer->cur_change_head;
 	struct change *change;
 
 	undo_merge = UNDO_MERGE_NONE;
 	if (!head->next)
-		return;
+		return 0;
 
 	change = (struct change *)head;
 	if (is_change_chain_barrier(change)) {
@@ -195,9 +195,10 @@ void undo(void)
 		reverse_change(change);
 	}
 	buffer->cur_change_head = head->next;
+	return 1;
 }
 
-void redo(unsigned int change_id)
+int redo(unsigned int change_id)
 {
 	struct change_head *head = buffer->cur_change_head;
 	struct change *change;
@@ -208,13 +209,13 @@ void redo(unsigned int change_id)
 		/* don't complain if change_id is 0 */
 		if (change_id)
 			error_msg("Nothing to redo.");
-		return;
+		return 0;
 	}
 
 	if (change_id) {
 		if (--change_id >= head->nr_prev) {
 			error_msg("There are only %d possible changes to redo.", head->nr_prev);
-			return;
+			return 0;
 		}
 	} else if (head->nr_prev > 1) {
 		info_msg("Redoing first of %d possible changes.", head->nr_prev);
@@ -241,4 +242,5 @@ void redo(unsigned int change_id)
 		reverse_change(change);
 	}
 	buffer->cur_change_head = head;
+	return 1;
 }
