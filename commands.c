@@ -1152,7 +1152,9 @@ static void cmd_select(char **args)
 	if (!pf)
 		return;
 
-	select_start(!!*pf);
+	view->sel = view->cursor;
+	view->sel_is_lines = !!*pf;
+	update_flags |= UPDATE_CURSOR_LINE;
 }
 
 static void cmd_set(char **args)

@@ -229,13 +229,6 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 	}
 }
 
-void select_start(int is_lines)
-{
-	view->sel = view->cursor;
-	view->sel_is_lines = is_lines;
-	update_flags |= UPDATE_CURSOR_LINE;
-}
-
 void select_end(void)
 {
 	if (view->sel.blk) {
