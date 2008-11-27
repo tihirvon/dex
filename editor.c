@@ -807,6 +807,7 @@ void info_msg(const char *format, ...)
 
 char get_confirmation(const char *choices, const char *format, ...)
 {
+	unsigned int key;
 	int pos, i, count = strlen(choices);
 	char def = 0;
 	va_list ap;
@@ -836,28 +837,30 @@ char get_confirmation(const char *choices, const char *format, ...)
 	buf_flush();
 
 	while (1) {
-		unsigned int key;
 		enum term_key_type type;
 
 		if (term_read_key(&key, &type) && type == KEY_NORMAL) {
-			if (key == 0x03) {
-				/* ^C, clear confirmation message */
-				error_buf[0] = 0;
-				return 0;
+			if (key == 0x03) { // ^C
+				key = 0;
+				break;
 			}
-			if (key == '\r' && def)
-				return def;
+			if (key == '\r' && def) {
+				key = def;
+				break;
+			}
 			key = tolower(key);
 			if (strchr(choices, key))
-				return key;
+				break;
 			if (key == def)
-				return key;
+				break;
 		} else if (resized) {
 			resized = 0;
 			update_terminal_settings();
 			update_everything();
 		}
 	}
+	error_buf[0] = 0;
+	return key;
 }
 
 static int common_key(struct history *history, enum term_key_type type, unsigned int key)
