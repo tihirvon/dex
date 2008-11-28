@@ -33,7 +33,10 @@ enum term_key_type {
 	KEY_META,
 
 	/* key is one of SKEY_* */
-	KEY_SPECIAL
+	KEY_SPECIAL,
+
+	/* call term_get_paste() to read pasted text */
+	KEY_PASTE,
 };
 
 /* special keys */
@@ -119,6 +122,7 @@ void term_raw(void);
 void term_cooked(void);
 
 int term_read_key(unsigned int *key, enum term_key_type *type);
+char *term_read_paste(unsigned int *size);
 
 int term_get_size(int *w, int *h);
 

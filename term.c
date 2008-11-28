@@ -279,6 +279,12 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 	if (!input_buf_fill && !fill_buffer())
 		return 0;
 
+	if (input_buf_fill > 4 && !memchr(input_buf, '\033', input_buf_fill)) {
+		*key = 0;
+		*type = KEY_PASTE;
+		return 1;
+	}
+
 	if (input_buf[0] == '\033') {
 		if (input_buf_fill > 1 || input_can_be_truncated) {
 			if (read_special(key, type))
@@ -302,6 +308,53 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 		}
 	}
 	return read_simple(key, type);
+}
+
+char *term_read_paste(unsigned int *size)
+{
+	unsigned int alloc = ROUND_UP(input_buf_fill, 1024);
+	unsigned int count = 0;
+	unsigned int i;
+	char *buf = xmalloc(alloc);
+
+	if (input_buf_fill) {
+		memcpy(buf, input_buf, input_buf_fill);
+		count = input_buf_fill;
+		input_buf_fill = 0;
+	}
+	while (1) {
+		struct timeval tv = {
+			.tv_sec = 0,
+			.tv_usec = 100 * 1000
+		};
+		fd_set set;
+		int rc;
+
+		FD_ZERO(&set);
+		FD_SET(0, &set);
+		rc = select(1, &set, NULL, NULL, &tv);
+		if (rc < 0 && errno == EINTR)
+			continue;
+		if (rc <= 0)
+			break;
+
+		if (alloc - count < 256) {
+			alloc *= 2;
+			xrenew(buf, alloc);
+		}
+		do {
+			rc = read(0, buf + count, alloc - count);
+		} while (rc < 0 && errno == EINTR);
+		if (rc <= 0)
+			break;
+		count += rc;
+	}
+	for (i = 0; i < count; i++) {
+		if (buf[i] == '\r')
+			buf[i] = '\n';
+	}
+	*size = count;
+	return buf;
 }
 
 int term_get_size(int *w, int *h)

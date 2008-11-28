@@ -722,13 +722,40 @@ static void debug_blocks(void)
 #endif
 }
 
+static void discard_paste(void)
+{
+	unsigned int size;
+	char *text = term_read_paste(&size);
+	free(text);
+}
+
+static void insert_paste(void)
+{
+	unsigned int size;
+	char *text = term_read_paste(&size);
+	insert(text, size);
+	move_offset(buffer_offset() + size);
+	free(text);
+}
+
+static void cmdline_insert_paste(void)
+{
+	unsigned int size;
+	char *text = term_read_paste(&size);
+	cmdline_insert_bytes(text, size);
+	free(text);
+}
+
 static void any_key(void)
 {
 	unsigned int key;
 	enum term_key_type type;
 
 	printf("Press any key to continue\n");
-	term_read_key(&key, &type);
+	while (!term_read_key(&key, &type))
+		;
+	if (type == KEY_PASTE)
+		discard_paste();
 }
 
 static void update_terminal_settings(void)
@@ -839,7 +866,12 @@ char get_confirmation(const char *choices, const char *format, ...)
 	while (1) {
 		enum term_key_type type;
 
-		if (term_read_key(&key, &type) && type == KEY_NORMAL) {
+		if (term_read_key(&key, &type)) {
+			if (type == KEY_PASTE)
+				discard_paste();
+			if (type != KEY_NORMAL)
+				continue;
+
 			if (key == 0x03) { // ^C
 				key = 0;
 				break;
@@ -940,6 +972,9 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			return 0;
 		}
 		break;
+	case KEY_PASTE:
+		cmdline_insert_paste();
+		break;
 	}
 	history_reset_search();
 	return 1;
@@ -970,6 +1005,8 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 		return;
 	case KEY_SPECIAL:
 		return;
+	case KEY_PASTE:
+		return;
 	}
 	history_reset_search();
 }
@@ -997,6 +1034,8 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_META:
 		return;
 	case KEY_SPECIAL:
+		return;
+	case KEY_PASTE:
 		return;
 	}
 	history_reset_search();
@@ -1045,6 +1084,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 				} else {
 					handle_binding(type, key);
 				}
+				break;
+			case KEY_PASTE:
+				insert_paste();
 				break;
 			}
 			break;
@@ -1200,6 +1242,8 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	char buf[4];
 
 	if (type != KEY_NORMAL) {
+		if (type == KEY_PASTE)
+			discard_paste();
 		input_special = INPUT_SPECIAL_NONE;
 		return;
 	}
