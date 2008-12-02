@@ -1006,8 +1006,8 @@ static void cmd_run(char **args)
 
 static int stat_changed(const struct stat *a, const struct stat *b)
 {
+	/* don't compare st_mode because we allow chmod 755 etc. */
 	return a->st_mtime != b->st_mtime ||
-		a->st_mode != b->st_mode ||
 		a->st_dev != b->st_dev ||
 		a->st_ino != b->st_ino;
 }
@@ -1074,6 +1074,9 @@ static void cmd_save(char **args)
 			error_msg("Use -f to overwrite %s %s.", get_file_type(st.st_mode), absolute);
 			goto error;
 		}
+
+		/* allow chmod 755 etc. */
+		buffer->st.st_mode = st.st_mode;
 	}
 	if (save_buffer(absolute, newline))
 		goto error;
