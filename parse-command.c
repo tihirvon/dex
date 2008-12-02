@@ -174,9 +174,13 @@ unexpected_eof:
 	return -1;
 }
 
-static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
+int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 {
-	int sidx, pos = *posp;
+	int sidx, pos = 0;
+
+	memset(pc, 0, sizeof(*pc));
+	pc->comp_so = -1;
+	pc->comp_eo = cursor_pos;
 
 	while (1) {
 		while (isspace(cmd[pos]))
@@ -187,8 +191,15 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 			pc->args_before_cursor = pc->count;
 		}
 
-		if (!cmd[pos] || cmd[pos] == ';')
-			break;
+		if (cmd[pos] == ';') {
+			add_arg(pc, NULL);
+			pos++;
+			continue;
+		}
+		if (!cmd[pos]) {
+			add_arg(pc, NULL);
+			return 0;
+		}
 
 		sidx = pos;
 		if (find_end(cmd, &pos)) {
@@ -206,27 +217,6 @@ static int parse_command(struct parsed_command *pc, const char *cmd, int *posp)
 
 		add_arg(pc, parse_command_arg(cmd + sidx, 1));
 	}
-	add_arg(pc, NULL);
-	*posp = pos;
-	return 0;
-}
-
-int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
-{
-	int pos = 0;
-
-	memset(pc, 0, sizeof(*pc));
-	pc->comp_so = -1;
-	pc->comp_eo = cursor_pos;
-
-	while (1) {
-		if (parse_command(pc, cmd, &pos))
-			return -1;
-		if (!cmd[pos])
-			break;
-		pos++;
-	}
-	return 0;
 }
 
 void free_commands(struct parsed_command *pc)
