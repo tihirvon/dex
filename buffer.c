@@ -501,7 +501,6 @@ int load_buffer(struct buffer *b, int must_exist)
 		}
 	} else {
 		fstat(fd, &b->st);
-		b->ro = !(b->st.st_mode & S_IWUSR);
 		if (!S_ISREG(b->st.st_mode)) {
 			error_msg("Can't open %s %s", get_file_type(b->st.st_mode), b->filename);
 			close(fd);
@@ -514,6 +513,9 @@ int load_buffer(struct buffer *b, int must_exist)
 			return -1;
 		}
 		close(fd);
+
+		if (access(b->abs_filename, W_OK))
+			b->ro = 1;
 	}
 	if (list_empty(&b->blocks)) {
 		struct block *blk = block_new(ALLOC_ROUND(1));
