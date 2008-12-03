@@ -26,6 +26,11 @@ struct binding {
 int nr_pressed_keys;
 const struct command *current_command;
 
+struct alias *aliases;
+unsigned int alias_count;
+
+static unsigned int alias_alloc;
+
 static enum term_key_type pressed_types[MAX_KEYS];
 static unsigned int pressed_keys[MAX_KEYS];
 
@@ -194,6 +199,56 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 static int no_args(char **args)
 {
 	return !!parse_args(&args, "", 0, 0);
+}
+
+static int validate_alias_name(const char *name)
+{
+	int i;
+
+	for (i = 0; name[i]; i++) {
+		char ch = name[i];
+		if (!isalnum(ch) && ch != '-' && ch != '_')
+			return 0;
+	}
+	return !!name[0];
+}
+
+static void cmd_alias(char **args)
+{
+	const char *pf = parse_args(&args, "", 2, 2);
+	const char *name, *value;
+	int i;
+
+	if (!pf)
+		return;
+
+	name = args[0];
+	value = args[1];
+
+	if (!validate_alias_name(name)) {
+		error_msg("Invalid alias name '%s'", name);
+		return;
+	}
+
+	/* replace existing alias */
+	for (i = 0; i < alias_count; i++) {
+		if (!strcmp(aliases[i].name, name)) {
+			free(aliases[i].value);
+			aliases[i].value = xstrdup(value);
+			return;
+		}
+	}
+
+	if (alias_count == alias_alloc) {
+		alias_alloc = ROUND_UP(alias_count + 1, 8);
+		xrenew(aliases, alias_alloc);
+	}
+	aliases[alias_count].name = xstrdup(name);
+	aliases[alias_count].value = xstrdup(value);
+	alias_count++;
+
+	if (editor_status != EDITOR_INITIALIZING)
+		sort_aliases();
 }
 
 static void cmd_bind(char **args)
@@ -1295,6 +1350,7 @@ static void cmd_view(char **args)
 }
 
 const struct command commands[] = {
+	{ "alias", NULL, cmd_alias },
 	{ "bind", NULL, cmd_bind },
 	{ "bof", NULL, cmd_bof },
 	{ "bol", NULL, cmd_bol },
@@ -1400,6 +1456,46 @@ const struct command *find_command(const struct command *cmds, const char *name)
 	return NULL;
 }
 
+static int alias_cmp(const void *ap, const void *bp)
+{
+	const struct alias *a = ap;
+	const struct alias *b = bp;
+	return strcmp(a->name, b->name);
+}
+
+void sort_aliases(void)
+{
+	qsort(aliases, alias_count, sizeof(*aliases), alias_cmp);
+}
+
+static const char *find_alias(const char *name)
+{
+	int i;
+
+	for (i = 0; i < alias_count; i++) {
+		if (!strcmp(aliases[i].name, name))
+			return aliases[i].value;
+	}
+	return NULL;
+}
+
+static void run_commands(const struct parsed_command *pc)
+{
+	int s, e;
+
+	s = 0;
+	while (s < pc->count) {
+		e = s;
+		while (e < pc->count && pc->argv[e])
+			e++;
+
+		if (e > s)
+			run_command(commands, pc->argv + s);
+
+		s = e + 1;
+	}
+}
+
 static void run_command(const struct command *cmds, char **av)
 {
 	const struct command *cmd;
@@ -1409,36 +1505,58 @@ static void run_command(const struct command *cmds, char **av)
 		return;
 	}
 	cmd = find_command(cmds, av[0]);
-	if (cmd) {
-		current_command = cmd;
-		cmd->cmd(av + 1);
-		current_command = NULL;
-	} else {
-		error_msg("No such command: %s", av[0]);
+	if (!cmd) {
+		struct parsed_command pc;
+		const char *alias;
+		int i;
+
+		if (cmds != commands) {
+			error_msg("No such command: %s", av[0]);
+			return;
+		}
+		alias = find_alias(av[0]);
+		if (!alias) {
+			error_msg("No such command or alias: %s", av[0]);
+			return;
+		}
+		if (parse_commands(&pc, alias, 0)) {
+			free_commands(&pc);
+			return;
+		}
+
+		for (i = 1; av[i]; i++)
+			;
+
+		/* remove NULL */
+		pc.count--;
+
+		if (pc.count + i > pc.alloc) {
+			pc.alloc = pc.count + i;
+			xrenew(pc.argv, pc.alloc);
+		}
+		for (i = 1; av[i]; i++)
+			pc.argv[pc.count++] = xstrdup(av[i]);
+		pc.argv[pc.count++] = NULL;
+
+		run_commands(&pc);
+		free_commands(&pc);
+		return;
 	}
+
+	current_command = cmd;
+	cmd->cmd(av + 1);
+	current_command = NULL;
 }
 
 void handle_command(const char *cmd)
 {
 	struct parsed_command pc;
-	int s, e;
 
 	if (parse_commands(&pc, cmd, 0)) {
 		free_commands(&pc);
 		return;
 	}
 
-	s = 0;
-	while (s < pc.count) {
-		e = s;
-		while (e < pc.count && pc.argv[e])
-			e++;
-
-		if (e > s)
-			run_command(commands, pc.argv + s);
-
-		s = e + 1;
-	}
-
+	run_commands(&pc);
 	free_commands(&pc);
 }

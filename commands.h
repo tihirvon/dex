@@ -23,11 +23,19 @@ struct parsed_command {
 	int args_before_cursor;
 };
 
+struct alias {
+	char *name;
+	char *value;
+};
+
 extern const struct command commands[];
 extern const struct command *current_command;
 
 extern const char *config_file;
 extern int config_line;
+
+extern struct alias *aliases;
+extern unsigned int alias_count;
 
 char *parse_command_arg(const char *cmd, int tilde);
 int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos);
@@ -41,5 +49,6 @@ const struct command *find_command(const struct command *cmds, const char *name)
 void complete_command(void);
 void reset_completion(void);
 void add_completion(char *str);
+void sort_aliases(void);
 
 #endif

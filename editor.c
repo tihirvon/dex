@@ -1470,6 +1470,7 @@ int main(int argc, char *argv[])
 
 	read_config(rc);
 	update_all_syntax_colors();
+	sort_aliases();
 	currentline_color = find_color("currentline");
 	nontext_color = find_color("nontext");
 
