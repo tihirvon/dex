@@ -59,7 +59,7 @@ static void update_tab_title(struct view *v, int idx, int skip)
 	snprintf(buf, sizeof(buf), " %d %s%s ",
 		idx + 1,
 		filename,
-		buffer_modified(v->buffer) ? " [+]" : "");
+		buffer_modified(v->buffer) ? " *" : "");
 	if (skip >= 0) {
 		buf_add_bytes(buf, v->tt_truncated_width);
 	} else {
@@ -265,7 +265,7 @@ static void format_status(char *buf, int size, const char *format)
 				break;
 			case 'm':
 				if (buffer_modified(buffer))
-					add_status_str(buf, size, &pos, "[+]");
+					add_status_str(buf, size, &pos, "*");
 				break;
 			case 'y':
 				add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
