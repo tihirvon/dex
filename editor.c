@@ -267,6 +267,10 @@ static void format_status(char *buf, int size, const char *format)
 				if (buffer_modified(buffer))
 					add_status_str(buf, size, &pos, "*");
 				break;
+			case 'r':
+				if (buffer->ro)
+					add_status_str(buf, size, &pos, "RO");
+				break;
 			case 'y':
 				add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
 				break;
