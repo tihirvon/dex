@@ -183,20 +183,18 @@ static void print_tab_bar(void)
 	buf_clear_eol();
 }
 
-static int add_status_str(char *buf, int size, int *posp, const char *str)
+static void add_status_str(char *buf, int size, int *posp, const char *str)
 {
-	int w, len, pos = *posp;
+	int pos = *posp;
+	int len = strlen(str);
+	int n = size - pos - len - 1;
 
-	len = strlen(str);
-	w = len;
-	if (term_flags & TERM_UTF8)
-		w = u_str_width(str);
-	if (len < size) {
+	if (n < 0)
+		len += n;
+	if (len > 0) {
 		memcpy(buf + pos, str, len);
 		*posp = pos + len;
-		return w;
 	}
-	return 0;
 }
 
 __FORMAT(1, 2)
@@ -211,30 +209,29 @@ static const char *ssprintf(const char *format, ...)
 	return buf;
 }
 
-static int add_status_pos(char *buf, int size, int *posp)
+static void add_status_pos(char *buf, int size, int *posp)
 {
 	int h = window->h;
 	int pos = view->vy;
-	int d;
 
 	if (buffer->nl <= h) {
 		if (pos)
-			return add_status_str(buf, size, posp, "Bot");
-		return add_status_str(buf, size, posp, "All");
+			add_status_str(buf, size, posp, "Bot");
+		else
+			add_status_str(buf, size, posp, "All");
+	} else if (pos == 0) {
+		add_status_str(buf, size, posp, "Top");
+	} else if (pos + h - 1 >= buffer->nl) {
+		add_status_str(buf, size, posp, "Bot");
+	} else {
+		int d = buffer->nl - (h - 1);
+		add_status_str(buf, size, posp, ssprintf("%2d%%", (pos * 100 + d / 2) / d));
 	}
-	if (pos == 0)
-		return add_status_str(buf, size, posp, "Top");
-	if (pos + h - 1 >= buffer->nl)
-		return add_status_str(buf, size, posp, "Bot");
-
-	d = buffer->nl - (h - 1);
-	return add_status_str(buf, size, posp, ssprintf("%2d%%", (pos * 100 + d / 2) / d));
 }
 
-static int format_status(char *buf, int size, const char *format)
+static void format_status(char *buf, int size, const char *format)
 {
 	int pos = 0;
-	int w = 0;
 	int got_char;
 	uchar u;
 
@@ -245,60 +242,53 @@ static int format_status(char *buf, int size, const char *format)
 		char ch = *format++;
 		if (ch != '%') {
 			buf[pos++] = ch;
-			w++;
 		} else {
 			ch = *format++;
 			switch (ch) {
 			case 'f':
-				w += add_status_str(buf, size, &pos,
+				add_status_str(buf, size, &pos,
 						buffer->filename ? buffer->filename : "(No name)");
 				break;
 			case 'm':
 				if (buffer_modified(buffer))
-					w += add_status_str(buf, size, &pos, "[+]");
+					add_status_str(buf, size, &pos, "[+]");
 				break;
 			case 'y':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
+				add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
 				break;
 			case 'x':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_display + 1));
+				add_status_str(buf, size, &pos, ssprintf("%d", view->cx_display + 1));
 				break;
 			case 'X':
-				w += add_status_str(buf, size, &pos, ssprintf("%d", view->cx_char + 1));
+				add_status_str(buf, size, &pos, ssprintf("%d", view->cx_char + 1));
 				if (view->cx_display != view->cx_char)
-					w += add_status_str(buf, size, &pos, ssprintf("-%d", view->cx_display + 1));
+					add_status_str(buf, size, &pos, ssprintf("-%d", view->cx_display + 1));
 				break;
 			case 'c':
 				if (got_char)
-					w += add_status_str(buf, size, &pos, ssprintf("%3d", u));
+					add_status_str(buf, size, &pos, ssprintf("%3d", u));
 				break;
 			case 'C':
 				if (got_char)
-					w += add_status_str(buf, size, &pos, ssprintf("0x%02x", u));
+					add_status_str(buf, size, &pos, ssprintf("0x%02x", u));
 				break;
 			case 'p':
-				w += add_status_pos(buf, size, &pos);
+				add_status_pos(buf, size, &pos);
 				break;
 			case 'E':
-				w += add_status_str(buf, size, &pos, buffer->utf8 ? "UTF-8" : "8-bit");
+				add_status_str(buf, size, &pos, buffer->utf8 ? "UTF-8" : "8-bit");
 				break;
 			case 'M':
 				if (misc_status[0])
-					w += add_status_str(buf, size, &pos, misc_status);
+					add_status_str(buf, size, &pos, misc_status);
 				break;
 			case '%':
 				buf[pos++] = '%';
-				break;
-			default:
-				buf[pos++] = '%';
-				if (pos < size - 1)
-					buf[pos++] = ch;
 				break;
 			}
 		}
 	}
 	buf[pos] = 0;
-	return w;
 }
 
 static void print_status_line(void)
@@ -321,8 +311,15 @@ static void print_status_line(void)
 
 	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
-	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
-	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
+	format_status(lbuf, sizeof(lbuf), options.statusline_left);
+	format_status(rbuf, sizeof(rbuf), options.statusline_right);
+	if (term_flags & TERM_UTF8) {
+		lw = u_str_width(lbuf);
+		rw = u_str_width(rbuf);
+	} else {
+		lw = strlen(lbuf);
+		rw = strlen(rbuf);
+	}
 	if (lw + rw <= window->w) {
 		buf_add_bytes(lbuf, strlen(lbuf));
 		buf_set_bytes(' ', window->w - lw - rw);
