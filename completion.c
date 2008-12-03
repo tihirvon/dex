@@ -22,6 +22,19 @@ static struct {
 	int tilde_expanded;
 } completion;
 
+static int strptrcmp(const void *ap, const void *bp)
+{
+	const char *a = *(const char **)ap;
+	const char *b = *(const char **)bp;
+	return strcmp(a, b);
+}
+
+static void sort_completions(void)
+{
+	if (completion.count > 1)
+		qsort(completion.matches, completion.count, sizeof(*completion.matches), strptrcmp);
+}
+
 void add_completion(char *str)
 {
 	if (completion.count == completion.alloc) {
@@ -46,6 +59,12 @@ static void collect_commands(const char *prefix)
 		if (c->short_name && !strncmp(prefix, c->short_name, prefix_len))
 			add_completion(xstrdup(c->name));
 	}
+
+	for (i = 0; i < alias_count; i++) {
+		if (!strncmp(prefix, aliases[i].name, prefix_len))
+			add_completion(xstrdup(aliases[i].name));
+	}
+	sort_completions();
 }
 
 static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix)
@@ -154,18 +173,10 @@ static void collect_files(void)
 	free(str);
 }
 
-static int strptrcmp(const void *ap, const void *bp)
-{
-	const char *a = *(const char **)ap;
-	const char *b = *(const char **)bp;
-	return strcmp(a, b);
-}
-
 static void collect_and_sort_files(void)
 {
 	collect_files();
-	if (completion.count > 1)
-		qsort(completion.matches, completion.count, sizeof(*completion.matches), strptrcmp);
+	sort_completions();
 	if (completion.count == 1) {
 		// if we have only one match we add space after completed
 		// string for files, not directories
