@@ -20,6 +20,7 @@ enum input_special input_special;
 enum editor_status editor_status;
 char misc_status[32];
 
+static int separator;
 static int nr_errors;
 static int msg_is_error;
 static char error_buf[256];
@@ -187,14 +188,22 @@ static void add_status_str(char *buf, int size, int *posp, const char *str)
 {
 	int pos = *posp;
 	int len = strlen(str);
-	int n = size - pos - len - 1;
+	int n;
 
+	if (separator && len) {
+		if (pos + 2 < size)
+			buf[pos++] = ' ';
+		separator = 0;
+	}
+
+	n = size - pos - len - 1;
 	if (n < 0)
 		len += n;
 	if (len > 0) {
 		memcpy(buf + pos, str, len);
-		*posp = pos + len;
+		pos += len;
 	}
+	*posp = pos;
 }
 
 __FORMAT(1, 2)
@@ -235,13 +244,18 @@ static void format_status(char *buf, int size, const char *format)
 	int got_char;
 	uchar u;
 
+	separator = 0;
 	got_char = buffer_get_char(&u);
 	if (got_char)
 		u &= ~U_INVALID_MASK;
 	while (pos < size - 1 && *format) {
 		char ch = *format++;
 		if (ch != '%') {
-			buf[pos++] = ch;
+			if (separator)
+				buf[pos++] = ' ';
+			if (pos < size - 1)
+				buf[pos++] = ch;
+			separator = 0;
 		} else {
 			ch = *format++;
 			switch (ch) {
@@ -282,8 +296,15 @@ static void format_status(char *buf, int size, const char *format)
 				if (misc_status[0])
 					add_status_str(buf, size, &pos, misc_status);
 				break;
+			case 's':
+				separator = 1;
+				break;
 			case '%':
-				buf[pos++] = '%';
+				if (separator)
+					buf[pos++] = ' ';
+				if (pos < size - 1)
+					buf[pos++] = ch;
+				separator = 0;
 				break;
 			}
 		}
