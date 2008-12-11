@@ -1,11 +1,11 @@
 syn begin sh
 
-syn addw keyword if then else elif fi case esac shift break while do done set
+syn addw keyword if then else elif fi case esac shift break while do done set until
 syn addw keyword continue for exit return exec export in
 syn addw builtin alias bg bind cd caller command compgen complete test kill source time
 syn addw builtin declare typeset dirs disown echo enable eval fc fg getopts hash help history jobs
 syn addw builtin let local logout popd printf pushd pwd read readonly shopt trap type ulimit umask unalias unset wait
-syn addr builtin2 '\<\.\>'
+syn addr builtin2 '(^|\s)[].:[]($|\s)'
 syn addr operator '(\&\&|\|\||\!|;;|;)'
 syn addw notice FIXME TODO XXX
 syn addr escoct '\\([1-3][0-7]{2}|0?[0-7]{2}|0{0,2}[0-7])'
