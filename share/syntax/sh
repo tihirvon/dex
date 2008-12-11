@@ -6,7 +6,8 @@ syn addw builtin alias bg bind cd caller command compgen complete test kill sour
 syn addw builtin declare typeset dirs disown echo enable eval fc fg getopts hash help history jobs
 syn addw builtin let local logout popd printf pushd pwd read readonly shopt trap type ulimit umask unalias unset wait
 syn addr builtin2 '(^|\s)[].:[]($|\s)'
-syn addr operator '(\&\&|\|\||\!|;;|;)'
+syn addr operator '(&|&&|\(|\)|;|;;|\||\|\|)'
+syn addr reserved '(^|\s)[!{}]($|\s)'
 syn addw notice FIXME TODO XXX
 syn addr escoct '\\([1-3][0-7]{2}|0?[0-7]{2}|0{0,2}[0-7])'
 syn addr eschex '\\x[0-9a-fA-F]{1,2}'
@@ -28,10 +29,10 @@ syn addc -h heredocdq '<<-?"(.*)"' '^\1\n'
 syn connect comment notice
 syn connect dq        escoct eschex esc simplevar complexvar backtick command
 syn connect heredoc   escoct eschex esc simplevar complexvar backtick command
-syn connect default    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect backtick   escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect command    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
-syn connect arithmetic escape comment keyword sq dq simplevar complexvar builtin builtin2 operator arithmetic command
+syn connect default    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
+syn connect backtick   escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
+syn connect command    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
+syn connect arithmetic escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
 syn connect default backtick heredoc heredocsq heredocdq
 syn connect command backtick
 syn connect arithmetic backtick
@@ -40,7 +41,7 @@ syn join string sq dq heredoc heredocsq heredocdq
 syn join variable simplevar complexvar arithmetic
 syn join builtin builtin2
 syn join special backtick command:start command:end
-syn join special escoct eschex esc
+syn join special escoct eschex esc reserved
 
 syn addr trailingws '[ \t]+$'
 syn addr indenterror '^	* +\t+'
