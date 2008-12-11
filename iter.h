@@ -14,8 +14,16 @@ struct block {
 };
 
 #define BLOCK_MAX_SIZE 512
-#define ALLOC_ROUND(x) ROUND_UP(x, 64)
-#define BLOCK(item) container_of((item), struct block, node)
+
+static inline size_t ALLOC_ROUND(size_t size)
+{
+	return ROUND_UP(size, 64);
+}
+
+static inline struct block *BLOCK(struct list_head *item)
+{
+	return container_of(item, struct block, node);
+}
 
 struct block *block_new(int size);
 void delete_block(struct block *blk);

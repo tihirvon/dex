@@ -7,8 +7,6 @@
 #include "uchar.h"
 #include "options.h"
 
-#define VIEW(item) container_of((item), struct view, node)
-
 struct change_head {
 	struct change_head *next;
 	struct change_head **prev;
@@ -157,6 +155,11 @@ extern enum input_special input_special;
 
 extern char *line_buffer;
 extern size_t line_buffer_len;
+
+static inline struct view *VIEW(struct list_head *item)
+{
+	return container_of(item, struct view, node);
+}
 
 static inline int buffer_modified(struct buffer *b)
 {

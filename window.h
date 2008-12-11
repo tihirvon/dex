@@ -3,8 +3,6 @@
 
 #include "buffer.h"
 
-#define WINDOW(item) container_of((item), struct window, node)
-
 struct window {
 	struct list_head node;
 	struct list_head views;
@@ -29,6 +27,11 @@ extern struct window *window;
 extern struct list_head windows;
 extern int nr_pressed_keys;
 extern enum editor_status editor_status;
+
+static inline struct window *WINDOW(struct list_head *item)
+{
+	return container_of(item, struct window, node);
+}
 
 struct view *view_new(struct window *w, struct buffer *b);
 void view_delete(struct view *v);

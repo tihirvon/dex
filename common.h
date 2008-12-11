@@ -29,7 +29,11 @@
 
 #define ARRAY_COUNT(x) (sizeof(x) / sizeof(x[0]))
 
-#define ROUND_UP(x, r) (((x) + r - 1) & ~(r - 1))
+static inline unsigned int ROUND_UP(size_t x, size_t r)
+{
+	r--;
+	return (x + r) & ~r;
+}
 
 #ifndef DEBUG
 #define DEBUG 1
@@ -40,19 +44,28 @@
 #endif
 
 #if DEBUG <= 0
-#define BUG(...) do { } while (0)
+__FORMAT(1, 2)
+static inline void BUG(const char *fmt, ...)
+{
+}
 #else
 #define BUG(...) bug(__FUNCTION__, __VA_ARGS__)
 #endif
 
 #if DEBUG <= 1
-#define d_print(...) do { } while (0)
+__FORMAT(1, 2)
+static inline void d_print(const char *fmt, ...)
+{
+}
 #else
 #define d_print(...) debug_print(__FUNCTION__, __VA_ARGS__)
 #endif
 
 #if DEBUG_SYNTAX <= 0
-#define ds_print(...) do { } while (0)
+__FORMAT(1, 2)
+static inline void ds_print(const char *fmt, ...)
+{
+}
 #else
 #define ds_print(...) debug_print(__FUNCTION__, __VA_ARGS__)
 #endif

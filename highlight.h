@@ -56,8 +56,6 @@ static inline unsigned int get_hl_entry_desc_low(unsigned int desc)
 	return desc & 0xff;
 }
 
-#define HL_LIST(ptr) container_of(ptr, struct hl_list, node)
-
 struct hl_list {
 	struct list_head node;
 	int count;
@@ -105,6 +103,11 @@ struct highlighter {
 	int word_count;
 	int word_alloc;
 };
+
+static inline struct hl_list *HL_LIST(struct list_head *item)
+{
+	return container_of(item, struct hl_list, node);
+}
 
 void copy_syntax_context_stack(struct syntax_context_stack *dst, const struct syntax_context_stack *src);
 void push_syntax_context(struct syntax_context_stack *stack, const struct syntax_context *context);
