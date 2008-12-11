@@ -1210,6 +1210,9 @@ static void cmd_select(char **args)
 	if (!pf)
 		return;
 
+	/* update screen if there's already a selection */
+	select_end();
+
 	view->sel = view->cursor;
 	view->sel_is_lines = !!*pf;
 	update_flags |= UPDATE_CURSOR_LINE;
