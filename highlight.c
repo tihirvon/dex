@@ -514,7 +514,7 @@ void truncate_hl_list(struct list_head *head, unsigned int new_size)
 				struct list_head *first;
 
 				len = new_size - pos;
-				hl_entry_len(&list->entries[i]) = len;
+				list->entries[i].len = len;
 				if (len)
 					i++;
 				list->count = i;
@@ -560,7 +560,7 @@ void split_hl_list(struct list_head *head, unsigned int offset, struct list_head
 				unsigned int left = offset - pos;
 				unsigned int right = len - left;
 
-				hl_entry_len(e) = left;
+				e->len = left;
 				list->count = i;
 				if (left)
 					list->count++;
@@ -619,7 +619,7 @@ static void delete_hl_entries(struct list_head *head, struct hl_list *list, int 
 			len -= del;
 			if (!len)
 				nr_zero++;
-			hl_entry_len(&list->entries[i]) = len;
+			list->entries[i].len = len;
 
 			pos = 0;
 			i++;

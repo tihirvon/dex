@@ -21,7 +21,10 @@ struct hl_entry {
 #define HL_ENTRY_SOC	0x40
 #define HL_ENTRY_EOC	0x80
 
-#define hl_entry_len(e) (e)->len
+static inline unsigned int hl_entry_len(const struct hl_entry *e)
+{
+	return e->len;
+}
 
 static inline unsigned int hl_entry_type(const struct hl_entry *e)
 {
