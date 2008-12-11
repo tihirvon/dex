@@ -500,12 +500,75 @@ void insert_ch(unsigned int ch)
 	}
 }
 
+static void join_selection(void)
+{
+	unsigned int count, len = 0, join = 0, del = 0;
+	struct selection_info info;
+	struct block_iter bi;
+	uchar ch = 0;
+
+	init_selection(&info);
+	count = info.eo - info.so;
+	bi = info.si;
+	begin_change_chain();
+	while (count) {
+		if (!len)
+			view->cursor = bi;
+
+		block_iter_next_byte(&bi, &ch);
+		if (ch == '\t' || ch == ' ') {
+			len++;
+		} else if (ch == '\n') {
+			len++;
+			join++;
+		} else {
+			if (join) {
+				replace(len, " ", 1);
+				del += len - 1;
+				/* skip the space we inserted and the char we read last */
+				block_iter_next_byte(&view->cursor, &ch);
+				block_iter_next_byte(&view->cursor, &ch);
+				bi = view->cursor;
+			}
+			len = 0;
+			join = 0;
+		}
+		count--;
+	}
+
+	/* don't replace last \n which is at end of the selection */
+	if (join && ch == '\n') {
+		join--;
+		len--;
+	}
+
+	if (join) {
+		if (ch == '\n') {
+			/* don't add space to end of line */
+			delete(len, 0);
+			del += len;
+		} else {
+			replace(len, " ", 1);
+			del += len - 1;
+		}
+	}
+	end_change_chain();
+
+	block_iter_goto_offset(&view->sel, info.so);
+	block_iter_goto_offset(&view->cursor, info.eo - del - 1);
+}
+
 void join_lines(void)
 {
 	struct block_iter next, bi = view->cursor;
 	int count;
 	uchar u;
 	char *buf;
+
+	if (view->sel.blk) {
+		join_selection();
+		return;
+	}
 
 	if (!block_iter_next_line(&bi))
 		return;
