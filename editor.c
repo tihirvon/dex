@@ -1393,7 +1393,7 @@ static void set_basic_colors(void)
 
 	c.fg = -1;
 	c.bg = 7;
-	c.attr = ATTR_UNDERLINE;
+	c.attr = 0;
 	tab_bar_color = set_highlight_color("tabbar", &c);
 
 	c.fg = -1;
