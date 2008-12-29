@@ -585,14 +585,13 @@ static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
 	return count;
 }
 
-static unsigned int screen_next_line(struct block_iter *bi)
+static void screen_next_line(struct block_iter *bi)
 {
 	unsigned int count = block_iter_next_line(bi);
 
-	if (current_hl_list)
+	if (current_hl_list && count)
 		advance_hl(count);
 	cur_offset += count;
-	return count;
 }
 
 static void print_line(struct block_iter *bi)
