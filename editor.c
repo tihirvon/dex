@@ -576,10 +576,12 @@ static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
 {
 	unsigned int count = buffer->next_char(bi, u);
 
-	if (current_hl_list)
-		advance_hl(count);
-	update_color(nontext_color && is_non_text(*u));
-	cur_offset += count;
+	if (count) {
+		if (current_hl_list)
+			advance_hl(count);
+		update_color(nontext_color && is_non_text(*u));
+		cur_offset += count;
+	}
 	return count;
 }
 
