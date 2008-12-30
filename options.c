@@ -11,6 +11,7 @@ struct global_options options = {
 	.tab_width = 8,
 	.text_width = 72,
 	.trim_whitespace = 1,
+	.ws_error = 0,
 
 	.allow_incomplete_last_line = 0,
 	.move_wraps = 1,
@@ -187,6 +188,7 @@ static const struct option_description option_desc[] = {
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
 	C_INT("text-width", text_width, 1, 1000, default_int_set),
 	C_BOOL("trim-whitespace", trim_whitespace, default_bool_set),
+	C_INT("ws-error", ws_error, 0, 31, default_int_set),
 };
 
 static int parse_int(const char *value, int *ret)

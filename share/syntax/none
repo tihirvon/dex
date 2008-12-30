@@ -1,6 +1,2 @@
 syn begin none
-syn addr trailingws '[ \t]+$'
-syn addr indenterror '^	* +\t+'
-syn connect default trailingws indenterror
-syn join error trailingws indenterror
 syn end

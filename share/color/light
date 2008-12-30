@@ -15,9 +15,6 @@ hi variable blue
 hi builtin bold
 hi operator bold
 
-# override background color for current line (hides whitespace errors)
-hi currentline keep default keep
-
 hi errormsg bold red
 hi infomsg bold blue
 

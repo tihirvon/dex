@@ -6,6 +6,24 @@ enum newline_sequence {
 	NEWLINE_DOS,
 };
 
+enum {
+	/* trailing whitespace */
+	WSE_TRAILING		= 1 << 0,
+
+	/* spaces in indentation
+	 * does not include less than tab-width spaces at end of indentation */
+	WSE_SPACE_INDENT	= 1 << 1,
+
+	/* less than tab-width spaces at end of indentation */
+	WSE_SPACE_ALIGN		= 1 << 2,
+
+	/* tab in indentation */
+	WSE_TAB_INDENT		= 1 << 3,
+
+	/* tab anywhere but in indentation */
+	WSE_TAB_AFTER_INDENT	= 1 << 4,
+};
+
 struct local_options {
 	/* these have also global values */
 	int auto_indent;
@@ -14,6 +32,7 @@ struct local_options {
 	int tab_width;
 	int text_width;
 	int trim_whitespace;
+	int ws_error;
 
 	/* only local */
 	char *filetype;
@@ -27,6 +46,7 @@ struct global_options {
 	int tab_width;
 	int text_width;
 	int trim_whitespace;
+	int ws_error;
 
 	/* only global */
 	int allow_incomplete_last_line;

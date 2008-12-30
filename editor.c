@@ -32,6 +32,7 @@ static struct hl_color *statusline_color;
 static struct hl_color *commandline_color;
 static struct hl_color *errormsg_color;
 static struct hl_color *infomsg_color;
+static struct hl_color *wserror_color;
 static struct hl_color *nontext_color;
 static struct hl_color *tab_bar_color;
 static struct hl_color *tab_active_color;
@@ -512,7 +513,7 @@ static void mask_color(struct term_color *color, const struct term_color *over)
 		color->attr = over->attr;
 }
 
-static void update_color(int nontext)
+static void update_color(int nontext, int wserror)
 {
 	struct term_color color;
 
@@ -522,6 +523,8 @@ static void update_color(int nontext)
 		color = default_color->color;
 	if (nontext)
 		mask_color(&color, &nontext_color->color);
+	if (wserror)
+		mask_color(&color, &wserror_color->color);
 	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo)
 		mask_color(&color, &selection_color->color);
 	else if (current_line == view->cy && currentline_color)
@@ -572,35 +575,91 @@ static int is_non_text(uchar u)
 	return u == 0x7f || !u_is_unicode(u);
 }
 
-static unsigned int screen_next_char(struct block_iter *bi, uchar *u)
-{
-	unsigned int count = buffer->next_char(bi, u);
+static int indent_size;
+static int trailing_ws_offset;
 
-	if (count) {
-		if (current_hl_list)
-			advance_hl(count);
-		update_color(nontext_color && is_non_text(*u));
-		cur_offset += count;
+static int whitespace_error(uchar u, int i)
+{
+	int flags = buffer->options.ws_error;
+
+	if (i < indent_size) {
+		if (u == '\t' && flags & WSE_TAB_INDENT)
+			return 1;
+		if (u == ' ') {
+			int count = 0, pos = i;
+
+			while (pos > 0 && hl_buffer[pos - 1] == ' ')
+				pos--;
+			while (hl_buffer[pos] == ' ') {
+				pos++;
+				count++;
+			}
+
+			if (count < buffer->options.tab_width && hl_buffer[pos] != '\t') {
+				if (flags & WSE_SPACE_ALIGN)
+					return 1;
+			} else {
+				if (flags & WSE_SPACE_INDENT)
+					return 1;
+			}
+		}
+	} else if (u == '\t' && flags & WSE_TAB_AFTER_INDENT) {
+		return 1;
 	}
-	return count;
+
+	if (i >= trailing_ws_offset && flags & WSE_TRAILING) {
+		/* don't highlight trailing ws if cursor is at or after the ws */
+		if (current_line != view->cy || view->cx < trailing_ws_offset)
+			return 1;
+	}
+	return 0;
 }
 
-static void screen_next_line(struct block_iter *bi)
+static unsigned int screen_next_char(int *idx, uchar *up)
 {
-	unsigned int count = block_iter_next_line(bi);
+	int count, ws_error = 0, i = *idx;
+	uchar u;
 
-	if (current_hl_list && count)
+	if (i == hl_buffer_len)
+		return 0;
+
+	u = u_get_char(hl_buffer, idx);
+	count = *idx - i;
+	if (current_hl_list)
 		advance_hl(count);
+
+	if (u == '\t' || u == ' ')
+		ws_error = whitespace_error(u, i);
+
+	update_color(nontext_color && is_non_text(u), ws_error);
 	cur_offset += count;
+	*up = u;
+	return count;
 }
 
 static void print_line(struct block_iter *bi)
 {
 	int utf8 = term_flags & TERM_UTF8;
+	int i;
 	uchar u;
 
+	fetch_line(bi);
+
+	indent_size = 0;
+	for (i = 0; hl_buffer[i] == '\t' || hl_buffer[i] == ' '; i++)
+		indent_size++;
+
+	trailing_ws_offset = INT_MAX;
+	for (i = hl_buffer_len - 1; i >= 0; i--) {
+		char ch = hl_buffer[i];
+		if (ch != '\n' && ch != '\t' && ch != ' ')
+			break;
+		trailing_ws_offset = i;
+	}
+
+	i = 0;
 	while (obuf.x < obuf.scroll_x) {
-		if (!screen_next_char(bi, &u) || u == '\n') {
+		if (!screen_next_char(&i, &u) || u == '\n') {
 			buf_clear_eol();
 			return;
 		}
@@ -608,7 +667,7 @@ static void print_line(struct block_iter *bi)
 	}
 	while (1) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		if (!screen_next_char(bi, &u))
+		if (!screen_next_char(&i, &u))
 			break;
 		if (u == '\n') {
 			if (options.display_special)
@@ -617,7 +676,10 @@ static void print_line(struct block_iter *bi)
 		}
 
 		if (!buf_put_char(u, utf8)) {
-			screen_next_line(bi);
+			int count = hl_buffer_len - i;
+			if (count)
+				advance_hl(count);
+			cur_offset += count;
 			return;
 		}
 	}
@@ -653,7 +715,7 @@ static void update_range(int y1, int y2)
 
 	if (i < y2 && current_line == view->cy) {
 		// dummy empty line
-		update_color(0);
+		update_color(0, 0);
 		buf_move_cursor(window->x, window->y + i++);
 		buf_clear_eol();
 	}
@@ -1391,6 +1453,11 @@ static void set_basic_colors(void)
 	commandline_color = set_highlight_color("commandline", &none);
 	errormsg_color = set_highlight_color("errormsg", &none);
 	infomsg_color = set_highlight_color("infomsg", &none);
+
+	c.fg = -1;
+	c.bg = 3;
+	c.attr = 0;
+	wserror_color = set_highlight_color("wserror", &c);
 
 	c.fg = -1;
 	c.bg = 7;

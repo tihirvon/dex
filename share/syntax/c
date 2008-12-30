@@ -30,9 +30,6 @@ syn addr convdir '(%%|%[#0 +-]*([0-9]+|\*|\*[0-9]+\$)?(\.([0-9]+|\*|\*[0-9]+\$)?
 
 syn addr multilinecomment '\\\n'
 
-syn addr trailingws '[ \t]+$'
-syn addr indenterror '^	* +\t+'
-
 syn addw constant NULL
 syn addw constant EPERM ENOENT ESRCH EINTR EIO ENXIO E2BIG ENOEXEC EBADF ECHILD
 syn addw constant EAGAIN ENOMEM EACCES EFAULT ENOTBLK EBUSY EEXIST EXDEV ENODEV
@@ -54,15 +51,15 @@ syn addr preproccont '\\\n'
 #syn addc preproc '^\s*#\s*(if|ifdef|ifndef|elif|else|endif|include|define|undef|pragma|error|warning|line)' '([^\\]$|^$)'
 
 syn connect string convdir esc escoct eschex
-syn connect cppcomment notice trailingws multilinecomment
-syn connect ccomment notice trailingws
+syn connect cppcomment notice multilinecomment
+syn connect ccomment notice
 syn connect default keyword type float oct dec hex char escchar string if0 preproc
-syn connect default ccomment cppcomment trailingws indenterror constant label
-syn connect preproc ccomment cppcomment preprocesc preproccont trailingws
+syn connect default ccomment cppcomment constant label
+syn connect preproc ccomment cppcomment preprocesc preproccont
 
 syn join numeric oct dec hex float
 syn join special esc escchar escoct eschex convdir
 syn join comment ccomment cppcomment if0
-syn join error trailingws indenterror multilinecomment
+syn join error multilinecomment
 
 syn end

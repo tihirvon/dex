@@ -159,6 +159,9 @@ extern enum input_special input_special;
 extern char *line_buffer;
 extern size_t line_buffer_len;
 
+extern char *hl_buffer;
+extern size_t hl_buffer_len;
+
 static inline struct view *VIEW(struct list_head *item)
 {
 	return container_of(item, struct view, node);
@@ -177,6 +180,7 @@ void move_offset(unsigned int offset);
 
 char *buffer_get_bytes(unsigned int *lenp);
 void fetch_eol(const struct block_iter *bi);
+void fetch_line(struct block_iter *bi);
 
 void update_cursor_x(void);
 void update_cursor_y(void);

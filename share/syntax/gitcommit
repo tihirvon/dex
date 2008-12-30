@@ -18,12 +18,6 @@ syn connect label file
 syn join comment onbranch
 syn join notice branch
 
-syn addr trailingws '[ \t]+$'
-syn addr indenterror '^	* +\t+'
-syn connect default trailingws indenterror
-syn connect comment trailingws indenterror
-syn join error trailingws indenterror
-
 syn end
 
 hi added bold

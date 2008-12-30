@@ -21,8 +21,8 @@ static size_t line_buffer_alloc;
  * Contains one line including LF.
  * Used by syntax highlighter only.
  */
-static char *hl_buffer;
-static size_t hl_buffer_len;
+char *hl_buffer;
+size_t hl_buffer_len;
 static size_t hl_buffer_alloc;
 
 void init_selection(struct selection_info *info)
@@ -157,7 +157,11 @@ static void hl_buffer_add(size_t pos, const char *src, size_t count)
 	memcpy(hl_buffer + pos, src, count);
 }
 
-static void fetch_line(struct block_iter *bi)
+/*
+ * Only available for highlighter and screen updates.
+ * Never use while editing the buffer.  Use fetch_eol() when doing changes.
+ */
+void fetch_line(struct block_iter *bi)
 {
 	size_t pos = 0;
 
@@ -212,6 +216,7 @@ static struct buffer *buffer_new(void)
 	b->options.tab_width = options.tab_width;
 	b->options.text_width = options.text_width;
 	b->options.trim_whitespace = options.trim_whitespace;
+	b->options.ws_error = options.ws_error;
 	b->options.filetype = xstrdup("none");
 
 	b->newline = options.newline;

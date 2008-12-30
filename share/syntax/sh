@@ -43,10 +43,4 @@ syn join builtin builtin2
 syn join special backtick command:start command:end
 syn join special escoct eschex esc reserved
 
-syn addr trailingws '[ \t]+$'
-syn addr indenterror '^	* +\t+'
-syn connect default trailingws indenterror
-syn connect comment trailingws indenterror
-syn join error trailingws indenterror
-
 syn end
