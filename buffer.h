@@ -175,8 +175,8 @@ void move_offset(unsigned int offset);
 char *buffer_get_bytes(unsigned int *lenp);
 void fetch_eol(const struct block_iter *bi);
 
-void update_cursor_x(struct view *v);
-void update_cursor(struct view *v);
+void update_cursor_x(void);
+void update_cursor(void);
 
 void update_preferred_x(void);
 void move_preferred_x(void);

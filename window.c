@@ -127,15 +127,15 @@ void prev_buffer(void)
 	}
 }
 
-static void update_cursor_y(struct view *v)
+static void update_cursor_y(void)
 {
 	struct block *blk;
 	unsigned int nl = 0;
 
-	list_for_each_entry(blk, &v->buffer->blocks, node) {
-		if (blk == v->cursor.blk) {
-			nl += count_nl(blk->data, v->cursor.offset);
-			v->cy = nl;
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		if (blk == view->cursor.blk) {
+			nl += count_nl(blk->data, view->cursor.offset);
+			view->cy = nl;
 			return;
 		}
 		nl += blk->nl;
@@ -143,52 +143,52 @@ static void update_cursor_y(struct view *v)
 	BUG_ON(1);
 }
 
-void update_cursor_x(struct view *v)
+void update_cursor_x(void)
 {
-	struct block_iter bi = v->cursor;
-	unsigned int tw = v->buffer->options.tab_width;
+	struct block_iter bi = view->cursor;
+	unsigned int tw = buffer->options.tab_width;
 
 	block_iter_bol(&bi);
-	v->cx = 0;
-	v->cx_char = 0;
-	v->cx_display = 0;
+	view->cx = 0;
+	view->cx_char = 0;
+	view->cx_display = 0;
 	while (1) {
 		uchar u;
 
-		if (bi.blk == v->cursor.blk && bi.offset == v->cursor.offset)
+		if (bi.blk == view->cursor.blk && bi.offset == view->cursor.offset)
 			break;
-		if (!v->cursor.offset && bi.offset == bi.blk->size && bi.blk->node.next == &v->cursor.blk->node) {
+		if (!view->cursor.offset && bi.offset == bi.blk->size && bi.blk->node.next == &view->cursor.blk->node) {
 			// this[this.size] == this.next[0]
 			break;
 		}
-		if (!v->buffer->next_char(&bi, &u))
+		if (!buffer->next_char(&bi, &u))
 			break;
 
-		v->cx += buffer->utf8 ? u_char_size(u) : 1;
-		v->cx_char++;
+		view->cx += buffer->utf8 ? u_char_size(u) : 1;
+		view->cx_char++;
 		if (u == '\t') {
-			v->cx_display = (v->cx_display + tw) / tw * tw;
+			view->cx_display = (view->cx_display + tw) / tw * tw;
 		} else {
-			v->cx_display += u_char_width(u);
+			view->cx_display += u_char_width(u);
 		}
 	}
 }
 
-void update_cursor(struct view *v)
+void update_cursor(void)
 {
 	unsigned int c = 8;
 
-	update_cursor_x(v);
-	update_cursor_y(v);
-	if (v->cx_display - v->vx >= v->window->w)
-		v->vx = (v->cx_display - v->window->w + c) & ~(c - 1);
-	if (v->cx_display < v->vx)
-		v->vx = v->cx_display / c * c;
+	update_cursor_x();
+	update_cursor_y();
+	if (view->cx_display - view->vx >= window->w)
+		view->vx = (view->cx_display - window->w + c) & ~(c - 1);
+	if (view->cx_display < view->vx)
+		view->vx = view->cx_display / c * c;
 
-	if (v->cy < v->vy)
-		v->vy = v->cy;
-	if (v->cy > v->vy + v->window->h - 1)
-		v->vy = v->cy - v->window->h + 1;
+	if (view->cy < view->vy)
+		view->vy = view->cy;
+	if (view->cy > view->vy + window->h - 1)
+		view->vy = view->cy - window->h + 1;
 }
 
 void center_cursor(void)
@@ -210,7 +210,7 @@ void center_cursor(void)
 void move_to_line(int line)
 {
 	line--;
-	update_cursor(view);
+	update_cursor();
 	if (view->cy > line)
 		move_up(view->cy - line);
 	if (view->cy < line)

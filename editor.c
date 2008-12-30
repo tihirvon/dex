@@ -719,7 +719,7 @@ static void update_screen_size(void)
 static void update_everything(void)
 {
 	update_screen_size();
-	update_cursor(view);
+	update_cursor();
 	buf_hide_cursor();
 	if (options.show_tab_bar)
 		print_tab_bar();
@@ -879,7 +879,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	error_buf[pos++] = ']';
 	error_buf[pos] = 0;
 
-	update_cursor(view);
+	update_cursor();
 	buf_hide_cursor();
 	update_full();
 	restore_cursor();
@@ -1130,7 +1130,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	}
 
 	debug_blocks();
-	update_cursor(view);
+	update_cursor();
 
 	if (vx != view->vx || vy != view->vy) {
 		update_flags |= UPDATE_FULL;
@@ -1199,7 +1199,7 @@ static void insert_special(const char *buf, int size)
 		update_status_line();
 		break;
 	}
-	update_cursor(view);
+	update_cursor();
 	restore_cursor();
 	buf_show_cursor();
 	buf_flush();

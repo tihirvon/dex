@@ -11,7 +11,7 @@ static int copy_is_lines;
 
 void update_preferred_x(void)
 {
-	update_cursor_x(view);
+	update_cursor_x();
 	view->preferred_x = view->cx_display;
 }
 
