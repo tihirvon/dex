@@ -79,10 +79,12 @@ void search_tag(const char *pattern)
 		regerror(err, &regex, error, sizeof(error));
 		error_msg(error);
 	} else {
-		if (do_search_fwd(&regex))
+		if (do_search_fwd(&regex)) {
+			update_cursor_y();
 			center_cursor();
-		else
+		} else {
 			error_msg("Tag not found.");
+		}
 	}
 	regfree(&regex);
 }

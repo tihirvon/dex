@@ -312,8 +312,10 @@ static void cmd_cancel(char **args)
 
 static void cmd_center_cursor(char **args)
 {
-	if (no_args(args))
+	if (no_args(args)) {
+		update_cursor_y();
 		center_cursor();
+	}
 }
 
 static void cmd_clear(char **args)

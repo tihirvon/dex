@@ -176,6 +176,7 @@ char *buffer_get_bytes(unsigned int *lenp);
 void fetch_eol(const struct block_iter *bi);
 
 void update_cursor_x(void);
+void update_cursor_y(void);
 void update_cursor(void);
 
 void update_preferred_x(void);

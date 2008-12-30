@@ -127,7 +127,7 @@ void prev_buffer(void)
 	}
 }
 
-static void update_cursor_y(void)
+void update_cursor_y(void)
 {
 	struct block *blk;
 	unsigned int nl = 0;
@@ -210,7 +210,7 @@ void center_cursor(void)
 void move_to_line(int line)
 {
 	line--;
-	update_cursor();
+	update_cursor_y();
 	if (view->cy > line)
 		move_up(view->cy - line);
 	if (view->cy < line)
