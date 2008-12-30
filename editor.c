@@ -1429,6 +1429,7 @@ int main(int argc, char *argv[])
 	const char *term = NULL;
 	const char *rc = NULL;
 	const char *charset;
+	struct view *tmp_view;
 
 	init_misc();
 
@@ -1491,7 +1492,12 @@ int main(int argc, char *argv[])
 	window = window_new();
 	update_screen_size();
 
+	/* there must be always at least one buffer open */
+	tmp_view = open_empty_buffer();
+	tmp_view->rc_tmp = 1;
+	set_view(tmp_view);
 	read_config(rc);
+
 	update_all_syntax_colors();
 	sort_aliases();
 	currentline_color = find_color("currentline");
@@ -1519,6 +1525,20 @@ int main(int argc, char *argv[])
 
 	for (; i < argc; i++)
 		open_buffer(argv[i], 0);
+
+	/* remove the temporary view we created before reading rc
+	 * if the view's buffer was not touched
+	 */
+	list_for_each_entry(tmp_view, &window->views, node) {
+		if (tmp_view->rc_tmp) {
+			if (!tmp_view->buffer->change_head.prev) {
+				set_view(tmp_view);
+				remove_view();
+			}
+			break;
+		}
+	}
+
 	if (list_empty(&window->views))
 		open_empty_buffer();
 	set_view(VIEW(window->views.next));

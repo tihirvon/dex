@@ -91,6 +91,9 @@ struct view {
 
 	// set if view was opened by e.g. tag command
 	unsigned temporary : 1;
+
+	// used only when reading rc file
+	unsigned rc_tmp : 1;
 };
 
 struct selection_info {
