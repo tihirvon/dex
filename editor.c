@@ -1202,7 +1202,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 
 		if (cy != view->cy)
 			update_flags |= UPDATE_RANGE;
-		if (cx != view->cx_display && view->sel.blk)
+		if (cx != view->cx_display)
 			update_flags |= UPDATE_CURSOR_LINE;
 	}
 	if (v != view) {
