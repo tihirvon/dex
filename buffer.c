@@ -543,16 +543,22 @@ void filetype_changed(struct buffer *b)
 	highlight_buffer(b);
 }
 
-static int write_crlf(struct wbuf *wbuf, const char *buf, size_t size)
+static int write_crlf(struct wbuf *wbuf, const char *buf, int size)
 {
+	int written = 0;
+
 	while (size--) {
 		char ch = *buf++;
-		if (ch == '\n' && wbuf_write_ch(wbuf, '\r'))
-			return -1;
+		if (ch == '\n') {
+			if (wbuf_write_ch(wbuf, '\r'))
+				return -1;
+			written++;
+		}
 		if (wbuf_write_ch(wbuf, ch))
 			return -1;
+		written++;
 	}
-	return 0;
+	return written;
 }
 
 static mode_t get_umask(void)
@@ -609,18 +615,22 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 
 	rc = 0;
 	size = 0;
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (blk->size) {
-			if (newline == NEWLINE_DOS)
-				rc = write_crlf(&wbuf, blk->data, blk->size);
-			else
-				rc = wbuf_write(&wbuf, blk->data, blk->size);
+	if (newline == NEWLINE_DOS) {
+		list_for_each_entry(blk, &buffer->blocks, node) {
+			rc = write_crlf(&wbuf, blk->data, blk->size);
+			if (rc < 0)
+				break;
+			size += rc;
+		}
+	} else {
+		list_for_each_entry(blk, &buffer->blocks, node) {
+			rc = wbuf_write(&wbuf, blk->data, blk->size);
 			if (rc)
 				break;
+			size += blk->size;
 		}
-		size += blk->size;
 	}
-	if (rc || wbuf_flush(&wbuf)) {
+	if (rc < 0 || wbuf_flush(&wbuf)) {
 		error_msg("Write error: %s", strerror(errno));
 		if (ren)
 			unlink(tmp);
