@@ -1208,15 +1208,24 @@ static void cmd_search_prev(char **args)
 static void cmd_select(char **args)
 {
 	const char *pf = parse_args(&args, "l", 0, 0);
+	int select_lines;
 
 	if (!pf)
 		return;
 
-	/* update screen if there's already a selection */
-	select_end();
+	select_lines = !!*pf;
+	if (view->sel.blk) {
+		if (view->sel_is_lines == select_lines) {
+			select_end();
+			return;
+		}
+		view->sel_is_lines = select_lines;
+		update_flags |= UPDATE_FULL;
+		return;
+	}
 
 	view->sel = view->cursor;
-	view->sel_is_lines = !!*pf;
+	view->sel_is_lines = select_lines;
 	update_flags |= UPDATE_CURSOR_LINE;
 }
 
