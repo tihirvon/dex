@@ -1118,15 +1118,23 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 			cmdline_insert(key);
 			break;
 		}
+		history_reset_search();
 		break;
 	case KEY_META:
-		return;
+		switch (key) {
+		case 'c':
+			options.ignore_case ^= 1;
+			break;
+		case 'r':
+			search_init(current_search_direction() ^ 1);
+			break;
+		}
+		break;
 	case KEY_SPECIAL:
-		return;
+		break;
 	case KEY_PASTE:
-		return;
+		break;
 	}
-	history_reset_search();
 }
 
 static void handle_key(enum term_key_type type, unsigned int key)
