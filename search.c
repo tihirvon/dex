@@ -82,7 +82,6 @@ void search_tag(const char *pattern)
 		error_msg(error);
 	} else {
 		if (do_search_fwd(&regex)) {
-			update_cursor_y();
 			view->center_on_scroll = 1;
 		} else {
 			error_msg("Tag not found.");

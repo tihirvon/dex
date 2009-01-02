@@ -312,10 +312,8 @@ static void cmd_cancel(char **args)
 
 static void cmd_center_cursor(char **args)
 {
-	if (no_args(args)) {
-		update_cursor_y();
-		center_cursor();
-	}
+	if (no_args(args))
+		view->force_center = 1;
 }
 
 static void cmd_clear(char **args)
