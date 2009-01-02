@@ -310,7 +310,7 @@ static void cmd_cancel(char **args)
 		select_end();
 }
 
-static void cmd_center_cursor(char **args)
+static void cmd_center_view(char **args)
 {
 	if (no_args(args))
 		view->force_center = 1;
@@ -1367,7 +1367,7 @@ const struct command commands[] = {
 	{ "bof", NULL, cmd_bof },
 	{ "bol", NULL, cmd_bol },
 	{ "cancel", NULL, cmd_cancel },
-	{ "center-cursor", NULL, cmd_center_cursor },
+	{ "center-view", NULL, cmd_center_view },
 	{ "clear", NULL, cmd_clear },
 	{ "close", "cl", cmd_close },
 	{ "command", NULL, cmd_command },

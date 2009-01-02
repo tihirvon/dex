@@ -199,13 +199,13 @@ void update_cursor(void)
 		view->vx = view->cx_display / c * c;
 
 	if (view->force_center || (update_view_y() && view->center_on_scroll))
-		center_cursor();
+		center_view_to_cursor();
 
 	view->force_center = 0;
 	view->center_on_scroll = 0;
 }
 
-void center_cursor(void)
+void center_view_to_cursor(void)
 {
 	unsigned int hh = window->h / 2;
 

@@ -24,7 +24,7 @@ bind ^Y copy
 bind ^D cut
 bind ^P paste
 bind ^V "select -l"
-bind ^G center-cursor
+bind ^G center-view
 bind ^J join
 bind ^O new-line
 bind ^S clear
