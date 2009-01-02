@@ -214,7 +214,6 @@ void goto_tag(const char *name)
 		view->force_center = 1;
 	}
 	if (ta.pattern) {
-		move_bof();
 		search_tag(ta.pattern);
 	} else {
 		move_to_line(ta.line);

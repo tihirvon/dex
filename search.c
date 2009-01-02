@@ -81,10 +81,17 @@ void search_tag(const char *pattern)
 		regerror(err, &regex, error, sizeof(error));
 		error_msg(error);
 	} else {
+		struct block_iter save = view->cursor;
+
+		move_bof();
 		if (do_search_fwd(&regex)) {
 			view->center_on_scroll = 1;
 		} else {
 			error_msg("Tag not found.");
+			view->cursor = save;
+
+			/* don't center view to cursor unnecessarily */
+			view->force_center = 0;
 		}
 	}
 	regfree(&regex);
