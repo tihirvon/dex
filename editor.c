@@ -323,7 +323,10 @@ static void print_status_line(void)
 	char rbuf[256];
 	int lw, rw;
 
-	if (view->sel.blk) {
+	if (input_mode == INPUT_SEARCH) {
+		snprintf(misc_status, sizeof(misc_status), "[%s]",
+			options.ignore_case ? "case-insensitive" : "case-sensitive");
+	} else if (view->sel.blk) {
 		struct selection_info info;
 
 		init_selection(&info);
