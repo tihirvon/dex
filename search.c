@@ -91,10 +91,12 @@ void search_tag(const char *pattern)
 }
 
 static struct {
-	char error[1024];
 	regex_t regex;
 	char *pattern;
 	enum search_direction direction;
+
+	/* if zero then regex hasn't been compiled */
+	int re_flags;
 } current_search;
 
 void search_init(enum search_direction dir)
@@ -107,25 +109,42 @@ enum search_direction current_search_direction(void)
 	return current_search.direction;
 }
 
-void search(const char *pattern, int re_flags)
+static void free_regex(void)
 {
-	int err;
-
-	if (current_search.pattern) {
-		free(current_search.pattern);
+	if (current_search.re_flags) {
 		regfree(&current_search.regex);
-		current_search.error[0] = 0;
+		current_search.re_flags = 0;
 	}
-	current_search.pattern = xstrdup(pattern);
+}
 
-	// NOTE: regex needs to be freed even if regcomp() fails
-	err = regcomp(&current_search.regex, pattern, re_flags);
+static int update_regex(void)
+{
+	int err, re_flags = REG_EXTENDED | REG_NEWLINE;
+
+	if (options.ignore_case)
+		re_flags |= REG_ICASE;
+
+	if (re_flags == current_search.re_flags)
+		return 0;
+
+	free_regex();
+
+	current_search.re_flags = re_flags;
+	err = regcomp(&current_search.regex, current_search.pattern, current_search.re_flags);
 	if (err) {
-		regerror(err, &current_search.regex, current_search.error, sizeof(current_search.error));
-		error_msg(current_search.error);
-		return;
+		char error[1024];
+		regerror(err, &current_search.regex, error, sizeof(error));
+		free_regex();
+		error_msg(error);
 	}
+	return err;
+}
 
+void search(const char *pattern)
+{
+	free_regex();
+	free(current_search.pattern);
+	current_search.pattern = xstrdup(pattern);
 	search_next();
 }
 
@@ -137,10 +156,8 @@ void search_next(void)
 		error_msg("No previous search pattern");
 		return;
 	}
-	if (*current_search.error) {
-		error_msg(current_search.error);
+	if (update_regex())
 		return;
-	}
 	if (current_search.direction == SEARCH_FWD) {
 		if (do_search_fwd(&current_search.regex))
 			return;

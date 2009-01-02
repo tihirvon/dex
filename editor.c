@@ -1103,7 +1103,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		switch (key) {
 		case '\r':
 			if (cmdline.buffer[0]) {
-				search(cmdline.buffer, REG_EXTENDED | REG_NEWLINE);
+				search(cmdline.buffer);
 				history_add(&search_history, cmdline.buffer);
 			} else {
 				search_next();

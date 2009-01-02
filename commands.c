@@ -1170,7 +1170,7 @@ static void do_search_next(char **args, enum search_direction dir)
 		pattern = xnew(char, strlen(word) + 5);
 		sprintf(pattern, "\\<%s\\>", word);
 		search_init(dir);
-		search(pattern, REG_EXTENDED | REG_NEWLINE);
+		search(pattern);
 		history_add(&search_history, pattern);
 		free(word);
 		free(pattern);
