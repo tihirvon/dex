@@ -174,6 +174,19 @@ void update_cursor_x(void)
 	}
 }
 
+static int update_view_y(void)
+{
+	if (view->cy < view->vy) {
+		view->vy = view->cy;
+		return 1;
+	}
+	if (view->cy > view->vy + window->h - 1) {
+		view->vy = view->cy - window->h + 1;
+		return 1;
+	}
+	return 0;
+}
+
 void update_cursor(void)
 {
 	unsigned int c = 8;
@@ -185,10 +198,11 @@ void update_cursor(void)
 	if (view->cx_display < view->vx)
 		view->vx = view->cx_display / c * c;
 
-	if (view->cy < view->vy)
-		view->vy = view->cy;
-	if (view->cy > view->vy + window->h - 1)
-		view->vy = view->cy - window->h + 1;
+	if (view->force_center || (update_view_y() && view->center_on_scroll))
+		center_cursor();
+
+	view->force_center = 0;
+	view->center_on_scroll = 0;
 }
 
 void center_cursor(void)
@@ -215,5 +229,5 @@ void move_to_line(int line)
 		move_up(view->cy - line);
 	if (view->cy < line)
 		move_down(line - view->cy);
-	center_cursor();
+	view->center_on_scroll = 1;
 }

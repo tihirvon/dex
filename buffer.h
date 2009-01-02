@@ -92,6 +92,12 @@ struct view {
 	// set if view was opened by e.g. tag command
 	unsigned temporary : 1;
 
+	// center view to cursor if scrolled
+	unsigned center_on_scroll : 1;
+
+	// force centering view to cursor
+	unsigned force_center : 1;
+
 	// used only when reading rc file
 	unsigned rc_tmp : 1;
 };

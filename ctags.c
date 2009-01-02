@@ -208,7 +208,11 @@ void goto_tag(const char *name)
 	else
 		info_msg("Can't save current location because there's no filename.");
 
-	set_view(v);
+	if (view != v) {
+		set_view(v);
+		/* force centering view to the cursor because file changed */
+		view->force_center = 1;
+	}
 	if (ta.pattern) {
 		move_bof();
 		search_tag(ta.pattern);

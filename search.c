@@ -23,6 +23,7 @@ static int do_search_fwd(regex_t *regex)
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
 			view->cursor = bi;
+			view->center_on_scroll = 1;
 			update_preferred_x();
 			return 1;
 		}
@@ -59,6 +60,7 @@ static int do_search_bwd(regex_t *regex)
 			while (offset--)
 				block_iter_next_byte(&bi, &u);
 			view->cursor = bi;
+			view->center_on_scroll = 1;
 			update_preferred_x();
 			return 1;
 		}
@@ -81,7 +83,7 @@ void search_tag(const char *pattern)
 	} else {
 		if (do_search_fwd(&regex)) {
 			update_cursor_y();
-			center_cursor();
+			view->center_on_scroll = 1;
 		} else {
 			error_msg("Tag not found.");
 		}
