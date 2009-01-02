@@ -486,8 +486,6 @@ struct view *open_buffer(const char *filename, unsigned int flags)
 		v->cursor.head = &v->buffer->blocks;
 		v->cursor.blk = BLOCK(v->buffer->blocks.next);
 	}
-	if (flags & OF_TEMPORARY)
-		v->temporary = 1;
 	return v;
 }
 

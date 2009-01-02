@@ -89,12 +89,6 @@ void set_view(struct view *v)
 	/* forget previous view when changing view using any other command but open */
 	prev_view = NULL;
 
-	/*
-	 * close untouched view opened by tag command
-	 */
-	if (view && view != v && view->temporary && !view->buffer->change_head.prev)
-		view_delete(view);
-
 	view = v;
 	buffer = v->buffer;
 	window = v->window;
