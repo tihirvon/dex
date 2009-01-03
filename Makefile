@@ -61,7 +61,6 @@ syntax	:=			\
 	syntax/editor		\
 	syntax/gitcommit	\
 	syntax/make		\
-	syntax/none		\
 	syntax/sh		\
 	# end
 
