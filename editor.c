@@ -1506,6 +1506,7 @@ int main(int argc, char *argv[])
 	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
 	const char *term = NULL;
 	const char *rc = NULL;
+	const char *command = NULL;
 	const char *charset;
 	struct view *tmp_view;
 
@@ -1535,6 +1536,14 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 			rc = argv[i];
+			continue;
+		}
+		if (!strcmp(opt, "-c") || !strcmp(opt, "--command")) {
+			if (++i == argc) {
+				fprintf(stderr, "missing argument for option %s\n", opt);
+				return 1;
+			}
+			command = argv[i];
 			continue;
 		}
 		if (strcmp(opt, "--") == 0) {
@@ -1575,6 +1584,8 @@ int main(int argc, char *argv[])
 	tmp_view->rc_tmp = 1;
 	set_view(tmp_view);
 	read_config(rc);
+	if (command)
+		handle_command(command);
 
 	update_all_syntax_colors();
 	sort_aliases();
