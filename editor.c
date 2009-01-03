@@ -1504,7 +1504,7 @@ int main(int argc, char *argv[])
 {
 	int i;
 	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
-	const char *term = NULL;
+	const char *tag = NULL;
 	const char *rc = NULL;
 	const char *command = NULL;
 	const char *charset;
@@ -1526,8 +1526,12 @@ int main(int argc, char *argv[])
 		if (strcmp(opt, "--help") == 0) {
 			return 0;
 		}
-		if (strncmp(opt, "-t=", 3) == 0) {
-			term = opt + 3;
+		if (!strcmp(opt, "-t") || !strcmp(opt, "--tag")) {
+			if (++i == argc) {
+				fprintf(stderr, "missing argument for option %s\n", opt);
+				return 1;
+			}
+			tag = argv[i];
 			continue;
 		}
 		if (!strcmp(opt, "-r") || !strcmp(opt, "--rc")) {
@@ -1570,7 +1574,7 @@ int main(int argc, char *argv[])
 	 */
 	setlocale(LC_CTYPE, "C");
 
-	if (term_init(term, flags))
+	if (term_init(NULL, flags))
 		return 1;
 
 	init_options();
@@ -1586,6 +1590,8 @@ int main(int argc, char *argv[])
 	read_config(rc);
 	if (command)
 		handle_command(command);
+	if (tag)
+		goto_tag(tag);
 
 	update_all_syntax_colors();
 	sort_aliases();
