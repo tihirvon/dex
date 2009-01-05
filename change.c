@@ -144,7 +144,6 @@ static void reverse_change(struct change *change)
 			move_offset(change->offset + change->del_count);
 		change->ins_count = change->del_count;
 		change->del_count = 0;
-		update_preferred_x();
 		free(change->buf);
 		change->buf = NULL;
 	} else if (change->del_count) {
@@ -162,8 +161,8 @@ static void reverse_change(struct change *change)
 		change->buf = do_delete(change->ins_count);
 		change->del_count = change->ins_count;
 		change->ins_count = 0;
-		update_preferred_x();
 	}
+	update_preferred_x();
 }
 
 int undo(void)
