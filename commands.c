@@ -1072,7 +1072,7 @@ static void cmd_save(char **args)
 	const char *pf = parse_args(&args, "dfu", 0, 1);
 	char *absolute = buffer->abs_filename;
 	int force = 0;
-	int newline = buffer->newline;
+	enum newline_sequence newline = buffer->newline;
 	mode_t old_mode = buffer->st.st_mode;
 	struct stat st;
 
