@@ -216,8 +216,11 @@ int redo(unsigned int change_id)
 			error_msg("There are only %d possible changes to redo.", head->nr_prev);
 			return 0;
 		}
-	} else if (head->nr_prev > 1) {
-		info_msg("Redoing first of %d possible changes.", head->nr_prev);
+	} else {
+		/* default to newest change  */
+		change_id = head->nr_prev - 1;
+		if (head->nr_prev > 1)
+			info_msg("Redoing newest of %d possible changes.", head->nr_prev);
 	}
 
 	head = head->prev[change_id];
