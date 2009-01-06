@@ -35,14 +35,6 @@ static inline unsigned int ROUND_UP(size_t x, size_t r)
 	return (x + r) & ~r;
 }
 
-#ifndef DEBUG
-#define DEBUG 1
-#endif
-
-#ifndef DEBUG_SYNTAX
-#define DEBUG_SYNTAX DEBUG
-#endif
-
 #if DEBUG <= 0
 __FORMAT(1, 2)
 static inline void BUG(const char *fmt, ...)
