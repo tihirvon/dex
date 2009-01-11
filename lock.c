@@ -20,11 +20,6 @@ static int lock_or_unlock(const char *filename, int lock)
 		return 0;
 
 	while (1) {
-		struct timespec req = {
-			.tv_sec = 0,
-			.tv_nsec = 100 * 1000000,
-		};
-
 		wfd = open(file_locks_lock, O_WRONLY | O_CREAT | O_EXCL, 0666);
 		if (wfd >= 0)
 			break;
@@ -34,10 +29,20 @@ static int lock_or_unlock(const char *filename, int lock)
 			return -1;
 		}
 		if (++tries == 3) {
-			error_msg("File %s exists", file_locks_lock);
-			return -1;
+			if (unlink(file_locks_lock)) {
+				error_msg("Error removing stale lock file %s: %s",
+						file_locks_lock, strerror(errno));
+				return -1;
+			}
+			error_msg("Stale lock file %s removed.", file_locks_lock);
+		} else {
+			struct timespec req = {
+				.tv_sec = 0,
+				.tv_nsec = 100 * 1000000,
+			};
+
+			nanosleep(&req, NULL);
 		}
-		nanosleep(&req, NULL);
 	}
 
 	filename_len = strlen(filename);
