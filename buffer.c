@@ -4,6 +4,7 @@
 #include "filetype.h"
 #include "highlight.h"
 #include "commands.h"
+#include "lock.h"
 
 struct view *view;
 struct buffer *buffer;
@@ -366,6 +367,9 @@ void free_buffer(struct buffer *b)
 {
 	struct list_head *item;
 
+	if (b->locked)
+		unlock_file(b->abs_filename);
+
 	item = b->blocks.next;
 	while (item != &b->blocks) {
 		struct list_head *next = item->next;
@@ -491,8 +495,17 @@ struct view *open_buffer(const char *filename, unsigned int flags)
 
 int load_buffer(struct buffer *b, int must_exist)
 {
-	int fd = open(b->filename, O_RDONLY);
+	int fd;
 
+	if (options.lock_files) {
+		if (lock_file(b->abs_filename)) {
+			b->ro = 1;
+		} else {
+			b->locked = 1;
+		}
+	}
+
+	fd = open(b->filename, O_RDONLY);
 	if (fd < 0) {
 		if (errno != ENOENT) {
 			error_msg("Error opening %s: %s", b->filename, strerror(errno));
@@ -517,7 +530,7 @@ int load_buffer(struct buffer *b, int must_exist)
 		}
 		close(fd);
 
-		if (access(b->abs_filename, W_OK))
+		if (!b->ro && access(b->abs_filename, W_OK))
 			b->ro = 1;
 	}
 	if (list_empty(&b->blocks)) {

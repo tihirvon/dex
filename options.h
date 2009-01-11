@@ -62,6 +62,7 @@ struct global_options {
 	int esc_timeout;
 	int show_tab_bar;
 	int ignore_case;
+	int lock_files;
 };
 
 extern struct global_options options;

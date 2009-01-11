@@ -12,6 +12,7 @@
 #include "color.h"
 #include "syntax.h"
 #include "highlight.h"
+#include "lock.h"
 
 #define MAX_KEYS 4
 
@@ -1075,6 +1076,7 @@ static void cmd_save(char **args)
 	enum newline_sequence newline = buffer->newline;
 	mode_t old_mode = buffer->st.st_mode;
 	struct stat st;
+	int new_locked = 0;
 
 	if (!pf)
 		return;
@@ -1116,6 +1118,29 @@ static void cmd_save(char **args)
 			error_msg("stat failed for %s: %s", absolute, strerror(errno));
 			goto error;
 		}
+		if (options.lock_files) {
+			if (absolute == buffer->abs_filename) {
+				if (!buffer->locked) {
+					if (lock_file(absolute)) {
+						if (!force) {
+							error_msg("Can't lock file %s", absolute);
+							goto error;
+						}
+					} else {
+						buffer->locked = 1;
+					}
+				}
+			} else {
+				if (lock_file(absolute)) {
+					if (!force) {
+						error_msg("Can't lock file %s", absolute);
+						goto error;
+					}
+				} else {
+					new_locked = 1;
+				}
+			}
+		}
 	} else {
 		if (absolute == buffer->abs_filename && !force && stat_changed(&buffer->st, &st)) {
 			error_msg("File has been modified by someone else. Use -f to force overwrite.");
@@ -1124,6 +1149,29 @@ static void cmd_save(char **args)
 		if (S_ISDIR(st.st_mode)) {
 			error_msg("Will not overwrite directory %s", absolute);
 			goto error;
+		}
+		if (options.lock_files) {
+			if (absolute == buffer->abs_filename) {
+				if (!buffer->locked) {
+					if (lock_file(absolute)) {
+						if (!force) {
+							error_msg("Can't lock file %s", absolute);
+							goto error;
+						}
+					} else {
+						buffer->locked = 1;
+					}
+				}
+			} else {
+				if (lock_file(absolute)) {
+					if (!force) {
+						error_msg("Can't lock file %s", absolute);
+						goto error;
+					}
+				} else {
+					new_locked = 1;
+				}
+			}
 		}
 		if (absolute != buffer->abs_filename && !force) {
 			error_msg("Use -f to overwrite %s %s.", get_file_type(st.st_mode), absolute);
@@ -1150,6 +1198,8 @@ static void cmd_save(char **args)
 	}
 	return;
 error:
+	if (new_locked)
+		unlock_file(absolute);
 	if (absolute != buffer->abs_filename)
 		free(absolute);
 }

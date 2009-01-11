@@ -26,6 +26,7 @@ objs 	:= 			\
 	highlight.o		\
 	history.o		\
 	iter.o			\
+	lock.o			\
 	obuf.o			\
 	options.o		\
 	parse-command.o		\

@@ -44,6 +44,7 @@ struct buffer {
 
 	unsigned utf8 : 1;
 	unsigned ro : 1;
+	unsigned locked : 1;
 
 	enum newline_sequence newline;
 
