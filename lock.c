@@ -5,6 +5,11 @@
 static char *file_locks;
 static char *file_locks_lock;
 
+static int process_exists(int pid)
+{
+	return !kill(pid, 0);
+}
+
 static int lock_or_unlock(const char *filename, int lock)
 {
 	int tries = 0;
@@ -90,10 +95,12 @@ static int lock_or_unlock(const char *filename, int lock)
 			size++;
 		}
 		if (filename_len == lf - ptr && !memcmp(ptr, filename, filename_len)) {
-			if (lock) {
+			if (lock && process_exists(pid)) {
 				error_msg("File is locked (%s) by process %d", file_locks, pid);
 				goto error;
 			}
+			if (lock)
+				error_msg("Releasing lock from dead process %d", pid);
 			memmove(bol, lf + 1, end - lf - 1);
 			size -= lf + 1 - bol;
 			break;
