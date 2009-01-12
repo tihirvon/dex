@@ -530,8 +530,10 @@ int load_buffer(struct buffer *b, int must_exist)
 		}
 		close(fd);
 
-		if (!b->ro && access(b->abs_filename, W_OK))
+		if (!b->ro && access(b->abs_filename, W_OK)) {
+			error_msg("No write permission to %s, marking read-only.", b->filename);
 			b->ro = 1;
+		}
 	}
 	if (list_empty(&b->blocks)) {
 		struct block *blk = block_new(ALLOC_ROUND(1));
