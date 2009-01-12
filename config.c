@@ -1,5 +1,6 @@
 #include "util.h"
 #include "commands.h"
+#include "buffer.h"
 
 const char *config_file;
 int config_line;
@@ -16,7 +17,7 @@ static int is_command(const char *str, int len)
 	return 0;
 }
 
-int read_config(const char *filename)
+int read_config(const char *filename, int must_exist)
 {
 	/* recursive */
 	const char *saved_config_file = config_file;
@@ -26,18 +27,20 @@ int read_config(const char *filename)
 	size_t size, alloc = 0;
 	char *buf, *ptr, *line = NULL;
 	int fd;
-	int ret = -1;
 
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
-		goto out;
+		if (errno != ENOENT || must_exist)
+			error_msg("Error opening %s: %s", filename, strerror(errno));
+		return -1;
 	}
 	fstat(fd, &st);
 	size = st.st_size;
 	buf = xmmap(fd, 0, size);
 	close(fd);
 	if (!buf) {
-		goto out;
+		error_msg("mmap failed for %s: %s", filename, strerror(errno));
+		return -1;
 	}
 
 	config_file = filename;
@@ -65,9 +68,7 @@ int read_config(const char *filename)
 	}
 	free(line);
 	xmunmap(buf, st.st_size);
-	ret = 0;
-out:
 	config_file = saved_config_file;
 	config_line = saved_config_line;
-	return ret;
+	return 0;
 }

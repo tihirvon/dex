@@ -718,7 +718,7 @@ static void cmd_include(char **args)
 {
 	if (!parse_args(&args, "", 1, 1))
 		return;
-	read_config(args[0]);
+	read_config(args[0], 1);
 }
 
 static void cmd_insert(char **args)

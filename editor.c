@@ -1587,7 +1587,7 @@ int main(int argc, char *argv[])
 	tmp_view = open_empty_buffer();
 	tmp_view->rc_tmp = 1;
 	set_view(tmp_view);
-	read_config(rc);
+	read_config(rc, 0);
 	if (command)
 		handle_command(command);
 	if (tag)
