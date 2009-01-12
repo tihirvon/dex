@@ -6,7 +6,7 @@ syn addr added ' Changes to be committed:$'
 syn addr modified ' Changed but not updated:$'
 syn addr untracked ' Untracked files:$'
 syn addr file '.*'
-syn addc label '	[a-z]+:' '\n'
+syn addc label '	[a-z][a-z ]+:' '\n'
 syn addr newfile '	.*$'
 syn addc comment '^#' '\n'
 
