@@ -301,6 +301,16 @@ static void format_status(char *buf, int size, const char *format)
 				if (misc_status[0])
 					add_status_str(buf, size, &pos, misc_status);
 				break;
+			case 'n':
+				switch (buffer->newline) {
+				case NEWLINE_UNIX:
+					add_status_str(buf, size, &pos, "LF");
+					break;
+				case NEWLINE_DOS:
+					add_status_str(buf, size, &pos, "CRLF");
+					break;
+				}
+				break;
 			case 's':
 				separator = 1;
 				break;
