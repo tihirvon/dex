@@ -15,7 +15,7 @@ static int lock_or_unlock(const char *filename, int lock)
 	int tries = 0;
 	int wfd, rfd, filename_len;
 	ssize_t size;
-	char *buf, *ptr, *end;
+	char *buf = NULL, *ptr, *end;
 
 	if (!file_locks) {
 		file_locks = xstrdup(editor_file("file-locks"));
@@ -119,10 +119,12 @@ static int lock_or_unlock(const char *filename, int lock)
 		error_msg("Renaming %s to %s: %s", file_locks_lock, file_locks, strerror(errno));
 		goto error;
 	}
+	free(buf);
 	close(wfd);
 	return 0;
 error:
 	unlink(file_locks_lock);
+	free(buf);
 	close(wfd);
 	return -1;
 }
