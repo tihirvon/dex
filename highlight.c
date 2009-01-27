@@ -424,8 +424,13 @@ static int highlight_line_context(struct highlighter *h)
 
 static void find_words(struct highlighter *h)
 {
-	char buf[256];
+	char b[1024];
+	char *buf = b;
 	int i;
+
+	/* avoid expensive malloc() */
+	if (h->line_len + 1 > sizeof(b))
+		buf = xmalloc(h->line_len + 1);
 
 	h->word_count = 0;
 	for (i = h->offset; i < h->line_len; i++) {
@@ -456,6 +461,9 @@ static void find_words(struct highlighter *h)
 		hlw->hash = str_hash(buf);
 		h->word_count++;
 	}
+
+	if (buf != b)
+		free(buf);
 }
 
 void highlight_line(struct highlighter *h)
