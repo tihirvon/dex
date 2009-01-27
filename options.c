@@ -57,7 +57,7 @@ static void default_str_set(char **local, char **global, const char *value)
 
 static void statusline_set(char **local, char **global, const char *value)
 {
-	static const char chars[] = "fmryxXcCpEMs%";
+	static const char chars[] = "fmryxXcCpEMns%";
 	int i = 0;
 
 	while (value[i]) {
@@ -426,8 +426,8 @@ void collect_option_values(const char *name, const char *prefix)
 
 void init_options(void)
 {
-	options.statusline_left = xstrdup(" %f %m");
-	options.statusline_right = xstrdup(" %y,%X   %c %C   %p ");
+	options.statusline_left = xstrdup(" %f%s%m%r%s%M");
+	options.statusline_right = xstrdup(" %y,%X   %c %C   %E %n   %p ");
 }
 
 void free_local_options(struct local_options *opt)
