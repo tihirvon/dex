@@ -1628,6 +1628,20 @@ int main(int argc, char *argv[])
 	history_load(&command_history, editor_file("command-history"));
 	history_load(&search_history, editor_file("search-history"));
 
+	/* Initialize terminal but don't update screen yet.  Also display
+	 * "Press any key to continue" prompt if there were any errors
+	 * during reading configuration files.
+	 */
+	term_raw();
+	update_terminal_settings();
+	if (nr_errors)
+		any_key();
+	error_buf[0] = 0;
+
+	/* You can have "quit" in the rc file for testing purposes. */
+	if (editor_status == EDITOR_INITIALIZING)
+		editor_status = EDITOR_RUNNING;
+
 	for (; i < argc; i++)
 		open_buffer(argv[i], 0);
 
@@ -1648,12 +1662,7 @@ int main(int argc, char *argv[])
 		open_empty_buffer();
 	set_view(VIEW(window->views.next));
 
-	/* You can have "quit" in the rc file for testing purposes. */
-	if (editor_status == EDITOR_INITIALIZING)
-		editor_status = EDITOR_RUNNING;
-
-	error_buf[0] = 0;
-	ui_start(nr_errors);
+	update_everything();
 
 	while (editor_status == EDITOR_RUNNING) {
 		if (resized) {
