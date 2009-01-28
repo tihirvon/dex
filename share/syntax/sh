@@ -21,7 +21,10 @@ syn addc dq '"' '"'
 syn addc backtick '`' '`'
 syn addc arithmetic '\$\(\(' '\)\)'
 syn addc command '\$\(' '\)'
-syn addc comment '#' '\n'
+
+# Note this is suboptimal because comment can start also after ";" and "&".
+syn addc comment '(^|\s)#' '\n'
+
 syn addc -h heredoc '<<-?([a-zA-Z_][a-zA-Z0-9_]*)' '^\1$'
 syn addc -h heredocsq "<<-?'(.*)'" '^\1\n'
 syn addc -h heredocdq '<<-?"(.*)"' '^\1\n'
