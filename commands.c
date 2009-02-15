@@ -596,7 +596,7 @@ static void cmd_format_paragraph(char **args)
 	format_paragraph(text_width);
 }
 
-static char *shell_unescape(const char *str)
+static char *unescape_string(const char *str)
 {
 	GBUF(buf);
 	int i = 0;
@@ -611,6 +611,9 @@ static char *shell_unescape(const char *str)
 				break;
 			case 'r':
 				ch = '\r';
+				break;
+			case 't':
+				ch = '\t';
 				break;
 			}
 		}
@@ -731,7 +734,7 @@ static void cmd_insert(char **args)
 		return;
 
 	if (strchr(pf, 'e')) {
-		buf = shell_unescape(str);
+		buf = unescape_string(str);
 		str = buf;
 	}
 
