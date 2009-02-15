@@ -1,5 +1,6 @@
 #include "filetype.h"
 #include "common.h"
+#include "util.h"
 
 struct filetype {
 	char *name;
@@ -48,21 +49,6 @@ void add_ft_content(const char *name, const char *pattern)
 	add_filetype(name, pattern, FT_CONTENT);
 }
 
-static int match(const char *pattern, const char *str)
-{
-	regex_t re;
-	int rc;
-
-	rc = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE | REG_NOSUB);
-	if (rc) {
-		regfree(&re);
-		return 0;
-	}
-	rc = regexec(&re, str, 0, NULL, 0);
-	regfree(&re);
-	return !rc;
-}
-
 const char *find_ft(const char *filename, const char *first_line)
 {
 	const char *ext = NULL;
@@ -80,11 +66,11 @@ const char *find_ft(const char *filename, const char *first_line)
 				return ft->name;
 			break;
 		case FT_FILENAME:
-			if (filename && match(ft->str, filename))
+			if (filename && regexp_match_nosub(ft->str, filename))
 				return ft->name;
 			break;
 		case FT_CONTENT:
-			if (first_line && match(ft->str, first_line))
+			if (first_line && regexp_match_nosub(ft->str, first_line))
 				return ft->name;
 			break;
 		}

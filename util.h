@@ -12,6 +12,7 @@ ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
 const char *get_file_type(mode_t mode);
+int regexp_match_nosub(const char *pattern, const char *str);
 int regexp_match(const char *pattern, const char *str);
 void free_regexp_matches(void);
 

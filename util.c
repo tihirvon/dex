@@ -342,6 +342,21 @@ const char *get_file_type(mode_t mode)
 	return "unknown";
 }
 
+int regexp_match_nosub(const char *pattern, const char *str)
+{
+	regex_t re;
+	int rc;
+
+	rc = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE | REG_NOSUB);
+	if (rc) {
+		regfree(&re);
+		return 0;
+	}
+	rc = regexec(&re, str, 0, NULL, 0);
+	regfree(&re);
+	return !rc;
+}
+
 #define REGEXP_SUBSTRINGS 8
 
 char *regexp_matches[REGEXP_SUBSTRINGS + 1];
