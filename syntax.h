@@ -115,7 +115,6 @@ static inline unsigned char get_syntax_node_idx(const union syntax_node *node)
 
 static inline union syntax_node *idx_to_syntax_node(unsigned char idx)
 {
-	BUG_ON(idx >= (1 << 14));
 	return syntax_nodes[idx];
 }
 
