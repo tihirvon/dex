@@ -1107,9 +1107,10 @@ void format_paragraph(int text_width)
 	get_indent_info(sel, len, &info);
 	i = 0;
 	while (1) {
-		int w, start;
+		int start;
 		int ws_idx = -1;
 		int dot = 0;
+		int w = 0;
 
 		while (i < len && isspace(sel[i]))
 			i++;
