@@ -27,11 +27,13 @@ bind ^V "select -l"
 bind ^G center-view
 bind ^J join
 bind ^O new-line
+bind ^Q format-paragraph
 bind ^S clear
 bind ^C command
 bind ^L "command 'line '"
 bind ^T pop
 bind ^] tag
+bind insert insert-special
 
 bind M-/ search-fwd
 bind M-? search-bwd
