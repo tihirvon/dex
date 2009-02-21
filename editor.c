@@ -487,6 +487,7 @@ static int current_hl_entry_pos;
 
 static void advance_hl(unsigned int count)
 {
+	BUG_ON(!buffer->syn);
 	while (1) {
 		const struct hl_entry *e = &current_hl_list->entries[current_hl_entry_idx];
 		unsigned int avail = hl_entry_len(e) - current_hl_entry_pos;
@@ -690,7 +691,7 @@ static void print_line(struct block_iter *bi)
 
 		if (!buf_put_char(u, utf8)) {
 			int count = hl_buffer_len - i;
-			if (count)
+			if (count && current_hl_list)
 				advance_hl(count);
 			cur_offset += count;
 			return;
