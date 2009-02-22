@@ -1275,6 +1275,7 @@ static void insert_special(const char *buf, int size)
 	switch (input_mode) {
 	case INPUT_NORMAL:
 		insert(buf, size);
+		move_offset(buffer_offset() + size);
 		update_full();
 		break;
 	case INPUT_COMMAND:
