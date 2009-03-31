@@ -39,11 +39,8 @@ void view_delete(struct view *v);
 struct window *window_new(void);
 struct view *window_add_buffer(struct buffer *b);
 
-#define OF_FILE_MUST_EXIST	0x02
-
-struct view *open_buffer(const char *filename, unsigned int flags);
+struct view *open_buffer(const char *filename, int must_exist);
 struct view *open_empty_buffer(void);
-int load_buffer(struct buffer *b, int must_exist);
 
 int save_buffer(const char *filename, enum newline_sequence newline);
 void free_buffer(struct buffer *b);
