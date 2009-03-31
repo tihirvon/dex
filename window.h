@@ -41,6 +41,7 @@ struct view *window_add_buffer(struct buffer *b);
 
 struct view *open_buffer(const char *filename, int must_exist);
 struct view *open_empty_buffer(void);
+void setup_buffer(void);
 
 int save_buffer(const char *filename, enum newline_sequence newline);
 void free_buffer(struct buffer *b);

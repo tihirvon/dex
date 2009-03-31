@@ -4,6 +4,7 @@
 #include "filetype.h"
 #include "highlight.h"
 #include "commands.h"
+#include "file-history.h"
 #include "lock.h"
 
 struct view *view;
@@ -556,6 +557,26 @@ void filetype_changed(void)
 	highlight_buffer(buffer);
 
 	update_flags |= UPDATE_FULL;
+}
+
+static void restore_cursor_from_history(void)
+{
+	int x, y;
+
+	if (!find_file_in_history(buffer->abs_filename, &x, &y))
+		return;
+
+	move_to_line(y + 1);
+	move_to_column(x + 1);
+}
+
+void setup_buffer(void)
+{
+	buffer->setup = 1;
+	guess_filetype();
+	filetype_changed();
+	if (buffer->abs_filename)
+		restore_cursor_from_history();
 }
 
 static int write_crlf(struct wbuf *wbuf, const char *buf, int size)

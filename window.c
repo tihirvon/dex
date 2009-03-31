@@ -1,5 +1,4 @@
 #include "window.h"
-#include "file-history.h"
 
 LIST_HEAD(windows);
 struct window *window;
@@ -45,17 +44,6 @@ void remove_view(void)
 	set_view(VIEW(node));
 }
 
-static void restore_cursor_from_history(void)
-{
-	int x, y;
-
-	if (!find_file_in_history(buffer->abs_filename, &x, &y))
-		return;
-
-	move_to_line(y + 1);
-	move_to_column(x + 1);
-}
-
 void set_view(struct view *v)
 {
 	if (view == v)
@@ -70,13 +58,8 @@ void set_view(struct view *v)
 
 	window->view = v;
 
-	if (!buffer->setup) {
-		buffer->setup = 1;
-		guess_filetype();
-		filetype_changed();
-		if (buffer->abs_filename)
-			restore_cursor_from_history();
-	}
+	if (!buffer->setup)
+		setup_buffer();
 
 	update_flags |= UPDATE_FULL;
 }
