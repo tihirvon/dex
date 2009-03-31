@@ -45,6 +45,7 @@ struct buffer {
 	unsigned utf8 : 1;
 	unsigned ro : 1;
 	unsigned locked : 1;
+	unsigned setup : 1;
 
 	enum newline_sequence newline;
 
@@ -218,8 +219,8 @@ void error_msg(const char *format, ...) __FORMAT(1, 2);
 void info_msg(const char *format, ...) __FORMAT(1, 2);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 
-void guess_filetype(struct buffer *b);
-void filetype_changed(struct buffer *b);
+int guess_filetype(void);
+void filetype_changed(void);
 void highlight_buffer(struct buffer *b);
 void update_hl_insert(unsigned int lines, int count);
 

@@ -87,8 +87,7 @@ static void filetype_set(char **local, char **global, const char *value)
 	free(*local);
 	*local = xstrdup(value);
 
-	filetype_changed(buffer);
-	update_flags |= UPDATE_FULL;
+	filetype_changed();
 }
 
 #define default_enum_set default_int_set

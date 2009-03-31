@@ -58,31 +58,6 @@ static void restore_cursor_from_history(void)
 
 void set_view(struct view *v)
 {
-	int restore_cursor = 0;
-
-	/* on demand loading */
-	while (list_empty(&v->buffer->blocks)) {
-		if (!load_buffer(v->buffer, 0)) {
-			v->cursor.head = &v->buffer->blocks;
-			v->cursor.blk = BLOCK(v->buffer->blocks.next);
-			restore_cursor = 1;
-			break;
-		}
-
-		/* failed to read the file */
-		view_delete(v);
-
-		/* try to keep original view */
-		if (view)
-			return;
-
-		if (list_empty(&window->views)) {
-			v = open_empty_buffer();
-			break;
-		}
-		v = VIEW(window->views.next);
-	}
-
 	if (view == v)
 		return;
 
@@ -95,8 +70,13 @@ void set_view(struct view *v)
 
 	window->view = v;
 
-	if (restore_cursor)
-		restore_cursor_from_history();
+	if (!buffer->setup) {
+		buffer->setup = 1;
+		guess_filetype();
+		filetype_changed();
+		if (buffer->abs_filename)
+			restore_cursor_from_history();
+	}
 
 	update_flags |= UPDATE_FULL;
 }

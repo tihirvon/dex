@@ -160,7 +160,7 @@ void pop_location(void)
 		return;
 	loc = container_of(location_head.next, struct file_location, node);
 	list_del(&loc->node);
-	v = open_buffer(loc->filename, OF_LOAD_BUFFER | OF_FILE_MUST_EXIST);
+	v = open_buffer(loc->filename, OF_FILE_MUST_EXIST);
 	if (v) {
 		set_view(v);
 		move_to_line(loc->y + 1);
@@ -193,7 +193,7 @@ void goto_tag(const char *name)
 
 	if (buffer->filename)
 		loc = create_location();
-	v = open_buffer(ta.filename, OF_LOAD_BUFFER | OF_FILE_MUST_EXIST);
+	v = open_buffer(ta.filename, OF_FILE_MUST_EXIST);
 	if (!v) {
 		free(ta.filename);
 		free(ta.pattern);

@@ -1195,9 +1195,8 @@ static void cmd_save(char **args)
 	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
-		guess_filetype(buffer);
-		filetype_changed(buffer);
-		update_flags |= UPDATE_FULL;
+		if (guess_filetype())
+			filetype_changed();
 	}
 	return;
 error:

@@ -413,25 +413,27 @@ static struct view *find_view(const char *abs_filename)
 	return NULL;
 }
 
-void guess_filetype(struct buffer *b)
+int guess_filetype(void)
 {
 	const char *ft = NULL;
 
-	if (BLOCK(b->blocks.next)->size) {
+	if (BLOCK(buffer->blocks.next)->size) {
 		struct block_iter bi;
 
-		bi.blk = BLOCK(b->blocks.next);
-		bi.head = &b->blocks;
+		bi.blk = BLOCK(buffer->blocks.next);
+		bi.head = &buffer->blocks;
 		bi.offset = 0;
 		fetch_eol(&bi);
-		ft = find_ft(b->abs_filename, line_buffer);
-	} else if (b->abs_filename) {
-		ft = find_ft(b->abs_filename, NULL);
+		ft = find_ft(buffer->abs_filename, line_buffer);
+	} else if (buffer->abs_filename) {
+		ft = find_ft(buffer->abs_filename, NULL);
 	}
-	if (ft) {
-		free(b->options.filetype);
-		b->options.filetype = xstrdup(ft);
+	if (ft && strcmp(ft, buffer->options.filetype)) {
+		free(buffer->options.filetype);
+		buffer->options.filetype = xstrdup(ft);
+		return 1;
 	}
+	return 0;
 }
 
 static struct syntax *load_syntax(const char *filetype)
@@ -480,16 +482,14 @@ struct view *open_buffer(const char *filename, unsigned int flags)
 	b = buffer_new();
 	b->filename = xstrdup(filename);
 	b->abs_filename = absolute;
-
-	if (flags & OF_LOAD_BUFFER && load_buffer(b, flags & OF_FILE_MUST_EXIST)) {
+	if (load_buffer(b, flags & OF_FILE_MUST_EXIST)) {
 		free_buffer(b);
 		return NULL;
 	}
+
 	v = window_add_buffer(b);
-	if (flags & OF_LOAD_BUFFER) {
-		v->cursor.head = &v->buffer->blocks;
-		v->cursor.blk = BLOCK(v->buffer->blocks.next);
-	}
+	v->cursor.head = &v->buffer->blocks;
+	v->cursor.blk = BLOCK(v->buffer->blocks.next);
 	return v;
 }
 
@@ -539,21 +539,21 @@ int load_buffer(struct buffer *b, int must_exist)
 		struct block *blk = block_new(ALLOC_ROUND(1));
 		list_add_before(&blk->node, &b->blocks);
 	}
-	guess_filetype(b);
-	filetype_changed(b);
 	buffer_set_callbacks(b);
 	return 0;
 }
 
-void filetype_changed(struct buffer *b)
+void filetype_changed(void)
 {
-	free_hl_list(&b->hl_head);
-
 	/* even "none" can have syntax */
-	b->syn = find_syntax(b->options.filetype);
-	if (!b->syn)
-		b->syn = load_syntax(b->options.filetype);
-	highlight_buffer(b);
+	buffer->syn = find_syntax(buffer->options.filetype);
+	if (!buffer->syn)
+		buffer->syn = load_syntax(buffer->options.filetype);
+
+	free_hl_list(&buffer->hl_head);
+	highlight_buffer(buffer);
+
+	update_flags |= UPDATE_FULL;
 }
 
 static int write_crlf(struct wbuf *wbuf, const char *buf, int size)
