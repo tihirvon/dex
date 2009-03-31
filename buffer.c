@@ -575,6 +575,7 @@ void setup_buffer(void)
 	buffer->setup = 1;
 	guess_filetype();
 	filetype_changed();
+	set_file_options();
 	if (buffer->abs_filename)
 		restore_cursor_from_history();
 }

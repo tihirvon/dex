@@ -100,6 +100,15 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 	return 0;
 }
 
+static int count_strings(char **strings)
+{
+	int count;
+
+	for (count = 0; strings[count]; count++)
+		;
+	return count;
+}
+
 /*
  * Flags and first "--" are removed.
  * Flag arguments are moved to beginning.
@@ -111,7 +120,7 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 {
 	static char flags[16];
 	char **args = *argsp;
-	int argc;
+	int argc = count_strings(args);
 	int nr_flags = 0;
 	int nr_flag_args = 0;
 	int flags_after_arg = 1;
@@ -121,9 +130,6 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 		flag_desc++;
 		flags_after_arg = 0;
 	}
-
-	for (argc = 0; args[argc]; argc++)
-		;
 
 	i = 0;
 	while (args[i]) {
@@ -822,6 +828,111 @@ static void cmd_open(char **args)
 	}
 }
 
+enum file_options_type {
+	FILE_OPTIONS_FILENAME,
+	FILE_OPTIONS_FILETYPE,
+};
+
+struct file_option {
+	enum file_options_type type;
+	char **strs;
+};
+
+static struct file_option **file_options;
+static int file_option_count;
+static int file_option_alloc;
+
+static void add_file_options(enum file_options_type type, char **strs)
+{
+	struct file_option *opt;
+
+	if (file_option_count == file_option_alloc) {
+		file_option_alloc = file_option_alloc * 3 / 2;
+		file_option_alloc = (file_option_alloc + 4) & ~3;
+		xrenew(file_options, file_option_alloc);
+	}
+	opt = xnew(struct file_option, 1);
+	opt->type = type;
+	opt->strs = strs;
+	file_options[file_option_count++] = opt;
+}
+
+static void set_options(char **args)
+{
+	int i;
+
+	for (i = 0; args[i]; i += 2)
+		set_option(args[i], args[i + 1], OPT_LOCAL);
+}
+
+void set_file_options(void)
+{
+	int i;
+
+	for (i = 0; i < file_option_count; i++) {
+		const struct file_option *opt = file_options[i];
+
+		if (opt->type == FILE_OPTIONS_FILETYPE) {
+			if (!strcmp(opt->strs[0], buffer->options.filetype))
+				set_options(opt->strs + 1);
+		} else if (buffer->abs_filename && regexp_match_nosub(opt->strs[0], buffer->abs_filename)) {
+			set_options(opt->strs + 1);
+		}
+	}
+}
+
+static char **copy_string_array(char **src, int count)
+{
+	char **dst = xnew(char *, count + 1);
+	int i;
+
+	for (i = 0; i < count; i++)
+		dst[i] = xstrdup(src[i]);
+	dst[i] = NULL;
+	return dst;
+}
+
+static void cmd_option_filename(char **args)
+{
+	const char *pf = parse_args(&args, "", 3, -1);
+	int argc = count_strings(args);
+
+	if (!pf)
+		return;
+
+	if (argc % 2 == 0) {
+		error_msg("Missing option value");
+		return;
+	}
+	add_file_options(FILE_OPTIONS_FILENAME, copy_string_array(args, argc));
+}
+
+static void cmd_option_filetype(char **args)
+{
+	const char *pf = parse_args(&args, "", 3, -1);
+	int argc = count_strings(args);
+
+	if (!pf)
+		return;
+
+	if (argc % 2 == 0) {
+		error_msg("Missing option value");
+		return;
+	}
+	add_file_options(FILE_OPTIONS_FILETYPE, copy_string_array(args, argc));
+}
+
+static const struct command option_commands[] = {
+	{ "filename", NULL, cmd_option_filename },
+	{ "filetype", NULL, cmd_option_filetype },
+	{ NULL, NULL, NULL }
+};
+
+static void cmd_option(char **args)
+{
+	run_command(option_commands, args);
+}
+
 static void cmd_pass_through(char **args)
 {
 	const char *pf = parse_args(&args, "-s", 1, -1);
@@ -1448,6 +1559,7 @@ const struct command commands[] = {
 	{ "new-line", NULL, cmd_new_line },
 	{ "next", NULL, cmd_next },
 	{ "open", "o", cmd_open },
+	{ "option", NULL, cmd_option },
 	{ "pass-through", "pt", cmd_pass_through },
 	{ "paste", NULL, cmd_paste },
 	{ "pgdown", NULL, cmd_pgdown },
