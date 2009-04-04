@@ -31,6 +31,7 @@ enum option_type {
 	OPT_INT,
 	OPT_STR,
 	OPT_ENUM,
+	OPT_FLAG,
 };
 
 static void default_int_set(int *local, int *global, int value)
@@ -91,6 +92,7 @@ static void filetype_set(char **local, char **global, const char *value)
 }
 
 #define default_enum_set default_int_set
+#define default_flag_set default_int_set
 #define default_bool_set default_enum_set
 
 #define INT_OPT(_name, _local, _global, _offset, _min, _max, _set) { \
@@ -118,6 +120,18 @@ static void filetype_set(char **local, char **global, const char *value)
 	} },							\
 }
 
+#define FLAG_OPT(_name, _local, _global, _offset, _values, _set) { \
+	.name = _name,						\
+	.type = OPT_FLAG,					\
+	.local = _local,					\
+	.global = _global,					\
+	.offset = _offset,					\
+	{ .flag_opt = {						\
+		.set = _set,					\
+		.values = _values,				\
+	} },							\
+}
+
 #define STR_OPT(_name, _local, _global, _offset, _set) {	\
 	.name = _name,						\
 	.type = OPT_STR,					\
@@ -139,6 +153,10 @@ static void filetype_set(char **local, char **global, const char *value)
 #define L_ENUM(name, member, values, set) ENUM_OPT(name, 1, 0, L_OFFSET(member), values, set)
 #define G_ENUM(name, member, values, set) ENUM_OPT(name, 0, 1, G_OFFSET(member), values, set)
 #define C_ENUM(name, member, values, set) ENUM_OPT(name, 1, 1, G_OFFSET(member), values, set)
+
+#define L_FLAG(name, member, values, set) FLAG_OPT(name, 1, 0, L_OFFSET(member), values, set)
+#define G_FLAG(name, member, values, set) FLAG_OPT(name, 0, 1, G_OFFSET(member), values, set)
+#define C_FLAG(name, member, values, set) FLAG_OPT(name, 1, 1, G_OFFSET(member), values, set)
 
 #define L_STR(name, member, set) STR_OPT(name, 1, 0, L_OFFSET(member), set)
 #define G_STR(name, member, set) STR_OPT(name, 0, 1, G_OFFSET(member), set)
@@ -164,6 +182,10 @@ struct option_description {
 			void (*set)(int *local, int *global, int value);
 			const char **values;
 		} enum_opt;
+		struct {
+			void (*set)(int *local, int *global, int value);
+			const char **values;
+		} flag_opt;
 		struct {
 			void (*set)(char **local, char **global, const char *value);
 		} str_opt;
@@ -258,6 +280,51 @@ set:
 	desc->enum_opt.set(local, global, val);
 }
 
+static void set_flag_opt(const struct option_description *desc, const char *value, int *local, int *global)
+{
+	const char **values = desc->flag_opt.values;
+	const char *ptr = value;
+	int flags = 0;
+
+	while (*ptr) {
+		const char *end = strchr(ptr, ',');
+		char buf[64];
+		int i, len;
+
+		if (end) {
+			len = end - ptr;
+			end++;
+		} else {
+			len = strlen(ptr);
+			end = ptr + len;
+		}
+		if (len >= sizeof(buf)) {
+			error_msg("Too long flag value for %s.", desc->name);
+			return;
+		}
+		memcpy(buf, ptr, len);
+		buf[len] = 0;
+		ptr = end;
+
+		for (i = 0; values[i]; i++) {
+			if (!strcasecmp(buf, values[i])) {
+				flags |= 1 << i;
+				break;
+			}
+		}
+		if (!values[i]) {
+			int val, max = (1 << i) - 1;
+
+			if (!parse_int(buf, &val) || val < 0 || val > max) {
+				error_msg("Invalid value for %s.", desc->name);
+				return;
+			}
+			flags |= val;
+		}
+	}
+	desc->flag_opt.set(local, global, flags);
+}
+
 static const struct option_description *find_option(const char *name, unsigned int flags)
 {
 	int i;
@@ -311,6 +378,9 @@ void set_option(const char *name, const char *value, unsigned int flags)
 		break;
 	case OPT_ENUM:
 		set_enum_opt(desc, value, local, global);
+		break;
+	case OPT_FLAG:
+		set_flag_opt(desc, value, local, global);
 		break;
 	}
 }
