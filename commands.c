@@ -991,12 +991,6 @@ static void cmd_prev(char **args)
 		prev_buffer();
 }
 
-static void cmd_push(char **args)
-{
-	if (no_args(args))
-		push_location();
-}
-
 static void cmd_quit(char **args)
 {
 	const char *pf = parse_args(&args, "f", 0, 0);
@@ -1566,7 +1560,6 @@ const struct command commands[] = {
 	{ "pgup", NULL, cmd_pgup },
 	{ "pop", NULL, cmd_pop },
 	{ "prev", NULL, cmd_prev },
-	{ "push", NULL, cmd_push },
 	{ "quit", "q", cmd_quit },
 	{ "redo", NULL, cmd_redo },
 	{ "repeat", NULL, cmd_repeat },

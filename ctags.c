@@ -141,16 +141,6 @@ static struct file_location *create_location(void)
 	return loc;
 }
 
-void push_location(void)
-{
-	struct file_location *loc;
-
-	if (!buffer->filename)
-		return;
-	loc = create_location();
-	list_add_after(&loc->node, &location_head);
-}
-
 void pop_location(void)
 {
 	struct file_location *loc;
