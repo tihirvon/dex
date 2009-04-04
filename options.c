@@ -194,6 +194,14 @@ struct option_description {
 
 static const char *bool_enum[] = { "false", "true", NULL };
 static const char *newline_enum[] = { "unix", "dos", NULL };
+static const char *ws_error_values[] = {
+	"trailing",
+	"space-indent",
+	"space-align",
+	"tab-indent",
+	"tab-after-indent",
+	NULL
+};
 
 static const struct option_description option_desc[] = {
 	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
@@ -213,7 +221,7 @@ static const struct option_description option_desc[] = {
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
 	C_INT("text-width", text_width, 1, 1000, default_int_set),
 	C_BOOL("trim-whitespace", trim_whitespace, default_bool_set),
-	C_INT("ws-error", ws_error, 0, 31, default_int_set),
+	C_FLAG("ws-error", ws_error, ws_error_values, default_flag_set),
 };
 
 static int parse_int(const char *value, int *ret)
