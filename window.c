@@ -157,6 +157,24 @@ void update_cursor(void)
 
 	if (view->force_center || (update_view_y() && view->center_on_scroll))
 		center_view_to_cursor();
+	else {
+		int margin = get_scroll_margin();
+		int max_y;
+
+		if (view->cy < view->vy + margin) {
+			if (view->cy < margin)
+				view->vy = 0;
+			else
+				view->vy = view->cy - margin;
+		}
+		max_y = view->vy + window->h - 1 - margin;
+		if (view->cy > max_y) {
+			view->vy += view->cy - max_y;
+			max_y = buffer->nl - window->h + 1;
+			if (view->vy > max_y && max_y >= 0)
+				view->vy = max_y;
+		}
+	}
 
 	view->force_center = 0;
 	view->center_on_scroll = 0;

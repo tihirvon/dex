@@ -59,4 +59,13 @@ static inline void move_to_column(int column)
 	move_preferred_x();
 }
 
+static inline int get_scroll_margin(void)
+{
+	int max = (window->h - 1) / 2;
+
+	if (options.scroll_margin > max)
+		return max;
+	return options.scroll_margin;
+}
+
 #endif

@@ -970,13 +970,13 @@ static void cmd_paste(char **args)
 static void cmd_pgdown(char **args)
 {
 	if (no_args(args))
-		move_down(window->h - 1);
+		move_down(window->h - 1 - get_scroll_margin() * 2);
 }
 
 static void cmd_pgup(char **args)
 {
 	if (no_args(args))
-		move_up(window->h - 1);
+		move_up(window->h - 1 - get_scroll_margin() * 2);
 }
 
 static void cmd_pop(char **args)

@@ -65,6 +65,7 @@ struct global_options {
 	int show_tab_bar;
 	int ignore_case;
 	int lock_files;
+	int scroll_margin;
 };
 
 extern struct global_options options;
