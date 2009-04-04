@@ -20,7 +20,7 @@ void view_delete(struct view *v)
 		prev_view = NULL;
 
 	if (!--b->ref) {
-		if (b->abs_filename)
+		if (b->options.file_history && b->abs_filename)
 			add_file_history(v->cx_display, v->cy, b->abs_filename);
 		free_buffer(b);
 	}

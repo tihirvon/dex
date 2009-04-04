@@ -7,6 +7,7 @@
 struct global_options options = {
 	.auto_indent = 1,
 	.expand_tab = 0,
+	.file_history = 1,
 	.indent_width = 8,
 	.tab_width = 8,
 	.text_width = 72,
@@ -209,6 +210,7 @@ static const struct option_description option_desc[] = {
 	G_BOOL("display-special", display_special, default_bool_set),
 	G_INT("esc-timeout", esc_timeout, 0, 2000, default_int_set),
 	C_BOOL("expand-tab", expand_tab, default_bool_set),
+	C_BOOL("file-history", file_history, default_bool_set),
 	L_STR("filetype", filetype, filetype_set),
 	G_BOOL("ignore-case", ignore_case, default_bool_set),
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),

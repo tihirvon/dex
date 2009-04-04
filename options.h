@@ -28,6 +28,7 @@ struct local_options {
 	/* these have also global values */
 	int auto_indent;
 	int expand_tab;
+	int file_history;
 	int indent_width;
 	int tab_width;
 	int text_width;
@@ -42,6 +43,7 @@ struct global_options {
 	/* these have also local values */
 	int auto_indent;
 	int expand_tab;
+	int file_history;
 	int indent_width;
 	int tab_width;
 	int text_width;

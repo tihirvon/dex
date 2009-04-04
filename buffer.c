@@ -214,6 +214,7 @@ static struct buffer *buffer_new(void)
 
 	b->options.auto_indent = options.auto_indent;
 	b->options.expand_tab = options.expand_tab;
+	b->options.file_history = options.file_history;
 	b->options.indent_width = options.indent_width;
 	b->options.tab_width = options.tab_width;
 	b->options.text_width = options.text_width;
@@ -576,7 +577,7 @@ void setup_buffer(void)
 	guess_filetype();
 	filetype_changed();
 	set_file_options();
-	if (buffer->abs_filename)
+	if (buffer->options.file_history && buffer->abs_filename)
 		restore_cursor_from_history();
 }
 
