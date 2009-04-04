@@ -25,7 +25,7 @@ struct global_options options = {
 	.esc_timeout = 100,
 	.show_tab_bar = 0,
 	.ignore_case = 0,
-	.lock_files = 0.
+	.lock_files = 0,
 };
 
 enum option_type {
