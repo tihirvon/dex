@@ -637,8 +637,14 @@ static unsigned int screen_next_char(int *idx, uchar *up)
 	if (i == hl_buffer_len)
 		return 0;
 
-	u = u_get_char(hl_buffer, idx);
-	count = *idx - i;
+	if (buffer->utf8) {
+		u = u_get_char(hl_buffer, idx);
+		count = *idx - i;
+	} else {
+		u = (unsigned char)hl_buffer[i];
+		*idx = i + 1;
+		count = 1;
+	}
 	if (current_hl_list)
 		advance_hl(count);
 
