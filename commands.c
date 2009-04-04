@@ -1338,6 +1338,34 @@ static void do_search_next(char **args, enum search_direction dir)
 	}
 }
 
+static void cmd_scroll_pgdown(char **args)
+{
+	int max = buffer->nl - window->h + 1;
+
+	if (no_args(args) && view->vy < max && max > 0) {
+		int count = window->h - 1;
+
+		if (view->vy + count > max)
+			count = max - view->vy;
+		view->vy += count;
+		move_down(count);
+		update_flags |= UPDATE_FULL;
+	}
+}
+
+static void cmd_scroll_pgup(char **args)
+{
+	if (no_args(args) && view->vy > 0) {
+		int count = window->h - 1;
+
+		if (count > view->vy)
+			count = view->vy;
+		view->vy -= count;
+		move_up(count);
+		update_flags |= UPDATE_FULL;
+	}
+}
+
 static void cmd_search_bwd(char **args)
 {
 	do_search_next(args, SEARCH_BWD);
@@ -1567,6 +1595,8 @@ const struct command commands[] = {
 	{ "right", NULL, cmd_right },
 	{ "run", NULL, cmd_run },
 	{ "save", "s", cmd_save },
+	{ "scroll-pgdown", NULL, cmd_scroll_pgdown },
+	{ "scroll-pgup", NULL, cmd_scroll_pgup },
 	{ "search-bwd", NULL, cmd_search_bwd },
 	{ "search-fwd", NULL, cmd_search_fwd },
 	{ "search-next", NULL, cmd_search_next },
