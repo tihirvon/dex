@@ -448,6 +448,28 @@ void collect_toggleable_options(const char *prefix)
 	}
 }
 
+static void add_flag_completion(const char **values, int flags)
+{
+	char buf[1024];
+	char *ptr = buf;
+	int i;
+
+	if (!flags) {
+		add_completion(xstrdup("0"));
+		return;
+	}
+	for (i = 0; values[i]; i++) {
+		if (flags & (1 << i)) {
+			int len = strlen(values[i]);
+			memcpy(ptr, values[i], len);
+			ptr += len;
+			*ptr++ = ',';
+		}
+	}
+	ptr[-1] = 0;
+	add_completion(xstrdup(buf));
+}
+
 void collect_option_values(const char *name, const char *prefix)
 {
 	int i;
@@ -479,6 +501,9 @@ void collect_option_values(const char *name, const char *prefix)
 			case OPT_ENUM:
 				add_completion(xstrdup(desc->enum_opt.values[*(int *)ptr]));
 				break;
+			case OPT_FLAG:
+				add_flag_completion(desc->flag_opt.values, *(int *)ptr);
+				break;
 			}
 		} else if (desc->type == OPT_ENUM) {
 			/* complete possible values */
@@ -487,6 +512,25 @@ void collect_option_values(const char *name, const char *prefix)
 			for (j = 0; desc->enum_opt.values[j]; j++) {
 				if (!strncmp(prefix, desc->enum_opt.values[j], len))
 					add_completion(xstrdup(desc->enum_opt.values[j]));
+			}
+		} else if (desc->type == OPT_FLAG) {
+			/* complete possible values */
+			const char *comma = strrchr(prefix, ',');
+			int len, j, prefix_len = 0;
+
+			if (comma)
+				prefix_len = ++comma - prefix;
+			len = strlen(prefix + prefix_len);
+			for (j = 0; desc->flag_opt.values[j]; j++) {
+				const char *str = desc->flag_opt.values[j];
+
+				if (!strncmp(prefix + prefix_len, str, len)) {
+					int str_len = strlen(str);
+					char *completion = xmalloc(prefix_len + str_len + 1);
+					memcpy(completion, prefix, prefix_len);
+					memcpy(completion + prefix_len, str, str_len + 1);
+					add_completion(completion);
+				}
 			}
 		}
 		break;
