@@ -418,8 +418,8 @@ void collect_option_values(const char *name, const char *prefix)
 				if (!strncmp(prefix, desc->enum_opt.values[j], len))
 					add_completion(xstrdup(desc->enum_opt.values[j]));
 			}
-			break;
 		}
+		break;
 	}
 }
 
