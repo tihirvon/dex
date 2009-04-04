@@ -330,7 +330,7 @@ static int read_blocks(struct buffer *b, int fd)
 				len = size - pos;
 			memcpy(str, buf + pos, len);
 			str[len] = 0;
-			u = u_get_char(buf, &idx);
+			u = u_get_char(str, &idx);
 			b->utf8 = !(u & U_INVALID_MASK);
 			break;
 		}
