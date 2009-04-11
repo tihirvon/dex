@@ -229,9 +229,8 @@ static void init_completion(void)
 {
 	struct parsed_command pc;
 	const char *cmd = cmdline.buffer;
-	int rc;
 
-	rc = parse_commands(&pc, cmd, cmdline_pos);
+	parse_commands(&pc, cmd, cmdline_pos);
 	if (pc.comp_so < 0) {
 		// trying to complete comment
 		free_commands(&pc);
