@@ -231,11 +231,7 @@ static void init_completion(void)
 	const char *cmd = cmdline.buffer;
 
 	parse_commands(&pc, cmd, cmdline_pos);
-	if (pc.comp_so < 0) {
-		// trying to complete comment
-		free_commands(&pc);
-		return;
-	}
+
 	completion.escaped = xstrndup(cmd + pc.comp_so, cmdline_pos - pc.comp_so);
 	completion.parsed = parse_command_arg(completion.escaped, 1);
 	completion.head = xstrndup(cmd, pc.comp_so);
