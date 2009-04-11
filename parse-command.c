@@ -176,7 +176,7 @@ unexpected_eof:
 
 int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 {
-	int sidx, pos = 0;
+	int end, pos = 0;
 
 	memset(pc, 0, sizeof(*pc));
 	pc->comp_so = -1;
@@ -200,21 +200,22 @@ int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 			return 0;
 		}
 
-		sidx = pos;
-		if (find_end(cmd, &pos)) {
-			if (cursor_pos > sidx) {
-				pc->comp_so = sidx;
+		end = pos;
+		if (find_end(cmd, &end)) {
+			if (pos < cursor_pos) {
+				pc->comp_so = pos;
 				pc->args_before_cursor = pc->count;
 			}
 			return -1;
 		}
 
-		if (cursor_pos > sidx && cursor_pos <= pos) {
-			pc->comp_so = sidx;
+		if (pos < cursor_pos && end >= cursor_pos) {
+			pc->comp_so = pos;
 			pc->args_before_cursor = pc->count;
 		}
 
-		add_arg(pc, parse_command_arg(cmd + sidx, 1));
+		add_arg(pc, parse_command_arg(cmd + pos, 1));
+		pos = end;
 	}
 }
 
