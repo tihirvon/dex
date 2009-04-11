@@ -19,7 +19,6 @@ struct parsed_command {
 
 	// for tab completion
 	int comp_so;
-	int comp_eo;
 	int args_before_cursor;
 };
 

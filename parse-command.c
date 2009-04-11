@@ -180,14 +180,13 @@ int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 
 	memset(pc, 0, sizeof(*pc));
 	pc->comp_so = -1;
-	pc->comp_eo = cursor_pos;
 
 	while (1) {
 		while (isspace(cmd[pos]))
 			pos++;
 
-		if (pc->comp_so < 0 && pos >= pc->comp_eo) {
-			pc->comp_so = pc->comp_eo;
+		if (pc->comp_so < 0 && pos >= cursor_pos) {
+			pc->comp_so = cursor_pos;
 			pc->args_before_cursor = pc->count;
 		}
 
@@ -203,14 +202,14 @@ int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
 
 		sidx = pos;
 		if (find_end(cmd, &pos)) {
-			if (pc->comp_eo > sidx) {
+			if (cursor_pos > sidx) {
 				pc->comp_so = sidx;
 				pc->args_before_cursor = pc->count;
 			}
 			return -1;
 		}
 
-		if (pc->comp_eo > sidx && pc->comp_eo <= pos) {
+		if (cursor_pos > sidx && cursor_pos <= pos) {
 			pc->comp_so = sidx;
 			pc->args_before_cursor = pc->count;
 		}

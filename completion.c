@@ -236,10 +236,10 @@ static void init_completion(void)
 		free_commands(&pc);
 		return;
 	}
-	completion.escaped = xstrndup(cmd + pc.comp_so, pc.comp_eo - pc.comp_so);
+	completion.escaped = xstrndup(cmd + pc.comp_so, cmdline_pos - pc.comp_so);
 	completion.parsed = parse_command_arg(completion.escaped, 1);
 	completion.head = xstrndup(cmd, pc.comp_so);
-	completion.tail = xstrdup(cmd + pc.comp_eo);
+	completion.tail = xstrdup(cmd + cmdline_pos);
 	completion.add_space = 1;
 
 	collect_completions(&pc);
