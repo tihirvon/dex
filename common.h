@@ -30,7 +30,7 @@
 
 #define ARRAY_COUNT(x) (sizeof(x) / sizeof(x[0]))
 
-static inline unsigned int ROUND_UP(size_t x, size_t r)
+static inline size_t ROUND_UP(size_t x, size_t r)
 {
 	r--;
 	return (x + r) & ~r;
