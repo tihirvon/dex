@@ -713,7 +713,7 @@ static int parse_term_color(struct term_color *color, char **strs)
 
 static void cmd_highlight(char **args)
 {
-	const char *pf = parse_args(&args, "", 2, -1);
+	const char *pf = parse_args(&args, "", 1, -1);
 	struct term_color color;
 
 	if (!pf)
