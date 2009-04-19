@@ -19,7 +19,3 @@ syn join comment onbranch
 syn join notice branch
 
 syn end
-
-hi added bold
-hi modified bold red
-hi untracked bold red

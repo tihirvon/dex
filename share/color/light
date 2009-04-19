@@ -25,6 +25,12 @@ hi comment bold blue
 hi preproc blue
 hi error black yellow
 
-hi variable blue
-hi builtin bold
-hi operator bold
+# gitcommit
+hi gitcommit.added bold
+hi gitcommit.modified bold red
+hi gitcommit.untracked bold red
+
+# sh
+hi sh.variable blue
+hi sh.builtin bold
+hi sh.operator bold
