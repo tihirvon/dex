@@ -25,6 +25,14 @@ hi comment bold blue
 hi preproc blue
 hi error black yellow
 
+# diff
+hi diff.header bold
+hi diff.chunk black gray
+hi diff.added blue
+hi diff.removed bold red
+hi diff.changed magenta
+hi diff.context keep keep
+
 # gitcommit
 hi gitcommit.added bold
 hi gitcommit.modified bold red

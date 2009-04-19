@@ -15,3 +15,4 @@ ft content sh '^#!.*/bash(\s|$)'
 ft content perl '^#!.*/perl(\s|$)'
 ft match sh '.*/PKGBUILD'
 ft match config '^/etc/.*'
+ft extension diff diff patch
