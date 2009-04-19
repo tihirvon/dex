@@ -116,10 +116,9 @@ static int count_strings(char **strings)
  *
  * Returns parsed flags (order is preserved).
  */
-const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
+const char *parse_args(char **args, const char *flag_desc, int min, int max)
 {
 	static char flags[16];
-	char **args = *argsp;
 	int argc = count_strings(args);
 	int nr_flags = 0;
 	int nr_flag_args = 0;
@@ -205,7 +204,7 @@ const char *parse_args(char ***argsp, const char *flag_desc, int min, int max)
 
 static int no_args(char **args)
 {
-	return !!parse_args(&args, "", 0, 0);
+	return !!parse_args(args, "", 0, 0);
 }
 
 static int validate_alias_name(const char *name)
@@ -222,7 +221,7 @@ static int validate_alias_name(const char *name)
 
 static void cmd_alias(char **args)
 {
-	const char *pf = parse_args(&args, "", 2, 2);
+	const char *pf = parse_args(args, "", 2, 2);
 	const char *name, *value;
 	int i;
 
@@ -260,7 +259,7 @@ static void cmd_alias(char **args)
 
 static void cmd_bind(char **args)
 {
-	const char *pf = parse_args(&args, "", 2, 2);
+	const char *pf = parse_args(args, "", 2, 2);
 	struct binding *b;
 	char *keys;
 	int count = 0, i = 0;
@@ -331,7 +330,7 @@ static void cmd_clear(char **args)
 
 static void cmd_close(char **args)
 {
-	const char *pf = parse_args(&args, "f", 0, 0);
+	const char *pf = parse_args(args, "f", 0, 0);
 
 	if (!pf)
 		return;
@@ -450,7 +449,7 @@ static void cmd_erase_word(char **args)
 
 static void cmd_error(char **args)
 {
-	const char *pf = parse_args(&args, "np", 0, 1);
+	const char *pf = parse_args(args, "np", 0, 1);
 	char dir = 0;
 
 	if (!pf)
@@ -505,7 +504,7 @@ static void cmd_error(char **args)
 
 static void cmd_errorfmt(char **args)
 {
-	const char *pf = parse_args(&args, "ir", 2, -1);
+	const char *pf = parse_args(args, "ir", 2, -1);
 	enum msg_importance importance = IMPORTANT;
 
 	if (!pf)
@@ -527,21 +526,21 @@ static void cmd_errorfmt(char **args)
 
 static void cmd_filetype_content(char **args)
 {
-	if (!parse_args(&args, "", 2, 2))
+	if (!parse_args(args, "", 2, 2))
 		return;
 	add_ft_content(args[0], args[1]);
 }
 
 static void cmd_filetype_extension(char **args)
 {
-	if (!parse_args(&args, "", 2, -1))
+	if (!parse_args(args, "", 2, -1))
 		return;
 	add_ft_extensions(args[0], args + 1);
 }
 
 static void cmd_filetype_match(char **args)
 {
-	if (!parse_args(&args, "", 2, 2))
+	if (!parse_args(args, "", 2, 2))
 		return;
 	add_ft_match(args[0], args[1]);
 }
@@ -560,7 +559,7 @@ static void cmd_filetype(char **args)
 
 static void cmd_filter(char **args)
 {
-	const char *pf = parse_args(&args, "-", 1, -1);
+	const char *pf = parse_args(args, "-", 1, -1);
 
 	if (!pf)
 		return;
@@ -588,7 +587,7 @@ static void cmd_filter(char **args)
 
 static void cmd_format_paragraph(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 1);
+	const char *pf = parse_args(args, "", 0, 1);
 	int text_width = buffer->options.text_width;
 
 	if (!pf)
@@ -713,7 +712,7 @@ static int parse_term_color(struct term_color *color, char **strs)
 
 static void cmd_highlight(char **args)
 {
-	const char *pf = parse_args(&args, "", 1, -1);
+	const char *pf = parse_args(args, "", 1, -1);
 	struct term_color color;
 
 	if (!pf)
@@ -725,14 +724,14 @@ static void cmd_highlight(char **args)
 
 static void cmd_include(char **args)
 {
-	if (!parse_args(&args, "", 1, 1))
+	if (!parse_args(args, "", 1, 1))
 		return;
 	read_config(args[0], 1);
 }
 
 static void cmd_insert(char **args)
 {
-	const char *pf = parse_args(&args, "ekm", 1, 1);
+	const char *pf = parse_args(args, "ekm", 1, 1);
 	const char *str = args[0];
 	char *buf = NULL;
 
@@ -781,7 +780,7 @@ static void cmd_left(char **args)
 
 static void cmd_line(char **args)
 {
-	const char *pf = parse_args(&args, "", 1, 1);
+	const char *pf = parse_args(args, "", 1, 1);
 	int line;
 
 	if (!pf)
@@ -806,7 +805,7 @@ static void cmd_next(char **args)
 
 static void cmd_open(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, -1);
+	const char *pf = parse_args(args, "", 0, -1);
 	struct view *old_view = view;
 	int i, first = 1;
 
@@ -894,7 +893,7 @@ static char **copy_string_array(char **src, int count)
 
 static void cmd_option_filename(char **args)
 {
-	const char *pf = parse_args(&args, "", 3, -1);
+	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
 
 	if (!pf)
@@ -909,7 +908,7 @@ static void cmd_option_filename(char **args)
 
 static void cmd_option_filetype(char **args)
 {
-	const char *pf = parse_args(&args, "", 3, -1);
+	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
 
 	if (!pf)
@@ -935,7 +934,7 @@ static void cmd_option(char **args)
 
 static void cmd_pass_through(char **args)
 {
-	const char *pf = parse_args(&args, "-s", 1, -1);
+	const char *pf = parse_args(args, "-s", 1, -1);
 	unsigned int del_len = 0;
 	int strip_nl;
 
@@ -993,7 +992,7 @@ static void cmd_prev(char **args)
 
 static void cmd_quit(char **args)
 {
-	const char *pf = parse_args(&args, "f", 0, 0);
+	const char *pf = parse_args(args, "f", 0, 0);
 	struct window *w;
 	struct view *v;
 
@@ -1016,7 +1015,7 @@ static void cmd_quit(char **args)
 
 static void cmd_redo(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 1);
+	const char *pf = parse_args(args, "", 0, 1);
 	int change_id = 0;
 
 	if (!pf)
@@ -1035,7 +1034,7 @@ static void cmd_redo(char **args)
 
 static void cmd_repeat(char **args)
 {
-	const char *pf = parse_args(&args, "", 2, -1);
+	const char *pf = parse_args(args, "", 2, -1);
 	const struct command *cmd;
 	int count;
 
@@ -1054,7 +1053,7 @@ static void cmd_repeat(char **args)
 
 static void cmd_replace(char **args)
 {
-	const char *pf = parse_args(&args, "bcgi", 2, 2);
+	const char *pf = parse_args(args, "bcgi", 2, 2);
 	unsigned int flags = 0;
 	int i;
 
@@ -1088,7 +1087,7 @@ static void cmd_right(char **args)
 
 static void cmd_run(char **args)
 {
-	const char *pf = parse_args(&args, "-1cdef=ijps", 1, -1);
+	const char *pf = parse_args(args, "-1cdef=ijps", 1, -1);
 	const char *compiler = NULL;
 	unsigned int flags = 0;
 	int quoted = 0;
@@ -1178,7 +1177,7 @@ static int stat_changed(const struct stat *a, const struct stat *b)
 
 static void cmd_save(char **args)
 {
-	const char *pf = parse_args(&args, "dfu", 0, 1);
+	const char *pf = parse_args(args, "dfu", 0, 1);
 	char *absolute = buffer->abs_filename;
 	int force = 0;
 	enum newline_sequence newline = buffer->newline;
@@ -1313,7 +1312,7 @@ error:
 
 static void do_search_next(char **args, enum search_direction dir)
 {
-	const char *pf = parse_args(&args, "w", 0, 0);
+	const char *pf = parse_args(args, "w", 0, 0);
 
 	if (!pf)
 		return;
@@ -1390,7 +1389,7 @@ static void cmd_search_prev(char **args)
 
 static void cmd_select(char **args)
 {
-	const char *pf = parse_args(&args, "l", 0, 0);
+	const char *pf = parse_args(args, "l", 0, 0);
 	int select_lines;
 
 	if (!pf)
@@ -1414,7 +1413,7 @@ static void cmd_select(char **args)
 
 static void cmd_set(char **args)
 {
-	const char *pf = parse_args(&args, "gl", 1, 2);
+	const char *pf = parse_args(args, "gl", 1, 2);
 	unsigned int flags = 0;
 
 	if (!pf)
@@ -1436,7 +1435,7 @@ static void cmd_set(char **args)
 
 static void cmd_shift(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 1);
+	const char *pf = parse_args(args, "", 0, 1);
 	int count = 1;
 
 	if (!pf)
@@ -1468,7 +1467,7 @@ static void cmd_syntax(char **args)
 
 static void cmd_tag(char **args)
 {
-	const char *pf = parse_args(&args, "", 0, 1);
+	const char *pf = parse_args(args, "", 0, 1);
 
 	if (!pf)
 		return;
@@ -1487,7 +1486,7 @@ static void cmd_tag(char **args)
 
 static void cmd_toggle(char **args)
 {
-	const char *pf = parse_args(&args, "gl", 1, 1);
+	const char *pf = parse_args(args, "gl", 1, 1);
 	unsigned int flags = 0;
 
 	if (!pf)
@@ -1523,7 +1522,7 @@ static void cmd_up(char **args)
 
 static void cmd_view(char **args)
 {
-	const char *pf = parse_args(&args, "", 1, 1);
+	const char *pf = parse_args(args, "", 1, 1);
 	struct list_head *node;
 	int idx;
 

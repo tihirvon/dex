@@ -108,7 +108,7 @@ void syn_begin(char **args)
 {
 	struct syntax_context *c;
 
-	if (!parse_args(&args, "", 1, 1))
+	if (!parse_args(args, "", 1, 1))
 		return;
 
 	if (cur_syntax) {
@@ -129,7 +129,7 @@ void syn_begin(char **args)
 
 void syn_end(char **args)
 {
-	if (!parse_args(&args, "", 0, 0))
+	if (!parse_args(args, "", 0, 0))
 		return;
 
 	if (!cur_syntax) {
@@ -154,7 +154,7 @@ static union syntax_node *find_syntax_node(const char *name)
 
 void syn_addw(char **args)
 {
-	const char *pf = parse_args(&args, "i", 2, -1);
+	const char *pf = parse_args(args, "i", 2, -1);
 	const char *name;
 	union syntax_node *n;
 	struct syntax_word *w = NULL;
@@ -203,7 +203,7 @@ void syn_addw(char **args)
 
 void syn_addr(char **args)
 {
-	const char *pf = parse_args(&args, "i", 2, 2);
+	const char *pf = parse_args(args, "i", 2, 2);
 	const char *name;
 	const char *pattern;
 	union syntax_node *n;
@@ -238,7 +238,7 @@ void syn_addr(char **args)
 
 void syn_addc(char **args)
 {
-	const char *pf = parse_args(&args, "hi", 3, 3);
+	const char *pf = parse_args(args, "hi", 3, 3);
 	const char *name;
 	union syntax_node *n;
 	struct syntax_context *c;
@@ -294,7 +294,7 @@ void syn_connect(char **args)
 	struct syntax_context *c;
 	int i;
 
-	if (!parse_args(&args, "", 2, -1))
+	if (!parse_args(args, "", 2, -1))
 		return;
 	name = args[0];
 
@@ -358,7 +358,7 @@ void syn_join(char **args)
 	struct syntax_join *join;
 	int i;
 
-	if (!parse_args(&args, "", 2, -1))
+	if (!parse_args(args, "", 2, -1))
 		return;
 
 	join = get_join(get_real_node_name(args[0]));
