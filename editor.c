@@ -1467,31 +1467,33 @@ static void handle_sigwinch(int signum)
 
 static void set_basic_colors(void)
 {
-	struct term_color none, c;
+	struct term_color c;
 
-	none.fg = -1;
-	none.bg = -1;
-	none.attr = 0;
-	default_color = set_highlight_color("default", &none);
-
-	c.fg = 0;
-	c.bg = 7;
+	c.fg = -1;
+	c.bg = -1;
 	c.attr = 0;
+	default_color = set_highlight_color("default", &c);
+	commandline_color = set_highlight_color("commandline", &c);
+
+	c.fg = 1;
+	c.bg = -1;
+	c.attr = ATTR_BOLD;
+	errormsg_color = set_highlight_color("errormsg", &c);
+
+	c.fg = 4;
+	c.bg = -1;
+	c.attr = ATTR_BOLD;
+	infomsg_color = set_highlight_color("infomsg", &c);
+
+	c.fg = -2;
+	c.bg = 7;
+	c.attr = ATTR_KEEP;
 	selection_color = set_highlight_color("selection", &c);
-	statusline_color = set_highlight_color("statusline", &c);
-	commandline_color = set_highlight_color("commandline", &none);
-	errormsg_color = set_highlight_color("errormsg", &none);
-	infomsg_color = set_highlight_color("infomsg", &none);
 
 	c.fg = -1;
 	c.bg = 3;
 	c.attr = 0;
 	wserror_color = set_highlight_color("wserror", &c);
-
-	c.fg = -1;
-	c.bg = 7;
-	c.attr = 0;
-	tab_bar_color = set_highlight_color("tabbar", &c);
 
 	c.fg = -1;
 	c.bg = -1;
@@ -1502,6 +1504,8 @@ static void set_basic_colors(void)
 	c.bg = 7;
 	c.attr = 0;
 	tab_inactive_color = set_highlight_color("inactivetab", &c);
+	tab_bar_color = set_highlight_color("tabbar", &c);
+	statusline_color = set_highlight_color("statusline", &c);
 }
 
 static void close_all_views(void)
