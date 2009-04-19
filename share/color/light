@@ -1,3 +1,17 @@
+# builtin highlight colors
+hi default
+hi commandline
+hi errormsg bold red
+hi infomsg bold blue
+hi selection keep gray keep
+hi activetab bold
+hi inactivetab black gray
+hi tabbar black gray
+hi statusline black gray
+hi wserror default yellow
+hi nontext blue keep
+
+# common to many languages
 hi keyword bold
 hi type bold
 hi label bold
@@ -14,9 +28,3 @@ hi error black yellow
 hi variable blue
 hi builtin bold
 hi operator bold
-
-hi errormsg bold red
-hi infomsg bold blue
-
-hi selection keep gray keep
-hi nontext blue keep
