@@ -13,6 +13,7 @@
 #include "syntax.h"
 #include "highlight.h"
 #include "lock.h"
+#include "ptr-array.h"
 
 #define MAX_KEYS 4
 
@@ -1140,7 +1141,7 @@ static void cmd_run(char **args)
 	}
 
 	if (quoted) {
-		struct parsed_command pc;
+		PTR_ARRAY(array);
 		char cmd[8192];
 		char *word;
 
@@ -1156,12 +1157,12 @@ static void cmd_run(char **args)
 
 		snprintf(cmd, sizeof(cmd), args[0], word);
 		free(word);
-		if (parse_commands(&pc, cmd)) {
-			free_commands(&pc);
+		if (parse_commands(&array, cmd)) {
+			ptr_array_free(&array);
 			return;
 		}
-		spawn(pc.argv, flags, compiler);
-		free_commands(&pc);
+		spawn((char **)array.ptrs, flags, compiler);
+		ptr_array_free(&array);
 	} else {
 		spawn(args, flags, compiler);
 	}
@@ -1677,18 +1678,18 @@ static const char *find_alias(const char *name)
 	return NULL;
 }
 
-static void run_commands(const struct parsed_command *pc)
+static void run_commands(const struct ptr_array *array)
 {
 	int s, e;
 
 	s = 0;
-	while (s < pc->count) {
+	while (s < array->count) {
 		e = s;
-		while (e < pc->count && pc->argv[e])
+		while (e < array->count && array->ptrs[e])
 			e++;
 
 		if (e > s)
-			run_command(commands, pc->argv + s);
+			run_command(commands, (char **)array->ptrs + s);
 
 		s = e + 1;
 	}
@@ -1704,7 +1705,7 @@ static void run_command(const struct command *cmds, char **av)
 	}
 	cmd = find_command(cmds, av[0]);
 	if (!cmd) {
-		struct parsed_command pc;
+		PTR_ARRAY(array);
 		const char *alias;
 		int i;
 
@@ -1717,27 +1718,20 @@ static void run_command(const struct command *cmds, char **av)
 			error_msg("No such command or alias: %s", av[0]);
 			return;
 		}
-		if (parse_commands(&pc, alias)) {
-			free_commands(&pc);
+		if (parse_commands(&array, alias)) {
+			ptr_array_free(&array);
 			return;
 		}
 
-		for (i = 1; av[i]; i++)
-			;
-
 		/* remove NULL */
-		pc.count--;
+		array.count--;
 
-		if (pc.count + i > pc.alloc) {
-			pc.alloc = pc.count + i;
-			xrenew(pc.argv, pc.alloc);
-		}
 		for (i = 1; av[i]; i++)
-			pc.argv[pc.count++] = xstrdup(av[i]);
-		pc.argv[pc.count++] = NULL;
+			ptr_array_add(&array, xstrdup(av[i]));
+		ptr_array_add(&array, NULL);
 
-		run_commands(&pc);
-		free_commands(&pc);
+		run_commands(&array);
+		ptr_array_free(&array);
 		return;
 	}
 
@@ -1748,13 +1742,13 @@ static void run_command(const struct command *cmds, char **av)
 
 void handle_command(const char *cmd)
 {
-	struct parsed_command pc;
+	PTR_ARRAY(array);
 
-	if (parse_commands(&pc, cmd)) {
-		free_commands(&pc);
+	if (parse_commands(&array, cmd)) {
+		ptr_array_free(&array);
 		return;
 	}
 
-	run_commands(&pc);
-	free_commands(&pc);
+	run_commands(&array);
+	ptr_array_free(&array);
 }

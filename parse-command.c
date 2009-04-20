@@ -2,17 +2,9 @@
 #include "util.h"
 #include "gbuf.h"
 #include "buffer.h"
+#include "ptr-array.h"
 
 static GBUF(arg);
-
-static void add_arg(struct parsed_command *pc, char *str)
-{
-	if (pc->alloc == pc->count) {
-		pc->alloc = ROUND_UP(pc->count + 1, 8);
-		xrenew(pc->argv, pc->alloc);
-	}
-	pc->argv[pc->count++] = str;
-}
 
 static void parse_home(const char *cmd, int *posp)
 {
@@ -174,11 +166,10 @@ unexpected_eof:
 	return -1;
 }
 
-int parse_commands(struct parsed_command *pc, const char *cmd)
+int parse_commands(struct ptr_array *array, const char *cmd)
 {
 	int pos = 0;
 
-	memset(pc, 0, sizeof(*pc));
 	while (1) {
 		int end;
 
@@ -189,7 +180,7 @@ int parse_commands(struct parsed_command *pc, const char *cmd)
 			break;
 
 		if (cmd[pos] == ';') {
-			add_arg(pc, NULL);
+			ptr_array_add(array, NULL);
 			pos++;
 			continue;
 		}
@@ -198,16 +189,9 @@ int parse_commands(struct parsed_command *pc, const char *cmd)
 		if (find_end(cmd, &end))
 			return -1;
 
-		add_arg(pc, parse_command_arg(cmd + pos, 1));
+		ptr_array_add(array, parse_command_arg(cmd + pos, 1));
 		pos = end;
 	}
-	add_arg(pc, NULL);
+	ptr_array_add(array, NULL);
 	return 0;
-}
-
-void free_commands(struct parsed_command *pc)
-{
-	while (pc->count > 0)
-		free(pc->argv[--pc->count]);
-	free(pc->argv);
 }

@@ -2,20 +2,12 @@
 #define COMMANDS_H
 
 #include "term.h"
+#include "ptr-array.h"
 
 struct command {
 	const char *name;
 	const char *short_name;
 	void (*cmd)(char **);
-};
-
-struct parsed_command {
-	// can contain many commands. each terminated with NULL
-	char **argv;
-
-	// includes NULLs
-	int count;
-	int alloc;
 };
 
 struct alias {
@@ -34,8 +26,7 @@ extern unsigned int alias_count;
 
 char *parse_command_arg(const char *cmd, int tilde);
 int find_end(const char *cmd, int *posp);
-int parse_commands(struct parsed_command *pc, const char *cmd);
-void free_commands(struct parsed_command *pc);
+int parse_commands(struct ptr_array *array, const char *cmd);
 void handle_command(const char *cmd);
 void handle_binding(enum term_key_type type, unsigned int key);
 int read_config(const char *filename, int must_exist);
