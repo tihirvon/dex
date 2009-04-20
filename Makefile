@@ -89,7 +89,7 @@ tags:
 
 REV     = $(shell git rev-parse --short HEAD)
 RELEASE	= editor-$(REV)
-TARBALL	= $(RELEASE).tar.bz2
+TARBALL	= $(RELEASE).tar.gz
 
 dist:
 	git archive --format=tar --prefix=$(RELEASE)/ $(REV) | gzip -c -9 > $(TARBALL)
