@@ -28,10 +28,7 @@ struct binding {
 int nr_pressed_keys;
 const struct command *current_command;
 
-struct alias *aliases;
-unsigned int alias_count;
-
-static unsigned int alias_alloc;
+PTR_ARRAY(aliases);
 
 static enum term_key_type pressed_types[MAX_KEYS];
 static unsigned int pressed_keys[MAX_KEYS];
@@ -224,6 +221,7 @@ static void cmd_alias(char **args)
 {
 	const char *pf = parse_args(args, "", 2, 2);
 	const char *name, *value;
+	struct alias *alias;
 	int i;
 
 	if (!pf)
@@ -238,21 +236,19 @@ static void cmd_alias(char **args)
 	}
 
 	/* replace existing alias */
-	for (i = 0; i < alias_count; i++) {
-		if (!strcmp(aliases[i].name, name)) {
-			free(aliases[i].value);
-			aliases[i].value = xstrdup(value);
+	for (i = 0; i < aliases.count; i++) {
+		alias = aliases.ptrs[i];
+		if (!strcmp(alias->name, name)) {
+			free(alias->value);
+			alias->value = xstrdup(value);
 			return;
 		}
 	}
 
-	if (alias_count == alias_alloc) {
-		alias_alloc = ROUND_UP(alias_count + 1, 8);
-		xrenew(aliases, alias_alloc);
-	}
-	aliases[alias_count].name = xstrdup(name);
-	aliases[alias_count].value = xstrdup(value);
-	alias_count++;
+	alias = xnew(struct alias, 1);
+	alias->name = xstrdup(name);
+	alias->value = xstrdup(value);
+	ptr_array_add(&aliases, alias);
 
 	if (editor_status != EDITOR_INITIALIZING)
 		sort_aliases();
@@ -1650,23 +1646,24 @@ const struct command *find_command(const struct command *cmds, const char *name)
 
 static int alias_cmp(const void *ap, const void *bp)
 {
-	const struct alias *a = ap;
-	const struct alias *b = bp;
+	const struct alias *a = *(const struct alias **)ap;
+	const struct alias *b = *(const struct alias **)bp;
 	return strcmp(a->name, b->name);
 }
 
 void sort_aliases(void)
 {
-	qsort(aliases, alias_count, sizeof(*aliases), alias_cmp);
+	qsort(aliases.ptrs, aliases.count, sizeof(*aliases.ptrs), alias_cmp);
 }
 
 const char *find_alias(const char *name)
 {
 	int i;
 
-	for (i = 0; i < alias_count; i++) {
-		if (!strcmp(aliases[i].name, name))
-			return aliases[i].value;
+	for (i = 0; i < aliases.count; i++) {
+		const struct alias *alias = aliases.ptrs[i];
+		if (!strcmp(alias->name, name))
+			return alias->value;
 	}
 	return NULL;
 }

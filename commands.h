@@ -21,8 +21,7 @@ extern const struct command *current_command;
 extern const char *config_file;
 extern int config_line;
 
-extern struct alias *aliases;
-extern unsigned int alias_count;
+extern struct ptr_array aliases;
 
 char *parse_command_arg(const char *cmd, int tilde);
 int find_end(const char *cmd, int *posp);

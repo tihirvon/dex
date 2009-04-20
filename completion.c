@@ -61,9 +61,10 @@ static void collect_commands(const char *prefix)
 			add_completion(xstrdup(c->name));
 	}
 
-	for (i = 0; i < alias_count; i++) {
-		if (!strncmp(prefix, aliases[i].name, prefix_len))
-			add_completion(xstrdup(aliases[i].name));
+	for (i = 0; i < aliases.count; i++) {
+		struct alias *alias = aliases.ptrs[i];
+		if (!strncmp(prefix, alias->name, prefix_len))
+			add_completion(xstrdup(alias->name));
 	}
 	sort_completions();
 }
