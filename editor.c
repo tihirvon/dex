@@ -1085,17 +1085,33 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 	return 1;
 }
 
+static void command_line_enter(void)
+{
+	PTR_ARRAY(array);
+	int ret;
+
+	reset_completion();
+	input_mode = INPUT_NORMAL;
+	ret = parse_commands(&array, cmdline.buffer);
+
+	/* Need to do this before executing the command because
+	 * "command" can modify contents of command line.
+	 */
+	history_add(&command_history, cmdline.buffer);
+	cmdline_clear();
+
+	if (!ret)
+		run_commands(&array);
+	ptr_array_free(&array);
+}
+
 static void command_mode_key(enum term_key_type type, unsigned int key)
 {
 	switch (type) {
 	case KEY_NORMAL:
 		switch (key) {
 		case '\r':
-			reset_completion();
-			input_mode = INPUT_NORMAL;
-			handle_command(cmdline.buffer);
-			history_add(&command_history, cmdline.buffer);
-			cmdline_clear();
+			command_line_enter();
 			break;
 		case '\t':
 			complete_command();

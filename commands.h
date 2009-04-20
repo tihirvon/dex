@@ -26,6 +26,7 @@ extern struct ptr_array aliases;
 char *parse_command_arg(const char *cmd, int tilde);
 int find_end(const char *cmd, int *posp);
 int parse_commands(struct ptr_array *array, const char *cmd);
+void run_commands(const struct ptr_array *array);
 void handle_command(const char *cmd);
 void handle_binding(enum term_key_type type, unsigned int key);
 int read_config(const char *filename, int must_exist);

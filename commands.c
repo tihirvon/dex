@@ -1668,7 +1668,7 @@ const char *find_alias(const char *name)
 	return NULL;
 }
 
-static void run_commands(const struct ptr_array *array)
+void run_commands(const struct ptr_array *array)
 {
 	int s, e;
 
