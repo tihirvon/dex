@@ -838,23 +838,16 @@ struct file_option {
 	char **strs;
 };
 
-static struct file_option **file_options;
-static int file_option_count;
-static int file_option_alloc;
+static PTR_ARRAY(file_options);
 
 static void add_file_options(enum file_options_type type, char **strs)
 {
 	struct file_option *opt;
 
-	if (file_option_count == file_option_alloc) {
-		file_option_alloc = file_option_alloc * 3 / 2;
-		file_option_alloc = (file_option_alloc + 4) & ~3;
-		xrenew(file_options, file_option_alloc);
-	}
 	opt = xnew(struct file_option, 1);
 	opt->type = type;
 	opt->strs = strs;
-	file_options[file_option_count++] = opt;
+	ptr_array_add(&file_options, opt);
 }
 
 static void set_options(char **args)
@@ -869,8 +862,8 @@ void set_file_options(void)
 {
 	int i;
 
-	for (i = 0; i < file_option_count; i++) {
-		const struct file_option *opt = file_options[i];
+	for (i = 0; i < file_options.count; i++) {
+		const struct file_option *opt = file_options.ptrs[i];
 
 		if (opt->type == FILE_OPTIONS_FILETYPE) {
 			if (!strcmp(opt->strs[0], buffer->options.filetype))
