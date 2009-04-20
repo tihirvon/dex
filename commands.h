@@ -37,6 +37,7 @@ void complete_command(void);
 void reset_completion(void);
 void add_completion(char *str);
 void sort_aliases(void);
+const char *find_alias(const char *name);
 void set_file_options(void);
 
 #endif

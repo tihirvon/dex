@@ -1667,7 +1667,7 @@ void sort_aliases(void)
 	qsort(aliases, alias_count, sizeof(*aliases), alias_cmp);
 }
 
-static const char *find_alias(const char *name)
+const char *find_alias(const char *name)
 {
 	int i;
 

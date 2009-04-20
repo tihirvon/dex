@@ -252,7 +252,28 @@ static void init_completion(void)
 			break;
 		}
 
-		ptr_array_add(&array, parse_command_arg(cmd + pos, 1));
+		if (semicolon == array.count - 1) {
+			char *name = xstrndup(cmd + pos, end - pos);
+			const char *value = find_alias(name);
+
+			if (value) {
+				int i, save = array.count;
+
+				if (parse_commands(&array, value)) {
+					for (i = save; i < array.count; i++) {
+						free(array.ptrs[i]);
+						array.ptrs[i] = NULL;
+					}
+					array.count = save;
+					ptr_array_add(&array, parse_command_arg(name, 1));
+				}
+			} else {
+				ptr_array_add(&array, parse_command_arg(name, 1));
+			}
+			free(name);
+		} else {
+			ptr_array_add(&array, parse_command_arg(cmd + pos, 1));
+		}
 		pos = end;
 	}
 
