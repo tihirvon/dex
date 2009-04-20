@@ -1,6 +1,7 @@
 #include "filetype.h"
 #include "common.h"
 #include "util.h"
+#include "ptr-array.h"
 
 struct filetype {
 	char *name;
@@ -12,24 +13,17 @@ struct filetype {
 	} type;
 };
 
-static struct filetype **filetypes;
-static int filetype_count;
-static int filetype_alloc;
+static PTR_ARRAY(filetypes);
 
 static void add_filetype(const char *name, const char *str, int type)
 {
 	struct filetype *ft;
 
-	if (filetype_count == filetype_alloc) {
-		filetype_alloc = filetype_alloc * 3 / 2;
-		filetype_alloc = (filetype_alloc + 4) & ~3;
-		xrenew(filetypes, filetype_alloc);
-	}
 	ft = xnew(struct filetype, 1);
 	ft->name = xstrdup(name);
 	ft->str = xstrdup(str);
 	ft->type = type;
-	filetypes[filetype_count++] = ft;
+	ptr_array_add(&filetypes, ft);
 }
 
 void add_ft_extensions(const char *name, char * const *extensions)
@@ -58,8 +52,8 @@ const char *find_ft(const char *filename, const char *first_line)
 		ext = strrchr(filename, '.');
 	if (ext)
 		ext++;
-	for (i = 0; i < filetype_count; i++) {
-		const struct filetype *ft = filetypes[i];
+	for (i = 0; i < filetypes.count; i++) {
+		const struct filetype *ft = filetypes.ptrs[i];
 		switch (ft->type) {
 		case FT_EXTENSION:
 			if (ext && !strcmp(ext, ft->str))
@@ -82,8 +76,9 @@ int is_ft(const char *name)
 {
 	int i;
 
-	for (i = 0; i < filetype_count; i++) {
-		if (!strcmp(filetypes[i]->name, name))
+	for (i = 0; i < filetypes.count; i++) {
+		const struct filetype *ft = filetypes.ptrs[i];
+		if (!strcmp(ft->name, name))
 			return 1;
 	}
 	return 0;
