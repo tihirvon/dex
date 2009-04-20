@@ -16,10 +16,6 @@ struct parsed_command {
 	// includes NULLs
 	int count;
 	int alloc;
-
-	// for tab completion
-	int comp_so;
-	int args_before_cursor;
 };
 
 struct alias {
@@ -37,7 +33,8 @@ extern struct alias *aliases;
 extern unsigned int alias_count;
 
 char *parse_command_arg(const char *cmd, int tilde);
-int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos);
+int find_end(const char *cmd, int *posp);
+int parse_commands(struct parsed_command *pc, const char *cmd);
 void free_commands(struct parsed_command *pc);
 void handle_command(const char *cmd);
 void handle_binding(enum term_key_type type, unsigned int key);

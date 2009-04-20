@@ -3,6 +3,7 @@
 #include "options.h"
 #include "util.h"
 #include "gbuf.h"
+#include "ptr-array.h"
 
 static struct {
 	// part of string which is to be replaced
@@ -185,61 +186,84 @@ static void collect_and_sort_files(void)
 	}
 }
 
-static void collect_completions(struct parsed_command *pc)
+static void collect_completions(char **args, int argc)
 {
 	const struct command *cmd;
-	int name_idx;
-	int i;
 
-	// Multiple commands are separated by ";" which are converted to NULL.
-	// Find command name.
-	name_idx = -1;
-	for (i = 0; i < pc->args_before_cursor; i++) {
-		if (name_idx == -1)
-			name_idx = i;
-		if (!pc->argv[i])
-			name_idx = -1;
-	}
-
-	if (name_idx < 0) {
+	if (!argc) {
 		collect_commands(completion.parsed);
 		return;
 	}
-	cmd = find_command(commands, pc->argv[name_idx]);
-	if (cmd) {
-		int argc = pc->args_before_cursor - name_idx;
-		if (!strcmp(cmd->name, "open") || !strcmp(cmd->name, "save") || !strcmp(cmd->name, "include")) {
-			collect_and_sort_files();
-			return;
-		}
-		if (!strcmp(cmd->name, "set")) {
-			if (argc == 1) {
-				collect_options(completion.parsed);
-			} else if (argc == 2) {
-				collect_option_values(pc->argv[pc->args_before_cursor - 1], completion.parsed);
-			}
-			return;
-		}
-		if (!strcmp(cmd->name, "toggle") && argc == 1)
-			collect_toggleable_options(completion.parsed);
+
+	cmd = find_command(commands, args[0]);
+	if (!cmd)
+		return;
+
+	if (!strcmp(cmd->name, "open") ||
+	    !strcmp(cmd->name, "save") ||
+	    !strcmp(cmd->name, "include")) {
+		collect_and_sort_files();
+		return;
 	}
+	if (!strcmp(cmd->name, "set")) {
+		if (argc == 1) {
+			collect_options(completion.parsed);
+		} else if (argc == 2) {
+			collect_option_values(args[argc - 1], completion.parsed);
+		}
+		return;
+	}
+	if (!strcmp(cmd->name, "toggle") && argc == 1)
+		collect_toggleable_options(completion.parsed);
 }
 
 static void init_completion(void)
 {
-	struct parsed_command pc;
 	const char *cmd = cmdline.buffer;
+	PTR_ARRAY(array);
+	int semicolon = -1;
+	int completion_pos = -1;
+	int pos = 0;
 
-	parse_commands(&pc, cmd, cmdline_pos);
+	while (1) {
+		int end;
 
-	completion.escaped = xstrndup(cmd + pc.comp_so, cmdline_pos - pc.comp_so);
+		while (isspace(cmd[pos]))
+			pos++;
+
+		if (pos >= cmdline_pos) {
+			completion_pos = cmdline_pos;
+			break;
+		}
+
+		if (!cmd[pos])
+			break;
+
+		if (cmd[pos] == ';') {
+			semicolon = array.count;
+			ptr_array_add(&array, NULL);
+			pos++;
+			continue;
+		}
+
+		end = pos;
+		if (find_end(cmd, &end) || end >= cmdline_pos) {
+			completion_pos = pos;
+			break;
+		}
+
+		ptr_array_add(&array, parse_command_arg(cmd + pos, 1));
+		pos = end;
+	}
+
+	completion.escaped = xstrndup(cmd + completion_pos, cmdline_pos - completion_pos);
 	completion.parsed = parse_command_arg(completion.escaped, 1);
-	completion.head = xstrndup(cmd, pc.comp_so);
+	completion.head = xstrndup(cmd, completion_pos);
 	completion.tail = xstrdup(cmd + cmdline_pos);
 	completion.add_space = 1;
 
-	collect_completions(&pc);
-	free_commands(&pc);
+	collect_completions((char **)array.ptrs + semicolon + 1, array.count - semicolon - 1);
+	ptr_array_free(&array);
 }
 
 static char *shell_escape(const char *str)

@@ -122,7 +122,7 @@ char *parse_command_arg(const char *cmd, int tilde)
 	return gbuf_steal(&arg);
 }
 
-static int find_end(const char *cmd, int *posp)
+int find_end(const char *cmd, int *posp)
 {
 	int pos = *posp;
 
@@ -174,49 +174,35 @@ unexpected_eof:
 	return -1;
 }
 
-int parse_commands(struct parsed_command *pc, const char *cmd, int cursor_pos)
+int parse_commands(struct parsed_command *pc, const char *cmd)
 {
-	int end, pos = 0;
+	int pos = 0;
 
 	memset(pc, 0, sizeof(*pc));
-	pc->comp_so = -1;
-
 	while (1) {
+		int end;
+
 		while (isspace(cmd[pos]))
 			pos++;
 
-		if (pc->comp_so < 0 && pos >= cursor_pos) {
-			pc->comp_so = cursor_pos;
-			pc->args_before_cursor = pc->count;
-		}
+		if (!cmd[pos])
+			break;
 
 		if (cmd[pos] == ';') {
 			add_arg(pc, NULL);
 			pos++;
 			continue;
 		}
-		if (!cmd[pos]) {
-			add_arg(pc, NULL);
-			return 0;
-		}
 
 		end = pos;
-		if (find_end(cmd, &end)) {
-			if (pos < cursor_pos) {
-				pc->comp_so = pos;
-				pc->args_before_cursor = pc->count;
-			}
+		if (find_end(cmd, &end))
 			return -1;
-		}
-
-		if (pos < cursor_pos && end >= cursor_pos) {
-			pc->comp_so = pos;
-			pc->args_before_cursor = pc->count;
-		}
 
 		add_arg(pc, parse_command_arg(cmd + pos, 1));
 		pos = end;
 	}
+	add_arg(pc, NULL);
+	return 0;
 }
 
 void free_commands(struct parsed_command *pc)

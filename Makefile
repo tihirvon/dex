@@ -30,6 +30,7 @@ objs 	:= 			\
 	obuf.o			\
 	options.o		\
 	parse-command.o		\
+	ptr-array.o		\
 	search.o		\
 	spawn.o			\
 	syntax.o		\

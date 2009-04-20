@@ -1156,7 +1156,7 @@ static void cmd_run(char **args)
 
 		snprintf(cmd, sizeof(cmd), args[0], word);
 		free(word);
-		if (parse_commands(&pc, cmd, 0)) {
+		if (parse_commands(&pc, cmd)) {
 			free_commands(&pc);
 			return;
 		}
@@ -1717,7 +1717,7 @@ static void run_command(const struct command *cmds, char **av)
 			error_msg("No such command or alias: %s", av[0]);
 			return;
 		}
-		if (parse_commands(&pc, alias, 0)) {
+		if (parse_commands(&pc, alias)) {
 			free_commands(&pc);
 			return;
 		}
@@ -1750,7 +1750,7 @@ void handle_command(const char *cmd)
 {
 	struct parsed_command pc;
 
-	if (parse_commands(&pc, cmd, 0)) {
+	if (parse_commands(&pc, cmd)) {
 		free_commands(&pc);
 		return;
 	}
