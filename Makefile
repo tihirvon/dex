@@ -52,6 +52,10 @@ color	:=			\
 	color/light		\
 	# end
 
+compiler :=			\
+	compiler/gcc		\
+	# end
+
 config	:=			\
 	filetype		\
 	rc			\
@@ -68,6 +72,7 @@ syntax	:=			\
 
 binding	:= $(addprefix share/,$(binding))
 color	:= $(addprefix share/,$(color))
+compiler:= $(addprefix share/,$(compiler))
 config	:= $(addprefix share/,$(config))
 syntax	:= $(addprefix share/,$(syntax))
 
@@ -82,6 +87,7 @@ install: all
 	$(INSTALL) -m644 $(datadir)/editor $(config)
 	$(INSTALL) -m644 $(datadir)/editor/binding $(binding)
 	$(INSTALL) -m644 $(datadir)/editor/color $(color)
+	$(INSTALL) -m644 $(datadir)/editor/compiler $(compiler)
 	$(INSTALL) -m644 $(datadir)/editor/syntax $(syntax)
 
 tags:
