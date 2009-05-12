@@ -3,7 +3,7 @@ syn begin editor
 syn addw notice FIXME TODO XXX
 syn addc sq "'" "('|$)"
 syn addc dq '"' '("|$)'
-syn addc comment '#' '\n'
+syn addc comment '^\s*#' '\n'
 
 syn connect comment notice
 syn connect default comment sq dq
