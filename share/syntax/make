@@ -3,7 +3,7 @@ syn begin make
 syn addr include '^-include\s+'
 syn addr var '\$\([a-zA-Z0-9_-]+\)'
 syn addr special-target '^\.(DEFAULT|DEFAULT_GOAL|DELETE_ON_ERROR|EXPORT_ALL_VARIABLES|FEATURES|IGNORE|INCLUDE_DIRS|INTERMEDIATE|LIBPATTERNS|LOW_RESOLUTION_TIME|NOT_PARALLEL|PHONY|POSIX|PRECIOUS|SECONDARY|SECONDEXPANSION|VARIABLES):'
-syn addr target '^[a-zA-Z]+:'
+syn addr target '^[a-zA-Z_-]+:'
 
 syn addw keyword define else endef endif export ifdef ifeq ifndef ifneq include
 syn addw keyword override unexport vpath
