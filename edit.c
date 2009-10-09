@@ -483,10 +483,14 @@ void insert_ch(unsigned int ch)
 		move_right(ins_count);
 		undo_merge = UNDO_MERGE_NONE;
 	} else {
-		unsigned char buf[5];
+		unsigned char buf[8];
+		int chars = 1;
 		int i = 0;
 
-		if (buffer->utf8) {
+		if (ch == '\t' && buffer->options.expand_tab) {
+			i = chars = buffer->options.indent_width;
+			memset(buf, ' ', chars);
+		} else if (buffer->utf8) {
 			u_set_char_raw(buf, &i, ch);
 		} else {
 			buf[i++] = ch;
@@ -494,7 +498,7 @@ void insert_ch(unsigned int ch)
 		if (block_iter_eof(&view->cursor))
 			buf[i++] = '\n';
 		insert(buf, i);
-		move_right(1);
+		move_right(chars);
 
 		undo_merge = UNDO_MERGE_INSERT;
 	}
