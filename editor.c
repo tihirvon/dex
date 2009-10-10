@@ -1172,9 +1172,6 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 
 static void handle_key(enum term_key_type type, unsigned int key)
 {
-	struct change_head *save_change_head = buffer->save_change_head;
-	struct view *v = view;
-	int update_tab_bar = 0;
 	int show_tab_bar = options.show_tab_bar;
 	int is_modified = buffer_modified(buffer);
 	int cx = view->cx_display;
@@ -1238,34 +1235,29 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	debug_blocks();
 	update_cursor();
 
-	if (vx != view->vx || vy != view->vy) {
-		update_flags |= UPDATE_FULL;
-	} else if (cx != view->cx_display || cy != view->cy ||
-			save_change_head != buffer->save_change_head) {
-		update_flags |= UPDATE_STATUS_LINE;
-
-		if (cy != view->cy)
+	if (!(update_flags & UPDATE_TAB_BAR)) {
+		// view has not changed
+		if (vx != view->vx || vy != view->vy) {
+			update_flags |= UPDATE_FULL;
+		} else if (cy != view->cy) {
 			update_flags |= UPDATE_RANGE;
-		if (cx != view->cx_display)
+		} else if (cx != view->cx_display) {
 			update_flags |= UPDATE_CURSOR_LINE;
+		}
+		if (is_modified != buffer_modified(buffer))
+			update_flags |= UPDATE_STATUS_LINE | UPDATE_TAB_BAR;
 	}
-	if (v != view) {
-		update_flags |= UPDATE_FULL;
-		update_tab_bar = 1;
-	} else if (is_modified != buffer_modified(buffer)) {
-		update_tab_bar = 1;
-	}
+
 	if (show_tab_bar != options.show_tab_bar) {
 		update_window_sizes();
-		update_flags |= UPDATE_FULL;
-		update_tab_bar = 1;
+		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 	}
 
 	if (!update_flags)
 		return;
 
 	buf_hide_cursor();
-	if (options.show_tab_bar && update_tab_bar)
+	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tab_bar();
 	if (update_flags & UPDATE_FULL) {
 		update_full();

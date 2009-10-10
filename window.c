@@ -61,7 +61,7 @@ void set_view(struct view *v)
 	if (!buffer->setup)
 		setup_buffer();
 
-	update_flags |= UPDATE_FULL;
+	update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 }
 
 void next_buffer(void)
