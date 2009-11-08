@@ -293,6 +293,23 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 		if (input_buf_fill == 1) {
 			/* sometimes alt-key gets split into two reads */
 			fill_buffer_timeout();
+
+			if (input_buf_fill > 1 && input_buf[1] == '\033') {
+				/*
+				 * Double-esc (+ maybe some other characters)
+				 *
+				 * Treat the first esc as a single key to make
+				 * things like arrow keys work immediately after
+				 * leaving (esc) the command line.
+				 *
+				 * Special key can't start with double-esc so this
+				 * should be safe.
+				 *
+				 * This breaks the esc-key == alt-key rule for the
+				 * esc-esc case but it shouldn't matter.
+				 */
+				return read_simple(key, type);
+			}
 		}
 		if (input_buf_fill > 1) {
 			if (input_buf_fill == 2 || input_buf[2] == '\033') {
