@@ -18,14 +18,21 @@ void update_preferred_x(void)
 void move_preferred_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;
+	int in_space_indent = 1;
 	int x = 0;
+	uchar u;
 
 	block_iter_bol(&view->cursor);
 	while (x < view->preferred_x) {
-		uchar u;
-
 		if (!block_iter_next_uchar(&view->cursor, &u))
 			break;
+
+		if (u == ' ') {
+			x++;
+			continue;
+		}
+
+		in_space_indent = 0;
 		if (u == '\t') {
 			x = (x + tw) / tw * tw;
 			if (x > view->preferred_x) {
@@ -40,6 +47,13 @@ void move_preferred_x(void)
 		} else {
 			x++;
 		}
+	}
+
+	if (buffer->options.emulate_tab && in_space_indent && x % buffer->options.indent_width) {
+		// force cursor to beginning of a indentation level
+		int count = x % buffer->options.indent_width;
+		while (count--)
+			block_iter_prev_byte(&view->cursor, &u);
 	}
 }
 
