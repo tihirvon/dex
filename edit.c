@@ -28,6 +28,10 @@ void move_preferred_x(void)
 			break;
 		if (u == '\t') {
 			x = (x + tw) / tw * tw;
+			if (x > view->preferred_x) {
+				block_iter_prev_byte(&view->cursor, &u);
+				break;
+			}
 		} else if (u == '\n') {
 			block_iter_prev_byte(&view->cursor, &u);
 			break;
