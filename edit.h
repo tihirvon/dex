@@ -17,6 +17,8 @@ void new_line(void);
 void format_paragraph(int pw);
 void move_left(int count);
 void move_right(int count);
+void move_cursor_left(void);
+void move_cursor_right(void);
 void move_bol(void);
 void move_eol(void);
 

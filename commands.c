@@ -772,7 +772,7 @@ static void cmd_join(char **args)
 static void cmd_left(char **args)
 {
 	if (no_args(args))
-		move_left(1);
+		move_cursor_left();
 }
 
 static void cmd_line(char **args)
@@ -1072,7 +1072,7 @@ static void cmd_replace(char **args)
 static void cmd_right(char **args)
 {
 	if (no_args(args))
-		move_right(1);
+		move_cursor_right();
 }
 
 static void cmd_run(char **args)

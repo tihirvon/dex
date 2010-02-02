@@ -6,6 +6,7 @@
 
 struct global_options options = {
 	.auto_indent = 1,
+	.emulate_tab = 0,
 	.expand_tab = 0,
 	.file_history = 1,
 	.indent_width = 8,
@@ -207,6 +208,7 @@ static const char *ws_error_values[] = {
 static const struct option_description option_desc[] = {
 	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
+	C_BOOL("emulate-tab", emulate_tab, default_bool_set),
 	G_BOOL("display-special", display_special, default_bool_set),
 	G_INT("esc-timeout", esc_timeout, 0, 2000, default_int_set),
 	C_BOOL("expand-tab", expand_tab, default_bool_set),

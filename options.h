@@ -27,6 +27,7 @@ enum {
 struct local_options {
 	/* these have also global values */
 	int auto_indent;
+	int emulate_tab;
 	int expand_tab;
 	int file_history;
 	int indent_width;
@@ -42,6 +43,7 @@ struct local_options {
 struct global_options {
 	/* these have also local values */
 	int auto_indent;
+	int emulate_tab;
 	int expand_tab;
 	int file_history;
 	int indent_width;

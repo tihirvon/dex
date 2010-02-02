@@ -333,6 +333,103 @@ static int would_become_empty(void)
 	return 1;
 }
 
+static int get_current_indent_bytes(const char *buf, int cursor_offset)
+{
+	int tw = buffer->options.tab_width;
+	int ibytes = 0;
+	int iwidth = 0;
+	int i;
+
+	for (i = 0; i < cursor_offset; i++) {
+		char ch = buf[i];
+
+		if (iwidth % buffer->options.indent_width == 0) {
+			ibytes = 0;
+			iwidth = 0;
+		}
+
+		if (ch == '\t') {
+			iwidth = (iwidth + tw) / tw * tw;
+		} else if (ch == ' ') {
+			iwidth++;
+		} else {
+			// cursor not at indentation
+			return -1;
+		}
+		ibytes++;
+	}
+
+	if (iwidth % buffer->options.indent_width) {
+		// cursor at middle of indentation level
+		return -1;
+	}
+	return ibytes;
+}
+
+static int get_indent_level_bytes_left(void)
+{
+	struct block_iter bi = view->cursor;
+	int cursor_offset = block_iter_bol(&bi);
+	int ibytes;
+
+	if (!cursor_offset)
+		return 0;
+
+	fetch_eol(&bi);
+	ibytes = get_current_indent_bytes(line_buffer, cursor_offset);
+	if (ibytes < 0)
+		return 0;
+	return ibytes;
+}
+
+static int get_indent_level_bytes_right(void)
+{
+	struct block_iter bi = view->cursor;
+	int cursor_offset = block_iter_bol(&bi);
+	int tw = buffer->options.tab_width;
+	int i, ibytes, iwidth;
+
+	fetch_eol(&bi);
+	ibytes = get_current_indent_bytes(line_buffer, cursor_offset);
+	if (ibytes < 0)
+		return 0;
+
+	iwidth = 0;
+	for (i = cursor_offset; ; i++) {
+		char ch = line_buffer[i];
+
+		if (ch == '\t') {
+			iwidth = (iwidth + tw) / tw * tw;
+		} else if (ch == ' ') {
+			iwidth++;
+		} else {
+			// no full indentation level at cursor position
+			return 0;
+		}
+
+		if (iwidth % buffer->options.indent_width == 0)
+			return i - cursor_offset + 1;
+	}
+}
+
+static void delete_one_ch(void)
+{
+	struct block_iter bi = view->cursor;
+	uchar u;
+
+	if (!buffer->next_char(&bi, &u))
+		return;
+
+	if (u == '\n' && !options.allow_incomplete_last_line &&
+			block_iter_eof(&bi) && !would_become_empty()) {
+		/* don't make last line incomplete */
+	} else if (buffer->utf8) {
+		delete(u_char_size(u), 0);
+	} else {
+		delete(1, 0);
+	}
+}
+
 void delete_ch(void)
 {
 	if (view->sel.blk) {
@@ -343,21 +440,19 @@ void delete_ch(void)
 		delete(len, 0);
 		select_end();
 	} else {
-		struct block_iter bi = view->cursor;
-		uchar u;
-
 		if (undo_merge != UNDO_MERGE_DELETE)
 			undo_merge = UNDO_MERGE_NONE;
-		if (buffer->next_char(&bi, &u)) {
-			if (u == '\n' && !options.allow_incomplete_last_line &&
-					block_iter_eof(&bi) && !would_become_empty()) {
-				/* don't make last line incomplete */
-			} else if (buffer->utf8) {
-				delete(u_char_size(u), 0);
-			} else {
-				delete(1, 0);
+
+		if (buffer->options.emulate_tab) {
+			int size = get_indent_level_bytes_right();
+			if (size) {
+				delete(size, 0);
+				undo_merge = UNDO_MERGE_DELETE;
+				return;
 			}
 		}
+
+		delete_one_ch();
 		undo_merge = UNDO_MERGE_DELETE;
 	}
 }
@@ -376,6 +471,17 @@ void erase(void)
 
 		if (undo_merge != UNDO_MERGE_BACKSPACE)
 			undo_merge = UNDO_MERGE_NONE;
+
+		if (buffer->options.emulate_tab) {
+			int size = get_indent_level_bytes_left();
+			if (size) {
+				move_left(size);
+				delete(size, 1);
+				undo_merge = UNDO_MERGE_BACKSPACE;
+				return;
+			}
+		}
+
 		if (buffer->prev_char(&view->cursor, &u)) {
 			if (buffer->utf8) {
 				delete(u_char_size(u), 1);
@@ -633,6 +739,36 @@ void move_right(int count)
 		count--;
 	}
 	update_preferred_x();
+}
+
+void move_cursor_left(void)
+{
+	if (buffer->options.emulate_tab) {
+		int size = get_indent_level_bytes_left();
+		if (size) {
+			uchar u;
+			while (size--)
+				block_iter_prev_byte(&view->cursor, &u);
+			update_preferred_x();
+			return;
+		}
+	}
+	move_left(1);
+}
+
+void move_cursor_right(void)
+{
+	if (buffer->options.emulate_tab) {
+		int size = get_indent_level_bytes_right();
+		if (size) {
+			uchar u;
+			while (size--)
+				block_iter_next_byte(&view->cursor, &u);
+			update_preferred_x();
+			return;
+		}
+	}
+	move_right(1);
 }
 
 void move_bol(void)
