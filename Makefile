@@ -5,8 +5,6 @@ all: editor
 include config.mk
 include scripts/lib.mk
 
-INSTALL_LOG	:=
-
 CFLAGS	+= -DDATADIR=\"$(datadir)\"
 
 objs 	:= 			\
