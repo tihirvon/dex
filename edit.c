@@ -1125,6 +1125,9 @@ void clear_lines(void)
 
 	block_iter_eol(&view->cursor);
 	del_count = block_iter_bol(&view->cursor);
+	if (!indent && !del_count)
+		return;
+
 	deleted = do_delete(del_count);
 	if (indent) {
 		ins_count = strlen(indent);
