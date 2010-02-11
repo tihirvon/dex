@@ -1,0 +1,50 @@
+syn begin go
+
+syn addw keyword break case chan const continue default defer else fallthrough
+syn addw keyword for func go goto if import interface map package range return
+syn addw keyword select struct switch type var
+
+syn addw builtin cap close closed copy len make new panic panicln print println
+
+syn addw type uint8 uint16 uint32 uint64 int8 int16 int32 int64
+syn addw type float32 float64 byte bool uint int float uintptr
+syn addw type string struct
+
+syn addw notice FIXME TODO XXX
+
+syn addw blank _
+syn addr exported '\<[A-Z][0-9a-zA-Z_]*\>'
+
+syn addr oct '\<0[0-7]+\>'
+syn addr dec '\<[0-9]+\>'
+syn addr hex '\<0[xX][0-9a-fA-F]+\>'
+syn addr float '\<([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([eE][+-]?[0-9]+)?\>'
+
+syn addr char \''[^\\]'\'
+syn addr escchar "'(\\\\[1-3][0-7]{2}|\\\\0?[0-7]{2}|\\\\0{0,2}[0-7]|\\\\x[0-9a-fA-F]{1,2}|\\\\[tnr'\\\\])'"
+
+# octal is always at most 3 digits and can have leading zeros
+# maximum value is 377 (255)
+syn addr escoct '\\([1-3][0-7]{2}|0?[0-7]{2}|0{0,2}[0-7])'
+syn addr eschex '\\x[0-9a-fA-F]{1,2}'
+syn addr esc '\\[tnr\\"]'
+
+syn addc string '"' '("|\n)'
+syn addc rawstring "`" "`"
+syn addc cppcomment // '\n'
+syn addc ccomment '/\*' '\*/'
+
+syn addw constant false true iota nil
+
+syn connect string esc escoct eschex
+syn connect cppcomment notice
+syn connect ccomment notice
+syn connect default keyword builtin type float oct dec hex char escchar string
+syn connect default rawstring ccomment cppcomment constant blank exported
+
+syn join numeric oct dec hex float
+syn join special esc escchar escoct eschex
+syn join string rawstring
+syn join comment ccomment cppcomment
+
+syn end

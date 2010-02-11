@@ -64,6 +64,7 @@ syntax	:=			\
 	syntax/config		\
 	syntax/editor		\
 	syntax/gitcommit	\
+	syntax/go		\
 	syntax/make		\
 	syntax/sh		\
 	# end

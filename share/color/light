@@ -42,3 +42,6 @@ hi gitcommit.untracked bold red
 hi sh.variable blue
 hi sh.builtin bold
 hi sh.operator bold
+
+# go
+hi go.builtin blue
