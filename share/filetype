@@ -19,3 +19,4 @@ ft match config '^/etc/.*'
 ft extension diff diff patch
 ft extension go go
 ft extension python py
+ft extension sql sql

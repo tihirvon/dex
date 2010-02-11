@@ -68,6 +68,7 @@ syntax	:=			\
 	syntax/make		\
 	syntax/python		\
 	syntax/sh		\
+	syntax/sql		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
