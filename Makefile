@@ -66,6 +66,7 @@ syntax	:=			\
 	syntax/gitcommit	\
 	syntax/go		\
 	syntax/make		\
+	syntax/python		\
 	syntax/sh		\
 	# end
 
