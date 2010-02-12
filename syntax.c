@@ -70,6 +70,11 @@ static char *unescape_pattern(const char *str)
 	return buf;
 }
 
+static inline int is_root(const union syntax_node *node)
+{
+	return node->any.type == SYNTAX_NODE_CONTEXT && !node->context.spattern;
+}
+
 static const char *get_real_node_name(const char *name)
 {
 	static char buf[64];
@@ -291,11 +296,36 @@ void syn_addc(char **args)
 	add_node((union syntax_node *)c, SYNTAX_NODE_CONTEXT, name, flags);
 }
 
+static void connect_node(struct syntax_context *c, union syntax_node *node)
+{
+	xrenew(c->nodes, c->nr_nodes + 1);
+	c->nodes[c->nr_nodes++] = node;
+}
+
+static void connect_by_name(struct syntax_context *c, const char *name)
+{
+	union syntax_node *n = find_syntax_node(name);
+
+	if (!n) {
+		error_msg("No such syntax node %s", name);
+		return;
+	}
+	if (is_root(n)) {
+		// connect all syntax nodes connected to root context of other syntax
+		struct syntax_context *o = &n->context;
+		int i;
+
+		for (i = 0; i < o->nr_nodes; i++)
+			connect_node(c, o->nodes[i]);
+		return;
+	}
+	connect_node(c, n);
+}
+
 void syn_connect(char **args)
 {
 	const char *name;
 	union syntax_node *n;
-	struct syntax_context *c;
 	int i;
 
 	if (!parse_args(args, "", 2, -1))
@@ -311,16 +341,8 @@ void syn_connect(char **args)
 		error_msg("Type of syntax node %s is not context.", name);
 		return;
 	}
-	c = &n->context;
-	for (i = 1; args[i]; i++) {
-		n = find_syntax_node(args[i]);
-		if (!n) {
-			error_msg("No such syntax node %s", args[i]);
-			continue;
-		}
-		xrenew(c->nodes, c->nr_nodes + 1);
-		c->nodes[c->nr_nodes++] = n;
-	}
+	for (i = 1; args[i]; i++)
+		connect_by_name(&n->context, args[i]);
 }
 
 static struct syntax_join *get_join(const char *name)
