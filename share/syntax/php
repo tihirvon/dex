@@ -1,0 +1,60 @@
+load-syntax html
+
+syn begin php
+
+syn addw keyword abstract and array as break case catch cfunction class clone
+syn addw keyword const continue declare default do else elseif enddeclare
+syn addw keyword endfor endforeach endif endswitch endwhile extends final for
+syn addw keyword foreach function global goto if implements interface
+syn addw keyword instanceof namespace new old_function or private protected
+syn addw keyword public static switch throw try use var while xor
+
+# special "classes"
+syn addw keyword self parent
+
+syn addw -i constant __CLASS__ __DIR__ __FILE__ __FUNCTION__ __METHOD__ __NAMESPACE__
+syn addw -i constant false null true
+
+# language constructs
+syn addw lang die echo empty exit eval include include_once isset list
+syn addw lang require require_once return print unset
+
+syn addw notice FIXME TODO XXX
+
+syn addr oct '\<0[0-7]+\>'
+syn addr dec '\<[0-9]+\>'
+syn addr hex '\<0[xX][0-9a-fA-F]+\>'
+syn addr float '\<([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([eE][+-]?[0-9]+)?\>'
+
+syn addr var '\$[a-zA-Z_]+'
+syn addc cvar '\{' '\}'
+syn addc dq '"' '("|\n)'
+syn addc sq "'" "('|\n)"
+syn addc -h heredoc '<<<([a-zA-Z_][a-zA-Z0-9_]*)' '^\1;?$'
+syn addc -h nowdoc "<<<'([a-zA-Z_][a-zA-Z0-9_]*)'" '^\1;?$'
+syn addc cppcomment // '\n'
+syn addc ccomment '/\*' '\*/'
+syn addc shcomment '#' '\n'
+syn addc php '<\?(php|php[345])?' '\?>'
+
+syn connect dq var cvar
+syn connect heredoc var cvar
+syn connect cppcomment notice
+syn connect ccomment notice
+syn connect shcomment notice
+
+syn connect cvar keyword lang constant var ccomment cppcomment shcomment sq dq
+syn connect cvar heredoc nowdoc oct dec hex float
+
+syn connect php keyword lang constant var ccomment cppcomment shcomment sq dq
+syn connect php heredoc nowdoc oct dec hex float
+
+syn connect root php html.root
+
+syn join comment ccomment cppcomment shcomment
+syn join numeric oct dec hex float
+syn join string sq dq heredoc nowdoc
+syn join keyword lang
+syn join special php:start php:end
+
+syn end

@@ -67,6 +67,7 @@ syntax	:=			\
 	syntax/go		\
 	syntax/html		\
 	syntax/make		\
+	syntax/php		\
 	syntax/python		\
 	syntax/sh		\
 	syntax/sql		\
