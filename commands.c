@@ -788,6 +788,19 @@ static void cmd_line(char **args)
 		move_to_line(line);
 }
 
+static void cmd_load_syntax(char **args)
+{
+	const char *pf = parse_args(args, "", 1, 1);
+	const char *name;
+
+	if (!pf)
+		return;
+
+	name = args[0];
+	if (!find_syntax(name))
+		load_syntax(name);
+}
+
 static void cmd_new_line(char **args)
 {
 	if (no_args(args))
@@ -1567,6 +1580,7 @@ const struct command commands[] = {
 	{ "join", NULL, cmd_join },
 	{ "left", NULL, cmd_left },
 	{ "line", NULL, cmd_line },
+	{ "load-syntax", NULL, cmd_load_syntax },
 	{ "new-line", NULL, cmd_new_line },
 	{ "next", NULL, cmd_next },
 	{ "open", "o", cmd_open },

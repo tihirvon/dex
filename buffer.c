@@ -438,7 +438,7 @@ int guess_filetype(void)
 	return 0;
 }
 
-static struct syntax *load_syntax(const char *filetype)
+struct syntax *load_syntax(const char *filetype)
 {
 	char filename[1024];
 	struct syntax *syn;
