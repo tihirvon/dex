@@ -315,6 +315,10 @@ static void connect_by_name(struct syntax_context *c, const char *name)
 		struct syntax_context *o = &n->context;
 		int i;
 
+		if (o == c) {
+			error_msg("Can't connect root node to itself");
+			return;
+		}
 		for (i = 0; i < o->nr_nodes; i++)
 			connect_node(c, o->nodes[i]);
 		return;
