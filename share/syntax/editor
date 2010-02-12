@@ -6,7 +6,7 @@ syn addc dq '"' '("|$)'
 syn addc comment '^\s*#' '\n'
 
 syn connect comment notice
-syn connect default comment sq dq
+syn connect root comment sq dq
 
 syn join string sq dq
 

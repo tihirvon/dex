@@ -29,7 +29,7 @@ syn addc html.comment -- '<!--' '-->'
 
 syn connect attrvalue reservedcharentity symbolentity charentity numberentity
 syn connect tag tagname frameset transitional deprecated attrvalue
-syn connect default comment tag reservedcharentity symbolentity charentity numberentity
+syn connect root comment tag reservedcharentity symbolentity charentity numberentity
 
 syn join keyword tagname frameset transitional
 syn join string attrvalue

@@ -32,11 +32,11 @@ syn addc -h heredocdq '<<-?"(.*)"' '^\1\n'
 syn connect comment notice
 syn connect dq        escoct eschex esc simplevar complexvar backtick command
 syn connect heredoc   escoct eschex esc simplevar complexvar backtick command
-syn connect default    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
+syn connect root       escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
 syn connect backtick   escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
 syn connect command    escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
 syn connect arithmetic escape comment keyword sq dq simplevar complexvar builtin builtin2 operator reserved arithmetic command
-syn connect default backtick heredoc heredocsq heredocdq
+syn connect root backtick heredoc heredocsq heredocdq
 syn connect command backtick
 syn connect arithmetic backtick
 

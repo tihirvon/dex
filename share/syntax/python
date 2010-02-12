@@ -29,8 +29,8 @@ syn addw constant None False True
 
 syn connect string esc escoct eschex
 syn connect comment notice
-syn connect default keyword imagfloat imagint float oct dec hex char escchar string
-syn connect default comment constant
+syn connect root keyword imagfloat imagint float oct dec hex char escchar string
+syn connect root comment constant
 
 syn join numeric oct dec hex float imagfloat imagint
 syn join special esc escchar escoct eschex

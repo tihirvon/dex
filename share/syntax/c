@@ -53,8 +53,8 @@ syn addr preproccont '\\\n'
 syn connect string convdir esc escoct eschex
 syn connect cppcomment notice multilinecomment
 syn connect ccomment notice
-syn connect default keyword type float oct dec hex char escchar string if0 preproc
-syn connect default ccomment cppcomment constant label
+syn connect root keyword type float oct dec hex char escchar string if0 preproc
+syn connect root ccomment cppcomment constant label
 syn connect preproc ccomment cppcomment preprocesc preproccont
 
 syn join numeric oct dec hex float

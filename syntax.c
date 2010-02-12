@@ -121,10 +121,10 @@ void syn_begin(char **args)
 	cur_syntax = xnew0(struct syntax, 1);
 	cur_syntax->name = xstrdup(args[0]);
 
-	/* context "default" always exists */
+	/* context "root" always exists */
 	c = xnew0(struct syntax_context, 1);
 	cur_syntax->root = c;
-	add_node((union syntax_node *)c, SYNTAX_NODE_CONTEXT, "default", 0);
+	add_node((union syntax_node *)c, SYNTAX_NODE_CONTEXT, "root", 0);
 }
 
 void syn_end(char **args)

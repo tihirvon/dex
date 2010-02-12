@@ -9,7 +9,7 @@ syn addr removed '^-.*'
 syn addr changed '^!.*'
 syn addr context '^ .*'
 
-syn connect default command index file chunk added removed changed context
+syn connect root command index file chunk added removed changed context
 
 syn join header command index file
 

@@ -39,7 +39,7 @@ syn addc dq '"' '("|\n)'
 syn addc sq "'" "('|\n)"
 
 syn connect comment notice
-syn connect default comment sq dq keyword identifier
+syn connect root comment sq dq keyword identifier
 
 syn join string sq dq
 syn join keyword identifier

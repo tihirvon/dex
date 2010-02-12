@@ -39,8 +39,8 @@ syn addw constant false true iota nil
 syn connect string esc escoct eschex
 syn connect cppcomment notice
 syn connect ccomment notice
-syn connect default keyword builtin type float oct dec hex char escchar string
-syn connect default rawstring ccomment cppcomment constant blank exported
+syn connect root keyword builtin type float oct dec hex char escchar string
+syn connect root rawstring ccomment cppcomment constant blank exported
 
 syn join numeric oct dec hex float
 syn join special esc escchar escoct eschex

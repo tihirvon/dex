@@ -4,6 +4,6 @@ syn addw notice FIXME TODO XXX
 syn addc comment '#' '\n'
 
 syn connect comment notice
-syn connect default comment
+syn connect root comment
 
 syn end

@@ -19,7 +19,7 @@ syn addc comment '#' '\n'
 syn addc string '"' '"'
 syn addc command '\$\(' '\)'
 
-syn connect default keyword include comment string var command special-target target
+syn connect root keyword include comment string var command special-target target
 syn connect command cmd var command
 syn connect comment notice
 
