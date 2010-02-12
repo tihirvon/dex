@@ -45,3 +45,6 @@ hi sh.operator bold
 
 # go
 hi go.builtin blue
+
+# smarty
+hi smarty blue
