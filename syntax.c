@@ -176,6 +176,10 @@ void syn_addw(char **args)
 
 	if (n) {
 		w = &n->word;
+		if (n->any.flags != flags) {
+			error_msg("Syntax node %s previously defined with different flags.", name);
+			return;
+		}
 	} else {
 		if (too_many_nodes())
 			return;
