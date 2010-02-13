@@ -20,7 +20,7 @@ syn addc string '"' '"'
 syn addc command '\$\(' '\)'
 
 syn connect root keyword include comment string var command special-target target
-syn connect command cmd var command
+syn connect command cmd var command string
 syn connect comment notice
 
 syn join special command:start command:end
