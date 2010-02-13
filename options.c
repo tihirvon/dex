@@ -10,6 +10,7 @@ struct global_options options = {
 	.expand_tab = 0,
 	.file_history = 1,
 	.indent_width = 8,
+	.syntax = 1,
 	.tab_width = 8,
 	.text_width = 72,
 	.trim_whitespace = 1,
@@ -80,6 +81,12 @@ static void statusline_set(char **local, char **global, const char *value)
 		}
 	}
 	default_str_set(local, global, value);
+}
+
+static void syntax_set(int *local, int *global, int value)
+{
+	default_int_set(local, global, value);
+	syntax_changed();
 }
 
 static void filetype_set(char **local, char **global, const char *value)
@@ -226,6 +233,7 @@ static const struct option_description option_desc[] = {
 	G_BOOL("show-tab-bar", show_tab_bar, default_int_set),
 	G_STR("statusline-left", statusline_left, statusline_set),
 	G_STR("statusline-right", statusline_right, statusline_set),
+	C_BOOL("syntax", syntax, syntax_set),
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
 	C_INT("text-width", text_width, 1, 1000, default_int_set),
 	C_BOOL("trim-whitespace", trim_whitespace, default_bool_set),

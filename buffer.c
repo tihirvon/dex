@@ -542,11 +542,23 @@ static int load_buffer(struct buffer *b, int must_exist)
 
 void filetype_changed(void)
 {
-	/* even "none" can have syntax */
-	buffer->syn = find_syntax(buffer->options.filetype);
-	if (!buffer->syn)
-		buffer->syn = load_syntax(buffer->options.filetype);
+	syntax_changed();
+}
 
+void syntax_changed(void)
+{
+	const struct syntax *syn = NULL;
+
+	if (buffer->options.syntax) {
+		/* even "none" can have syntax */
+		syn = find_syntax(buffer->options.filetype);
+		if (!syn)
+			syn = load_syntax(buffer->options.filetype);
+	}
+	if (syn == buffer->syn)
+		return;
+
+	buffer->syn = syn;
 	free_hl_list(&buffer->hl_head);
 	highlight_buffer(buffer);
 

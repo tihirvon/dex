@@ -219,6 +219,7 @@ char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 
 
 int guess_filetype(void);
 struct syntax *load_syntax(const char *filetype);
+void syntax_changed(void);
 void filetype_changed(void);
 void highlight_buffer(struct buffer *b);
 void update_hl_insert(unsigned int lines, int count);

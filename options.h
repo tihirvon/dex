@@ -30,6 +30,7 @@ struct common_options {
 	int expand_tab;
 	int file_history;
 	int indent_width;
+	int syntax;
 	int tab_width;
 	int text_width;
 	int trim_whitespace;
@@ -43,6 +44,7 @@ struct local_options {
 	int expand_tab;
 	int file_history;
 	int indent_width;
+	int syntax;
 	int tab_width;
 	int text_width;
 	int trim_whitespace;
@@ -59,6 +61,7 @@ struct global_options {
 	int expand_tab;
 	int file_history;
 	int indent_width;
+	int syntax;
 	int tab_width;
 	int text_width;
 	int trim_whitespace;
