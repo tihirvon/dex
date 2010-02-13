@@ -27,6 +27,7 @@ struct global_options options = {
 	.show_tab_bar = 0,
 	.ignore_case = 0,
 	.lock_files = 0,
+	.scroll_margin = 0,
 };
 
 enum option_type {
