@@ -844,20 +844,14 @@ enum file_options_type {
 
 struct file_option {
 	enum file_options_type type;
+	union {
+		char *filename_pattern;
+		char *filetype;
+	};
 	char **strs;
 };
 
 static PTR_ARRAY(file_options);
-
-static void add_file_options(enum file_options_type type, char **strs)
-{
-	struct file_option *opt;
-
-	opt = xnew(struct file_option, 1);
-	opt->type = type;
-	opt->strs = strs;
-	ptr_array_add(&file_options, opt);
-}
 
 static void set_options(char **args)
 {
@@ -875,10 +869,12 @@ void set_file_options(void)
 		const struct file_option *opt = file_options.ptrs[i];
 
 		if (opt->type == FILE_OPTIONS_FILETYPE) {
-			if (!strcmp(opt->strs[0], buffer->options.filetype))
-				set_options(opt->strs + 1);
-		} else if (buffer->abs_filename && regexp_match_nosub(opt->strs[0], buffer->abs_filename)) {
-			set_options(opt->strs + 1);
+			if (!strcmp(opt->filetype, buffer->options.filetype))
+				set_options(opt->strs);
+		} else if (buffer->abs_filename && regexp_match_nosub(
+							opt->filename_pattern,
+							buffer->abs_filename)) {
+			set_options(opt->strs);
 		}
 	}
 }
@@ -898,6 +894,7 @@ static void cmd_option_filename(char **args)
 {
 	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
+	struct file_option *opt;
 
 	if (!pf)
 		return;
@@ -906,13 +903,19 @@ static void cmd_option_filename(char **args)
 		error_msg("Missing option value");
 		return;
 	}
-	add_file_options(FILE_OPTIONS_FILENAME, copy_string_array(args, argc));
+
+	opt = xnew(struct file_option, 1);
+	opt->type = FILE_OPTIONS_FILENAME;
+	opt->filename_pattern = xstrdup(args[0]);
+	opt->strs = copy_string_array(args + 1, argc - 1);
+	ptr_array_add(&file_options, opt);
 }
 
 static void cmd_option_filetype(char **args)
 {
 	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
+	struct file_option *opt;
 
 	if (!pf)
 		return;
@@ -921,7 +924,12 @@ static void cmd_option_filetype(char **args)
 		error_msg("Missing option value");
 		return;
 	}
-	add_file_options(FILE_OPTIONS_FILETYPE, copy_string_array(args, argc));
+
+	opt = xnew(struct file_option, 1);
+	opt->type = FILE_OPTIONS_FILETYPE;
+	opt->filetype = xstrdup(args[0]);
+	opt->strs = copy_string_array(args + 1, argc - 1);
+	ptr_array_add(&file_options, opt);
 }
 
 static const struct command option_commands[] = {
