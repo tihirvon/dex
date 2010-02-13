@@ -809,6 +809,8 @@ static void update_everything(void)
 	restore_cursor();
 	buf_show_cursor();
 	buf_flush();
+
+	update_flags = 0;
 }
 
 static void debug_blocks(void)
