@@ -24,6 +24,18 @@ enum {
 	WSE_TAB_AFTER_INDENT	= 1 << 4,
 };
 
+struct common_options {
+	int auto_indent;
+	int emulate_tab;
+	int expand_tab;
+	int file_history;
+	int indent_width;
+	int tab_width;
+	int text_width;
+	int trim_whitespace;
+	int ws_error;
+};
+
 struct local_options {
 	/* these have also global values */
 	int auto_indent;

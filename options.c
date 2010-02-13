@@ -148,22 +148,24 @@ static void filetype_set(char **local, char **global, const char *value)
 
 #define L_OFFSET(member) offsetof(struct local_options, member)
 #define G_OFFSET(member) offsetof(struct global_options, member)
+/* make sure member is in all three structs */
+#define C_OFFSET(member) offsetof(struct common_options, member) + L_OFFSET(member) - G_OFFSET(member)
 
 #define L_INT(name, member, min, max, set) INT_OPT(name, 1, 0, L_OFFSET(member), min, max, set)
 #define G_INT(name, member, min, max, set) INT_OPT(name, 0, 1, G_OFFSET(member), min, max, set)
-#define C_INT(name, member, min, max, set) INT_OPT(name, 1, 1, G_OFFSET(member), min, max, set)
+#define C_INT(name, member, min, max, set) INT_OPT(name, 1, 1, C_OFFSET(member), min, max, set)
 
 #define L_ENUM(name, member, values, set) ENUM_OPT(name, 1, 0, L_OFFSET(member), values, set)
 #define G_ENUM(name, member, values, set) ENUM_OPT(name, 0, 1, G_OFFSET(member), values, set)
-#define C_ENUM(name, member, values, set) ENUM_OPT(name, 1, 1, G_OFFSET(member), values, set)
+#define C_ENUM(name, member, values, set) ENUM_OPT(name, 1, 1, C_OFFSET(member), values, set)
 
 #define L_FLAG(name, member, values, set) FLAG_OPT(name, 1, 0, L_OFFSET(member), values, set)
 #define G_FLAG(name, member, values, set) FLAG_OPT(name, 0, 1, G_OFFSET(member), values, set)
-#define C_FLAG(name, member, values, set) FLAG_OPT(name, 1, 1, G_OFFSET(member), values, set)
+#define C_FLAG(name, member, values, set) FLAG_OPT(name, 1, 1, C_OFFSET(member), values, set)
 
 #define L_STR(name, member, set) STR_OPT(name, 1, 0, L_OFFSET(member), set)
 #define G_STR(name, member, set) STR_OPT(name, 0, 1, G_OFFSET(member), set)
-#define C_STR(name, member, set) STR_OPT(name, 1, 1, G_OFFSET(member), set)
+#define C_STR(name, member, set) STR_OPT(name, 1, 1, C_OFFSET(member), set)
 
 #define L_BOOL(name, member, set) L_ENUM(name, member, bool_enum, set)
 #define G_BOOL(name, member, set) G_ENUM(name, member, bool_enum, set)

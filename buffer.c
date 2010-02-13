@@ -212,15 +212,7 @@ static struct buffer *buffer_new(void)
 	b->save_change_head = &b->change_head;
 	b->utf8 = !!(term_flags & TERM_UTF8);
 
-	b->options.auto_indent = options.auto_indent;
-	b->options.emulate_tab = options.emulate_tab;
-	b->options.expand_tab = options.expand_tab;
-	b->options.file_history = options.file_history;
-	b->options.indent_width = options.indent_width;
-	b->options.tab_width = options.tab_width;
-	b->options.text_width = options.text_width;
-	b->options.trim_whitespace = options.trim_whitespace;
-	b->options.ws_error = options.ws_error;
+	memcpy(&b->options, &options, sizeof(struct common_options));
 	b->options.filetype = xstrdup("none");
 
 	b->newline = options.newline;
