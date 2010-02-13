@@ -916,6 +916,8 @@ static void cmd_option_filetype(char **args)
 	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
 	struct file_option *opt;
+	char *list, *comma;
+	char **strs;
 
 	if (!pf)
 		return;
@@ -925,11 +927,21 @@ static void cmd_option_filetype(char **args)
 		return;
 	}
 
-	opt = xnew(struct file_option, 1);
-	opt->type = FILE_OPTIONS_FILETYPE;
-	opt->filetype = xstrdup(args[0]);
-	opt->strs = copy_string_array(args + 1, argc - 1);
-	ptr_array_add(&file_options, opt);
+	// NOTE: options and values are shared
+	strs = copy_string_array(args + 1, argc - 1);
+
+	list = args[0];
+	do {
+		comma = strchr(list, ',');
+
+		opt = xnew(struct file_option, 1);
+		opt->type = FILE_OPTIONS_FILETYPE;
+		opt->filetype = xmemdup(list, comma ? comma - list : strlen(list));
+		opt->strs = strs;
+		ptr_array_add(&file_options, opt);
+
+		list = comma + 1;
+	} while (comma);
 }
 
 static const struct command option_commands[] = {
