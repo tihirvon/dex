@@ -8,7 +8,7 @@ ft extension python py
 ft extension perl pl perl
 ft match editor '/\.editor/(rc|filetype|syntax/.*)$'
 ft match gitcommit '/COMMIT_EDITMSG$'
-ft match make '/Makefile(\..*)?$'
+ft match make '[mM]akefile(\..*)?$'
 ft extension make mk mak
 ft content sh '^#!.*/sh(\s|$)'
 ft content sh '^#!.*/bash(\s|$)'
