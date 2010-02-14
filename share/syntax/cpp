@@ -1,0 +1,21 @@
+load-syntax c
+
+syn begin cpp
+
+syn addw keyword catch class const_cast delete dynamic_cast explicit export
+syn addw keyword friend mutable namespace new operator private protected public
+syn addw keyword reinterpret_cast static_cast template this throw try typeid
+syn addw keyword typename using virtual
+
+syn addw type bool wchar_t
+
+syn addw constant false true
+
+syn addw altoperator and and_eq bitand bitor compl not not_eq or or_eq xor xor_eq
+
+# "classname::" should not be highlighted as a label
+syn addr classcc '[a-zA-Z_][a-zA-Z0-9_]*::'
+
+syn connect root keyword type constant altoperator classcc c.root
+
+syn end
