@@ -1,7 +1,8 @@
 ft extension c c h
 ft extension cpp cpp hpp cc hh C H cxx hxx c++ moc inl
-ft extension sh sh bash
-ft match sh '/\.bash(rc|_profile|_logout)$'
+ft extension sh sh
+ft extension bash bash
+ft match bash '/\.bash(rc|_profile|_logout)$'
 ft match indent '/\.indent\.pro$'
 ft extension cpp pro
 ft extension python py
@@ -11,10 +12,10 @@ ft match gitcommit '/COMMIT_EDITMSG$'
 ft match make '[mM]akefile(\..*)?$'
 ft extension make mk mak
 ft content sh '^#!.*/sh(\s|$)'
-ft content sh '^#!.*/bash(\s|$)'
+ft content bash '^#!.*/bash(\s|$)'
 ft content perl '^#!.*/perl(\s|$)'
 ft content python '^#!.*/python(\s|$)'
-ft match sh '.*/PKGBUILD'
+ft match bash '.*/PKGBUILD'
 ft match config '^/etc/.*'
 ft extension diff diff patch
 ft extension go go

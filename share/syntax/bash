@@ -1,0 +1,7 @@
+load-syntax sh
+
+syn begin bash
+
+syn connect root sh.root
+
+syn end

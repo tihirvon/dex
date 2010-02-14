@@ -60,6 +60,7 @@ config	:=			\
 	# end
 
 syntax	:=			\
+	syntax/bash		\
 	syntax/c		\
 	syntax/config		\
 	syntax/cpp		\
