@@ -63,6 +63,7 @@ syntax	:=			\
 	syntax/c		\
 	syntax/config		\
 	syntax/cpp		\
+	syntax/diff		\
 	syntax/editor		\
 	syntax/gitcommit	\
 	syntax/go		\
