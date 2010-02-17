@@ -239,9 +239,10 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 {
 	unsigned int flags = *flagsp;
 	regmatch_t m[MAX_SUBSTRINGS];
+	int eflags = 0;
 	int nr = 0;
 
-	while (!regexec(re, line_buffer, MAX_SUBSTRINGS, m, 0)) {
+	while (!regexec(re, line_buffer, MAX_SUBSTRINGS, m, eflags)) {
 		int match_len, count;
 		int skip = 0;
 
@@ -296,6 +297,9 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 		count = m[0].rm_so + match_len;
 		memmove(line_buffer, line_buffer + count, line_buffer_len - count + 1);
 		line_buffer_len -= count;
+
+		/* don't match beginning of line again */
+		eflags = REG_NOTBOL;
 	}
 	return nr;
 }
