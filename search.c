@@ -239,11 +239,12 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 {
 	unsigned int flags = *flagsp;
 	regmatch_t m[MAX_SUBSTRINGS];
+	size_t pos = 0;
 	int eflags = 0;
 	int nr = 0;
 
-	while (!regexec(re, line_buffer, MAX_SUBSTRINGS, m, eflags)) {
-		int match_len, count;
+	while (!regexec(re, line_buffer + pos, MAX_SUBSTRINGS, m, eflags)) {
+		int match_len = m[0].rm_eo - m[0].rm_so;
 		int skip = 0;
 
 		/* move cursor to beginning of the text to replace */
@@ -271,12 +272,11 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 			}
 		}
 
-		match_len = m[0].rm_eo - m[0].rm_so;
 		if (skip) {
 			/* move cursor after the matched text */
 			block_iter_skip_bytes(&view->cursor, match_len);
 		} else {
-			char *str = build_replace(line_buffer, format, m);
+			char *str = build_replace(line_buffer + pos, format, m);
 			int nr_insert = strlen(str);
 
 			replace(match_len, str, nr_insert);
@@ -294,9 +294,7 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 		if (!(flags & REPLACE_GLOBAL))
 			break;
 
-		count = m[0].rm_so + match_len;
-		memmove(line_buffer, line_buffer + count, line_buffer_len - count + 1);
-		line_buffer_len -= count;
+		pos += m[0].rm_so + match_len;
 
 		/* don't match beginning of line again */
 		eflags = REG_NOTBOL;
