@@ -287,6 +287,9 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 		}
 		*bi = view->cursor;
 
+		if (!match_len)
+			break;
+
 		if (!(flags & REPLACE_GLOBAL))
 			break;
 
