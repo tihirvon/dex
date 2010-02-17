@@ -738,7 +738,7 @@ static void init_highlighter_heredoc(struct highlighter *h)
 
 	if (offset > 0)
 		eflags |= REG_NOTBOL;
-	if (regexec(&c->sregex, hl_buffer + offset, 2, m, eflags)) {
+	if (buf_regexec(&c->sregex, hl_buffer + offset, hl_buffer_len - offset, 2, m, eflags)) {
 		return;
 	}
 	if (m[1].rm_so >= 0) {

@@ -1,6 +1,7 @@
 #include "color.h"
 #include "syntax.h"
 #include "highlight.h"
+#include "util.h"
 
 static int nr_updated_node_colors;
 
@@ -205,7 +206,7 @@ static void add_heredoc_matches(struct highlighter *h, const struct syntax_conte
 
 	if (offset > 0)
 		eflags |= REG_NOTBOL;
-	while (!regexec(&c->sregex, h->line + offset, 2, m, eflags)) {
+	while (!buf_regexec(&c->sregex, h->line + offset, h->line_len - offset, 2, m, eflags)) {
 		const char *str;
 		int str_len;
 		int len = m[0].rm_eo - m[0].rm_so;
@@ -247,7 +248,7 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 
 	if (offset > 0)
 		eflags |= REG_NOTBOL;
-	while (!regexec(regex, h->line + offset, 1, &m, eflags)) {
+	while (!buf_regexec(regex, h->line + offset, h->line_len - offset, 1, &m, eflags)) {
 		int len = m.rm_eo - m.rm_so;
 
 		m.rm_so += offset;

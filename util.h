@@ -16,6 +16,21 @@ int regexp_match_nosub(const char *pattern, const char *str);
 int regexp_match(const char *pattern, const char *str);
 void free_regexp_matches(void);
 
+static inline int buf_regexec(const regex_t *regexp, const char *buf,
+	unsigned int size, size_t nr_m, regmatch_t *m, int flags)
+{
+	// buf must be null-terminated string if REG_STARTED is not supported
+	BUG_ON(buf[size]);
+
+#ifdef REG_STARTEND
+	m[0].rm_so = 0;
+	m[0].rm_eo = size;
+	return regexec(regexp, buf, nr_m, m, flags | REG_STARTEND);
+#else
+	return regexec(regexp, buf, nr_m, m, flags);
+#endif
+}
+
 #define mmap_empty ((void *)8UL)
 
 static inline void *xmmap(int fd, off_t offset, size_t len)

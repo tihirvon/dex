@@ -4,6 +4,7 @@
 #include "gbuf.h"
 #include "window.h"
 #include "edit.h"
+#include "util.h"
 
 #define MAX_SUBSTRINGS 32
 
@@ -17,7 +18,7 @@ static int do_search_fwd(regex_t *regex)
 		regmatch_t match;
 
 		fetch_eol(&bi);
-		if (!regexec(regex, line_buffer, 1, &match, 0)) {
+		if (!buf_regexec(regex, line_buffer, line_buffer_len, 1, &match, 0)) {
 			int offset = match.rm_so;
 
 			while (offset--)
@@ -44,7 +45,7 @@ static int do_search_bwd(regex_t *regex)
 
 		block_iter_bol(&bi);
 		fetch_eol(&bi);
-		while (!regexec(regex, line_buffer + pos, 1, &match, 0)) {
+		while (!buf_regexec(regex, line_buffer + pos, line_buffer_len - pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
 				/* match at or after cursor */
@@ -243,7 +244,7 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 	int eflags = 0;
 	int nr = 0;
 
-	while (!regexec(re, line_buffer + pos, MAX_SUBSTRINGS, m, eflags)) {
+	while (!buf_regexec(re, line_buffer + pos, line_buffer_len - pos, MAX_SUBSTRINGS, m, eflags)) {
 		int match_len = m[0].rm_eo - m[0].rm_so;
 		int skip = 0;
 
