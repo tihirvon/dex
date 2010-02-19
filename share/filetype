@@ -14,6 +14,7 @@ ft extension make mk mak
 ft content sh '^#!.*/sh(\s|$)'
 ft content bash '^#!.*/bash(\s|$)'
 ft content perl '^#!.*/perl(\s|$)'
+ft content php '^#!/.*/php(\s|$)'
 ft content python '^#!.*/python(\s|$)'
 ft match bash '.*/PKGBUILD'
 ft match config '^/etc/.*'
