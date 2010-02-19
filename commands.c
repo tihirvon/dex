@@ -936,7 +936,7 @@ static void cmd_option_filetype(char **args)
 
 		opt = xnew(struct file_option, 1);
 		opt->type = FILE_OPTIONS_FILETYPE;
-		opt->filetype = xmemdup(list, comma ? comma - list : strlen(list));
+		opt->filetype = xstrndup(list, comma ? comma - list : strlen(list));
 		opt->strs = strs;
 		ptr_array_add(&file_options, opt);
 
