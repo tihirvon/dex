@@ -1227,10 +1227,15 @@ static void cmd_save(char **args)
 	}
 
 	if (args[0]) {
-		absolute = path_absolute(args[0]);
-		if (!absolute) {
+		char *tmp = path_absolute(args[0]);
+		if (!tmp) {
 			error_msg("Failed to make absolute path: %s", strerror(errno));
 			return;
+		}
+		if (absolute && !strcmp(tmp, absolute)) {
+			free(tmp);
+		} else {
+			absolute = tmp;
 		}
 	} else {
 		if (!absolute) {
