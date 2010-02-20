@@ -484,6 +484,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_range(view->cy, view->cy + 1);
 	} else if (update_flags & UPDATE_STATUS_LINE) {
 		update_status_line();
+		update_command_line();
 	}
 	restore_cursor();
 	buf_show_cursor();
@@ -506,6 +507,7 @@ static void insert_special(const char *buf, int size)
 	case INPUT_SEARCH:
 		cmdline_insert_bytes(buf, size);
 		update_status_line();
+		update_command_line();
 		break;
 	}
 	update_cursor();
@@ -563,6 +565,7 @@ static void raw_status(void)
 update:
 	buf_hide_cursor();
 	update_status_line();
+	update_command_line();
 	restore_cursor();
 	buf_show_cursor();
 	update_flags = 0;

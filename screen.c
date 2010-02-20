@@ -315,7 +315,7 @@ static void format_status(char *buf, int size, const char *format)
 	buf[pos] = 0;
 }
 
-static void print_status_line(void)
+void update_status_line(void)
 {
 	char lbuf[256];
 	char rbuf[256];
@@ -424,7 +424,7 @@ static void print_command(uchar prefix)
 	buf_clear_eol();
 }
 
-static void print_command_line(void)
+void update_command_line(void)
 {
 	buf_move_cursor(0, screen_h - 1);
 	switch (input_mode) {
@@ -737,19 +737,13 @@ void update_range(int y1, int y2)
 	}
 
 	obuf.scroll_x = 0;
-	print_status_line();
-	print_command_line();
+	update_status_line();
+	update_command_line();
 }
 
 void update_full(void)
 {
 	update_range(view->vy, view->vy + window->h);
-}
-
-void update_status_line(void)
-{
-	print_status_line();
-	print_command_line();
 }
 
 void restore_cursor(void)
