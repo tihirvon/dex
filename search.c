@@ -8,12 +8,13 @@
 
 #define MAX_SUBSTRINGS 32
 
-static int do_search_fwd(regex_t *regex)
+static int do_search_fwd(regex_t *regex, int skip_first_byte)
 {
 	struct block_iter bi = view->cursor;
 	uchar u;
 
-	block_iter_next_byte(&bi, &u);
+	if (skip_first_byte)
+		block_iter_next_byte(&bi, &u);
 	do {
 		regmatch_t match;
 
@@ -85,7 +86,7 @@ void search_tag(const char *pattern)
 		struct block_iter save = view->cursor;
 
 		move_bof();
-		if (do_search_fwd(&regex)) {
+		if (do_search_fwd(&regex, 0)) {
 			view->center_on_scroll = 1;
 		} else {
 			error_msg("Tag not found.");
@@ -167,11 +168,11 @@ void search_next(void)
 	if (update_regex())
 		return;
 	if (current_search.direction == SEARCH_FWD) {
-		if (do_search_fwd(&current_search.regex))
+		if (do_search_fwd(&current_search.regex, 1))
 			return;
 		save = view->cursor;
 		move_bof();
-		if (do_search_fwd(&current_search.regex)) {
+		if (do_search_fwd(&current_search.regex, 0)) {
 			info_msg("Continuing at top.");
 		} else {
 			info_msg("No matches.");
