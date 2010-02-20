@@ -542,6 +542,7 @@ static int load_buffer(struct buffer *b, int must_exist)
 
 void filetype_changed(void)
 {
+	set_file_options();
 	syntax_changed();
 }
 
@@ -581,7 +582,6 @@ void setup_buffer(void)
 	buffer->setup = 1;
 	guess_filetype();
 	filetype_changed();
-	set_file_options();
 	if (buffer->options.file_history && buffer->abs_filename)
 		restore_cursor_from_history();
 }
