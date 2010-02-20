@@ -541,7 +541,7 @@ static void update_color(int nontext, int wserror)
 		mask_color(&color, &wserror_color->color);
 	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo)
 		mask_color(&color, &selection_color->color);
-	else if (current_line == view->cy && currentline_color)
+	else if (current_line == view->cy)
 		mask_color(&color, &currentline_color->color);
 	buf_set_color(&color);
 }
@@ -651,7 +651,7 @@ static unsigned int screen_next_char(int *idx, uchar *up)
 	if (u == '\t' || u == ' ')
 		ws_error = whitespace_error(u, i);
 
-	update_color(nontext_color && is_non_text(u), ws_error);
+	update_color(is_non_text(u), ws_error);
 	cur_offset += count;
 	*up = u;
 	return count;
@@ -740,7 +740,7 @@ static void update_range(int y1, int y2)
 		buf_clear_eol();
 	}
 
-	if (i < y2 && nontext_color)
+	if (i < y2)
 		buf_set_color(&nontext_color->color);
 	for (; i < y2; i++) {
 		buf_move_cursor(window->x, window->y + i);
@@ -1484,6 +1484,12 @@ static void set_basic_colors(void)
 	c.attr = 0;
 	default_color = set_highlight_color("default", &c);
 	commandline_color = set_highlight_color("commandline", &c);
+	nontext_color = set_highlight_color("nontext", &c);
+
+	c.fg = -2;
+	c.bg = -2;
+	c.attr = ATTR_KEEP;
+	currentline_color = set_highlight_color("currentline", &c);
 
 	c.fg = 1;
 	c.bg = -1;
@@ -1627,8 +1633,6 @@ int main(int argc, char *argv[])
 
 	update_all_syntax_colors();
 	sort_aliases();
-	currentline_color = find_color("currentline");
-	nontext_color = find_color("nontext");
 
 	/* Terminal does not generate signals for control keys. */
 	set_signal_handler(SIGINT, SIG_IGN);
