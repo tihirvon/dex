@@ -29,6 +29,7 @@ objs 	:= 			\
 	options.o		\
 	parse-command.o		\
 	ptr-array.o		\
+	screen.o		\
 	search.o		\
 	spawn.o			\
 	syntax.o		\
