@@ -219,6 +219,25 @@ unsigned int block_iter_eol(struct block_iter *bi)
 	return count;
 }
 
+void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
+{
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
+
+	while (1) {
+		unsigned int avail = blk->size - offset;
+
+		if (count <= avail) {
+			bi->blk = blk;
+			bi->offset = offset + count;
+			return;
+		}
+		blk = BLOCK(blk->node.next);
+		count -= avail;
+		offset = 0;
+	}
+}
+
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
 {
 	struct block *blk;
