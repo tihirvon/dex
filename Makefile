@@ -9,6 +9,7 @@ CFLAGS	+= -DDATADIR=\"$(datadir)\"
 
 objs 	:= 			\
 	block.o			\
+	buffer-highlight.o	\
 	buffer.o		\
 	change.o		\
 	cmdline.o		\

@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "buffer-highlight.h"
 #include "change.h"
 #include "edit.h"
 #include "gbuf.h"
