@@ -211,10 +211,8 @@ char *do_delete(unsigned int len)
 		return NULL;
 
 	buf = buffer_get_bytes(&tmp);
-	if (tmp != len) {
-		d_print("%d %d\n", tmp, len);
-		BUG("tmp != len\n");
-	}
+	if (tmp != len)
+		BUG("%d != %d\n", tmp, len);
 	while (deleted < len) {
 		unsigned int n = delete_in_block(len - deleted);
 		BUG_ON(!n);
