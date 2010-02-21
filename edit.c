@@ -269,11 +269,10 @@ void cut(unsigned int len, int is_lines)
 
 void copy(unsigned int len, int is_lines)
 {
-	char *buf;
-
-	buf = buffer_get_bytes(&len);
-	if (len)
+	if (len) {
+		char *buf = buffer_get_bytes(len);
 		record_copy(buf, len, is_lines);
+	}
 }
 
 unsigned int count_bytes_eol(struct block_iter *bi)

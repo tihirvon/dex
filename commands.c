@@ -572,7 +572,7 @@ static void cmd_filter(char **args)
 		move_bof();
 	}
 
-	spawn_unfiltered = buffer_get_bytes(&spawn_unfiltered_len);
+	spawn_unfiltered = buffer_get_bytes(spawn_unfiltered_len);
 	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDERR, NULL);
 
 	free(spawn_unfiltered);

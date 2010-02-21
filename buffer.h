@@ -182,7 +182,7 @@ void fill_selection_info(struct selection_info *info);
 unsigned int buffer_offset(void);
 void move_offset(unsigned int offset);
 
-char *buffer_get_bytes(unsigned int *lenp);
+char *buffer_get_bytes(unsigned int len);
 void fetch_eol(const struct block_iter *bi);
 void fetch_line(struct block_iter *bi);
 

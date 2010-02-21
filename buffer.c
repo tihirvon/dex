@@ -79,33 +79,30 @@ void fill_selection_info(struct selection_info *info)
 	}
 }
 
-char *buffer_get_bytes(unsigned int *lenp)
+char *buffer_get_bytes(unsigned int len)
 {
 	struct block *blk = view->cursor.blk;
 	unsigned int offset = view->cursor.offset;
-	unsigned int len = *lenp;
-	unsigned int count = 0;
-	char *buf = NULL;
-	unsigned int alloc = 0;
+	unsigned int pos = 0;
+	char *buf;
 
-	while (count < len) {
+	if (!len)
+		return NULL;
+
+	buf = xnew(char, len);
+	while (pos < len) {
 		unsigned int avail = blk->size - offset;
-		if (avail > 0) {
-			unsigned int c = len - count;
+		unsigned int count = len - pos;
 
-			if (c > avail)
-				c = avail;
-			alloc += c;
-			xrenew(buf, alloc);
-			memcpy(buf + count, blk->data + offset, c);
-			count += c;
-		}
-		if (blk->node.next == &buffer->blocks)
-			break;
+		if (count > avail)
+			count = avail;
+		memcpy(buf + pos, blk->data + offset, count);
+		pos += count;
+
+		BUG_ON(pos < len && blk->node.next == &buffer->blocks);
 		blk = BLOCK(blk->node.next);
 		offset = 0;
 	}
-	*lenp = count;
 	return buf;
 }
 
@@ -805,7 +802,7 @@ static void full_debug(void)
 		for (i = 0; i < list->count; i++) {
 			struct hl_entry *e = &list->entries[i];
 			unsigned int len = hl_entry_len(e);
-			char *bytes = buffer_get_bytes(&len);
+			char *bytes = buffer_get_bytes(len);
 			union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
 			xrenew(bytes, len + 1);
 			bytes[len] = 0;
