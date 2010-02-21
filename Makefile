@@ -8,6 +8,7 @@ include scripts/lib.mk
 CFLAGS	+= -DDATADIR=\"$(datadir)\"
 
 objs 	:= 			\
+	block.o			\
 	buffer.o		\
 	change.o		\
 	cmdline.o		\
