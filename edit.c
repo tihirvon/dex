@@ -157,67 +157,61 @@ void insert(const char *buf, unsigned int len)
 	update_preferred_x();
 }
 
-static unsigned int delete_in_block(unsigned int len)
+static int only_block(struct block *blk)
 {
-	struct block *blk = view->cursor.blk;
-	unsigned int nl, avail;
-
-	if (view->cursor.offset == blk->size) {
-		if (blk->node.next == &buffer->blocks)
-			return 0;
-		blk = BLOCK(blk->node.next);
-		view->cursor.blk = blk;
-		view->cursor.offset = 0;
-	}
-
-	avail = blk->size - view->cursor.offset;
-	if (len > avail)
-		len = avail;
-
-	nl = count_nl(blk->data + view->cursor.offset, len);
-	blk->nl -= nl;
-	buffer->nl -= nl;
-	if (avail != len) {
-		memmove(blk->data + view->cursor.offset,
-			blk->data + view->cursor.offset + len,
-			avail - len);
-	}
-	blk->size -= len;
-	if (!blk->size) {
-		if (blk->node.next != &buffer->blocks) {
-			view->cursor.blk = BLOCK(blk->node.next);
-			view->cursor.offset = 0;
-			delete_block(blk);
-		} else if (blk->node.prev != &buffer->blocks) {
-			view->cursor.blk = BLOCK(blk->node.prev);
-			view->cursor.offset = view->cursor.blk->size;
-			delete_block(blk);
-		}
-	}
-
-	update_flags |= UPDATE_CURSOR_LINE;
-	if (nl)
-		update_flags |= UPDATE_FULL;
-	return len;
+	return blk->node.prev == &buffer->blocks && blk->node.next == &buffer->blocks;
 }
 
 char *do_delete(unsigned int len)
 {
-	unsigned int tmp = len;
-	unsigned int deleted = 0;
+	struct list_head *saved_prev_node = NULL;
+	struct block *blk = view->cursor.blk;
+	unsigned int buffer_nl = buffer->nl;
+	unsigned int offset = view->cursor.offset;
+	unsigned int pos = 0;
 	char *buf;
 
 	if (!len)
 		return NULL;
 
-	buf = buffer_get_bytes(&tmp);
-	if (tmp != len)
-		BUG("%d != %d\n", tmp, len);
-	while (deleted < len) {
-		unsigned int n = delete_in_block(len - deleted);
-		BUG_ON(!n);
-		deleted += n;
+	if (!offset) {
+		// the block where cursor is can become empty and thereby may be deleted
+		saved_prev_node = blk->node.prev;
 	}
+
+	buf = xnew(char, len);
+	while (pos < len) {
+		struct list_head *next = blk->node.next;
+		unsigned int avail = blk->size - offset;
+		unsigned int count = len - pos;
+		unsigned int nl;
+
+		if (count > avail)
+			count = avail;
+		nl = copy_count_nl(buf + pos, blk->data + offset, count);
+		if (count < avail)
+			memmove(blk->data + offset, blk->data + offset + count, avail - count);
+
+		buffer->nl -= nl;
+		blk->nl -= nl;
+		blk->size -= count;
+		if (!blk->size && !only_block(blk))
+			delete_block(blk);
+
+		offset = 0;
+		pos += count;
+		blk = BLOCK(next);
+
+		BUG_ON(pos < len && next == &buffer->blocks);
+	}
+
+	if (saved_prev_node)
+		view->cursor.blk = BLOCK(saved_prev_node->next);
+
+	update_flags |= UPDATE_CURSOR_LINE;
+	if (buffer_nl != buffer->nl)
+		update_flags |= UPDATE_FULL;
+
 	update_hl_insert(0, -len);
 	return buf;
 }
