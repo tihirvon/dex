@@ -45,10 +45,10 @@ static void update_tab_title(struct view *v, int idx, int skip)
 		else
 			filename += skip;
 	}
-	snprintf(buf, sizeof(buf), " %d %s%s ",
+	snprintf(buf, sizeof(buf), " %d%s%s ",
 		idx + 1,
-		filename,
-		buffer_modified(v->buffer) ? " *" : "");
+		buffer_modified(v->buffer) ? "+" : ":",
+		filename);
 	if (skip >= 0) {
 		buf_add_bytes(buf, v->tt_truncated_width);
 	} else {
