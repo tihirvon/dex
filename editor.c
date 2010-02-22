@@ -25,6 +25,7 @@ static void debug_blocks(void)
 {
 #if DEBUG > 0
 	struct block *blk;
+	int cursor_seen = 0;
 
 	BUG_ON(list_empty(&buffer->blocks));
 
@@ -33,7 +34,10 @@ static void debug_blocks(void)
 		BUG_ON(blk->size > blk->alloc);
 		BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
 		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
+		if (blk == view->cursor.blk)
+			cursor_seen = 1;
 	}
+	BUG_ON(!cursor_seen);
 #endif
 }
 
