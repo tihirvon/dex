@@ -3,6 +3,58 @@
 #include "buffer.h"
 #include "util.h"
 
+/*
+ * Contains one line including LF.
+ * Used by syntax highlighter only.
+ */
+char *hl_buffer;
+size_t hl_buffer_len;
+static size_t hl_buffer_alloc;
+
+static void hl_buffer_add(size_t pos, const char *src, size_t count)
+{
+	size_t size = pos + count + 1;
+
+	if (hl_buffer_alloc < size) {
+		hl_buffer_alloc = ALLOC_ROUND(size);
+		xrenew(hl_buffer, hl_buffer_alloc);
+	}
+	memcpy(hl_buffer + pos, src, count);
+}
+
+/*
+ * Only available for highlighter and screen updates.
+ * Never use while editing the buffer.  Use fetch_eol() when doing changes.
+ */
+void fetch_line(struct block_iter *bi)
+{
+	size_t pos = 0;
+
+	while (1) {
+		unsigned int avail = bi->blk->size - bi->offset;
+		char *src = bi->blk->data + bi->offset;
+		char *ptr = memchr(src, '\n', avail);
+
+		if (ptr) {
+			unsigned int count = ptr - src + 1;
+			hl_buffer_add(pos, src, count);
+			pos += count;
+			bi->offset += count;
+			break;
+		}
+		hl_buffer_add(pos, src, avail);
+		pos += avail;
+		bi->offset += avail;
+
+		if (bi->blk->node.next == bi->head)
+			break;
+		bi->blk = BLOCK(bi->blk->node.next);
+		bi->offset = 0;
+	}
+	hl_buffer_add(pos, "", 1);
+	hl_buffer_len = pos;
+}
+
 static void init_highlighter(struct highlighter *h, struct buffer *b)
 {
 	memset(h, 0, sizeof(*h));

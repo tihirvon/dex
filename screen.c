@@ -5,6 +5,7 @@
 #include "search.h"
 #include "color.h"
 #include "highlight.h"
+#include "buffer-highlight.h"
 
 int screen_w = 80;
 int screen_h = 24;
