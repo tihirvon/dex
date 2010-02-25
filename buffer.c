@@ -16,9 +16,8 @@ enum undo_merge undo_merge;
 /*
  * Temporary buffer for searching and editing.
  */
-char *line_buffer;
+const char *line_buffer;
 size_t line_buffer_len;
-static size_t line_buffer_alloc;
 
 void init_selection(struct selection_info *info)
 {
@@ -99,43 +98,12 @@ char *buffer_get_bytes(unsigned int len)
 	return buf;
 }
 
-static void line_buffer_add(size_t pos, const char *src, size_t count)
-{
-	size_t size = pos + count + 1;
-
-	if (line_buffer_alloc < size) {
-		line_buffer_alloc = ALLOC_ROUND(size);
-		xrenew(line_buffer, line_buffer_alloc);
-	}
-	memcpy(line_buffer + pos, src, count);
-}
-
 void fetch_eol(const struct block_iter *bi)
 {
-	struct block *blk = bi->blk;
-	unsigned int offset = bi->offset;
-	size_t pos = 0;
-
-	while (1) {
-		unsigned int avail = blk->size - offset;
-		char *src = blk->data + offset;
-		char *ptr = memchr(src, '\n', avail);
-
-		if (ptr) {
-			line_buffer_add(pos, src, ptr - src);
-			pos += ptr - src;
-			break;
-		}
-		line_buffer_add(pos, src, avail);
-		pos += avail;
-
-		if (blk->node.next == bi->head)
-			break;
-		blk = BLOCK(blk->node.next);
-		offset = 0;
-	}
-	line_buffer_add(pos, "", 1);
-	line_buffer_len = pos;
+	struct lineref lr;
+	unsigned int pos = fetch_this_line(bi, &lr);
+	line_buffer = lr.line + pos;
+	line_buffer_len = lr.size - pos;
 }
 
 unsigned int buffer_offset(void)

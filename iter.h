@@ -35,5 +35,6 @@ static inline int block_iter_eof(struct block_iter *bi)
 
 void fill_line_ref(struct block_iter *bi, struct lineref *lr);
 void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr);
+unsigned int fetch_this_line(const struct block_iter *bi, struct lineref *lr);
 
 #endif

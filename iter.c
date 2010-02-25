@@ -263,3 +263,12 @@ void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr)
 	lr->line = ptr;
 	lr->size = nl ? nl - ptr + 1 : max;
 }
+
+unsigned int fetch_this_line(const struct block_iter *bi, struct lineref *lr)
+{
+	struct block_iter tmp = *bi;
+	unsigned int count = block_iter_bol(&tmp);
+
+	fill_line_ref(&tmp, lr);
+	return count;
+}

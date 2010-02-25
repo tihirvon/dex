@@ -160,7 +160,7 @@ extern unsigned int update_flags;
 extern enum input_mode input_mode;
 extern enum input_special input_special;
 
-extern char *line_buffer;
+extern const char *line_buffer;
 extern size_t line_buffer_len;
 
 static inline struct view *VIEW(struct list_head *item)
