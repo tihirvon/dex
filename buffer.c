@@ -194,54 +194,59 @@ struct view *open_empty_buffer(void)
 	return v;
 }
 
-static void read_crlf_blocks(struct buffer *b, const char *buf)
+static size_t copy_strip_cr(char *dst, const char *src, size_t size)
 {
-	size_t size = b->st.st_size;
-	size_t pos = 0;
+	size_t si = 0;
+	size_t di = 0;
 
-	while (pos < size) {
-		size_t count = size - pos;
-		struct block *blk;
-		int s, d;
-
-		if (count > BLOCK_MAX_SIZE)
-			count = BLOCK_MAX_SIZE;
-
-		blk = block_new(count);
-		d = 0;
-		for (s = pos; s < pos + count; s++) {
-			char ch = buf[s];
-			if (ch != '\r' || (s + 1 < size && buf[s + 1] != '\n'))
-				blk->data[d++] = ch;
-			if (ch == '\n')
-				blk->nl++;
-		}
-		blk->size = d;
-		b->nl += blk->nl;
-		list_add_before(&blk->node, &b->blocks);
-		pos += count;
+	while (si < size) {
+		char ch = src[si++];
+		if (ch == '\r' && si < size && src[si] == '\n')
+			ch = src[si++];
+		dst[di++] = ch;
 	}
+	return di;
 }
 
-static void read_lf_blocks(struct buffer *b, const char *buf)
+static size_t add_block(struct buffer *b, const char *buf, size_t size)
 {
-	size_t size = b->st.st_size;
-	size_t pos = 0;
+	const char *start = buf;
+	const char *eof = buf + size;
+	const char *end;
+	struct block *blk;
+	unsigned int lines = 0;
 
-	while (pos < size) {
-		size_t count = size - pos;
-		struct block *blk;
+	do {
+		const char *nl = memchr(start, '\n', eof - start);
 
-		if (count > BLOCK_MAX_SIZE)
-			count = BLOCK_MAX_SIZE;
+		end = nl ? nl + 1 : eof;
+		if (end - buf > BLOCK_MAX_SIZE) {
+			if (start == buf) {
+				lines += !!nl;
+				break;
+			}
+			end = start;
+			break;
+		}
+		start = end;
+		lines += !!nl;
+	} while (end < eof);
 
-		blk = block_new(count);
-		blk->size = count;
-		blk->nl = copy_count_nl(blk->data, buf + pos, blk->size);
-		b->nl += blk->nl;
-		list_add_before(&blk->node, &b->blocks);
-		pos += count;
+	size = end - buf;
+	blk = block_new(size);
+	switch (b->newline) {
+	case NEWLINE_UNIX:
+		memcpy(blk->data, buf, size);
+		blk->size = size;
+		break;
+	case NEWLINE_DOS:
+		blk->size = copy_strip_cr(blk->data, buf, size);
+		break;
 	}
+	blk->nl = lines;
+	b->nl += lines;
+	list_add_before(&blk->node, &b->blocks);
+	return size;
 }
 
 static int read_blocks(struct buffer *b, int fd)
@@ -253,12 +258,12 @@ static int read_blocks(struct buffer *b, int fd)
 		return -1;
 
 	nl = memchr(buf, '\n', size);
-	if (nl > buf && nl[-1] == '\r') {
+	if (nl > buf && nl[-1] == '\r')
 		b->newline = NEWLINE_DOS;
-		read_crlf_blocks(b, buf);
-	} else {
-		read_lf_blocks(b, buf);
-	}
+
+	pos = 0;
+	while (pos < size)
+		pos += add_block(b, buf + pos, size - pos);
 
 	for (pos = 0; pos < size; pos++) {
 		if ((unsigned char)buf[pos] >= 0x80) {
