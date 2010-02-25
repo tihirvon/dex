@@ -209,9 +209,9 @@ static void read_crlf_blocks(struct buffer *b, const char *buf)
 
 		blk = block_new(count);
 		d = 0;
-		for (s = 0; s < count; s++) {
-			char ch = buf[pos + s];
-			if (ch != '\r')
+		for (s = pos; s < pos + count; s++) {
+			char ch = buf[s];
+			if (ch != '\r' || (s + 1 < size && buf[s + 1] != '\n'))
 				blk->data[d++] = ch;
 			if (ch == '\n')
 				blk->nl++;
