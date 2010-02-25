@@ -226,3 +226,40 @@ unsigned int block_iter_get_offset(struct block_iter *bi)
 	}
 	return offset + bi->offset;
 }
+
+// bi should be at bol
+void fill_line_ref(struct block_iter *bi, struct lineref *lr)
+{
+	unsigned int max;
+	const char *ptr, *nl;
+
+	if (bi->offset == bi->blk->size && bi->blk->node.next != bi->head) {
+		bi->blk = BLOCK(bi->blk->node.next);
+		bi->offset = 0;
+	}
+
+	max = bi->blk->size - bi->offset;
+	ptr = bi->blk->data + bi->offset;
+	nl = memchr(ptr, '\n', max);
+
+	lr->line = ptr;
+	lr->size = nl ? nl - ptr : max;
+}
+
+void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr)
+{
+	unsigned int max;
+	const char *ptr, *nl;
+
+	if (bi->offset == bi->blk->size && bi->blk->node.next != bi->head) {
+		bi->blk = BLOCK(bi->blk->node.next);
+		bi->offset = 0;
+	}
+
+	max = bi->blk->size - bi->offset;
+	ptr = bi->blk->data + bi->offset;
+	nl = memchr(ptr, '\n', max);
+
+	lr->line = ptr;
+	lr->size = nl ? nl - ptr + 1 : max;
+}

@@ -7,20 +7,8 @@
  * Contains one line including LF.
  * Used by syntax highlighter only.
  */
-char *hl_buffer;
+const char *hl_buffer;
 size_t hl_buffer_len;
-static size_t hl_buffer_alloc;
-
-static void hl_buffer_add(size_t pos, const char *src, size_t count)
-{
-	size_t size = pos + count + 1;
-
-	if (hl_buffer_alloc < size) {
-		hl_buffer_alloc = ALLOC_ROUND(size);
-		xrenew(hl_buffer, hl_buffer_alloc);
-	}
-	memcpy(hl_buffer + pos, src, count);
-}
 
 /*
  * Only available for highlighter and screen updates.
@@ -28,31 +16,12 @@ static void hl_buffer_add(size_t pos, const char *src, size_t count)
  */
 void fetch_line(struct block_iter *bi)
 {
-	size_t pos = 0;
+	struct lineref lr;
 
-	while (1) {
-		unsigned int avail = bi->blk->size - bi->offset;
-		char *src = bi->blk->data + bi->offset;
-		char *ptr = memchr(src, '\n', avail);
-
-		if (ptr) {
-			unsigned int count = ptr - src + 1;
-			hl_buffer_add(pos, src, count);
-			pos += count;
-			bi->offset += count;
-			break;
-		}
-		hl_buffer_add(pos, src, avail);
-		pos += avail;
-		bi->offset += avail;
-
-		if (bi->blk->node.next == bi->head)
-			break;
-		bi->blk = BLOCK(bi->blk->node.next);
-		bi->offset = 0;
-	}
-	hl_buffer_add(pos, "", 1);
-	hl_buffer_len = pos;
+	fill_line_nl_ref(bi, &lr);
+	hl_buffer = lr.line;
+	hl_buffer_len = lr.size;
+	block_iter_next_line(bi);
 }
 
 static void init_highlighter(struct highlighter *h, struct buffer *b)

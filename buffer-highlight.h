@@ -3,7 +3,7 @@
 
 #include "buffer.h"
 
-extern char *hl_buffer;
+extern const char *hl_buffer;
 extern size_t hl_buffer_len;
 
 void fetch_line(struct block_iter *bi);

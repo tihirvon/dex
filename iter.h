@@ -11,6 +11,11 @@ struct block_iter {
 	unsigned int offset;
 };
 
+struct lineref {
+	const char *line;
+	unsigned int size;
+};
+
 unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte);
 unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte);
 unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up);
@@ -27,5 +32,8 @@ static inline int block_iter_eof(struct block_iter *bi)
 {
 	return bi->offset == bi->blk->size && bi->blk->node.next == bi->head;
 }
+
+void fill_line_ref(struct block_iter *bi, struct lineref *lr);
+void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr);
 
 #endif
