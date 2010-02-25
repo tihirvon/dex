@@ -363,7 +363,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		count = line_buffer_len;
 		if (line_buffer_len > nr_bytes) {
 			// end of selection is not full line
-			line_buffer[nr_bytes] = 0;
+			line_buffer_len = nr_bytes;
 		}
 
 		nr = replace_on_line(&re, format, &bi, &flags);
