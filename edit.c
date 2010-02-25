@@ -58,92 +58,99 @@ void move_preferred_x(void)
 	}
 }
 
-static void alloc_for_insert(unsigned int len)
+static unsigned int insert_to_current(const char *buf, unsigned int len)
 {
-	struct block *l = view->cursor.blk;
-	unsigned int lsize = view->cursor.offset;
-	unsigned int rsize = l->size - lsize;
+	struct block *blk = view->cursor.blk;
+	unsigned int offset = view->cursor.offset;
+	unsigned int size = blk->size + len;
+	unsigned int nl;
 
-	if (lsize + len <= BLOCK_MAX_SIZE && rsize) {
-		// merge to left
-		struct block *r;
-
-		r = block_new(ALLOC_ROUND(rsize));
-		r->size = rsize;
-		r->nl = copy_count_nl(r->data, l->data + lsize, rsize);
-		list_add_after(&r->node, &l->node);
-
-		l->nl -= r->nl;
-		l->size = lsize;
-		l->alloc = ALLOC_ROUND(lsize + len);
-		xrenew(l->data, l->alloc);
-	} else if (rsize + len <= BLOCK_MAX_SIZE && lsize) {
-		// merge to right
-		struct block *r;
-
-		r = block_new(ALLOC_ROUND(rsize + len));
-		r->size = rsize;
-		r->nl = copy_count_nl(r->data + len, l->data + lsize, rsize);
-		list_add_after(&r->node, &l->node);
-
-		l->nl -= r->nl;
-		l->size = lsize;
-		l->alloc = ALLOC_ROUND(lsize);
-		xrenew(l->data, l->alloc);
-		view->cursor.blk = r;
-		view->cursor.offset = 0;
-	} else if (!lsize) {
-		if (!rsize) {
-			l->alloc = ALLOC_ROUND(len);
-			xrenew(l->data, l->alloc);
-		} else {
-			// don't split, add new block before l
-			struct block *m = block_new(len);
-			list_add_before(&m->node, &l->node);
-			view->cursor.blk = m;
-			view->cursor.offset = 0;
-		}
-	} else {
-		struct block *m;
-
-		if (rsize) {
-			// split (and add new block between l and r)
-			struct block *r = block_new(ALLOC_ROUND(rsize));
-			r->size = rsize;
-			r->nl = copy_count_nl(r->data, l->data + lsize, rsize);
-			list_add_after(&r->node, &l->node);
-
-			l->nl -= r->nl;
-			l->size = lsize;
-			l->alloc = ALLOC_ROUND(lsize);
-			xrenew(l->data, l->alloc);
-		}
-
-		// add new block after l
-		m = block_new(len);
-		list_add_after(&m->node, &l->node);
-		view->cursor.blk = m;
-		view->cursor.offset = 0;
+	if (size > blk->alloc) {
+		blk->alloc = ALLOC_ROUND(size);
+		xrenew(blk->data, blk->alloc);
 	}
+	memmove(blk->data + offset + len, blk->data + offset, blk->size - offset);
+	nl = copy_count_nl(blk->data + offset, buf, len);
+	blk->nl += nl;
+	blk->size = size;
+	return nl;
+}
+
+static unsigned int insert_to_next(const char *buf, unsigned int len)
+{
+	BUG_ON(view->cursor.offset != view->cursor.blk->size);
+	BUG_ON(view->cursor.blk->node.next == &buffer->blocks);
+	view->cursor.blk = BLOCK(view->cursor.blk->node.next);
+	view->cursor.offset = 0;
+	return insert_to_current(buf, len);
+}
+
+static unsigned int append_to_current(const char *buf, unsigned int len)
+{
+	struct block *blk = view->cursor.blk;
+	unsigned int size = blk->size + len;
+	unsigned int nl;
+
+	if (size > blk->alloc) {
+		blk->alloc = ALLOC_ROUND(size);
+		xrenew(blk->data, blk->alloc);
+	}
+	nl = copy_count_nl(blk->data + blk->size, buf, len);
+	blk->nl += nl;
+	blk->size = size;
+	return nl;
+}
+
+static unsigned int add_new_block(const char *buf, unsigned int len)
+{
+	struct block *blk = block_new(ALLOC_ROUND(len));
+
+	blk->nl = copy_count_nl(blk->data, buf, len);
+	blk->size = len;
+	list_add_after(&blk->node, &view->cursor.blk->node);
+	return blk->nl;
+}
+
+static unsigned int insert_bytes(const char *buf, unsigned int len)
+{
+	struct block *blk = view->cursor.blk;
+	struct block *next = NULL;
+	unsigned int offset = view->cursor.offset;
+
+	if (offset < blk->size)
+		return insert_to_current(buf, len);
+
+	if (!blk->size || blk->data[blk->size - 1] != '\n') {
+		// must append to this block
+		return append_to_current(buf, len);
+	}
+
+	if (blk->node.next != &buffer->blocks)
+		next = BLOCK(blk->node.next);
+
+	if (buf[len - 1] != '\n' && next) {
+		// must insert to beginning of next block
+		return insert_to_next(buf, len);
+	}
+
+	if (blk->size + len > BLOCK_MAX_SIZE) {
+		// this block would grow too big, insert to next or add new?
+		if (next && len + next->size <= BLOCK_MAX_SIZE) {
+			// fits to next block
+			return insert_to_next(buf, len);
+		}
+		return add_new_block(buf, len);
+	}
+
+	// fits to this block
+	return append_to_current(buf, len);
 }
 
 void do_insert(const char *buf, unsigned int len)
 {
-	struct block *blk = view->cursor.blk;
-	unsigned int nl;
+	unsigned int nl = insert_bytes(buf, len);
 
-	if (len + blk->size > blk->alloc) {
-		alloc_for_insert(len);
-		blk = view->cursor.blk;
-	} else if (view->cursor.offset != blk->size) {
-		char *ptr = blk->data + view->cursor.offset;
-		memmove(ptr + len, ptr, blk->size - view->cursor.offset);
-	}
-	nl = copy_count_nl(blk->data + view->cursor.offset, buf, len);
-	blk->size += len;
-	blk->nl += nl;
 	buffer->nl += nl;
-
 	update_flags |= UPDATE_CURSOR_LINE;
 	if (nl)
 		update_flags |= UPDATE_FULL;
