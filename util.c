@@ -397,3 +397,23 @@ void free_regexp_matches(void)
 		regexp_matches[i] = NULL;
 	}
 }
+
+int buf_regexec(const regex_t *regexp, const char *buf,
+	unsigned int size, size_t nr_m, regmatch_t *m, int flags)
+{
+#ifdef REG_STARTEND
+	m[0].rm_so = 0;
+	m[0].rm_eo = size;
+	return regexec(regexp, buf, nr_m, m, flags | REG_STARTEND);
+#else
+	// buffer must be null-terminated string if REG_STARTED is not supported
+	char *tmp = xnew(char, size + 1);
+	int ret;
+
+	memcpy(tmp, buf, size);
+	tmp[size] = 0;
+	ret = regexec(regexp, tmp, nr_m, m, flags);
+	free(tmp);
+	return ret;
+#endif
+}
