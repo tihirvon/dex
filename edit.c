@@ -216,6 +216,21 @@ char *do_delete(unsigned int len)
 	if (saved_prev_node)
 		view->cursor.blk = BLOCK(saved_prev_node->next);
 
+	blk = view->cursor.blk;
+	if (blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks) {
+		struct block *next = BLOCK(blk->node.next);
+		unsigned int size = blk->size + next->size;
+
+		if (size > blk->alloc) {
+			blk->alloc = ALLOC_ROUND(size);
+			xrenew(blk->data, blk->alloc);
+		}
+		memcpy(blk->data + blk->size, next->data, next->size);
+		blk->size = size;
+		blk->nl += next->nl;
+		delete_block(next);
+	}
+
 	update_flags |= UPDATE_CURSOR_LINE;
 	if (buffer_nl != buffer->nl)
 		update_flags |= UPDATE_FULL;
