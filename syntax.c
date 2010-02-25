@@ -200,7 +200,7 @@ void syn_addw(char **args)
 
 		str[0] = len;
 		memcpy(str + 1, args[i], len + 1);
-		hash_pos = buf_hash(str, len + 1) % WORD_HASH_SIZE;
+		hash_pos = buf_hash(str + 1, len) % WORD_HASH_SIZE;
 
 		next = w->hash[hash_pos];
 		new = xnew(struct hash_word, 1);
