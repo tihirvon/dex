@@ -102,7 +102,7 @@ void syn_addc(char **args);
 void syn_connect(char **args);
 void syn_join(char **args);
 
-unsigned int str_hash(const char *str);
+unsigned int buf_hash(const char *str, unsigned int size);
 struct syntax *find_syntax(const char *name);
 
 static inline unsigned char get_syntax_node_idx(const union syntax_node *node)

@@ -12,12 +12,12 @@ int nr_syntax_nodes;
 struct syntax_join *syntax_joins;
 int nr_syntax_joins;
 
-unsigned int str_hash(const char *str)
+unsigned int buf_hash(const char *str, unsigned int size)
 {
 	unsigned int hash = 0;
 	int i;
 
-	for (i = 0; str[i]; i++) {
+	for (i = 0; i < size; i++) {
 		unsigned int ch = str[i];
 		if (ch >= 'A' && ch <= 'Z')
 			ch += 'a' - 'A';
@@ -200,7 +200,7 @@ void syn_addw(char **args)
 
 		str[0] = len;
 		memcpy(str + 1, args[i], len + 1);
-		hash_pos = str_hash(str) % WORD_HASH_SIZE;
+		hash_pos = buf_hash(str, len + 1) % WORD_HASH_SIZE;
 
 		next = w->hash[hash_pos];
 		new = xnew(struct hash_word, 1);

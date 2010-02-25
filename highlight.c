@@ -459,7 +459,7 @@ static void find_words(struct highlighter *h)
 		buf[0] = hlw->len;
 		memcpy(buf + 1, h->line + hlw->offset, hlw->len);
 		buf[hlw->len + 1] = 0;
-		hlw->hash = str_hash(buf);
+		hlw->hash = buf_hash(buf, hlw->len + 1);
 		h->word_count++;
 	}
 
