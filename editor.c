@@ -34,6 +34,7 @@ static void debug_blocks(void)
 		BUG_ON(blk->size > blk->alloc);
 		BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
 		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
+		BUG_ON(blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks);
 		if (blk == view->cursor.blk)
 			cursor_seen = 1;
 	}
