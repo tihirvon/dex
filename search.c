@@ -366,7 +366,9 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 			line_buffer_len = nr_bytes;
 		}
 
+		line_buffer = xmemdup(line_buffer, line_buffer_len);
 		nr = replace_on_line(&re, format, &bi, &flags);
+		free((char *)line_buffer);
 		if (nr) {
 			nr_substitutions += nr;
 			nr_lines++;
