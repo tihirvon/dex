@@ -344,8 +344,9 @@ const char *get_file_type(mode_t mode)
 	return "unknown";
 }
 
-int regexp_match_nosub(const char *pattern, const char *str)
+int regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 {
+	regmatch_t m;
 	regex_t re;
 	int rc;
 
@@ -354,7 +355,7 @@ int regexp_match_nosub(const char *pattern, const char *str)
 		regfree(&re);
 		return 0;
 	}
-	rc = regexec(&re, str, 0, NULL, 0);
+	rc = buf_regexec(&re, buf, len, 1, &m, 0);
 	regfree(&re);
 	return !rc;
 }

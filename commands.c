@@ -873,7 +873,8 @@ void set_file_options(void)
 				set_options(opt->strs);
 		} else if (buffer->abs_filename && regexp_match_nosub(
 							opt->filename_pattern,
-							buffer->abs_filename)) {
+							buffer->abs_filename,
+							strlen(buffer->abs_filename))) {
 			set_options(opt->strs);
 		}
 	}

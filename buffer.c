@@ -338,9 +338,9 @@ int guess_filetype(void)
 		bi.head = &buffer->blocks;
 		bi.offset = 0;
 		fetch_eol(&bi);
-		ft = find_ft(buffer->abs_filename, line_buffer);
+		ft = find_ft(buffer->abs_filename, line_buffer, line_buffer_len);
 	} else if (buffer->abs_filename) {
-		ft = find_ft(buffer->abs_filename, NULL);
+		ft = find_ft(buffer->abs_filename, NULL, 0);
 	}
 	if (ft && strcmp(ft, buffer->options.filetype)) {
 		free(buffer->options.filetype);
