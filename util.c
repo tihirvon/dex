@@ -401,6 +401,7 @@ void free_regexp_matches(void)
 int buf_regexec(const regex_t *regexp, const char *buf,
 	unsigned int size, size_t nr_m, regmatch_t *m, int flags)
 {
+	BUG_ON(!nr_m);
 #ifdef REG_STARTEND
 	m[0].rm_so = 0;
 	m[0].rm_eo = size;
