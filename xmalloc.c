@@ -41,7 +41,7 @@ char *xstrdup(const char *str)
 	return s;
 }
 
-void *xmemdup(void *ptr, size_t size)
+void *xmemdup(const void *ptr, size_t size)
 {
 	void *buf = xmalloc(size);
 	memcpy(buf, ptr, size);

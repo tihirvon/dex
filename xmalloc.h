@@ -19,7 +19,7 @@ void * __MALLOC xmalloc(size_t size);
 void * __MALLOC xcalloc(size_t size);
 void * __MALLOC xrealloc(void *ptr, size_t size);
 char * __MALLOC xstrdup(const char *str);
-void * __MALLOC xmemdup(void *ptr, size_t size);
+void * __MALLOC xmemdup(const void *ptr, size_t size);
 char * __MALLOC xstrndup(const char *str, size_t n);
 
 #endif
