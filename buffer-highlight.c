@@ -96,13 +96,8 @@ static void verify_hl_list(struct list_head *head, const char *suffix)
 	fclose(f);
 #endif
 
-	list_for_each_entry(list, head, node) {
+	list_for_each_entry(list, head, node)
 		BUG_ON(!list->count);
-		for (i = 0; i < list->count; i++) {
-			struct hl_entry *e = &list->entries[i];
-			BUG_ON(!hl_entry_len(e));
-		}
-	}
 #endif
 }
 

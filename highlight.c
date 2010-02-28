@@ -90,7 +90,6 @@ static void add_hl_entry_at(struct hl_list *list, unsigned int desc, unsigned ch
 
 static void add_hl_entry(struct list_head *head, unsigned int desc, unsigned char len)
 {
-	BUG_ON(!len);
 	if (list_empty(head)) {
 		struct hl_list *list = xnew(struct hl_list, 1);
 		struct hl_entry *e = &list->entries[0];
@@ -107,6 +106,11 @@ static void add_hl_entry(struct list_head *head, unsigned int desc, unsigned cha
 static void add_highlight(struct list_head *head, unsigned int desc, int len)
 {
 	int i;
+
+	if (!len) {
+		add_hl_entry(head, desc, 0);
+		return;
+	}
 
 	if (head->prev != head) {
 		struct hl_list *last = HL_LIST(head->prev);
@@ -255,8 +259,6 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 		m.rm_eo += offset;
 
 		ds_print("s=%d e=%d line_len=%d %s\n", m.rm_so, m.rm_eo, h->line_len, n->any.name);
-		if (!len)
-			break;
 
 		if (h->nr_matches == h->alloc) {
 			h->alloc += 16;
@@ -268,6 +270,9 @@ static void add_matches(struct highlighter *h, const union syntax_node *n, const
 		h->nr_matches++;
 
 		offset = m.rm_eo;
+
+		if (!len)
+			break;
 	}
 }
 
