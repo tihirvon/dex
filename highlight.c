@@ -337,7 +337,14 @@ static int highlight_line_context(struct highlighter *h)
 	int eflags = 0;
 	int i, offset;
 
-	ds_print("line: '%s'\n", h->line + h->offset);
+#if DEBUG_SYNTAX > 0
+	int line_len = h->line_len - h->offset;
+	char *line_buf = xmalloc(line_len + 1);
+	memcpy(line_buf, h->line + h->offset, line_len);
+	line_buf[line_len] = 0;
+	ds_print("line: '%s'\n", line_buf);
+	free(line_buf);
+#endif
 	if (h->offset > 0)
 		eflags |= REG_NOTBOL;
 
