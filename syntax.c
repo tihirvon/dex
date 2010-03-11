@@ -2,6 +2,7 @@
 #include "common.h"
 #include "buffer.h"
 #include "commands.h"
+#include "util.h"
 
 static LIST_HEAD(syntaxes);
 static struct syntax *cur_syntax;
@@ -26,21 +27,18 @@ unsigned int buf_hash(const char *str, unsigned int size)
 	return hash;
 }
 
-static int regexp_compile(regex_t *regex, const char *pattern, unsigned int flags)
+static int syntax_regexp_compile(regex_t *regex, const char *pattern, unsigned int flags)
 {
-	char error[1024];
-	int err, cflags = REG_EXTENDED | REG_NEWLINE;
+	int cflags = REG_EXTENDED | REG_NEWLINE;
 
 	if (flags & SYNTAX_FLAG_ICASE)
 		cflags |= REG_ICASE;
-	err = regcomp(regex, pattern, cflags);
-	if (err) {
-		regerror(err, regex, error, sizeof(error));
-		regfree(regex);
-		error_msg(error);
-		return 0;
-	}
-	return 1;
+
+	if (regexp_compile(regex, pattern, cflags))
+		return 1;
+
+	regfree(regex);
+	return 0;
 }
 
 static char *unescape_pattern(const char *str)
@@ -237,7 +235,7 @@ void syn_addr(char **args)
 
 	p = xnew0(struct syntax_pattern, 1);
 	p->pattern = unescape_pattern(pattern);
-	if (!regexp_compile(&p->regex, p->pattern, flags)) {
+	if (!syntax_regexp_compile(&p->regex, p->pattern, flags)) {
 		free(p->pattern);
 		free(p);
 		return;
@@ -280,12 +278,12 @@ void syn_addc(char **args)
 	c = xnew0(struct syntax_context, 1);
 	c->spattern = unescape_pattern(args[1]);
 	c->epattern = unescape_pattern(args[2]);
-	if (!regexp_compile(&c->sregex, c->spattern, flags)) {
+	if (!syntax_regexp_compile(&c->sregex, c->spattern, flags)) {
 		free(c->spattern);
 		free(c);
 		return;
 	}
-	if (!(flags & SYNTAX_FLAG_HEREDOC) && !regexp_compile(&c->eregex, c->epattern, flags)) {
+	if (!(flags & SYNTAX_FLAG_HEREDOC) && !syntax_regexp_compile(&c->eregex, c->epattern, flags)) {
 		regfree(&c->sregex);
 		free(c->epattern);
 		free(c->spattern);

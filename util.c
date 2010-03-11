@@ -1,5 +1,6 @@
 #include "util.h"
 #include "editor.h"
+#include "buffer.h"
 
 char *home_dir;
 
@@ -397,6 +398,19 @@ void free_regexp_matches(void)
 		free(regexp_matches[i]);
 		regexp_matches[i] = NULL;
 	}
+}
+
+int regexp_compile(regex_t *regexp, const char *pattern, int flags)
+{
+	int err = regcomp(regexp, pattern, flags);
+
+	if (err) {
+		char msg[1024];
+		regerror(err, regexp, msg, sizeof(msg));
+		error_msg("%s", msg);
+		return 0;
+	}
+	return 1;
 }
 
 int buf_regexec(const regex_t *regexp, const char *buf,

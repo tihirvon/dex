@@ -74,15 +74,9 @@ static int do_search_bwd(regex_t *regex)
 void search_tag(const char *pattern)
 {
 	regex_t regex;
-	int err;
 
 	// NOTE: regex needs to be freed even if regcomp() fails
-	err = regcomp(&regex, pattern, REG_NEWLINE);
-	if (err) {
-		char error[1024];
-		regerror(err, &regex, error, sizeof(error));
-		error_msg(error);
-	} else {
+	if (regexp_compile(&regex, pattern, REG_NEWLINE)) {
 		struct block_iter save = view->cursor;
 
 		move_bof();
@@ -128,25 +122,22 @@ static void free_regex(void)
 
 static int update_regex(void)
 {
-	int err, re_flags = REG_EXTENDED | REG_NEWLINE;
+	int re_flags = REG_EXTENDED | REG_NEWLINE;
 
 	if (options.ignore_case)
 		re_flags |= REG_ICASE;
 
 	if (re_flags == current_search.re_flags)
-		return 0;
+		return 1;
 
 	free_regex();
 
 	current_search.re_flags = re_flags;
-	err = regcomp(&current_search.regex, current_search.pattern, current_search.re_flags);
-	if (err) {
-		char error[1024];
-		regerror(err, &current_search.regex, error, sizeof(error));
-		free_regex();
-		error_msg(error);
-	}
-	return err;
+	if (regexp_compile(&current_search.regex, current_search.pattern, current_search.re_flags))
+		return 1;
+
+	free_regex();
+	return 0;
 }
 
 void search(const char *pattern)
@@ -165,7 +156,7 @@ void search_next(void)
 		error_msg("No previous search pattern");
 		return;
 	}
-	if (update_regex())
+	if (!update_regex())
 		return;
 	if (current_search.direction == SEARCH_FWD) {
 		if (do_search_fwd(&current_search.regex, 1))
@@ -332,19 +323,14 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	int nr_substitutions = 0;
 	int nr_lines = 0;
 	regex_t re;
-	int err;
 
 	if (flags & REPLACE_IGNORE_CASE)
 		re_flags |= REG_ICASE;
 	if (flags & REPLACE_BASIC)
 		re_flags &= ~REG_EXTENDED;
 
-	err = regcomp(&re, pattern, re_flags);
-	if (err) {
-		char error[1024];
-		regerror(err, &re, error, sizeof(error));
+	if (!regexp_compile(&re, pattern, re_flags)) {
 		regfree(&re);
-		error_msg(error);
 		return;
 	}
 
