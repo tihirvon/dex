@@ -150,17 +150,11 @@ void debug_print(const char *function, const char *fmt, ...)
 
 static int remove_double_slashes(char *str)
 {
-	char prev = 0;
-	int s, d;
+	int s, d = 0;
 
-	d = 0;
 	for (s = 0; str[s]; s++) {
-		char ch = str[s];
-
-		if (ch == '/' && prev == '/')
-			continue;
-		str[d++] = ch;
-		prev = ch;
+		if (str[s] != '/' || str[s + 1] != '/')
+			str[d++] = str[s];
 	}
 	str[d] = 0;
 	return d;
