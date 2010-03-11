@@ -215,7 +215,8 @@ static char *int_cap(char *cap)
 		ival += *val++ - '0';
 	}
 
-	/* we don't need any int caps! */
+	if (strncmp(cap, "Co", 2) == 0)
+		term_cap.colors = ival;
 	return val;
 }
 
