@@ -8,12 +8,7 @@
  */
 
 static const char *str_cap_names[] = {
-	"ac",
-	"ae",
-	"as",
-	"cd",
 	"ce",
-	"cl",
 	"ks",
 	"ke",
 	"te",
@@ -53,12 +48,7 @@ static const char *str_cap_names[] = {
 };
 
 static char **str_cap_ptrs[] = {
-	&term_cap.ac,
-	&term_cap.ae,
-	&term_cap.as,
-	&term_cap.cd,
 	&term_cap.ce,
-	&term_cap.cl,
 	&term_cap.ks,
 	&term_cap.ke,
 	&term_cap.te,
@@ -217,8 +207,6 @@ static char *termcap_open(const char *filename, int *size)
 
 static void bool_cap(const char *cap)
 {
-	if (strncmp(cap, "bs", 2) == 0)
-		term_cap.bs = 1;
 	if (strncmp(cap, "ut", 2) == 0)
 		term_cap.ut = 1;
 }

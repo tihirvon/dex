@@ -733,11 +733,7 @@ int terminfo_get_caps(const char *filename)
 
 	/* now get only the interesting caps, ignore other crap */
 	term_cap.ut = get_bool(tcb_back_color_erase);
-	term_cap.bs = get_bool(tcb_backspaces_with_bs);
-
 	term_cap.colors = get_num(tcn_max_colors);
-	term_cap.cl = get_str(tcs_clear_screen);
-	term_cap.cd = get_str(tcs_clr_eos);
 	term_cap.ce = get_str(tcs_clr_eol);
 	term_cap.ks = get_str(tcs_keypad_xmit);
 	term_cap.ke = get_str(tcs_keypad_local);

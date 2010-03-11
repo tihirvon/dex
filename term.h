@@ -5,17 +5,11 @@
 struct term_cap {
 	/* boolean caps */
 	int ut; // can clear to end of line with bg color set
-	int bs; // ^H performs backspace
 
 	/* integer caps */
 	int colors;
 
 	/* string caps */
-	char *ac; // pairs of block graphic characters to map alternate character set
-	char *as; // end alternative character set
-	char *ae; // start alternative character set for block graphic characters
-	char *cl; // clear screen
-	char *cd; // clear to end of screen
 	char *ce; // crear to end of line
 	char *ke; // turn keypad off
 	char *ks; // turn keypad on
