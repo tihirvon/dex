@@ -78,7 +78,6 @@ static void verify_hl_list(struct list_head *head, const char *suffix)
 {
 #if DEBUG_SYNTAX
 	struct hl_list *list;
-	int i;
 #if DEBUG_SYNTAX > 1
 	char buf[128];
 	FILE *f;
@@ -86,6 +85,8 @@ static void verify_hl_list(struct list_head *head, const char *suffix)
 	snprintf(buf, sizeof(buf), "/tmp/verify-%d-%d-%s", verify_count, verify_counter++, suffix);
 	f = fopen(buf, "w");
 	list_for_each_entry(list, head, node) {
+		int i;
+
 		for (i = 0; i < list->count; i++) {
 			static const char *names[] = { " ", "{", "}" };
 			struct hl_entry *e = &list->entries[i];
