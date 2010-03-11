@@ -1,7 +1,7 @@
 #include "term.h"
 #include "util.h"
 
-/* booleans {{{ */
+/* booleans */
 enum {
 	tcb_auto_left_margin,
 	tcb_auto_right_margin,
@@ -50,9 +50,8 @@ enum {
 	tcb_return_does_clr_eol,
 	nr_tcbs /* 44 */
 };
-/* }}} */
 
-/* numbers {{{ */
+/* numbers */
 enum {
 	tcn_columns,
 	tcn_init_tabs,
@@ -96,9 +95,8 @@ enum {
 	tcn_number_of_function_keys,
 	nr_tcns /* 39 */
 };
-/* }}} */
 
-/* strings {{{ */
+/* strings */
 enum {
 	tcs_back_tab,
 	tcs_bell,
@@ -517,9 +515,7 @@ enum {
 	tcs_box_chars_1,
 	nr_tcss /* 414 */
 };
-/* }}} */
 
-/* keymap {{{ */
 static int keymap[NR_SKEYS] = {
 	tcs_key_backspace,
 	tcs_key_ic,
@@ -546,7 +542,6 @@ static int keymap[NR_SKEYS] = {
 	tcs_key_f11,
 	tcs_key_f12
 };
-/* }}} */
 
 static unsigned int nr_bools, nr_nums, nr_strs, strs_size;
 static const char *bools;

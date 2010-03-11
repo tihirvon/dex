@@ -1,12 +1,6 @@
 #include "term.h"
 #include "util.h"
 
-/*
- * booleans:
- *
- * bs   Control-H (8 dec.) performs a backspace
- */
-
 static const char *str_cap_names[] = {
 	"ce",
 	"ks",
