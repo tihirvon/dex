@@ -1,5 +1,6 @@
 #include "lock.h"
 #include "buffer.h"
+#include "editor.h"
 #include "util.h"
 
 static char *file_locks;

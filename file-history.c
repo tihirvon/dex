@@ -1,5 +1,6 @@
 #include "file-history.h"
 #include "common.h"
+#include "editor.h"
 #include "list.h"
 #include "util.h"
 #include "wbuf.h"

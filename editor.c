@@ -15,6 +15,8 @@
 #include <langinfo.h>
 #include <signal.h>
 
+char *home_dir;
+
 enum input_mode input_mode;
 enum input_special input_special;
 enum editor_status editor_status;
@@ -116,6 +118,13 @@ void ui_end(void)
 
 	buf_flush();
 	term_cooked();
+}
+
+const char *editor_file(const char *name)
+{
+	static char filename[1024];
+	snprintf(filename, sizeof(filename), "%s/.editor/%s", home_dir, name);
+	return filename;
 }
 
 void error_msg(const char *format, ...)

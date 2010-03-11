@@ -1,5 +1,5 @@
 #include "commands.h"
-#include "util.h"
+#include "editor.h"
 #include "gbuf.h"
 #include "buffer.h"
 #include "ptr-array.h"

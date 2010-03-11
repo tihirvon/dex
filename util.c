@@ -1,15 +1,6 @@
 #include "util.h"
 #include "editor.h"
 
-char *home_dir;
-
-const char *editor_file(const char *name)
-{
-	static char filename[1024];
-	snprintf(filename, sizeof(filename), "%s/.editor/%s", home_dir, name);
-	return filename;
-}
-
 ssize_t xread(int fd, void *buf, size_t count)
 {
 	char *b = buf;

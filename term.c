@@ -1,6 +1,6 @@
 #include "term.h"
 #include "common.h"
-#include "util.h"
+#include "editor.h"
 #include "options.h"
 
 #include <sys/ioctl.h>

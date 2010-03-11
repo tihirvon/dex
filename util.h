@@ -3,9 +3,6 @@
 
 #include "common.h"
 
-extern char *home_dir;
-
-const char *editor_file(const char *name);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
