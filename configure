@@ -10,7 +10,8 @@ check_cflags()
 	for i in -Wdeclaration-after-statement \
 		-Wold-style-definition \
 		-Wno-pointer-sign \
-		-Werror-implicit-function-declaration
+		-Werror-implicit-function-declaration \
+		-Wformat-security
 	do
 		check_cc_flag $i
 	done
