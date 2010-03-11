@@ -31,6 +31,7 @@ objs 	:= 			\
 	options.o		\
 	parse-command.o		\
 	ptr-array.o		\
+	regexp.o		\
 	screen.o		\
 	search.o		\
 	spawn.o			\

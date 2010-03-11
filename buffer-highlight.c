@@ -1,7 +1,7 @@
 #include "buffer-highlight.h"
 #include "highlight.h"
 #include "buffer.h"
-#include "util.h"
+#include "regexp.h"
 
 /*
  * Contains one line including LF.

@@ -4,7 +4,7 @@
 #include "gbuf.h"
 #include "window.h"
 #include "edit.h"
-#include "util.h"
+#include "regexp.h"
 
 #define MAX_SUBSTRINGS 32
 

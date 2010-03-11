@@ -1,7 +1,7 @@
 #include "color.h"
 #include "syntax.h"
 #include "highlight.h"
-#include "util.h"
+#include "regexp.h"
 
 static int nr_updated_node_colors;
 

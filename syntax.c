@@ -2,7 +2,7 @@
 #include "common.h"
 #include "buffer.h"
 #include "commands.h"
-#include "util.h"
+#include "regexp.h"
 
 static LIST_HEAD(syntaxes);
 static struct syntax *cur_syntax;

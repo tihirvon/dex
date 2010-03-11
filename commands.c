@@ -8,6 +8,7 @@
 #include "history.h"
 #include "spawn.h"
 #include "util.h"
+#include "regexp.h"
 #include "filetype.h"
 #include "color.h"
 #include "syntax.h"

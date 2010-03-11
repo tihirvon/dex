@@ -2,7 +2,7 @@
 #include "editor.h"
 #include "buffer.h"
 #include "window.h"
-#include "util.h"
+#include "regexp.h"
 #include "gbuf.h"
 
 struct error_format {

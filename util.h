@@ -4,7 +4,6 @@
 #include "common.h"
 
 extern char *home_dir;
-extern char *regexp_matches[];
 
 void init_misc(void);
 const char *editor_file(const char *name);
@@ -12,12 +11,6 @@ ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 char *path_absolute(const char *filename);
 const char *get_file_type(mode_t mode);
-int regexp_match_nosub(const char *pattern, const char *buf, unsigned int len);
-int regexp_match(const char *pattern, const char *str);
-void free_regexp_matches(void);
-int regexp_compile(regex_t *regexp, const char *pattern, int flags);
-int buf_regexec(const regex_t *regexp, const char *buf,
-	unsigned int size, size_t nr_m, regmatch_t *m, int flags);
 
 #define mmap_empty ((void *)8UL)
 

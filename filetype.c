@@ -1,6 +1,6 @@
 #include "filetype.h"
 #include "common.h"
-#include "util.h"
+#include "regexp.h"
 #include "ptr-array.h"
 
 struct filetype {
