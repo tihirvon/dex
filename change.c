@@ -1,4 +1,5 @@
 #include "change.h"
+#include "editor.h"
 #include "buffer.h"
 
 static struct change *alloc_change(void)

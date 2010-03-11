@@ -209,10 +209,6 @@ void pop_location(void);
 int buffer_get_char(uchar *up);
 char *get_word_under_cursor(void);
 
-void error_msg(const char *format, ...) __FORMAT(1, 2);
-void info_msg(const char *format, ...) __FORMAT(1, 2);
-char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
-
 int guess_filetype(void);
 struct syntax *load_syntax(const char *filetype);
 void syntax_changed(void);

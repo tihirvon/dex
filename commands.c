@@ -1,4 +1,5 @@
 #include "commands.h"
+#include "editor.h"
 #include "edit.h"
 #include "window.h"
 #include "change.h"

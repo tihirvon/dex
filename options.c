@@ -1,4 +1,5 @@
 #include "common.h"
+#include "editor.h"
 #include "options.h"
 #include "buffer.h"
 #include "commands.h"

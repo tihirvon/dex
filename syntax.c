@@ -1,6 +1,6 @@
 #include "syntax.h"
 #include "common.h"
-#include "buffer.h"
+#include "editor.h"
 #include "commands.h"
 #include "regexp.h"
 

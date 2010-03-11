@@ -1,5 +1,5 @@
 #include "regexp.h"
-#include "buffer.h"
+#include "editor.h"
 
 int regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 {

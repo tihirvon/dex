@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "editor.h"
 #include "window.h"
 #include "search.h"
 #include "util.h"
