@@ -5,7 +5,6 @@
 
 extern char *home_dir;
 
-void init_misc(void);
 const char *editor_file(const char *name);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);

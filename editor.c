@@ -709,13 +709,16 @@ int main(int argc, char *argv[])
 {
 	int i;
 	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
+	const char *home = getenv("HOME");
 	const char *tag = NULL;
 	const char *rc = NULL;
 	const char *command = NULL;
 	const char *charset;
 	struct view *tmp_view;
 
-	init_misc();
+	if (!home)
+		home = "";
+	home_dir = xstrdup(home);
 
 	for (i = 1; i < argc; i++) {
 		const char *opt = argv[i];

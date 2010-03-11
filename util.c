@@ -3,16 +3,6 @@
 
 char *home_dir;
 
-void init_misc(void)
-{
-	home_dir = getenv("HOME");
-	if (!home_dir) {
-		home_dir = xcalloc(1);
-	} else {
-		home_dir = xstrdup(home_dir);
-	}
-}
-
 const char *editor_file(const char *name)
 {
 	static char filename[1024];
