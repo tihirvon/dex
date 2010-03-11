@@ -1,5 +1,6 @@
 #include "window.h"
 #include "editor.h"
+#include "change.h"
 #include "util.h"
 #include "wbuf.h"
 #include "term.h"
@@ -255,30 +256,6 @@ static int read_blocks(struct buffer *b, int fd)
 	return 0;
 }
 
-static void free_changes(struct buffer *b)
-{
-	struct change_head *ch = &b->change_head;
-
-top:
-	while (ch->nr_prev)
-		ch = ch->prev[ch->nr_prev - 1];
-
-	// ch is leaf now
-	while (ch->next) {
-		struct change_head *next = ch->next;
-
-		free(((struct change *)ch)->buf);
-		free(ch);
-
-		ch = next;
-		if (--ch->nr_prev)
-			goto top;
-
-		// we have become leaf
-		free(ch->prev);
-	}
-}
-
 void free_buffer(struct buffer *b)
 {
 	struct list_head *item;
@@ -295,7 +272,7 @@ void free_buffer(struct buffer *b)
 		free(blk);
 		item = next;
 	}
-	free_changes(b);
+	free_changes(&b->change_head);
 	free_hl_list(&b->hl_head);
 
 	free(b->filename);

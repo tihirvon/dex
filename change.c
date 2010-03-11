@@ -2,6 +2,17 @@
 #include "editor.h"
 #include "buffer.h"
 
+struct change {
+	struct change_head head;
+	unsigned int offset;
+	unsigned int del_count;
+	unsigned ins_count : 31;
+	// after undoing backspace move after the text
+	unsigned move_after : 1;
+	// deleted bytes (inserted bytes need not to be saved)
+	char *buf;
+};
+
 static struct change *alloc_change(void)
 {
 	return xcalloc(sizeof(struct change));
@@ -246,4 +257,27 @@ int redo(unsigned int change_id)
 	}
 	buffer->cur_change_head = head;
 	return 1;
+}
+
+void free_changes(void *head)
+{
+	struct change_head *ch = head;
+top:
+	while (ch->nr_prev)
+		ch = ch->prev[ch->nr_prev - 1];
+
+	// ch is leaf now
+	while (ch->next) {
+		struct change_head *next = ch->next;
+
+		free(((struct change *)ch)->buf);
+		free(ch);
+
+		ch = next;
+		if (--ch->nr_prev)
+			goto top;
+
+		// we have become leaf
+		free(ch->prev);
+	}
 }

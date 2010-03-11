@@ -8,5 +8,6 @@ void begin_change_chain(void);
 void end_change_chain(void);
 int undo(void);
 int redo(unsigned int change_id);
+void free_changes(void *head);
 
 #endif

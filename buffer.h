@@ -13,17 +13,6 @@ struct change_head {
 	unsigned int nr_prev;
 };
 
-struct change {
-	struct change_head head;
-	unsigned int offset;
-	unsigned int del_count;
-	unsigned ins_count : 31;
-	// after undoing backspace move after the text
-	unsigned move_after : 1;
-	// deleted bytes (inserted bytes need not to be saved)
-	char *buf;
-};
-
 struct buffer {
 	struct list_head blocks;
 	struct change_head change_head;
