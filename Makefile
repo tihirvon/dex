@@ -42,6 +42,7 @@ objs 	:= 			\
 	uchar.o			\
 	util.o			\
 	view.o			\
+	wbuf.o			\
 	window.o		\
 	xmalloc.o		\
 	# end

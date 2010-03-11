@@ -1,5 +1,6 @@
 #include "window.h"
 #include "util.h"
+#include "wbuf.h"
 #include "term.h"
 #include "filetype.h"
 #include "buffer-highlight.h"

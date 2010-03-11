@@ -2,6 +2,7 @@
 #include "common.h"
 #include "list.h"
 #include "util.h"
+#include "wbuf.h"
 
 struct history_entry {
 	struct list_head node;
