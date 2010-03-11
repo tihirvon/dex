@@ -1,7 +1,6 @@
 #include "commands.h"
 #include "cmdline.h"
 #include "options.h"
-#include "util.h"
 #include "gbuf.h"
 #include "ptr-array.h"
 
