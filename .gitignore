@@ -1,8 +1,9 @@
 .*
 *.o
-config.mk
 tags
 callgrind.out.*
+
+/Config.mk
 /editor
 
 !.git*

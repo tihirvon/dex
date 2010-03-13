@@ -1,0 +1,69 @@
+# build verbosity
+ifneq ($(findstring s,$(MAKEFLAGS)),)
+	# make -s
+	quiet = silent_
+else
+	ifeq ($(V),1)
+		# make V=1
+		quiet =
+	else
+		quiet = quiet_
+	endif
+endif
+
+# Compiler errors etc. should never ever be translated.
+# Basic tools like sort should never have been made locale aware.
+LC_ALL := C
+export LC_ALL
+
+# following macros have been taken from Kbuild and simplified
+
+quiet_cmd_cc = CC     $@
+      cmd_cc = $(CC) $(CFLAGS) -c -o $@ $<
+
+quiet_cmd_ld = LD     $@
+      cmd_ld = $(LD) $(LDFLAGS) -o $@ $^ $(1)
+
+cmd = @$(if $($(quiet)cmd_$(1)),echo '   $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
+
+try-run = $(shell if ($(1)) >/dev/null 2>&1; then echo "$(2)"; else echo "$(3)"; fi)
+cc-option = $(call try-run, $(CC) $(1) -c -x c /dev/null -o /dev/null,$(1),$(2))
+
+# dependency generation macros copied from GIT
+
+ifndef NO_DEPS
+CC_CAN_GENERATE_DEPS := $(call try-run,$(CC) -MMD -MP -MF /dev/null -c -x c /dev/null -o /dev/null,y,n)
+ifeq ($(CC_CAN_GENERATE_DEPS),n)
+NO_DEPS := y
+endif
+endif
+
+ifndef NO_DEPS
+dep_files := $(foreach f,$(OBJECTS),$(dir $f).depend/$(notdir $f).d)
+dep_dirs := $(addsuffix .depend,$(sort $(dir $(OBJECTS))))
+missing_dep_dirs := $(filter-out $(wildcard $(dep_dirs)),$(dep_dirs))
+CFLAGS += -MF $(dir $@).depend/$(notdir $@).d -MMD -MP
+dep_files_present := $(wildcard $(dep_files))
+
+ifneq ($(dep_files_present),)
+include $(dep_files_present)
+endif
+
+$(dep_dirs):
+	@mkdir -p $@
+
+clean: clean-deps
+
+clean-deps:
+	rm -fr $(dep_dirs)
+
+.PHONY: clean-deps
+else
+missing_dep_dirs =
+endif
+
+%.o: %.c $(missing_dep_dirs)
+	$(call cmd,cc)
+
+# Treat all targets as secondary (Never delete intermediate targets).
+.SECONDARY:
