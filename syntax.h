@@ -118,9 +118,4 @@ static inline union syntax_node *idx_to_syntax_node(unsigned char idx)
 	return syntax_nodes[idx];
 }
 
-static inline struct syntax_context *syntax_get_default_context(const struct syntax *syn)
-{
-	return syn->root;
-}
-
 #endif

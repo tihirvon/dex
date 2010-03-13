@@ -191,7 +191,7 @@ void highlight_buffer(struct buffer *b)
 	bi.offset = 0;
 
 	init_highlighter(&h, b);
-	init_syntax_context_stack(&h.stack, syntax_get_default_context(b->syn));
+	init_syntax_context_stack(&h.stack, b->syn->root);
 	while (!block_iter_eof(&bi)) {
 		fetch_line(&bi);
 		h.line = hl_buffer;
@@ -218,7 +218,7 @@ static void update_contexts(const struct syntax *syn, struct list_head *head,
 	struct syntax_context_stack *ptr = a;
 	struct hl_list *list;
 
-	init_syntax_context_stack(ptr, syntax_get_default_context(syn));
+	init_syntax_context_stack(ptr, syn->root);
 	list_for_each_entry(list, head, node) {
 		int i;
 		for (i = 0; i < list->count; i++) {
@@ -270,7 +270,7 @@ static void update_hl_eof(void)
 		update_contexts(buffer->syn, &buffer->hl_head, offset, &a, 0, NULL);
 		truncate_hl_list(&buffer->hl_head, offset + 1);
 	} else {
-		init_syntax_context_stack(&a, syntax_get_default_context(buffer->syn));
+		init_syntax_context_stack(&a, buffer->syn->root);
 		truncate_hl_list(&buffer->hl_head, offset);
 	}
 	verify_hl_list(&buffer->hl_head, "truncate");
