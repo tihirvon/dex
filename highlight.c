@@ -289,8 +289,8 @@ static void add_word_matches(struct highlighter *h, const union syntax_node *n)
 
 		for (hash_w = n->word.hash[hw->hash % WORD_HASH_SIZE]; hash_w; hash_w = hash_w->next) {
 			struct hl_match *m;
-			const unsigned char *word = hash_w->word;
-			int len = *word++;
+			const char *word = hash_w->word;
+			int len = *(const unsigned char *)word++;
 
 			if (len != hw->len)
 				continue;

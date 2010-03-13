@@ -203,7 +203,7 @@ int buf_put_char(uchar u, int utf8)
 	} else {
 		width = u_char_width(u);
 		if (width <= space) {
-			u_set_char(obuf.buf, &obuf.count, u);
+			u_set_char(obuf.buf, (int *)&obuf.count, u);
 			obuf.x += width;
 		} else {
 			obuf.buf[obuf.count++] = '>';

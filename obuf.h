@@ -5,7 +5,7 @@
 #include "term.h"
 
 struct output_buffer {
-	unsigned char *buf;
+	char *buf;
 	unsigned int alloc;
 	unsigned int count;
 

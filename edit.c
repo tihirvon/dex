@@ -621,7 +621,7 @@ void insert_ch(unsigned int ch)
 		move_right(ins_count);
 		undo_merge = UNDO_MERGE_NONE;
 	} else {
-		unsigned char buf[8];
+		char buf[8];
 		int chars = 1;
 		int i = 0;
 
