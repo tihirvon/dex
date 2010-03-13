@@ -3,4 +3,11 @@ include /usr/share/editor/color/light
 include /usr/share/editor/compiler/gcc
 include /usr/share/editor/filetype
 
+alias cl close
+alias o open
+alias q quit
+alias r replace
+alias s save
+alias t tag
+
 errorfmt grep "^([^:]+):([0-9]+):.*" file line
