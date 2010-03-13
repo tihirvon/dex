@@ -709,7 +709,7 @@ static int parse_term_color(struct term_color *color, char **strs)
 	return 1;
 }
 
-static void cmd_highlight(char **args)
+static void cmd_hi(char **args)
 {
 	const char *pf = parse_args(args, "", 1, -1);
 	struct term_color color;
@@ -1606,7 +1606,7 @@ const struct command commands[] = {
 	{ "filter", "f", cmd_filter },
 	{ "format-paragraph", "fp", cmd_format_paragraph },
 	{ "ft", NULL, cmd_ft },
-	{ "highlight", "hi", cmd_highlight },
+	{ "hi", NULL, cmd_hi },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
 	{ "insert-special", NULL, cmd_insert_special },
