@@ -1485,7 +1485,7 @@ static void cmd_shift(char **args)
 	shift_lines(count);
 }
 
-static const struct command syntax_commands[] = {
+static const struct command syn_commands[] = {
 	{ "addc", NULL, syn_addc },
 	{ "addr", NULL, syn_addr },
 	{ "addw", NULL, syn_addw },
@@ -1496,9 +1496,9 @@ static const struct command syntax_commands[] = {
 	{ NULL, NULL, NULL }
 };
 
-static void cmd_syntax(char **args)
+static void cmd_syn(char **args)
 {
-	run_command(syntax_commands, args);
+	run_command(syn_commands, args);
 }
 
 static void cmd_tag(char **args)
@@ -1640,7 +1640,7 @@ const struct command commands[] = {
 	{ "select", NULL, cmd_select },
 	{ "set", NULL, cmd_set },
 	{ "shift", NULL, cmd_shift },
-	{ "syntax", "syn", cmd_syntax },
+	{ "syn", NULL, cmd_syn },
 	{ "tag", "t", cmd_tag },
 	{ "toggle", NULL, cmd_toggle },
 	{ "undo", NULL, cmd_undo },
