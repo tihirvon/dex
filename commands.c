@@ -523,37 +523,37 @@ static void cmd_errorfmt(char **args)
 	add_error_fmt(args[0], importance, args[1], args + 2);
 }
 
-static void cmd_filetype_content(char **args)
+static void cmd_ft_content(char **args)
 {
 	if (!parse_args(args, "", 2, 2))
 		return;
 	add_ft_content(args[0], args[1]);
 }
 
-static void cmd_filetype_extension(char **args)
+static void cmd_ft_extension(char **args)
 {
 	if (!parse_args(args, "", 2, -1))
 		return;
 	add_ft_extensions(args[0], args + 1);
 }
 
-static void cmd_filetype_match(char **args)
+static void cmd_ft_match(char **args)
 {
 	if (!parse_args(args, "", 2, 2))
 		return;
 	add_ft_match(args[0], args[1]);
 }
 
-static const struct command filetype_commands[] = {
-	{ "content", NULL, cmd_filetype_content },
-	{ "extension", "ext", cmd_filetype_extension },
-	{ "match", NULL, cmd_filetype_match },
+static const struct command ft_commands[] = {
+	{ "content", NULL, cmd_ft_content },
+	{ "extension", "ext", cmd_ft_extension },
+	{ "match", NULL, cmd_ft_match },
 	{ NULL, NULL, NULL }
 };
 
-static void cmd_filetype(char **args)
+static void cmd_ft(char **args)
 {
-	run_command(filetype_commands, args);
+	run_command(ft_commands, args);
 }
 
 static void cmd_filter(char **args)
@@ -1603,9 +1603,9 @@ const struct command commands[] = {
 	{ "erase-word", NULL, cmd_erase_word },
 	{ "error", NULL, cmd_error },
 	{ "errorfmt", NULL, cmd_errorfmt },
-	{ "filetype", "ft", cmd_filetype },
 	{ "filter", "f", cmd_filter },
 	{ "format-paragraph", "fp", cmd_format_paragraph },
+	{ "ft", NULL, cmd_ft },
 	{ "highlight", "hi", cmd_highlight },
 	{ "include", NULL, cmd_include },
 	{ "insert", NULL, cmd_insert },
