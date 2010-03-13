@@ -52,11 +52,7 @@ static void collect_commands(const char *prefix)
 	for (i = 0; commands[i].name; i++) {
 		const struct command *c = &commands[i];
 
-		if (!strncmp(prefix, c->name, prefix_len)) {
-			add_completion(xstrdup(c->name));
-			continue;
-		}
-		if (c->short_name && !strncmp(prefix, c->short_name, prefix_len))
+		if (!strncmp(prefix, c->name, prefix_len))
 			add_completion(xstrdup(c->name));
 	}
 

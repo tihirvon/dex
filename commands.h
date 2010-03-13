@@ -6,7 +6,6 @@
 
 struct command {
 	const char *name;
-	const char *short_name;
 	void (*cmd)(char **);
 };
 

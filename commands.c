@@ -545,10 +545,10 @@ static void cmd_ft_match(char **args)
 }
 
 static const struct command ft_commands[] = {
-	{ "content", NULL, cmd_ft_content },
-	{ "extension", NULL, cmd_ft_extension },
-	{ "match", NULL, cmd_ft_match },
-	{ NULL, NULL, NULL }
+	{ "content",	cmd_ft_content },
+	{ "extension",	cmd_ft_extension },
+	{ "match",	cmd_ft_match },
+	{ NULL,		NULL }
 };
 
 static void cmd_ft(char **args)
@@ -948,9 +948,9 @@ static void cmd_option_filetype(char **args)
 }
 
 static const struct command option_commands[] = {
-	{ "filename", NULL, cmd_option_filename },
-	{ "filetype", NULL, cmd_option_filetype },
-	{ NULL, NULL, NULL }
+	{ "filename",	cmd_option_filename },
+	{ "filetype",	cmd_option_filetype },
+	{ NULL,		NULL }
 };
 
 static void cmd_option(char **args)
@@ -1486,14 +1486,14 @@ static void cmd_shift(char **args)
 }
 
 static const struct command syn_commands[] = {
-	{ "addc", NULL, syn_addc },
-	{ "addr", NULL, syn_addr },
-	{ "addw", NULL, syn_addw },
-	{ "begin", NULL, syn_begin },
-	{ "connect", NULL, syn_connect },
-	{ "end", NULL, syn_end },
-	{ "join", NULL, syn_join },
-	{ NULL, NULL, NULL }
+	{ "addc",	syn_addc },
+	{ "addr",	syn_addr },
+	{ "addw",	syn_addw },
+	{ "begin",	syn_begin },
+	{ "connect",	syn_connect },
+	{ "end",	syn_end },
+	{ "join",	syn_join },
+	{ NULL,		NULL }
 };
 
 static void cmd_syn(char **args)
@@ -1582,71 +1582,71 @@ static void cmd_view(char **args)
 }
 
 const struct command commands[] = {
-	{ "alias", NULL, cmd_alias },
-	{ "bind", NULL, cmd_bind },
-	{ "bof", NULL, cmd_bof },
-	{ "bol", NULL, cmd_bol },
-	{ "cancel", NULL, cmd_cancel },
-	{ "center-view", NULL, cmd_center_view },
-	{ "clear", NULL, cmd_clear },
-	{ "close", NULL, cmd_close },
-	{ "command", NULL, cmd_command },
-	{ "copy", NULL, cmd_copy },
-	{ "cut", NULL, cmd_cut },
-	{ "delete", NULL, cmd_delete },
-	{ "delete-bol", NULL, cmd_delete_bol },
-	{ "delete-eol", NULL, cmd_delete_eol },
-	{ "down", NULL, cmd_down },
-	{ "eof", NULL, cmd_eof },
-	{ "eol", NULL, cmd_eol },
-	{ "erase", NULL, cmd_erase },
-	{ "erase-word", NULL, cmd_erase_word },
-	{ "error", NULL, cmd_error },
-	{ "errorfmt", NULL, cmd_errorfmt },
-	{ "filter", NULL, cmd_filter },
-	{ "format-paragraph", NULL, cmd_format_paragraph },
-	{ "ft", NULL, cmd_ft },
-	{ "hi", NULL, cmd_hi },
-	{ "include", NULL, cmd_include },
-	{ "insert", NULL, cmd_insert },
-	{ "insert-special", NULL, cmd_insert_special },
-	{ "join", NULL, cmd_join },
-	{ "left", NULL, cmd_left },
-	{ "line", NULL, cmd_line },
-	{ "load-syntax", NULL, cmd_load_syntax },
-	{ "new-line", NULL, cmd_new_line },
-	{ "next", NULL, cmd_next },
-	{ "open", NULL, cmd_open },
-	{ "option", NULL, cmd_option },
-	{ "pass-through", NULL, cmd_pass_through },
-	{ "paste", NULL, cmd_paste },
-	{ "pgdown", NULL, cmd_pgdown },
-	{ "pgup", NULL, cmd_pgup },
-	{ "pop", NULL, cmd_pop },
-	{ "prev", NULL, cmd_prev },
-	{ "quit", NULL, cmd_quit },
-	{ "redo", NULL, cmd_redo },
-	{ "repeat", NULL, cmd_repeat },
-	{ "replace", NULL, cmd_replace },
-	{ "right", NULL, cmd_right },
-	{ "run", NULL, cmd_run },
-	{ "save", NULL, cmd_save },
-	{ "scroll-pgdown", NULL, cmd_scroll_pgdown },
-	{ "scroll-pgup", NULL, cmd_scroll_pgup },
-	{ "search-bwd", NULL, cmd_search_bwd },
-	{ "search-fwd", NULL, cmd_search_fwd },
-	{ "search-next", NULL, cmd_search_next },
-	{ "search-prev", NULL, cmd_search_prev },
-	{ "select", NULL, cmd_select },
-	{ "set", NULL, cmd_set },
-	{ "shift", NULL, cmd_shift },
-	{ "syn", NULL, cmd_syn },
-	{ "tag", NULL, cmd_tag },
-	{ "toggle", NULL, cmd_toggle },
-	{ "undo", NULL, cmd_undo },
-	{ "up", NULL, cmd_up },
-	{ "view", NULL, cmd_view },
-	{ NULL, NULL, NULL }
+	{ "alias",		cmd_alias },
+	{ "bind",		cmd_bind },
+	{ "bof",		cmd_bof },
+	{ "bol",		cmd_bol },
+	{ "cancel",		cmd_cancel },
+	{ "center-view",	cmd_center_view },
+	{ "clear",		cmd_clear },
+	{ "close",		cmd_close },
+	{ "command",		cmd_command },
+	{ "copy",		cmd_copy },
+	{ "cut",		cmd_cut },
+	{ "delete",		cmd_delete },
+	{ "delete-bol",		cmd_delete_bol },
+	{ "delete-eol",		cmd_delete_eol },
+	{ "down",		cmd_down },
+	{ "eof",		cmd_eof },
+	{ "eol",		cmd_eol },
+	{ "erase",		cmd_erase },
+	{ "erase-word",		cmd_erase_word },
+	{ "error",		cmd_error },
+	{ "errorfmt",		cmd_errorfmt },
+	{ "filter",		cmd_filter },
+	{ "format-paragraph",	cmd_format_paragraph },
+	{ "ft",			cmd_ft },
+	{ "hi",			cmd_hi },
+	{ "include",		cmd_include },
+	{ "insert",		cmd_insert },
+	{ "insert-special",	cmd_insert_special },
+	{ "join",		cmd_join },
+	{ "left",		cmd_left },
+	{ "line",		cmd_line },
+	{ "load-syntax",	cmd_load_syntax },
+	{ "new-line",		cmd_new_line },
+	{ "next",		cmd_next },
+	{ "open",		cmd_open },
+	{ "option",		cmd_option },
+	{ "pass-through",	cmd_pass_through },
+	{ "paste",		cmd_paste },
+	{ "pgdown",		cmd_pgdown },
+	{ "pgup",		cmd_pgup },
+	{ "pop",		cmd_pop },
+	{ "prev",		cmd_prev },
+	{ "quit",		cmd_quit },
+	{ "redo",		cmd_redo },
+	{ "repeat",		cmd_repeat },
+	{ "replace",		cmd_replace },
+	{ "right",		cmd_right },
+	{ "run",		cmd_run },
+	{ "save",		cmd_save },
+	{ "scroll-pgdown",	cmd_scroll_pgdown },
+	{ "scroll-pgup",	cmd_scroll_pgup },
+	{ "search-bwd",		cmd_search_bwd },
+	{ "search-fwd",		cmd_search_fwd },
+	{ "search-next",	cmd_search_next },
+	{ "search-prev",	cmd_search_prev },
+	{ "select",		cmd_select },
+	{ "set",		cmd_set },
+	{ "shift",		cmd_shift },
+	{ "syn",		cmd_syn },
+	{ "tag",		cmd_tag },
+	{ "toggle",		cmd_toggle },
+	{ "undo",		cmd_undo },
+	{ "up",			cmd_up },
+	{ "view",		cmd_view },
+	{ NULL,			NULL }
 };
 
 void handle_binding(enum term_key_type type, unsigned int key)
@@ -1684,8 +1684,6 @@ const struct command *find_command(const struct command *cmds, const char *name)
 		const struct command *cmd = &cmds[i];
 
 		if (!strcmp(name, cmd->name))
-			return cmd;
-		if (cmd->short_name && !strcmp(name, cmd->short_name))
 			return cmd;
 	}
 	return NULL;
