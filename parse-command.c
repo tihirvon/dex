@@ -86,6 +86,65 @@ static void parse_dq(const char *cmd, int *posp)
 	*posp = pos;
 }
 
+/*
+ * $FILENAME	current filename
+ * $DATADIR	set at compile time
+ * $WORD	word under cursor
+ *
+ * Otherwise the corresponding environment value or "" if not set.
+ */
+static void parse_var(const char *cmd, int *posp)
+{
+	int len, pos = *posp;
+	const char *value, *var = cmd + pos;
+	char *name;
+
+	while (1) {
+		char ch = cmd[pos];
+
+		if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_') {
+			pos++;
+			continue;
+		}
+		if (pos > *posp && ch >= '0' && ch <= '9') {
+			pos++;
+			continue;
+		}
+		break;
+	}
+
+	len = pos - *posp;
+	*posp = pos;
+
+	if (!len)
+		return;
+
+	if (len == 8 && !memcmp(var, "FILENAME", len)) {
+		if (buffer->abs_filename)
+			gbuf_add_str(&arg, buffer->abs_filename);
+		return;
+	}
+	if (len == 7 && !memcmp(var, "DATADIR", len)) {
+		gbuf_add_str(&arg, DATADIR);
+		return;
+	}
+	if (len == 4 && !memcmp(var, "WORD", len)) {
+		char *word = get_word_under_cursor();
+
+		if (word) {
+			gbuf_add_str(&arg, word);
+			free(word);
+		}
+		return;
+	}
+
+	name = xstrndup(var, len);
+	value = getenv(name);
+	if (value)
+		gbuf_add_str(&arg, value);
+	free(name);
+}
+
 char *parse_command_arg(const char *cmd, int tilde)
 {
 	int pos = 0;
@@ -103,6 +162,8 @@ char *parse_command_arg(const char *cmd, int tilde)
 			parse_sq(cmd, &pos);
 		} else if (ch == '"') {
 			parse_dq(cmd, &pos);
+		} else if (ch == '$') {
+			parse_var(cmd, &pos);
 		} else if (ch == '\\') {
 			if (!cmd[pos])
 				break;
