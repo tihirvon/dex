@@ -168,13 +168,8 @@ static void verify_hl_size(void)
 	list_for_each_entry(blk, &buffer->blocks, node)
 		size += blk->size;
 
-	ds_print("%d %d\n", hl_size, size);
-	if (size) {
-		blk = BLOCK(buffer->blocks.prev);
-		if (blk->data[blk->size - 1] != '\n')
-			size++;
-	}
-	BUG_ON(hl_size != size);
+	if (hl_size != size)
+		BUG("hl_size != size, %d %d\n", hl_size, size);
 #endif
 }
 
