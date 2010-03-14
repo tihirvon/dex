@@ -1167,22 +1167,13 @@ static void cmd_run(char **args)
 
 	if (quoted) {
 		PTR_ARRAY(array);
-		char cmd[8192];
-		char *word;
 
 		if (args[1]) {
 			error_msg("Too many arguments");
 			return;
 		}
 
-		word = get_word_under_cursor();
-		if (!word) {
-			return;
-		}
-
-		snprintf(cmd, sizeof(cmd), args[0], word);
-		free(word);
-		if (parse_commands(&array, cmd)) {
+		if (parse_commands(&array, args[0])) {
 			ptr_array_free(&array);
 			return;
 		}

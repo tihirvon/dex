@@ -44,7 +44,7 @@ bind M-b "search-bwd -w"
 bind M-s select
 bind M-t bof
 bind M-e eof
-bind M-m "run -pc 'man %s'"
+bind M-m "run -p man $WORD"
 bind M-[ "error -p"
 bind M-] "error -n"
 bind M-, "shift -- -1"
