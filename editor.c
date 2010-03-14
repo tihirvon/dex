@@ -740,9 +740,6 @@ int main(int argc, char *argv[])
 			flags &= ~TERM_USE_TERMINFO;
 			continue;
 		}
-		if (strcmp(opt, "--help") == 0) {
-			return 0;
-		}
 		if (!strcmp(opt, "-t") || !strcmp(opt, "--tag")) {
 			if (++i == argc) {
 				fprintf(stderr, "missing argument for option %s\n", opt);
@@ -774,8 +771,8 @@ int main(int argc, char *argv[])
 		if (*opt != '-')
 			break;
 
-		fprintf(stderr, "invalid option flag %s\n", opt);
-		return 1;
+		printf("Usage: %s [-c COMMAND] [-t TAG] [-r RC_FILE] [FILE]...\n", argv[0]);
+		return !!strcmp(opt, "--help");
 	}
 
 	if (!rc)
