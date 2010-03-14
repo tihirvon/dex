@@ -792,7 +792,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_CTYPE, "C");
 
 	if (term_init(NULL, flags))
-		return 1;
+		error_msg("No terminal entry found.");
 
 	init_options();
 	set_basic_colors();
