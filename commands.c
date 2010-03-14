@@ -1313,12 +1313,13 @@ static void cmd_save(char **args)
 	if (save_buffer(absolute, newline))
 		goto error;
 
-	if (new_locked && buffer->locked) {
-		// filename changes, relase old file lock
-		unlock_file(buffer->abs_filename);
-	}
-
 	if (absolute != buffer->abs_filename) {
+		if (buffer->locked) {
+			// filename changes, relase old file lock
+			unlock_file(buffer->abs_filename);
+		}
+		buffer->locked = new_locked;
+
 		free(buffer->filename);
 		free(buffer->abs_filename);
 		buffer->filename = xstrdup(args[0]);
