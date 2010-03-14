@@ -26,9 +26,9 @@ struct global_options options = {
 
 	.display_special = 0,
 	.esc_timeout = 100,
-	.show_tab_bar = 0,
+	.show_tab_bar = 1,
 	.ignore_case = 0,
-	.lock_files = 0,
+	.lock_files = 1,
 	.scroll_margin = 0,
 };
 
