@@ -205,6 +205,14 @@ int buf_put_char(uchar u, int utf8)
 		if (width <= space) {
 			u_set_char(obuf.buf, (int *)&obuf.count, u);
 			obuf.x += width;
+		} else if (u & U_INVALID_MASK) {
+			// <xx> would not fit
+			// there's enough space in the buffer so render all 4 characters
+			// but increment position less
+			int idx = obuf.count;
+			u_set_char(obuf.buf, &idx, u);
+			obuf.count += space;
+			obuf.x += space;
 		} else {
 			obuf.buf[obuf.count++] = '>';
 			obuf.x++;
