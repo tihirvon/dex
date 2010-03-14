@@ -1,7 +1,7 @@
-include /usr/share/editor/binding/default
-include /usr/share/editor/color/light
-include /usr/share/editor/compiler/gcc
-include /usr/share/editor/filetype
+include $DATADIR/editor/binding/default
+include $DATADIR/editor/color/light
+include $DATADIR/editor/compiler/gcc
+include $DATADIR/editor/filetype
 
 alias cl close
 alias o open
