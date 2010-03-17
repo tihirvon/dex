@@ -33,6 +33,9 @@ hi diff.removed bold red
 hi diff.changed magenta
 hi diff.context keep keep
 
+# editor
+hi editor.variable blue
+
 # gitcommit
 hi gitcommit.added bold
 hi gitcommit.modified bold red
