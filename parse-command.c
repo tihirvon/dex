@@ -60,27 +60,47 @@ static void parse_dq(const char *cmd, int *posp)
 {
 	int pos = *posp;
 
-	while (1) {
-		if (cmd[pos] == '"') {
-			pos++;
+	while (cmd[pos]) {
+		char ch = cmd[pos++];
+
+		if (ch == '"')
 			break;
-		}
-		if (!cmd[pos])
-			break;
-		if (cmd[pos] == '\\') {
-			pos++;
-			switch (cmd[pos]) {
+
+		if (ch == '\\' && cmd[pos]) {
+			ch = cmd[pos++];
+			switch (ch) {
 			case '\\':
 			case '"':
-				gbuf_add_ch(&arg, cmd[pos++]);
+				gbuf_add_ch(&arg, ch);
+				break;
+			case 'a':
+				gbuf_add_ch(&arg, '\a');
+				break;
+			case 'b':
+				gbuf_add_ch(&arg, '\n');
+				break;
+			case 'f':
+				gbuf_add_ch(&arg, '\f');
+				break;
+			case 'n':
+				gbuf_add_ch(&arg, '\n');
+				break;
+			case 'r':
+				gbuf_add_ch(&arg, '\r');
+				break;
+			case 't':
+				gbuf_add_ch(&arg, '\t');
+				break;
+			case 'v':
+				gbuf_add_ch(&arg, '\v');
 				break;
 			default:
 				gbuf_add_ch(&arg, '\\');
-				gbuf_add_ch(&arg, cmd[pos++]);
+				gbuf_add_ch(&arg, ch);
 				break;
 			}
 		} else {
-			gbuf_add_ch(&arg, cmd[pos++]);
+			gbuf_add_ch(&arg, ch);
 		}
 	}
 	*posp = pos;
