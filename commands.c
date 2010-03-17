@@ -803,6 +803,31 @@ static void cmd_load_syntax(char **args)
 		load_syntax(name);
 }
 
+static void cmd_move_tab(char **args)
+{
+	struct list_head *item;
+	char *str, *end;
+	long num;
+
+	if (!parse_args(args, "", 1, 1))
+		return;
+
+	str = args[0];
+	num = strtol(str, &end, 10);
+	if (!*str || *end || num < 1)
+		return error_msg("Invalid tab position %s", str);
+
+	list_del(&view->node);
+	item = &window->views;
+	while (item->next != &window->views) {
+		if (--num == 0)
+			break;
+		item = item->next;
+	}
+	list_add_after(&view->node, item);
+	update_flags |= UPDATE_TAB_BAR;
+}
+
 static void cmd_new_line(char **args)
 {
 	if (no_args(args))
@@ -1606,6 +1631,7 @@ const struct command commands[] = {
 	{ "left",		cmd_left },
 	{ "line",		cmd_line },
 	{ "load-syntax",	cmd_load_syntax },
+	{ "move-tab",		cmd_move_tab },
 	{ "new-line",		cmd_new_line },
 	{ "next",		cmd_next },
 	{ "open",		cmd_open },
