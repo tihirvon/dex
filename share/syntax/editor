@@ -5,9 +5,16 @@ syn addc sq "'" "('|$)"
 syn addc dq '"' '("|$)'
 syn addc comment '^\s*#' '\n'
 
+syn addr escchar "\\\\['\"]"
+syn addr esc '\\[abfnrtv\\"]'
+
+syn addr variable '\$[a-zA-Z_][a-zA-Z0-9_]*'
+
 syn connect comment notice
-syn connect root comment sq dq
+syn connect dq esc
+syn connect root comment escchar variable sq dq
 
 syn join string sq dq
+syn join special esc escchar
 
 syn end
