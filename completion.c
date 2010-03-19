@@ -298,10 +298,16 @@ static char *shell_escape(const char *str)
 
 	for (i = 0; str[i]; i++) {
 		char ch = str[i];
-		if (ch == ' ' || ch == '\'' || ch == '"') {
+		switch (ch) {
+		case ' ':
+		case '\'':
+		case '"':
+		case ';':
+		case '$':
 			gbuf_add_ch(&buf, '\\');
 			gbuf_add_ch(&buf, ch);
-		} else {
+			break;
+		default:
 			gbuf_add_ch(&buf, ch);
 		}
 	}
