@@ -223,8 +223,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	unsigned int stdout_quiet = flags & (SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDOUT);
 	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
 	int quiet = stdout_quiet && stderr_quiet && !(flags & SPAWN_COLLECT_ERRORS);
-	pid_t pid;
-	int status;
+	int pid, status;
 	int p[2], fp[2];
 
 	compiler_format = NULL;
