@@ -236,6 +236,10 @@ static void cmd_alias(char **args)
 		error_msg("Invalid alias name '%s'", name);
 		return;
 	}
+	if (find_command(commands, name)) {
+		error_msg("Can't replace existing command %s with an alias", name);
+		return;
+	}
 
 	/* replace existing alias */
 	for (i = 0; i < aliases.count; i++) {
