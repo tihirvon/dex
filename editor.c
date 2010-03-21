@@ -93,6 +93,9 @@ static void update_terminal_settings(void)
 
 void ui_start(int prompt)
 {
+	if (editor_status == EDITOR_INITIALIZING)
+		return;
+
 	term_raw();
 	update_terminal_settings();
 	if (prompt)
@@ -103,6 +106,9 @@ void ui_start(int prompt)
 void ui_end(void)
 {
 	struct term_color color = { -1, -1, 0 };
+
+	if (editor_status == EDITOR_INITIALIZING)
+		return;
 
 	buf_set_color(&color);
 	buf_move_cursor(0, screen_h - 1);
