@@ -24,6 +24,7 @@ hi special bold red
 hi comment bold blue
 hi preproc blue
 hi error black yellow
+hi variable blue
 
 # diff
 hi diff.header bold
@@ -33,16 +34,12 @@ hi diff.removed bold red
 hi diff.changed magenta
 hi diff.context keep keep
 
-# editor
-hi editor.variable blue
-
 # gitcommit
 hi gitcommit.added bold
 hi gitcommit.modified bold red
 hi gitcommit.untracked bold red
 
 # sh
-hi sh.variable blue
 hi sh.builtin bold
 hi sh.operator bold
 
