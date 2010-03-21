@@ -272,8 +272,11 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 			dup2(p[1], 2);
 		if (flags & SPAWN_PIPE_STDOUT)
 			dup2(p[1], 1);
+
+		// this should be unnecessary but better safe than sorry
 		for (i = 3; i < 30; i++)
 			close(i);
+
 		execvp(args[0], args);
 		exit(42);
 	}

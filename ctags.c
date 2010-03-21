@@ -34,6 +34,9 @@ static struct tag_file *open_tag_file(const char *filename)
 		return NULL;
 	}
 
+	// don't leak file descriptor to parent processes
+	fcntl(tf->fd, F_SETFD, FD_CLOEXEC);
+
 	fstat(tf->fd, &tf->st);
 	tf->map = xmmap(tf->fd, 0, tf->st.st_size);
 	if (!tf->map) {

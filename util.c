@@ -69,6 +69,9 @@ void debug_print(const char *function, const char *fmt, ...)
 	if (fd < 0) {
 		fd = open("/tmp/editor.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
 		BUG_ON(fd < 0);
+
+		// don't leak file descriptor to parent processes
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
 	}
 
 	snprintf(buf, sizeof(buf), "%s: ", function);
