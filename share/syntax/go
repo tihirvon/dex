@@ -4,7 +4,7 @@ syn addw keyword break case chan const continue default defer else fallthrough
 syn addw keyword for func go goto if import interface map package range return
 syn addw keyword select struct switch type var
 
-syn addw builtin cap close closed copy len make new panic panicln print println
+syn addw builtin cap close closed copy len make new panic print println
 syn addw builtin cmplx imag real
 
 syn addw type uint8 uint16 uint32 uint64 int8 int16 int32 int64
