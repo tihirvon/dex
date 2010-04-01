@@ -133,9 +133,9 @@ static unsigned int insert_bytes(const char *buf, unsigned int len)
 		return insert_to_next(buf, len);
 	}
 
-	if (blk->size + len > BLOCK_MAX_SIZE) {
+	if (blk->size + len > BLOCK_EDIT_SIZE) {
 		// this block would grow too big, insert to next or add new?
-		if (next && len + next->size <= BLOCK_MAX_SIZE) {
+		if (next && len + next->size <= BLOCK_EDIT_SIZE) {
 			// fits to next block
 			return insert_to_next(buf, len);
 		}

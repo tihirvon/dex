@@ -12,7 +12,8 @@ struct block {
 	unsigned int nl;
 };
 
-#define BLOCK_MAX_SIZE 512
+#define BLOCK_INIT_SIZE 8192
+#define BLOCK_EDIT_SIZE 512
 
 static inline size_t ALLOC_ROUND(size_t size)
 {
