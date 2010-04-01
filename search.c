@@ -18,9 +18,10 @@ static int do_search_fwd(regex_t *regex, int skip_first_byte)
 		block_iter_next_byte(&bi, &u);
 	do {
 		regmatch_t match;
+		struct lineref lr;
 
-		fetch_eol(&bi);
-		if (!buf_regexec(regex, line_buffer, line_buffer_len, 1, &match, 0)) {
+		fill_line_ref(&bi, &lr);
+		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, 0)) {
 			int offset = match.rm_so;
 
 			while (offset--)
@@ -42,12 +43,13 @@ static int do_search_bwd(regex_t *regex)
 
 	do {
 		regmatch_t match;
+		struct lineref lr;
 		int offset = -1;
 		int pos = 0;
 
 		block_iter_bol(&bi);
-		fetch_eol(&bi);
-		while (!buf_regexec(regex, line_buffer + pos, line_buffer_len - pos, 1, &match, 0)) {
+		fill_line_ref(&bi, &lr);
+		while (!buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
 				/* match at or after cursor */

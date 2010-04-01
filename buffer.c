@@ -311,13 +311,14 @@ int guess_filetype(void)
 	const char *ft = NULL;
 
 	if (BLOCK(buffer->blocks.next)->size) {
+		struct lineref lr;
 		struct block_iter bi;
 
 		bi.blk = BLOCK(buffer->blocks.next);
 		bi.head = &buffer->blocks;
 		bi.offset = 0;
-		fetch_eol(&bi);
-		ft = find_ft(buffer->abs_filename, line_buffer, line_buffer_len);
+		fill_line_ref(&bi, &lr);
+		ft = find_ft(buffer->abs_filename, lr.line, lr.size);
 	} else if (buffer->abs_filename) {
 		ft = find_ft(buffer->abs_filename, NULL, 0);
 	}

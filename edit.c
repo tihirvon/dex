@@ -400,15 +400,14 @@ static int get_current_indent_bytes(const char *buf, int cursor_offset)
 
 static int get_indent_level_bytes_left(void)
 {
-	struct block_iter bi = view->cursor;
-	int cursor_offset = block_iter_bol(&bi);
+	struct lineref lr;
+	unsigned int cursor_offset = fetch_this_line(&view->cursor, &lr);
 	int ibytes;
 
 	if (!cursor_offset)
 		return 0;
 
-	fetch_eol(&bi);
-	ibytes = get_current_indent_bytes(line_buffer, cursor_offset);
+	ibytes = get_current_indent_bytes(lr.line, cursor_offset);
 	if (ibytes < 0)
 		return 0;
 	return ibytes;
@@ -416,19 +415,18 @@ static int get_indent_level_bytes_left(void)
 
 static int get_indent_level_bytes_right(void)
 {
-	struct block_iter bi = view->cursor;
-	int cursor_offset = block_iter_bol(&bi);
+	struct lineref lr;
+	unsigned int cursor_offset = fetch_this_line(&view->cursor, &lr);
 	int tw = buffer->options.tab_width;
 	int i, ibytes, iwidth;
 
-	fetch_eol(&bi);
-	ibytes = get_current_indent_bytes(line_buffer, cursor_offset);
+	ibytes = get_current_indent_bytes(lr.line, cursor_offset);
 	if (ibytes < 0)
 		return 0;
 
 	iwidth = 0;
-	for (i = cursor_offset; ; i++) {
-		char ch = line_buffer[i];
+	for (i = cursor_offset; i < lr.size; i++) {
+		char ch = lr.line[i];
 
 		if (ch == '\t') {
 			iwidth = (iwidth + tw) / tw * tw;
@@ -442,6 +440,7 @@ static int get_indent_level_bytes_right(void)
 		if (iwidth % buffer->options.indent_width == 0)
 			return i - cursor_offset + 1;
 	}
+	return 0;
 }
 
 static void delete_one_ch(void)
@@ -881,24 +880,21 @@ static int is_word_byte(unsigned char byte)
 
 char *get_word_under_cursor(void)
 {
-	struct block_iter bi = view->cursor;
-	int si, ei;
+	struct lineref lr;
+	unsigned int ei, si = fetch_this_line(&view->cursor, &lr);
 
-	block_iter_bol(&bi);
-	fetch_eol(&bi);
-
-	si = view->cx;
-	while (!is_word_byte(line_buffer[si])) {
-		if (!line_buffer[si])
-			return NULL;
+	while (si < lr.size && !is_word_byte(lr.line[si]))
 		si++;
-	}
+
+	if (si == lr.size)
+		return NULL;
+
 	ei = si;
-	while (si > 0 && is_word_byte(line_buffer[si - 1]))
+	while (si > 0 && is_word_byte(lr.line[si - 1]))
 		si--;
-	while (is_word_byte(line_buffer[ei + 1]))
+	while (ei + 1 < lr.size && is_word_byte(lr.line[ei + 1]))
 		ei++;
-	return xstrndup(line_buffer + si, ei - si + 1);
+	return xstrndup(lr.line + si, ei - si + 1);
 }
 
 void erase_word(void)
@@ -1000,9 +996,10 @@ static void shift_right(int nr_lines, int count)
 	i = 0;
 	while (1) {
 		struct indent_info info;
+		struct lineref lr;
 
-		fetch_eol(&view->cursor);
-		get_indent_info(line_buffer, line_buffer_len, &info);
+		fetch_this_line(&view->cursor, &lr);
+		get_indent_info(lr.line, lr.size, &info);
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
@@ -1042,9 +1039,10 @@ static void shift_left(int nr_lines, int count)
 	i = 0;
 	while (1) {
 		struct indent_info info;
+		struct lineref lr;
 
-		fetch_eol(&view->cursor);
-		get_indent_info(line_buffer, line_buffer_len, &info);
+		fetch_this_line(&view->cursor, &lr);
+		get_indent_info(lr.line, lr.size, &info);
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
