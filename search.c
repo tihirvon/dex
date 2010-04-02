@@ -231,15 +231,17 @@ static char *build_replace(const char *line, const char *format, regmatch_t *m)
  * "foo abc bar abc baz" "foo abc bar abc baz"
  * "foo x bar abc baz"   " bar abc baz"
  */
-static int replace_on_line(regex_t *re, const char *format, struct block_iter *bi, unsigned int *flagsp)
+static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
+	struct block_iter *bi, unsigned int *flagsp)
 {
+	char *buf = (char *)lr->line;
 	unsigned int flags = *flagsp;
 	regmatch_t m[MAX_SUBSTRINGS];
 	size_t pos = 0;
 	int eflags = 0;
 	int nr = 0;
 
-	while (!buf_regexec(re, line_buffer + pos, line_buffer_len - pos, MAX_SUBSTRINGS, m, eflags)) {
+	while (!buf_regexec(re, buf + pos, lr->size - pos, MAX_SUBSTRINGS, m, eflags)) {
 		int match_len = m[0].rm_eo - m[0].rm_so;
 		int skip = 0;
 
@@ -264,7 +266,7 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 			case 'q':
 			case 0:
 				*flagsp = flags | REPLACE_CANCEL;
-				return nr;
+				goto out;
 			}
 		}
 
@@ -272,8 +274,12 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 			/* move cursor after the matched text */
 			block_iter_skip_bytes(&view->cursor, match_len);
 		} else {
-			char *str = build_replace(line_buffer + pos, format, m);
+			char *str = build_replace(buf + pos, format, m);
 			int nr_insert = strlen(str);
+
+			/* lineref is invalidated by modification */
+			if (buf == lr->line)
+				buf = xmemdup(buf, lr->size);
 
 			replace(match_len, str, nr_insert);
 			free(str);
@@ -295,6 +301,9 @@ static int replace_on_line(regex_t *re, const char *format, struct block_iter *b
 		/* don't match beginning of line again */
 		eflags = REG_NOTBOL;
 	}
+out:
+	if (buf != lr->line)
+		free(buf);
 	return nr;
 }
 
@@ -346,18 +355,17 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	while (1) {
 		// number of bytes to process
 		unsigned int count;
+		struct lineref lr;
 		int nr;
 
-		fetch_eol(&bi);
-		count = line_buffer_len;
-		if (line_buffer_len > nr_bytes) {
+		fill_line_ref(&bi, &lr);
+		count = lr.size;
+		if (lr.size > nr_bytes) {
 			// end of selection is not full line
-			line_buffer_len = nr_bytes;
+			lr.size = nr_bytes;
 		}
 
-		line_buffer = xmemdup(line_buffer, line_buffer_len);
-		nr = replace_on_line(&re, format, &bi, &flags);
-		free((char *)line_buffer);
+		nr = replace_on_line(&lr, &re, format, &bi, &flags);
 		if (nr) {
 			nr_substitutions += nr;
 			nr_lines++;
