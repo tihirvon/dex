@@ -25,7 +25,7 @@ void move_preferred_x(void)
 
 	block_iter_bol(&view->cursor);
 	while (x < view->preferred_x) {
-		if (!block_iter_next_uchar(&view->cursor, &u))
+		if (!buffer->next_char(&view->cursor, &u))
 			break;
 
 		if (u == ' ') {
