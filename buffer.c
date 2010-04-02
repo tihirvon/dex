@@ -16,12 +16,6 @@ struct buffer *buffer;
 struct view *prev_view;
 enum undo_merge undo_merge;
 
-/*
- * Temporary buffer for searching and editing.
- */
-const char *line_buffer;
-size_t line_buffer_len;
-
 void init_selection(struct selection_info *info)
 {
 	uchar u;
@@ -99,14 +93,6 @@ char *buffer_get_bytes(unsigned int len)
 		offset = 0;
 	}
 	return buf;
-}
-
-void fetch_eol(const struct block_iter *bi)
-{
-	struct lineref lr;
-	unsigned int pos = fetch_this_line(bi, &lr);
-	line_buffer = lr.line + pos;
-	line_buffer_len = lr.size - pos;
 }
 
 unsigned int buffer_offset(void)

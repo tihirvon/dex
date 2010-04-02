@@ -149,9 +149,6 @@ extern unsigned int update_flags;
 extern enum input_mode input_mode;
 extern enum input_special input_special;
 
-extern const char *line_buffer;
-extern size_t line_buffer_len;
-
 static inline struct view *VIEW(struct list_head *item)
 {
 	return container_of(item, struct view, node);
@@ -169,7 +166,6 @@ unsigned int buffer_offset(void);
 void move_offset(unsigned int offset);
 
 char *buffer_get_bytes(unsigned int len);
-void fetch_eol(const struct block_iter *bi);
 
 void update_cursor_x(void);
 void update_cursor_y(void);
