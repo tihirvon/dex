@@ -172,7 +172,7 @@ void update_cursor_y(void);
 void update_cursor(void);
 
 void update_preferred_x(void);
-void move_preferred_x(void);
+void move_to_preferred_x(void);
 void do_insert(const char *buf, unsigned int len);
 char *do_delete(unsigned int len);
 void insert(const char *buf, unsigned int len);

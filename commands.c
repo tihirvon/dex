@@ -369,7 +369,7 @@ static void cmd_copy(char **args)
 	}
 	copy(len, view->sel_is_lines);
 	select_end();
-	move_preferred_x();
+	move_to_preferred_x();
 }
 
 static void cmd_cut(char **args)
@@ -391,7 +391,7 @@ static void cmd_cut(char **args)
 	cut(len, view->sel_is_lines);
 	select_end();
 	if (restore_col)
-		move_preferred_x();
+		move_to_preferred_x();
 }
 
 static void cmd_delete(char **args)

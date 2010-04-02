@@ -56,7 +56,7 @@ void move_to_line(int line);
 static inline void move_to_column(int column)
 {
 	view->preferred_x = column - 1;
-	move_preferred_x();
+	move_to_preferred_x();
 }
 
 static inline int get_scroll_margin(void)

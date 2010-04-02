@@ -16,7 +16,7 @@ void update_preferred_x(void)
 	view->preferred_x = view->cx_display;
 }
 
-void move_preferred_x(void)
+void move_to_preferred_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;
 	int in_space_indent = 1;
@@ -346,7 +346,7 @@ void paste(void)
 		record_insert(copy_len);
 		do_insert(copy_buf, copy_len);
 
-		move_preferred_x();
+		move_to_preferred_x();
 	} else {
 		insert(copy_buf, copy_len);
 	}
@@ -835,7 +835,7 @@ void move_up(int count)
 			view->cy--;
 		}
 	}
-	move_preferred_x();
+	move_to_preferred_x();
 }
 
 void move_down(int count)
@@ -850,7 +850,7 @@ void move_down(int count)
 			view->cy++;
 		}
 	}
-	move_preferred_x();
+	move_to_preferred_x();
 }
 
 void move_bof(void)
@@ -1125,7 +1125,7 @@ void shift_lines(int count)
 			view->cursor = tmp;
 		}
 	}
-	move_preferred_x();
+	move_to_preferred_x();
 }
 
 void clear_lines(void)
