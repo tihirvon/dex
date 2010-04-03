@@ -529,12 +529,12 @@ static char *get_indent(void)
 {
 	struct block_iter bi = view->cursor;
 
-	while (1) {
+	block_iter_bol(&bi);
+	do {
 		struct block_iter save;
 		int count = 0;
 		uchar u;
 
-		block_iter_bol(&bi);
 		save = bi;
 		while (block_iter_next_byte(&bi, &u) && u != '\n') {
 			if (u != ' ' && u != '\t') {
@@ -555,9 +555,8 @@ static char *get_indent(void)
 			count++;
 		}
 		bi = save;
-		if (!block_iter_prev_line(&bi))
-			return NULL;
-	}
+	} while (block_iter_prev_line(&bi));
+	return NULL;
 }
 
 // goto beginning of whitespace (tabs and spaces) under cursor and
@@ -1227,7 +1226,6 @@ static void goto_bop(void)
 			break;
 	}
 	while (in_paragraph && block_iter_prev_line(&view->cursor)) {
-		block_iter_bol(&view->cursor);
 		if (is_ws_line(&view->cursor)) {
 			block_iter_next_line(&view->cursor);
 			break;

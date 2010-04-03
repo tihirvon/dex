@@ -140,19 +140,32 @@ unsigned int block_iter_next_line(struct block_iter *bi)
 	}
 }
 
+/*
+ * Move to beginning of previous line.
+ * Returns number of bytes moved which is zero if there's no previous line.
+ */
 unsigned int block_iter_prev_line(struct block_iter *bi)
 {
-	unsigned int count = 0;
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
+	unsigned int start = offset;
 
-	while (1) {
-		uchar u;
+	while (offset && blk->data[offset - 1] != '\n')
+		offset--;
 
-		if (!block_iter_prev_byte(bi, &u))
+	if (!offset) {
+		if (blk->node.prev == bi->head)
 			return 0;
-		count++;
-		if (u == '\n')
-			return count;
+		bi->blk = blk = BLOCK(blk->node.prev);
+		offset = blk->size;
+		start += offset;
 	}
+
+	offset--;
+	while (offset && blk->data[offset - 1] != '\n')
+		offset--;
+	bi->offset = offset;
+	return start - offset;
 }
 
 unsigned int block_iter_bol(struct block_iter *bi)

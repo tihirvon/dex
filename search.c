@@ -41,13 +41,13 @@ static int do_search_bwd(regex_t *regex)
 	int cx = view->cx_char;
 	uchar u;
 
+	block_iter_bol(&bi);
 	do {
 		regmatch_t match;
 		struct lineref lr;
 		int offset = -1;
 		int pos = 0;
 
-		block_iter_bol(&bi);
 		fill_line_ref(&bi, &lr);
 		while (!buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, 0)) {
 			pos += match.rm_so;
