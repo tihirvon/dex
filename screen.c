@@ -535,7 +535,7 @@ static void update_color(int nontext, int wserror)
 	buf_set_color(&color);
 }
 
-static void selection_init(struct block_iter *cur)
+static void set_hl_pos(struct block_iter *cur)
 {
 	cur_offset = block_iter_get_offset(cur);
 
@@ -547,7 +547,10 @@ static void selection_init(struct block_iter *cur)
 		current_hl_list = HL_LIST(buffer->hl_head.next);
 		advance_hl(cur_offset);
 	}
+}
 
+static void selection_init(void)
+{
 	if (view->sel.blk) {
 		struct block_iter si, ei;
 
@@ -713,7 +716,8 @@ void update_range(int y1, int y2)
 	y1 -= view->vy;
 	y2 -= view->vy;
 
-	selection_init(&bi);
+	set_hl_pos(&bi);
+	selection_init();
 	for (i = y1; i < y2; i++) {
 		if (block_iter_eof(&bi))
 			break;
