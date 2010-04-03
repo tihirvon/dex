@@ -127,17 +127,29 @@ crap:
 
 unsigned int block_iter_next_line(struct block_iter *bi)
 {
-	unsigned int count = 0;
+	struct block *blk;
+	unsigned int offset;
+	unsigned int new_offset;
+	const char *end;
 
-	while (1) {
-		uchar u;
+	block_iter_normalize(bi);
 
-		if (!block_iter_next_byte(bi, &u))
-			return 0;
-		count++;
-		if (u == '\n')
-			return count;
+	blk = bi->blk;
+	offset = bi->offset;
+
+	end = memchr(blk->data + offset, '\n', blk->size - offset);
+	if (!end) {
+		bi->offset = blk->size;
+		return 0;
 	}
+	new_offset = end + 1 - blk->data;
+	if (new_offset == blk->size && blk->node.next == bi->head) {
+		bi->offset = new_offset;
+		return 0;
+	}
+
+	bi->offset = new_offset;
+	return bi->offset - offset;
 }
 
 /*
@@ -170,38 +182,38 @@ unsigned int block_iter_prev_line(struct block_iter *bi)
 
 unsigned int block_iter_bol(struct block_iter *bi)
 {
-	unsigned int count = 0;
+	unsigned int offset, ret;
 
-	while (1) {
-		uchar u;
+	block_iter_normalize(bi);
 
-		if (!block_iter_prev_byte(bi, &u))
-			break;
-		if (u == '\n') {
-			block_iter_next_byte(bi, &u);
-			break;
-		}
-		count++;
-	}
-	return count;
+	offset = bi->offset;
+	if (!offset)
+		return 0;
+
+	while (offset && bi->blk->data[offset - 1] != '\n')
+		offset--;
+
+	ret = bi->offset - offset;
+	bi->offset = offset;
+	return ret;
 }
 
 unsigned int block_iter_eol(struct block_iter *bi)
 {
-	unsigned int count = 0;
+	struct block *blk;
+	unsigned int offset;
+	const char *end;
 
-	while (1) {
-		uchar u;
+	block_iter_normalize(bi);
 
-		if (!block_iter_next_byte(bi, &u))
-			break;
-		if (u == '\n') {
-			block_iter_prev_byte(bi, &u);
-			break;
-		}
-		count++;
-	}
-	return count;
+	blk = bi->blk;
+	offset = bi->offset;
+
+	end = memchr(blk->data + offset, '\n', blk->size - offset);
+	bi->offset = end - blk->data;
+	if (!end)
+		bi->offset = blk->size;
+	return bi->offset - offset;
 }
 
 void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
