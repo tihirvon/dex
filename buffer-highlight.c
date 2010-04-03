@@ -5,16 +5,11 @@
 
 /*
  * Contains one line including LF.
- * Used by syntax highlighter only.
  */
-const char *hl_buffer;
-size_t hl_buffer_len;
+static const char *hl_buffer;
+static size_t hl_buffer_len;
 
-/*
- * Only available for highlighter and screen updates.
- * Never use while editing the buffer.  Use fetch_eol() when doing changes.
- */
-void fetch_line(struct block_iter *bi)
+static void fetch_line(struct block_iter *bi)
 {
 	struct lineref lr;
 
