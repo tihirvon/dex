@@ -303,6 +303,42 @@ invalid:
 	return u | U_INVALID_MASK;
 }
 
+uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
+{
+	const unsigned char *s = (const unsigned char *)buf;
+	unsigned int i = *idx;
+	int len, c;
+	uchar first, u;
+
+	first = s[i++];
+	if (likely(first < 0x80)) {
+		*idx = i;
+		return first;
+	}
+
+	len = u_len_tab[first] - 1;
+	if (unlikely(len < 1 || len > size - i))
+		goto invalid;
+
+	u = first & u_first_byte_mask[len];
+	c = len;
+	do {
+		uchar ch = s[i++];
+		if (unlikely(u_len_tab[ch]))
+			goto invalid;
+		u = (u << 6) | (ch & 0x3f);
+	} while (--c);
+
+	if (unlikely(u < u_min_val[len] || u > u_max_val[len]))
+		goto invalid;
+
+	*idx = i;
+	return u;
+invalid:
+	*idx += 1;
+	return first | U_INVALID_MASK;
+}
+
 void u_set_char_raw(char *str, int *idx, uchar uch)
 {
 	int i = *idx;

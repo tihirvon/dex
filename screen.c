@@ -12,7 +12,7 @@ struct line_info {
 	const char *line;
 	unsigned int size;
 
-	int pos;
+	unsigned int pos;
 	unsigned int indent_size;
 	unsigned int trailing_ws_offset;
 };
@@ -636,7 +636,7 @@ static uchar screen_next_char(struct line_info *info)
 	uchar u;
 
 	if (buffer->utf8) {
-		u = u_get_char(info->line, &info->pos);
+		u = u_buf_get_char(info->line, info->size, &info->pos);
 		count = info->pos - pos;
 	} else {
 		u = (unsigned char)info->line[pos];

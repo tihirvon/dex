@@ -87,6 +87,8 @@ extern void u_prev_char_pos(const char *str, int *idx);
  */
 extern uchar u_get_char(const char *str, int *idx);
 
+uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
+
 /*
  * @str  destination buffer
  * @idx  pointer to byte index in @str (not UTF-8 character index!)
