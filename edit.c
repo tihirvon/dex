@@ -531,30 +531,23 @@ static char *get_indent(void)
 
 	block_iter_bol(&bi);
 	do {
-		struct block_iter save;
-		int count = 0;
-		uchar u;
+		struct lineref lr;
+		int i;
 
-		save = bi;
-		while (block_iter_next_byte(&bi, &u) && u != '\n') {
-			if (u != ' ' && u != '\t') {
+		fill_line_ref(&bi, &lr);
+		for (i = 0; i < lr.size; i++) {
+			char ch = lr.line[i];
+
+			if (ch != ' ' && ch != '\t') {
 				char *str;
-				int i;
 
-				if (!count)
+				if (!i)
 					return NULL;
-				bi = save;
-				str = xnew(char, count + 1);
-				for (i = 0; i < count; i++) {
-					block_iter_next_byte(&bi, &u);
-					str[i] = u;
-				}
+				str = xmemdup(lr.line, i + 1);
 				str[i] = 0;
 				return str;
 			}
-			count++;
 		}
-		bi = save;
 	} while (block_iter_prev_line(&bi));
 	return NULL;
 }
