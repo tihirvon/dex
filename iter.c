@@ -1,5 +1,15 @@
 #include "iter.h"
 
+static void block_iter_normalize(struct block_iter *bi)
+{
+	struct block *blk = bi->blk;
+
+	if (bi->offset == blk->size && blk->node.next != bi->head) {
+		bi->blk = BLOCK(blk->node.next);
+		bi->offset = 0;
+	}
+}
+
 // analogous to *ptr++
 unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte)
 {
@@ -233,10 +243,7 @@ void fill_line_ref(struct block_iter *bi, struct lineref *lr)
 	unsigned int max;
 	const char *ptr, *nl;
 
-	if (bi->offset == bi->blk->size && bi->blk->node.next != bi->head) {
-		bi->blk = BLOCK(bi->blk->node.next);
-		bi->offset = 0;
-	}
+	block_iter_normalize(bi);
 
 	max = bi->blk->size - bi->offset;
 	ptr = bi->blk->data + bi->offset;
@@ -251,10 +258,7 @@ void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr)
 	unsigned int max;
 	const char *ptr, *nl;
 
-	if (bi->offset == bi->blk->size && bi->blk->node.next != bi->head) {
-		bi->blk = BLOCK(bi->blk->node.next);
-		bi->offset = 0;
-	}
+	block_iter_normalize(bi);
 
 	max = bi->blk->size - bi->offset;
 	ptr = bi->blk->data + bi->offset;
