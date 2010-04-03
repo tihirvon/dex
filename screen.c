@@ -7,6 +7,16 @@
 #include "highlight.h"
 #include "buffer-highlight.h"
 
+struct line_info {
+	// struct lineref
+	const char *line;
+	unsigned int size;
+
+	int pos;
+	unsigned int indent_size;
+	unsigned int trailing_ws_offset;
+};
+
 int screen_w = 80;
 int screen_h = 24;
 
@@ -577,31 +587,29 @@ static void selection_init(void)
 static int is_non_text(uchar u)
 {
 	if (u < 0x20)
-		return (u != '\t' && u != '\n') || options.display_special;
+		return u != '\t' || options.display_special;
 	return u == 0x7f || !u_is_unicode(u);
 }
 
-static int indent_size;
-static int trailing_ws_offset;
-
-static int whitespace_error(uchar u, int i)
+static int whitespace_error(struct line_info *info, uchar u, unsigned int i)
 {
+	const char *line = info->line;
 	int flags = buffer->options.ws_error;
 
-	if (i < indent_size) {
+	if (i < info->indent_size) {
 		if (u == '\t' && flags & WSE_TAB_INDENT)
 			return 1;
 		if (u == ' ') {
 			int count = 0, pos = i;
 
-			while (pos > 0 && hl_buffer[pos - 1] == ' ')
+			while (pos > 0 && line[pos - 1] == ' ')
 				pos--;
-			while (hl_buffer[pos] == ' ') {
+			while (pos < info->size && line[pos] == ' ') {
 				pos++;
 				count++;
 			}
 
-			if (count < buffer->options.tab_width && hl_buffer[pos] != '\t') {
+			if (count < buffer->options.tab_width && pos < info->size && line[pos] != '\t') {
 				if (flags & WSE_SPACE_ALIGN)
 					return 1;
 			} else {
@@ -613,95 +621,93 @@ static int whitespace_error(uchar u, int i)
 		return 1;
 	}
 
-	if (i >= trailing_ws_offset && flags & WSE_TRAILING) {
+	if (i >= info->trailing_ws_offset && flags & WSE_TRAILING) {
 		/* don't highlight trailing ws if cursor is at or after the ws */
-		if (current_line != view->cy || view->cx < trailing_ws_offset)
+		if (current_line != view->cy || view->cx < info->trailing_ws_offset)
 			return 1;
 	}
 	return 0;
 }
 
-static unsigned int screen_next_char(int *idx, uchar *up)
+static uchar screen_next_char(struct line_info *info)
 {
-	int count, ws_error = 0, i = *idx;
+	unsigned int count, pos = info->pos;
+	int ws_error = 0;
 	uchar u;
 
-	if (i == hl_buffer_len)
-		return 0;
-
 	if (buffer->utf8) {
-		u = u_get_char(hl_buffer, idx);
-		count = *idx - i;
+		u = u_get_char(info->line, &info->pos);
+		count = info->pos - pos;
 	} else {
-		u = (unsigned char)hl_buffer[i];
-		*idx = i + 1;
+		u = (unsigned char)info->line[pos];
+		info->pos++;
 		count = 1;
 	}
 	if (current_hl_list)
 		advance_hl(count);
 
 	if (u == '\t' || u == ' ')
-		ws_error = whitespace_error(u, i);
+		ws_error = whitespace_error(info, u, pos);
 
 	update_color(is_non_text(u), ws_error);
 	cur_offset += count;
-	*up = u;
-	return count;
+	return u;
 }
 
-static void print_line(struct block_iter *bi)
+static void init_line_info(struct line_info *info, struct block_iter *bi)
+{
+	int i;
+
+	fill_line_ref(bi, (struct lineref *)info);
+	info->pos = 0;
+
+	for (i = 0; i < info->size; i++) {
+		char ch = info->line[i];
+		if (ch != '\t' && ch != ' ')
+			break;
+	}
+	info->indent_size = i;
+
+	info->trailing_ws_offset = INT_MAX;
+	for (i = info->size - 1; i >= 0; i--) {
+		char ch = info->line[i];
+		if (ch != '\t' && ch != ' ')
+			break;
+		info->trailing_ws_offset = i;
+	}
+}
+
+static void print_line(struct line_info *info)
 {
 	int utf8 = term_flags & TERM_UTF8;
-	int i;
 	uchar u;
 
-	fetch_line(bi);
-
-	indent_size = 0;
-	for (i = 0; hl_buffer[i] == '\t' || hl_buffer[i] == ' '; i++)
-		indent_size++;
-
-	trailing_ws_offset = INT_MAX;
-	for (i = hl_buffer_len - 1; i >= 0; i--) {
-		char ch = hl_buffer[i];
-		if (ch != '\n' && ch != '\t' && ch != ' ')
-			break;
-		trailing_ws_offset = i;
-	}
-
-	i = 0;
-	while (obuf.x < obuf.scroll_x) {
-		if (!screen_next_char(&i, &u) || u == '\n') {
-			buf_clear_eol();
-			return;
-		}
+	while (obuf.x < obuf.scroll_x && info->pos < info->size) {
+		u = screen_next_char(info);
 		buf_skip(u, utf8);
 	}
-	while (1) {
+	while (info->pos < info->size) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		if (!screen_next_char(&i, &u))
-			break;
-		if (u == '\n') {
-			if (options.display_special)
-				buf_put_char('$', utf8);
-			break;
-		}
-
+		u = screen_next_char(info);
 		if (!buf_put_char(u, utf8)) {
-			int count = hl_buffer_len - i;
+			int count = info->size - info->pos;
 			if (count && current_hl_list)
 				advance_hl(count);
 			cur_offset += count;
 			return;
 		}
 	}
+	update_color(1, 0);
+	cur_offset += 1;
+	if (options.display_special && obuf.x >= obuf.scroll_x)
+		buf_put_char('$', utf8);
 	buf_clear_eol();
 }
 
 void update_range(int y1, int y2)
 {
 	struct block_iter bi = view->cursor;
-	int i;
+	int i, got_line;
 
 	obuf.tab_width = buffer->options.tab_width;
 	obuf.scroll_x = view->vx;
@@ -718,11 +724,19 @@ void update_range(int y1, int y2)
 
 	set_hl_pos(&bi);
 	selection_init();
-	for (i = y1; i < y2; i++) {
-		if (block_iter_eof(&bi))
-			break;
+
+	got_line = !block_iter_eof(&bi);
+	for (i = y1; got_line && i < y2; i++) {
+		struct line_info info;
+
 		buf_move_cursor(window->x, window->y + i);
-		print_line(&bi);
+
+		init_line_info(&info, &bi);
+		print_line(&info);
+
+		got_line = block_iter_next_line(&bi);
+		if (got_line && current_hl_list)
+			advance_hl(1);
 		current_line++;
 	}
 
