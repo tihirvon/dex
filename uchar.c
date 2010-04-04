@@ -416,13 +416,13 @@ invalid:
 int u_copy_chars(char *dst, const char *src, int *width)
 {
 	int w = *width;
-	int si = 0;
+	unsigned int si = 0;
 	unsigned int di = 0;
 	int cw;
 	uchar u;
 
 	while (w > 0) {
-		u = u_get_char(src, &si);
+		u = u_buf_get_char(src, si + 4, &si);
 		if (u == 0)
 			break;
 
@@ -473,15 +473,15 @@ static inline int chcasecmp(int a, int b)
 
 int u_strcasecmp(const char *a, const char *b)
 {
-	int ai = 0;
-	int bi = 0;
+	unsigned int ai = 0;
+	unsigned int bi = 0;
 	int res;
 
 	do {
 		uchar au, bu;
 
-		au = u_get_char(a, &ai);
-		bu = u_get_char(b, &bi);
+		au = u_buf_get_char(a, ai + 4, &ai);
+		bu = u_buf_get_char(b, bi + 4, &bi);
 		res = chcasecmp(au, bu);
 		if (res)
 			break;
@@ -495,15 +495,15 @@ int u_strcasecmp(const char *a, const char *b)
 
 int u_strncasecmp(const char *a, const char *b, int len)
 {
-	int ai = 0;
-	int bi = 0;
+	unsigned int ai = 0;
+	unsigned int bi = 0;
 
 	while (len > 0) {
 		uchar au, bu;
 		int res;
 
-		au = u_get_char(a, &ai);
-		bu = u_get_char(b, &bi);
+		au = u_buf_get_char(a, ai + 4, &ai);
+		bu = u_buf_get_char(b, bi + 4, &bi);
 		res = chcasecmp(au, bu);
 		if (res)
 			return res;
@@ -524,7 +524,7 @@ char *u_strcasestr(const char *haystack, const char *needle)
 
 	do {
 		uchar u;
-		int idx;
+		unsigned int idx;
 
 		if (haystack_len < needle_len)
 			return NULL;
@@ -533,7 +533,7 @@ char *u_strcasestr(const char *haystack, const char *needle)
 
 		/* skip one char */
 		idx = 0;
-		u = u_get_char(haystack, &idx);
+		u = u_buf_get_char(haystack, haystack_len, &idx);
 		haystack += idx;
 		haystack_len -= idx;
 	} while (1);
