@@ -67,7 +67,7 @@ int u_is_valid(const char *str)
 
 	while (s[i]) {
 		unsigned char ch = s[i++];
-		int len = u_len_tab[ch];
+		int len = u_seq_len(ch);
 
 		if (len <= 0)
 			return 0;
@@ -82,7 +82,7 @@ int u_is_valid(const char *str)
 			c = len;
 			do {
 				ch = s[i++];
-				if (u_len_tab[ch] != 0)
+				if (u_seq_len(ch) != 0)
 					return 0;
 				u = (u << 6) | (ch & 0x3f);
 			} while (--c);
@@ -100,13 +100,13 @@ int u_strlen(const char *str)
 	int len = 0;
 
 	while (*s) {
-		int l = u_len_tab[*s];
+		int l = u_seq_len(*s);
 
 		if (unlikely(l > 1)) {
 			/* next l - 1 bytes must be 0x10xxxxxx */
 			int c = 1;
 			do {
-				if (u_len_tab[s[c]] != 0) {
+				if (u_seq_len(s[c]) != 0) {
 					/* invalid sequence */
 					goto single_char;
 				}
@@ -226,7 +226,7 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 		return u;
 	}
 
-	len = u_len_tab[u];
+	len = u_seq_len(u);
 	if (len)
 		goto invalid;
 
@@ -236,7 +236,7 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 	while (i) {
 		uchar ch = s[--i];
 
-		len = u_len_tab[ch];
+		len = u_seq_len(ch);
 		count++;
 
 		if (len == 0) {
@@ -277,7 +277,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 		return first;
 	}
 
-	len = u_len_tab[first] - 1;
+	len = u_seq_len(first) - 1;
 	if (unlikely(len < 1 || len > size - i))
 		goto invalid;
 
@@ -285,7 +285,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 	c = len;
 	do {
 		uchar ch = s[i++];
-		if (unlikely(u_len_tab[ch]))
+		if (unlikely(u_seq_len(ch)))
 			goto invalid;
 		u = (u << 6) | (ch & 0x3f);
 	} while (--c);

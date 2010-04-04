@@ -55,7 +55,7 @@ unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up)
 	}
 
 	*up = ch | U_INVALID_MASK;
-	len = u_len_tab[ch];
+	len = u_seq_len(ch);
 	if (len < 1) {
 		// invalid first byte
 		return 1;
@@ -66,7 +66,7 @@ unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up)
 	for (c = 1; c < len; c++) {
 		if (!block_iter_next_byte(i, &ch))
 			goto crap;
-		if (u_len_tab[ch])
+		if (u_seq_len(ch))
 			goto crap;
 
 		u = (u << 6) | (ch & 0x3f);
@@ -103,7 +103,7 @@ unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up)
 	u = 0;
 	shift = 0;
 	for (c = 1; c < 4; c++) {
-		len = u_len_tab[ch];
+		len = u_seq_len(ch);
 		if (len)
 			break;
 

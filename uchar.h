@@ -43,6 +43,11 @@ static inline int u_char_size(uchar uch)
 	}
 }
 
+static inline int u_seq_len(uchar first_byte)
+{
+	return u_len_tab[first_byte];
+}
+
 /*
  * Returns width of @uch (normally 1 or 2, 4 for invalid chars (<xx>))
  */
