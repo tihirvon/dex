@@ -200,14 +200,14 @@ invalid:
 	return 4;
 }
 
-int u_str_width(const char *str)
+unsigned int u_str_width(const char *str)
 {
-	int idx = 0, w = 0;
+	unsigned int idx = 0, w = 0;
 
 	while (str[idx]) {
 		uchar u;
 
-		u = u_get_char(str, &idx);
+		u = u_buf_get_char(str, idx + 4, &idx);
 		w += u_char_width(u);
 	}
 	return w;

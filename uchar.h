@@ -67,7 +67,7 @@ extern int u_strlen(const char *str);
  *
  * Returns width of @str.
  */
-extern int u_str_width(const char *str);
+unsigned int u_str_width(const char *str);
 
 /*
  * @str  null-terminated UTF-8 string
