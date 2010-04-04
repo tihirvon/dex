@@ -802,16 +802,7 @@ void move_bol(void)
 
 void move_eol(void)
 {
-	while (1) {
-		uchar u;
-
-		if (!buffer->next_char(&view->cursor, &u))
-			break;
-		if (u == '\n') {
-			block_iter_prev_byte(&view->cursor, &u);
-			break;
-		}
-	}
+	block_iter_eol(&view->cursor);
 	update_preferred_x();
 }
 
