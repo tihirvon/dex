@@ -45,10 +45,42 @@ static int current_line;
 
 static const char *no_name = "(No name)";
 
-static void update_tab_title(struct view *v, int idx, int skip)
+static unsigned int number_width(unsigned int n)
 {
-	char buf[512];
+	unsigned int width = 0;
+
+	do {
+		n /= 10;
+		width++;
+	} while (n);
+	return width;
+}
+
+static void update_tab_title_width(struct view *v, int idx)
+{
 	const char *filename = v->buffer->filename;
+	unsigned int w;
+
+	if (!filename)
+		filename = no_name;
+
+	w = 3 + number_width(idx + 1);
+	if (term_flags & TERM_UTF8) {
+		unsigned int i = 0;
+		while (filename[i])
+			w += u_char_width(u_buf_get_char(filename, i + 4, &i));
+	} else {
+		w += strlen(filename);
+	}
+
+	v->tt_width = w;
+	v->tt_truncated_width = w;
+}
+
+static void print_tab_title(struct view *v, int idx, int skip)
+{
+	const char *filename = v->buffer->filename;
+	char buf[16];
 
 	if (!filename)
 		filename = no_name;
@@ -59,19 +91,22 @@ static void update_tab_title(struct view *v, int idx, int skip)
 		else
 			filename += skip;
 	}
-	snprintf(buf, sizeof(buf), " %d%s%s ",
+
+	snprintf(buf, sizeof(buf), " %d%s",
 		idx + 1,
-		buffer_modified(v->buffer) ? "+" : ":",
-		filename);
-	if (skip >= 0) {
-		buf_add_bytes(buf, v->tt_truncated_width);
+		buffer_modified(v->buffer) ? "+" : ":");
+	buf_add_str(buf);
+
+	if (term_flags & TERM_UTF8) {
+		unsigned int si = 0;
+		while (filename[si])
+			buf_put_char(u_buf_get_char(filename, si + 4, &si), 1);
 	} else {
-		if (term_flags & TERM_UTF8)
-			v->tt_width = u_str_width(buf);
-		else
-			v->tt_width = strlen(buf);
-		v->tt_truncated_width = v->tt_width;
+		unsigned int si = 0;
+		while (filename[si])
+			buf_put_char(filename[si++], 0);
 	}
+	buf_ch(' ');
 }
 
 void print_tab_bar(void)
@@ -90,10 +125,10 @@ void print_tab_bar(void)
 			if (left_idx > count)
 				left_idx = count;
 			/* title of current tab changes ofter */
-			update_tab_title(v, count, -1);
+			update_tab_title_width(v, count);
 		}
 		if (!v->tt_width)
-			update_tab_title(v, count, -1);
+			update_tab_title_width(v, count);
 		if (v->tt_width > trunc_min_w) {
 			max_trunc_w += v->tt_width - trunc_min_w;
 			trunc_count++;
@@ -178,8 +213,7 @@ void print_tab_bar(void)
 
 		if (v == view)
 			buf_set_color(&tab_active_color->color);
-		update_tab_title(v, idx, v->tt_width - v->tt_truncated_width);
-		obuf.x += v->tt_truncated_width;
+		print_tab_title(v, idx, v->tt_width - v->tt_truncated_width);
 		if (v == view)
 			buf_set_color(&tab_inactive_color->color);
 	}
