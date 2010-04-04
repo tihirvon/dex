@@ -340,8 +340,11 @@ void u_set_char(char *str, unsigned int *idx, uchar uch)
 {
 	unsigned int i = *idx;
 
-	if (unlikely(uch <= 0x0000001fU))
-		goto invalid;
+	if (unlikely(uch < 0x20))
+		goto control;
+
+	if (unlikely(uch == 0x7f))
+		goto delete;
 
 	if (uch <= 0x0000007fU) {
 		str[i++] = uch;
@@ -369,19 +372,24 @@ void u_set_char(char *str, unsigned int *idx, uchar uch)
 		*idx = i;
 		return;
 	}
-invalid:
-	/* control character or invalid unicode */
-	if (uch == 0) {
-		/* handle this special case here to make the common case fast */
-		str[i++] = 0;
-		*idx = i;
-	} else {
-		str[i++] = '<';
-		str[i++] = hex_tab[(uch >> 4) & 0xf];
-		str[i++] = hex_tab[uch & 0xf];
-		str[i++] = '>';
-		*idx = i;
-	}
+
+	/* invalid */
+	str[i++] = '<';
+	str[i++] = hex_tab[(uch >> 4) & 0xf];
+	str[i++] = hex_tab[uch & 0xf];
+	str[i++] = '>';
+	*idx = i;
+	return;
+control:
+	str[i++] = '^';
+	str[i++] = uch | 0x40;
+	*idx = i;
+	return;
+delete:
+	str[i++] = '^';
+	str[i++] = '?';
+	*idx = i;
+	return;
 }
 
 int u_copy_chars(char *dst, const char *src, int *width)
