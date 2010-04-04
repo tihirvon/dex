@@ -186,22 +186,35 @@ void print_tab_bar(void)
 
 static void add_status_str(char *buf, int size, int *posp, const char *str)
 {
-	int pos = *posp;
-	int len = strlen(str);
-	int n;
+	unsigned int pos = *posp;
+	unsigned int idx = 0;
 
-	if (separator && len) {
+	if (!*str)
+		return;
+
+	if (separator) {
 		if (pos + 2 < size)
 			buf[pos++] = ' ';
 		separator = 0;
 	}
-
-	n = size - pos - len - 1;
-	if (n < 0)
-		len += n;
-	if (len > 0) {
-		memcpy(buf + pos, str, len);
-		pos += len;
+	if (term_flags & TERM_UTF8) {
+		while (pos < size && str[idx]) {
+			uchar u = u_buf_get_char(str, idx + 4, &idx);
+			u_set_char(buf, &pos, u);
+		}
+	} else {
+		while (pos < size && str[idx]) {
+			unsigned char ch = str[idx++];
+			if (ch < 0x20) {
+				buf[pos++] = '^';
+				buf[pos++] = ch | 0x40;
+			} else if (ch == 0x7f) {
+				buf[pos++] = '^';
+				buf[pos++] = '?';
+			} else {
+				buf[pos++] = ch;
+			}
+		}
 	}
 	*posp = pos;
 }
