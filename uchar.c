@@ -464,13 +464,13 @@ int u_copy_chars(char *dst, const char *src, int *width)
 	return di;
 }
 
-int u_skip_chars(const char *str, int *width)
+unsigned int u_skip_chars(const char *str, int *width)
 {
 	int w = *width;
-	int idx = 0;
+	unsigned int idx = 0;
 
 	while (w > 0) {
-		uchar u = u_get_char(str, &idx);
+		uchar u = u_buf_get_char(str, idx + 4, &idx);
 		w -= u_char_width(u);
 	}
 	/* add 1..3 if skipped 'too much' (the last char was double width or invalid (<xx>)) */
