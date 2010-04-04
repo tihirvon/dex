@@ -4,7 +4,6 @@
 typedef unsigned int uchar;
 
 extern const char hex_tab[16];
-extern const signed char u_len_tab[256];
 extern int u_min_val[4];
 extern int u_max_val[4];
 extern unsigned int u_first_byte_mask[4];
@@ -45,7 +44,19 @@ static inline int u_char_size(uchar uch)
 
 static inline int u_seq_len(uchar first_byte)
 {
-	return u_len_tab[first_byte];
+	if (first_byte < 0x80)
+		return 1;
+	if (first_byte < 0xc0)
+		return 0;
+	if (first_byte < 0xe0)
+		return 2;
+	if (first_byte < 0xf0)
+		return 3;
+
+	// could be 0xf8 but RFC 3629 doesn't allow codepoints above 0x10ffff
+	if (first_byte < 0xf5)
+		return 4;
+	return -1;
 }
 
 /*
