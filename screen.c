@@ -451,16 +451,18 @@ void update_command_line(void)
 		obuf.tab_width = 8;
 		obuf.scroll_x = 0;
 		if (error_buf[0]) {
-			int i = 0;
+			unsigned int len = strlen(error_buf);
+			unsigned int i = 0;
+
 			if (msg_is_error) {
 				buf_set_color(&errormsg_color->color);
 			} else {
 				buf_set_color(&infomsg_color->color);
 			}
-			while (error_buf[i]) {
+			while (i < len) {
 				uchar u;
 				if (term_flags & TERM_UTF8) {
-					u = u_get_char(error_buf, &i);
+					u = u_buf_get_char(error_buf, len, &i);
 				} else {
 					u = error_buf[i++];
 				}
