@@ -110,9 +110,4 @@ extern int u_strcasecmp(const char *a, const char *b);
 extern int u_strncasecmp(const char *a, const char *b, int len);
 extern char *u_strcasestr(const char *haystack, const char *needle);
 
-static inline char *u_strcasestr_filename(const char *haystack, const char *needle)
-{
-	return u_strcasestr(haystack, needle);
-}
-
 #endif
