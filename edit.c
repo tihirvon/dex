@@ -809,14 +809,10 @@ void move_eol(void)
 void move_up(int count)
 {
 	while (count > 0) {
-		uchar u;
-
-		if (!buffer->prev_char(&view->cursor, &u))
+		if (!block_iter_prev_line(&view->cursor))
 			break;
-		if (u == '\n') {
-			count--;
-			view->cy--;
-		}
+		count--;
+		view->cy--;
 	}
 	move_to_preferred_x();
 }
