@@ -71,7 +71,7 @@ unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up)
 
 		u = (u << 6) | (ch & 0x3f);
 	}
-	if (u < u_min_val[len - 1] || u > u_max_val[len - 1])
+	if (!u_seq_len_ok(u, len))
 		goto crap;
 	*up = u;
 	return len;
@@ -115,7 +115,7 @@ unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up)
 	if (len != c)
 		goto crap;
 	u |= (ch & u_first_byte_mask[len - 1]) << shift;
-	if (u < u_min_val[len - 1] || u > u_max_val[len - 1])
+	if (!u_seq_len_ok(u, len))
 		goto crap;
 	*up = u;
 	return len;

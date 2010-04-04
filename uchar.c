@@ -29,9 +29,8 @@ int u_is_valid(const char *str)
 			uchar u;
 			int c;
 
-			len--;
-			u = ch & u_first_byte_mask[len];
-			c = len;
+			u = ch & u_first_byte_mask[len - 1];
+			c = len - 1;
 			do {
 				ch = s[i++];
 				if (!u_is_continuation(ch))
@@ -39,7 +38,7 @@ int u_is_valid(const char *str)
 				u = (u << 6) | (ch & 0x3f);
 			} while (--c);
 
-			if (u < u_min_val[len] || u > u_max_val[len])
+			if (!u_seq_len_ok(u, len))
 				return 0;
 		}
 	}
@@ -200,9 +199,8 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 			/* incorrect length */
 			break;
 		} else {
-			len--;
-			u |= (ch & u_first_byte_mask[len]) << shift;
-			if (u < u_min_val[len] || u > u_max_val[len])
+			u |= (ch & u_first_byte_mask[len - 1]) << shift;
+			if (!u_seq_len_ok(u, len))
 				break;
 
 			*idx = i;
@@ -227,12 +225,12 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 		return first;
 	}
 
-	len = u_seq_len(first) - 1;
-	if (unlikely(len < 1 || len > size - i))
+	len = u_seq_len(first);
+	if (unlikely(len < 2 || len > size - i + 1))
 		goto invalid;
 
-	u = first & u_first_byte_mask[len];
-	c = len;
+	u = first & u_first_byte_mask[len - 1];
+	c = len - 1;
 	do {
 		uchar ch = s[i++];
 		if (!u_is_continuation(ch))
@@ -240,7 +238,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 		u = (u << 6) | (ch & 0x3f);
 	} while (--c);
 
-	if (unlikely(u < u_min_val[len] || u > u_max_val[len]))
+	if (!u_seq_len_ok(u, len))
 		goto invalid;
 
 	*idx = i;

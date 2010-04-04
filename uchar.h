@@ -64,6 +64,12 @@ static inline int u_is_continuation(uchar uch)
 	return (uch & 0xc0) == 0x80;
 }
 
+static inline int u_seq_len_ok(uchar uch, int len)
+{
+	len--;
+	return uch >= u_min_val[len] && uch <= u_max_val[len];
+}
+
 /*
  * Returns width of @uch (normally 1 or 2, 4 for invalid chars (<xx>))
  */
