@@ -298,7 +298,7 @@ static void format_status(char *buf, int size, const char *format)
 	got_char = buffer_get_char(&u);
 	if (got_char)
 		u &= ~U_INVALID_MASK;
-	while (pos < size - 1 && *format) {
+	while (pos < size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
 			if (separator)
@@ -399,8 +399,8 @@ void update_status_line(void)
 
 	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
-	format_status(lbuf, sizeof(lbuf), options.statusline_left);
-	format_status(rbuf, sizeof(rbuf), options.statusline_right);
+	format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left);
+	format_status(rbuf, sizeof(rbuf) - 5, options.statusline_right);
 	if (term_flags & TERM_UTF8) {
 		lw = u_str_width(lbuf);
 		rw = u_str_width(rbuf);
