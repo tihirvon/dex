@@ -102,26 +102,15 @@ void update_cursor_y(void)
 
 void update_cursor_x(void)
 {
-	struct block_iter bi = view->cursor;
 	unsigned int tw = buffer->options.tab_width;
+	struct lineref lr;
+	unsigned int idx = 0;
 
-	block_iter_bol(&bi);
-	view->cx = 0;
+	view->cx = fetch_this_line(&view->cursor, &lr);
 	view->cx_char = 0;
 	view->cx_display = 0;
-	while (1) {
-		uchar u;
-
-		if (bi.blk == view->cursor.blk && bi.offset == view->cursor.offset)
-			break;
-		if (!view->cursor.offset && bi.offset == bi.blk->size && bi.blk->node.next == &view->cursor.blk->node) {
-			// this[this.size] == this.next[0]
-			break;
-		}
-		if (!buffer->next_char(&bi, &u))
-			break;
-
-		view->cx += buffer->utf8 ? u_char_size(u) : 1;
+	while (idx < view->cx) {
+		uchar u = u_buf_get_char(lr.line, lr.size, &idx);
 		view->cx_char++;
 		if (u == '\t') {
 			view->cx_display = (view->cx_display + tw) / tw * tw;
