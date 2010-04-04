@@ -34,7 +34,7 @@ int u_is_valid(const char *str)
 			c = len;
 			do {
 				ch = s[i++];
-				if (u_seq_len(ch) != 0)
+				if (!u_is_continuation(ch))
 					return 0;
 				u = (u << 6) | (ch & 0x3f);
 			} while (--c);
@@ -58,7 +58,7 @@ int u_strlen(const char *str)
 			/* next l - 1 bytes must be 0x10xxxxxx */
 			int c = 1;
 			do {
-				if (u_seq_len(s[c]) != 0) {
+				if (!u_is_continuation(s[c])) {
 					/* invalid sequence */
 					goto single_char;
 				}
@@ -169,7 +169,7 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)str;
 	unsigned int i = *idx;
-	unsigned int len, count, shift;
+	unsigned int count, shift;
 	uchar u;
 
 	u = s[--i];
@@ -178,8 +178,7 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 		return u;
 	}
 
-	len = u_seq_len(u);
-	if (len)
+	if (!u_is_continuation(u))
 		goto invalid;
 
 	u &= 0x3f;
@@ -187,10 +186,9 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 	shift = 6;
 	while (i) {
 		uchar ch = s[--i];
+		unsigned int len = u_seq_len(ch);
 
-		len = u_seq_len(ch);
 		count++;
-
 		if (len == 0) {
 			if (count == 4) {
 				/* too long sequence */
@@ -237,7 +235,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 	c = len;
 	do {
 		uchar ch = s[i++];
-		if (unlikely(u_seq_len(ch)))
+		if (!u_is_continuation(ch))
 			goto invalid;
 		u = (u << 6) | (ch & 0x3f);
 	} while (--c);

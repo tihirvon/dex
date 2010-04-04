@@ -59,6 +59,11 @@ static inline int u_seq_len(uchar first_byte)
 	return -1;
 }
 
+static inline int u_is_continuation(uchar uch)
+{
+	return (uch & 0xc0) == 0x80;
+}
+
 /*
  * Returns width of @uch (normally 1 or 2, 4 for invalid chars (<xx>))
  */
