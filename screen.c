@@ -359,13 +359,13 @@ void update_status_line(void)
 		rw = strlen(rbuf);
 	}
 	if (lw + rw <= window->w) {
-		buf_add_bytes(lbuf, strlen(lbuf));
+		buf_add_str(lbuf);
 		buf_set_bytes(' ', window->w - lw - rw);
-		buf_add_bytes(rbuf, strlen(rbuf));
+		buf_add_str(rbuf);
 	} else {
-		buf_add_bytes(lbuf, strlen(lbuf));
+		buf_add_str(lbuf);
 		buf_move_cursor(window->x + window->w - rw, window->y + window->h);
-		buf_add_bytes(rbuf, strlen(rbuf));
+		buf_add_str(rbuf);
 	}
 
 	misc_status[0] = 0;

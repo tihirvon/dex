@@ -50,6 +50,13 @@ void buf_escape(const char *str)
 	buf_add_bytes(str, strlen(str));
 }
 
+void buf_add_str(const char *str)
+{
+	int len = strlen(str);
+	buf_add_bytes(str, len);
+	obuf.x += len;
+}
+
 // width of ch must be 1
 void buf_ch(char ch)
 {
