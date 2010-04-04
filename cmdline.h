@@ -5,7 +5,7 @@
 #include "gbuf.h"
 
 extern struct gbuf cmdline;
-extern int cmdline_pos;
+extern unsigned int cmdline_pos;
 
 void cmdline_insert(uchar u);
 void cmdline_delete(void);

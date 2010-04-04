@@ -613,8 +613,8 @@ void insert_ch(unsigned int ch)
 		undo_merge = UNDO_MERGE_NONE;
 	} else {
 		char buf[9];
-		int chars = 1;
-		int i = 0;
+		unsigned int chars = 1;
+		unsigned int i = 0;
 
 		if (ch == '\t' && buffer->options.expand_tab) {
 			i = chars = buffer->options.indent_width;
@@ -1248,9 +1248,8 @@ static unsigned int goto_eop(struct block_iter *bi)
 void format_paragraph(int text_width)
 {
 	struct indent_info info;
-	unsigned int len;
+	unsigned int len, i;
 	char *sel;
-	int i;
 	GBUF(buf);
 
 	undo_merge = UNDO_MERGE_NONE;
@@ -1298,7 +1297,7 @@ void format_paragraph(int text_width)
 			} else {
 				uchar u;
 				if (buffer->utf8) {
-					u = u_get_char(sel, &i);
+					u = u_buf_get_char(sel, len, &i);
 					w += u_char_width(u);
 				} else {
 					u = sel[i++];

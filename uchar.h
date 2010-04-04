@@ -77,7 +77,7 @@ extern int u_str_width(const char *str);
  */
 extern int u_str_nwidth(const char *str, int len);
 
-extern void u_prev_char_pos(const char *str, int *idx);
+extern void u_prev_char_pos(const char *str, unsigned int *idx);
 
 /*
  * @str  null-terminated UTF-8 string
@@ -94,7 +94,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
  * @idx  pointer to byte index in @str (not UTF-8 character index!)
  * @uch  unicode character
  */
-extern void u_set_char_raw(char *str, int *idx, uchar uch);
+extern void u_set_char_raw(char *str, unsigned int *idx, uchar uch);
 extern void u_set_char(char *str, unsigned int *idx, uchar uch);
 
 /*

@@ -659,7 +659,7 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	}
 
 	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
-		int idx = 0;
+		unsigned int idx = 0;
 		u_set_char_raw(buf, &idx, raw_input.value);
 		insert_special(buf, idx);
 	}

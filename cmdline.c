@@ -4,7 +4,7 @@
 #include "term.h"
 
 GBUF(cmdline);
-int cmdline_pos;
+unsigned int cmdline_pos;
 
 void cmdline_insert(uchar u)
 {
@@ -28,9 +28,9 @@ void cmdline_delete(void)
 		return;
 
 	if (term_flags & TERM_UTF8) {
-		int i = cmdline_pos;
-		uchar u = u_get_char(cmdline.buffer, &i);
-		len = u_char_size(u);
+		unsigned int pos = cmdline_pos;
+		u_buf_get_char(cmdline.buffer, cmdline.len, &pos);
+		len = pos - cmdline_pos;
 	}
 	gbuf_remove(&cmdline, cmdline_pos, len);
 }
@@ -61,7 +61,7 @@ void cmdline_prev_char(void)
 void cmdline_next_char(void)
 {
 	if (cmdline_pos < cmdline.len)
-		u_get_char(cmdline.buffer, &cmdline_pos);
+		u_buf_get_char(cmdline.buffer, cmdline.len, &cmdline_pos);
 }
 
 void cmdline_clear(void)

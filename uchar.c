@@ -229,10 +229,10 @@ int u_str_nwidth(const char *str, int len)
 	return w;
 }
 
-void u_prev_char_pos(const char *str, int *idx)
+void u_prev_char_pos(const char *str, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)str;
-	int c, len, i = *idx;
+	unsigned int c, len, i = *idx;
 	uchar ch;
 
 	ch = s[--i];
@@ -339,9 +339,9 @@ invalid:
 	return first | U_INVALID_MASK;
 }
 
-void u_set_char_raw(char *str, int *idx, uchar uch)
+void u_set_char_raw(char *str, unsigned int *idx, uchar uch)
 {
-	int i = *idx;
+	unsigned int i = *idx;
 
 	if (uch <= 0x0000007fU) {
 		str[i++] = uch;

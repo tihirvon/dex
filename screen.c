@@ -371,10 +371,10 @@ void update_status_line(void)
 	misc_status[0] = 0;
 }
 
-static int get_char_width(int *idx)
+static int get_char_width(unsigned int *idx)
 {
 	if (term_flags & TERM_UTF8) {
-		return u_char_width(u_get_char(cmdline.buffer, idx));
+		return u_char_width(u_buf_get_char(cmdline.buffer, cmdline.len, idx));
 	} else {
 		int i = *idx;
 		char ch = cmdline.buffer[i++];
@@ -388,7 +388,7 @@ static int get_char_width(int *idx)
 
 static void print_command(uchar prefix)
 {
-	int i, w;
+	unsigned int i, w;
 	uchar u;
 
 	// width of characters up to and including cursor position
@@ -409,7 +409,7 @@ static void print_command(uchar prefix)
 		buf_skip(prefix, 0);
 		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
 			if (term_flags & TERM_UTF8) {
-				u = u_get_char(cmdline.buffer, &i);
+				u = u_buf_get_char(cmdline.buffer, cmdline.len, &i);
 			} else {
 				u = cmdline.buffer[i++];
 			}
@@ -423,7 +423,7 @@ static void print_command(uchar prefix)
 	while (cmdline.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		if (term_flags & TERM_UTF8) {
-			u = u_get_char(cmdline.buffer, &i);
+			u = u_buf_get_char(cmdline.buffer, cmdline.len, &i);
 		} else {
 			u = cmdline.buffer[i++];
 		}
