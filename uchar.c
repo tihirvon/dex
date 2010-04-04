@@ -264,35 +264,6 @@ invalid:
 	return u | U_INVALID_MASK;
 }
 
-uchar u_get_char(const char *str, int *idx)
-{
-	const unsigned char *s = (const unsigned char *)str;
-	int len, i = *idx;
-	uchar ch, u;
-
-	ch = s[i++];
-	len = u_len_tab[ch];
-	if (unlikely(len < 1))
-		goto invalid;
-
-	len--;
-	u = ch & u_first_byte_mask[len];
-	while (len > 0) {
-		ch = s[i++];
-		if (unlikely(u_len_tab[ch] != 0))
-			goto invalid;
-		u = (u << 6) | (ch & 0x3f);
-		len--;
-	}
-	*idx = i;
-	return u;
-invalid:
-	i = *idx;
-	u = s[i++];
-	*idx = i;
-	return u | U_INVALID_MASK;
-}
-
 uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)buf;

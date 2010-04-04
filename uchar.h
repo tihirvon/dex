@@ -70,15 +70,6 @@ extern int u_strlen(const char *str);
 unsigned int u_str_width(const char *str);
 
 uchar u_prev_char(const char *str, unsigned int *idx);
-
-/*
- * @str  null-terminated UTF-8 string
- * @idx  pointer to byte index in @str (not UTF-8 character index!)
- *
- * Returns unicode character or first byte or'ed with U_INVALID_MASK
- */
-extern uchar u_get_char(const char *str, int *idx);
-
 uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
 
 /*
