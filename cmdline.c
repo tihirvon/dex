@@ -38,7 +38,7 @@ void cmdline_delete(void)
 void cmdline_backspace(void)
 {
 	if (cmdline_pos) {
-		u_prev_char_pos(cmdline.buffer, &cmdline_pos);
+		u_prev_char(cmdline.buffer, &cmdline_pos);
 		cmdline_delete();
 	} else {
 		if (!cmdline.len)
@@ -55,7 +55,7 @@ void cmdline_delete_bol(void)
 void cmdline_prev_char(void)
 {
 	if (cmdline_pos)
-		u_prev_char_pos(cmdline.buffer, &cmdline_pos);
+		u_prev_char(cmdline.buffer, &cmdline_pos);
 }
 
 void cmdline_next_char(void)

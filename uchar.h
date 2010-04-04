@@ -77,7 +77,7 @@ extern int u_str_width(const char *str);
  */
 extern int u_str_nwidth(const char *str, int len);
 
-extern void u_prev_char_pos(const char *str, unsigned int *idx);
+uchar u_prev_char(const char *str, unsigned int *idx);
 
 /*
  * @str  null-terminated UTF-8 string

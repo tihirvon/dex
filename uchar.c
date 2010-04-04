@@ -229,49 +229,55 @@ int u_str_nwidth(const char *str, int len)
 	return w;
 }
 
-void u_prev_char_pos(const char *str, unsigned int *idx)
+uchar u_prev_char(const char *str, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)str;
-	unsigned int c, len, i = *idx;
-	uchar ch;
+	unsigned int i = *idx;
+	unsigned int len, count, shift;
+	uchar u;
 
-	ch = s[--i];
-	len = u_len_tab[ch];
-	if (len != 0) {
-		/* start of byte sequence or invalid uchar */
-		goto one;
+	u = s[--i];
+	if (likely(u < 0x80)) {
+		*idx = i;
+		return u;
 	}
 
-	c = 1;
-	while (1) {
-		if (i == 0) {
-			/* first byte of the sequence is missing */
-			break;
-		}
+	len = u_len_tab[u];
+	if (len)
+		goto invalid;
 
-		ch = s[--i];
+	u &= 0x3f;
+	count = 1;
+	shift = 6;
+	while (i) {
+		uchar ch = s[--i];
+
 		len = u_len_tab[ch];
-		c++;
+		count++;
 
 		if (len == 0) {
-			if (c < 4)
-				continue;
-
-			/* too long sequence */
-			break;
-		}
-		if (len != c) {
+			if (count == 4) {
+				/* too long sequence */
+				break;
+			}
+			u |= (ch & 0x3f) << shift;
+			shift += 6;
+		} else if (count != len) {
 			/* incorrect length */
 			break;
-		}
+		} else {
+			len--;
+			u |= (ch & u_first_byte_mask[len]) << shift;
+			if (u < u_min_val[len] || u > u_max_val[len])
+				break;
 
-		/* ok */
-		*idx = i;
-		return;
+			*idx = i;
+			return u;
+		}
 	}
-one:
+invalid:
 	*idx = *idx - 1;
-	return;
+	return u | U_INVALID_MASK;
 }
 
 uchar u_get_char(const char *str, int *idx)
