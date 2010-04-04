@@ -69,14 +69,6 @@ extern int u_strlen(const char *str);
  */
 unsigned int u_str_width(const char *str);
 
-/*
- * @str  null-terminated UTF-8 string
- * @len  number of characters to measure
- *
- * Returns width of the first @len characters in @str.
- */
-extern int u_str_nwidth(const char *str, int len);
-
 uchar u_prev_char(const char *str, unsigned int *idx);
 
 /*

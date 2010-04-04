@@ -213,22 +213,6 @@ unsigned int u_str_width(const char *str)
 	return w;
 }
 
-int u_str_nwidth(const char *str, int len)
-{
-	int idx = 0;
-	int w = 0;
-	uchar u;
-
-	while (len > 0) {
-		u = u_get_char(str, &idx);
-		if (u == 0)
-			break;
-		w += u_char_width(u);
-		len--;
-	}
-	return w;
-}
-
 uchar u_prev_char(const char *str, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)str;
