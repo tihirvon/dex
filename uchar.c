@@ -375,9 +375,9 @@ void u_set_char_raw(char *str, int *idx, uchar uch)
  * Printing functions, these lose information
  */
 
-void u_set_char(char *str, int *idx, uchar uch)
+void u_set_char(char *str, unsigned int *idx, uchar uch)
 {
-	int i = *idx;
+	unsigned int i = *idx;
 
 	if (unlikely(uch <= 0x0000001fU))
 		goto invalid;
@@ -426,7 +426,8 @@ invalid:
 int u_copy_chars(char *dst, const char *src, int *width)
 {
 	int w = *width;
-	int si = 0, di = 0;
+	int si = 0;
+	unsigned int di = 0;
 	int cw;
 	uchar u;
 

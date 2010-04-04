@@ -95,7 +95,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
  * @uch  unicode character
  */
 extern void u_set_char_raw(char *str, int *idx, uchar uch);
-extern void u_set_char(char *str, int *idx, uchar uch);
+extern void u_set_char(char *str, unsigned int *idx, uchar uch);
 
 /*
  * @dst    destination buffer
