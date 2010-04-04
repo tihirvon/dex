@@ -43,13 +43,16 @@ static int separator;
 static int cmdline_x;
 static int current_line;
 
+static const char *no_name = "(No name)";
+
 static void update_tab_title(struct view *v, int idx, int skip)
 {
 	char buf[512];
 	const char *filename = v->buffer->filename;
 
 	if (!filename)
-		filename = "(No name)";
+		filename = no_name;
+
 	if (skip > 0) {
 		if (term_flags & TERM_UTF8)
 			filename += u_skip_chars(filename, &skip);
@@ -274,7 +277,7 @@ static void format_status(char *buf, int size, const char *format)
 			switch (ch) {
 			case 'f':
 				add_status_str(buf, size, &pos,
-						buffer->filename ? buffer->filename : "(No name)");
+						buffer->filename ? buffer->filename : no_name);
 				break;
 			case 'm':
 				if (buffer_modified(buffer))
