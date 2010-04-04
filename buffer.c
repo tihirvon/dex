@@ -224,15 +224,8 @@ static int read_blocks(struct buffer *b, int fd)
 
 	for (pos = 0; pos < size; pos++) {
 		if ((unsigned char)buf[pos] >= 0x80) {
-			char str[5];
-			int len = 4, idx = 0;
-			uchar u;
-
-			if (len > size - pos)
-				len = size - pos;
-			memcpy(str, buf + pos, len);
-			str[len] = 0;
-			u = u_get_char(str, &idx);
+			unsigned int idx = pos;
+			uchar u = u_buf_get_char(buf, size, &idx);
 			b->utf8 = !(u & U_INVALID_MASK);
 			break;
 		}
