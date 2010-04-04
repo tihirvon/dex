@@ -26,7 +26,6 @@ struct output_buffer {
 
 extern struct output_buffer obuf;
 
-void buf_add_bytes(const char *str, int count);
 void buf_set_bytes(char ch, int count);
 void buf_ch(char ch);
 void buf_escape(const char *str);

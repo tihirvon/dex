@@ -7,7 +7,7 @@
 struct output_buffer obuf;
 
 // does not update obuf.x
-void buf_add_bytes(const char *str, int count)
+static void buf_add_bytes(const char *str, int count)
 {
 	while (count) {
 		unsigned int avail = obuf.alloc - obuf.count;
