@@ -39,90 +39,39 @@ unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte)
 }
 
 // analogous to *ptr++
-unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up)
+unsigned int block_iter_next_uchar(struct block_iter *bi, uchar *up)
 {
-	struct block_iter save;
-	int c, len;
-	uchar ch, u;
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
 
-	if (!block_iter_next_byte(i, &ch))
-		return 0;
-
-	*up = ch;
-	if (likely(ch < 0x80)) {
-		// ascii
-		return 1;
+	if (offset == blk->size) {
+		if (blk->node.next == bi->head)
+			return 0;
+		bi->blk = blk = BLOCK(blk->node.next);
+		bi->offset = offset = 0;
 	}
 
-	*up = ch | U_INVALID_MASK;
-	len = u_seq_len(ch);
-	if (len < 1) {
-		// invalid first byte
-		return 1;
-	}
-
-	save = *i;
-	u = ch & u_get_first_byte_mask(len);
-	for (c = 1; c < len; c++) {
-		if (!block_iter_next_byte(i, &ch))
-			goto crap;
-		if (u_seq_len(ch))
-			goto crap;
-
-		u = (u << 6) | (ch & 0x3f);
-	}
-	if (!u_seq_len_ok(u, len))
-		goto crap;
-	*up = u;
-	return len;
-crap:
-	// *up set to the first byte and marked invalid
-	*i = save;
-	return 1;
+	// Note: this block can't be empty
+	*up = u_buf_get_char(blk->data, blk->size - offset, &bi->offset);
+	return bi->offset - offset;
 }
 
 // analogous to *--ptr
-unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up)
+unsigned int block_iter_prev_uchar(struct block_iter *bi, uchar *up)
 {
-	struct block_iter save;
-	int c, len;
-	uchar ch, u;
-	unsigned int shift;
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
 
-	if (!block_iter_prev_byte(i, &ch))
-		return 0;
-
-	*up = ch;
-	if (likely(ch < 0x80)) {
-		// ascii
-		return 1;
+	if (!offset) {
+		if (blk->node.prev == bi->head)
+			return 0;
+		bi->blk = blk = BLOCK(blk->node.prev);
+		bi->offset = offset = blk->size;
 	}
 
-	*up = ch | U_INVALID_MASK;
-	save = *i;
-	u = 0;
-	shift = 0;
-	for (c = 1; c < 4; c++) {
-		len = u_seq_len(ch);
-		if (len)
-			break;
-
-		u |= (ch & 0x3f) << shift;
-		shift += 6;
-		if (!block_iter_prev_byte(i, &ch))
-			goto crap;
-	}
-	if (len != c)
-		goto crap;
-	u |= (ch & u_get_first_byte_mask(len)) << shift;
-	if (!u_seq_len_ok(u, len))
-		goto crap;
-	*up = u;
-	return len;
-crap:
-	// *up set to the first byte we read and marked invalid
-	*i = save;
-	return 1;
+	// Note: this block can't be empty
+	*up = u_prev_char(blk->data, &bi->offset);
+	return offset - bi->offset;
 }
 
 unsigned int block_iter_next_line(struct block_iter *bi)
