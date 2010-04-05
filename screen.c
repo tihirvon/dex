@@ -403,8 +403,8 @@ void update_status_line(void)
 	lw = format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left);
 	rw = format_status(rbuf, sizeof(rbuf) - 5, options.statusline_right);
 	if (term_flags & TERM_UTF8) {
-		lw = u_str_width(lbuf);
-		rw = u_str_width(rbuf);
+		lw = u_str_width(lbuf, lw);
+		rw = u_str_width(rbuf, rw);
 	}
 	if (lw + rw <= window->w) {
 		buf_add_str(lbuf);

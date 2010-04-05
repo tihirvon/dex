@@ -94,7 +94,7 @@ int u_strlen(const char *str);
  *
  * Returns width of @str.
  */
-unsigned int u_str_width(const char *str);
+unsigned int u_str_width(const char *str, unsigned int size);
 
 uchar u_prev_char(const char *str, unsigned int *idx);
 uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);

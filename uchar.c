@@ -148,16 +148,12 @@ wide:
 	return 2;
 }
 
-unsigned int u_str_width(const char *str)
+unsigned int u_str_width(const char *str, unsigned int size)
 {
 	unsigned int idx = 0, w = 0;
 
-	while (str[idx]) {
-		uchar u;
-
-		u = u_buf_get_char(str, idx + 4, &idx);
-		w += u_char_width(u);
-	}
+	while (idx < size)
+		w += u_char_width(u_buf_get_char(str, size, &idx));
 	return w;
 }
 
