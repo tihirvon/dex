@@ -3,19 +3,15 @@
 #include "buffer.h"
 #include "regexp.h"
 
-/*
- * Contains one line including LF.
- */
-static const char *hl_buffer;
-static size_t hl_buffer_len;
-
-static void fetch_line(struct block_iter *bi)
+static void fetch_and_highlight(struct block_iter *bi, struct highlighter *h)
 {
 	struct lineref lr;
 
 	fill_line_nl_ref(bi, &lr);
-	hl_buffer = lr.line;
-	hl_buffer_len = lr.size;
+	h->line = lr.line;
+	h->line_len = lr.size;
+	h->offset = 0;
+	highlight_line(h);
 	block_iter_next_line(bi);
 }
 
@@ -30,6 +26,7 @@ static void init_highlighter_heredoc(struct highlighter *h)
 {
 	const struct syntax_context *c;
 	struct block_iter bi;
+	struct lineref lr;
 	unsigned int offset;
 	int eflags = 0;
 	regmatch_t m[2];
@@ -51,15 +48,15 @@ static void init_highlighter_heredoc(struct highlighter *h)
 	bi.offset = 0;
 	block_iter_goto_offset(&bi, h->stack.heredoc_offset);
 	offset = block_iter_bol(&bi);
-	fetch_line(&bi);
+	fill_line_nl_ref(&bi, &lr);
 
 	if (offset > 0)
 		eflags |= REG_NOTBOL;
-	if (buf_regexec(&c->sregex, hl_buffer + offset, hl_buffer_len - offset, 2, m, eflags)) {
+	if (buf_regexec(&c->sregex, lr.line + offset, lr.size - offset, 2, m, eflags))
 		return;
-	}
+
 	if (m[1].rm_so >= 0) {
-		const char *str = hl_buffer + m[1].rm_so + offset;
+		const char *str = lr.line + m[1].rm_so + offset;
 		int str_len = m[1].rm_eo - m[1].rm_so;
 
 		build_heredoc_eregex(h, c, str, str_len);
@@ -182,13 +179,9 @@ void highlight_buffer(struct buffer *b)
 
 	init_highlighter(&h, b);
 	init_syntax_context_stack(&h.stack, b->syn->root);
-	while (!block_iter_eof(&bi)) {
-		fetch_line(&bi);
-		h.line = hl_buffer;
-		h.line_len = hl_buffer_len;
-		h.offset = 0;
-		highlight_line(&h);
-	}
+	while (!block_iter_eof(&bi))
+		fetch_and_highlight(&bi, &h);
+
 	free(h.words);
 	free(h.matches);
 	free(h.stack.contexts);
@@ -270,13 +263,9 @@ static void update_hl_eof(void)
 	init_highlighter_heredoc(&h);
 
 	/* highlight to eof */
-	while (!block_iter_eof(&bi)) {
-		fetch_line(&bi);
-		h.line = hl_buffer;
-		h.line_len = hl_buffer_len;
-		h.offset = 0;
-		highlight_line(&h);
-	}
+	while (!block_iter_eof(&bi))
+		fetch_and_highlight(&bi, &h);
+
 	if (h.heredoc_context)
 		regfree(&h.heredoc_eregex);
 	free(h.words);
@@ -359,13 +348,8 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 	init_highlighter_heredoc(&h);
 
 	/* highlight the modified lines */
-	for (i = 0; i <= ins_nl; i++) {
-		fetch_line(&bi);
-		h.line = hl_buffer;
-		h.line_len = hl_buffer_len;
-		h.offset = 0;
-		highlight_line(&h);
-	}
+	for (i = 0; i <= ins_nl; i++)
+		fetch_and_highlight(&bi, &h);
 
 	ds_print("a=%d b=%d\n", offset_a, offset_b);
 
@@ -396,13 +380,8 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 
 		/* highlight to eof */
 		h.headp = &buffer->hl_head;
-		while (!block_iter_eof(&bi)) {
-			fetch_line(&bi);
-			h.line = hl_buffer;
-			h.line_len = hl_buffer_len;
-			h.offset = 0;
-			highlight_line(&h);
-		}
+		while (!block_iter_eof(&bi))
+			fetch_and_highlight(&bi, &h);
 
 		update_flags |= UPDATE_FULL;
 	} else {
