@@ -27,7 +27,7 @@ static inline int u_is_unicode(uchar uch)
 /*
  * Returns size of @uch in bytes
  */
-static inline int u_char_size(uchar uch)
+static inline unsigned int u_char_size(uchar uch)
 {
 	if (uch <= 0x0000007fU)
 		return 1;

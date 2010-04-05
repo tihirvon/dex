@@ -875,7 +875,7 @@ char *get_word_under_cursor(void)
 void erase_word(void)
 {
 	struct block_iter bi = view->cursor;
-	int count = 0;
+	unsigned int count = 0;
 	uchar u;
 
 	while (buffer->prev_char(&bi, &u)) {

@@ -8,7 +8,7 @@ unsigned int cmdline_pos;
 
 void cmdline_insert(uchar u)
 {
-	int len = 1;
+	unsigned int len = 1;
 
 	if (term_flags & TERM_UTF8)
 		len = u_char_size(u);

@@ -53,7 +53,7 @@ void init_selection(struct selection_info *info)
 void fill_selection_info(struct selection_info *info)
 {
 	struct block_iter bi = info->si;
-	int nr_bytes = info->eo - info->so;
+	unsigned int nr_bytes = info->eo - info->so;
 	uchar u, prev_char = 0;
 
 	while (nr_bytes && buffer->next_char(&bi, &u)) {
