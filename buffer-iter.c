@@ -2,16 +2,15 @@
 
 unsigned int buffer_get_char(struct block_iter *bi, uchar *up)
 {
-	struct block *blk;
-	unsigned int offset;
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
 
-	block_iter_normalize(bi);
-
-	blk = bi->blk;
-	offset = bi->offset;
-
-	if (offset == blk->size)
-		return 0;
+	if (offset == blk->size) {
+		if (blk->node.next == bi->head)
+			return 0;
+		bi->blk = blk = BLOCK(blk->node.next);
+		bi->offset = offset = 0;
+	}
 
 	*up = blk->data[offset];
 	if (*up < 0x80 || !buffer->utf8)
