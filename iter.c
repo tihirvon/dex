@@ -1,6 +1,6 @@
 #include "iter.h"
 
-static void block_iter_normalize(struct block_iter *bi)
+void block_iter_normalize(struct block_iter *bi)
 {
 	struct block *blk = bi->blk;
 

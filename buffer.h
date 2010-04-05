@@ -191,7 +191,7 @@ void move_eof(void);
 void goto_tag(const char *name);
 void pop_location(void);
 
-int buffer_get_char(uchar *up);
+unsigned int buffer_get_char(struct block_iter *bi, uchar *up);
 char *get_word_under_cursor(void);
 
 int guess_filetype(void);

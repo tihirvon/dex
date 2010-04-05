@@ -295,7 +295,7 @@ static int format_status(char *buf, int size, const char *format)
 	uchar u;
 
 	separator = 0;
-	got_char = buffer_get_char(&u);
+	got_char = buffer_get_char(&view->cursor, &u);
 	if (got_char)
 		u &= ~U_INVALID_MASK;
 	while (pos < size && *format) {

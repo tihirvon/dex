@@ -16,6 +16,7 @@ struct lineref {
 	unsigned int size;
 };
 
+void block_iter_normalize(struct block_iter *bi);
 unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte);
 unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte);
 unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up);
