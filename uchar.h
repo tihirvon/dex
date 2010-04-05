@@ -85,20 +85,6 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 int u_char_width(uchar uch);
 
 /*
- * @str  any null-terminated string
- *
- * Returns 1 if @str is valid UTF-8 string, 0 otherwise.
- */
-int u_is_valid(const char *str);
-
-/*
- * @str  null-terminated UTF-8 string
- *
- * Returns length of @str in UTF-8 characters.
- */
-int u_strlen(const char *str);
-
-/*
  * @str  null-terminated UTF-8 string
  *
  * Returns width of @str.
@@ -117,19 +103,6 @@ void u_set_char_raw(char *str, unsigned int *idx, uchar uch);
 void u_set_char(char *str, unsigned int *idx, uchar uch);
 
 /*
- * @dst    destination buffer
- * @src    null-terminated UTF-8 string
- * @width  how much to copy
- *
- * Copies at most @count characters, less if null byte was hit.
- * Null byte is _never_ copied.
- * Actual width of copied characters is stored to @width.
- *
- * Returns number of _bytes_ copied.
- */
-int u_copy_chars(char *dst, const char *src, int *width);
-
-/*
  * @str    null-terminated UTF-8 string, must be long enough
  * @width  how much to skip
  *
@@ -141,9 +114,5 @@ int u_copy_chars(char *dst, const char *src, int *width);
  * Returns number of _bytes_ skipped.
  */
 unsigned int u_skip_chars(const char *str, int *width);
-
-int u_strcasecmp(const char *a, const char *b);
-int u_strncasecmp(const char *a, const char *b, int len);
-char *u_strcasestr(const char *haystack, const char *needle);
 
 #endif
