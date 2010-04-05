@@ -39,14 +39,14 @@ void init_selection(struct selection_info *info)
 	if (block_iter_eof(&info->ei)) {
 		if (info->so == info->eo)
 			return;
-		info->eo -= buffer->prev_char(&info->ei, &u);
+		info->eo -= buffer_prev_char(&info->ei, &u);
 	}
 	if (view->sel_is_lines) {
 		info->so -= block_iter_bol(&info->si);
 		info->eo += count_bytes_eol(&info->ei);
 	} else {
 		// character under cursor belongs to the selection
-		info->eo += buffer->next_char(&info->ei, &u);
+		info->eo += buffer_next_char(&info->ei, &u);
 	}
 }
 
@@ -56,7 +56,7 @@ void fill_selection_info(struct selection_info *info)
 	unsigned int nr_bytes = info->eo - info->so;
 	uchar u, prev_char = 0;
 
-	while (nr_bytes && buffer->next_char(&bi, &u)) {
+	while (nr_bytes && buffer_next_char(&bi, &u)) {
 		if (prev_char == '\n')
 			info->nr_lines++;
 		info->nr_chars++;
@@ -123,17 +123,6 @@ static struct buffer *buffer_new(void)
 	return b;
 }
 
-static void buffer_set_callbacks(struct buffer *b)
-{
-	if (b->utf8) {
-		b->next_char = block_iter_next_uchar;
-		b->prev_char = block_iter_prev_uchar;
-	} else {
-		b->next_char = block_iter_next_byte;
-		b->prev_char = block_iter_prev_byte;
-	}
-}
-
 struct view *open_empty_buffer(void)
 {
 	struct buffer *b = buffer_new();
@@ -144,7 +133,6 @@ struct view *open_empty_buffer(void)
 	blk = block_new(ALLOC_ROUND(1));
 	list_add_before(&blk->node, &b->blocks);
 
-	buffer_set_callbacks(b);
 	v = window_add_buffer(b);
 	v->cursor.head = &v->buffer->blocks;
 	v->cursor.blk = BLOCK(v->buffer->blocks.next);
@@ -414,7 +402,6 @@ static int load_buffer(struct buffer *b, int must_exist)
 		struct block *blk = block_new(ALLOC_ROUND(1));
 		list_add_before(&blk->node, &b->blocks);
 	}
-	buffer_set_callbacks(b);
 	return 0;
 }
 

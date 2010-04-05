@@ -42,9 +42,6 @@ struct buffer {
 
 	const struct syntax *syn;
 	struct list_head hl_head;
-
-	unsigned int (*next_char)(struct block_iter *i, uchar *up);
-	unsigned int (*prev_char)(struct block_iter *i, uchar *up);
 };
 
 struct view {
@@ -192,6 +189,9 @@ void goto_tag(const char *name);
 void pop_location(void);
 
 unsigned int buffer_get_char(struct block_iter *bi, uchar *up);
+unsigned int buffer_next_char(struct block_iter *bi, uchar *up);
+unsigned int buffer_prev_char(struct block_iter *bi, uchar *up);
+
 char *get_word_under_cursor(void);
 
 int guess_filetype(void);

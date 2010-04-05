@@ -25,7 +25,7 @@ void move_to_preferred_x(void)
 
 	block_iter_bol(&view->cursor);
 	while (x < view->preferred_x) {
-		if (!buffer->next_char(&view->cursor, &u))
+		if (!buffer_next_char(&view->cursor, &u))
 			break;
 
 		if (u == ' ') {
@@ -448,7 +448,7 @@ static void delete_one_ch(void)
 	struct block_iter bi = view->cursor;
 	uchar u;
 
-	if (!buffer->next_char(&bi, &u))
+	if (!buffer_next_char(&bi, &u))
 		return;
 
 	if (u == '\n' && !options.allow_incomplete_last_line &&
@@ -513,7 +513,7 @@ void erase(void)
 			}
 		}
 
-		if (buffer->prev_char(&view->cursor, &u)) {
+		if (buffer_prev_char(&view->cursor, &u)) {
 			if (buffer->utf8) {
 				delete(u_char_size(u), 1);
 			} else {
@@ -737,7 +737,7 @@ void move_left(int count)
 	while (count > 0) {
 		uchar u;
 
-		if (!buffer->prev_char(&view->cursor, &u))
+		if (!buffer_prev_char(&view->cursor, &u))
 			break;
 		if (!options.move_wraps && u == '\n') {
 			block_iter_next_byte(&view->cursor, &u);
@@ -753,7 +753,7 @@ void move_right(int count)
 	while (count > 0) {
 		uchar u;
 
-		if (!buffer->next_char(&view->cursor, &u))
+		if (!buffer_next_char(&view->cursor, &u))
 			break;
 		if (!options.move_wraps && u == '\n') {
 			block_iter_prev_byte(&view->cursor, &u);
@@ -893,7 +893,7 @@ void erase_word(void)
 	unsigned int count = 0;
 	uchar u;
 
-	while (buffer->prev_char(&bi, &u)) {
+	while (buffer_prev_char(&bi, &u)) {
 		if (isspace(u)) {
 			count++;
 			continue;
@@ -901,13 +901,13 @@ void erase_word(void)
 		do {
 			if (!is_word_byte(u)) {
 				if (count)
-					buffer->next_char(&bi, &u);
+					buffer_next_char(&bi, &u);
 				else
 					count++;
 				break;
 			}
 			count += u_char_size(u);
-		} while (buffer->prev_char(&bi, &u));
+		} while (buffer_prev_char(&bi, &u));
 		break;
 	}
 

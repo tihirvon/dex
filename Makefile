@@ -47,6 +47,7 @@ WARNINGS += \
 OBJECTS	:= 			\
 	block.o			\
 	buffer-highlight.o	\
+	buffer-iter.o		\
 	buffer.o		\
 	change.o		\
 	cmdline.o		\
