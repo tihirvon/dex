@@ -412,11 +412,11 @@ static void cmd_delete_eol(char **args)
 {
 	if (no_args(args)) {
 		struct block_iter bi = view->cursor;
-		unsigned int len = count_bytes_eol(&bi);
+		unsigned int len = block_iter_eol(&bi);
 
 		undo_merge = UNDO_MERGE_NONE;
-		if (len > 1)
-			delete(len - 1, 0);
+		if (len)
+			delete(len, 0);
 	}
 }
 

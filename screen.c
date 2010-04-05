@@ -625,11 +625,11 @@ static void selection_init(void)
 			sel_so = to;
 			if (view->sel_is_lines) {
 				sel_so -= block_iter_bol(&ei);
-				sel_eo += count_bytes_eol(&si) - 1;
+				sel_eo += block_iter_eol(&si);
 			}
 		} else if (view->sel_is_lines) {
 			sel_so -= block_iter_bol(&si);
-			sel_eo += count_bytes_eol(&ei) - 1;
+			sel_eo += block_iter_eol(&ei);
 		}
 	}
 }
