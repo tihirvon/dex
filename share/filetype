@@ -1,5 +1,6 @@
 ft extension c c h
 ft extension cpp cpp hpp cc hh C H cxx hxx c++ moc inl
+ft extension css css
 ft extension sh sh
 ft extension bash bash
 ft match bash '/\.bash(rc|_profile|_logout)$'

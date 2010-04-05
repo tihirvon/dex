@@ -107,6 +107,7 @@ syntax	:=			\
 	syntax/c		\
 	syntax/config		\
 	syntax/cpp		\
+	syntax/css		\
 	syntax/diff		\
 	syntax/editor		\
 	syntax/gitcommit	\
