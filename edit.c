@@ -842,27 +842,6 @@ void move_eof(void)
 	update_preferred_x();
 }
 
-unsigned int buffer_get_char(struct block_iter *bi, uchar *up)
-{
-	struct block *blk;
-	unsigned int offset;
-
-	block_iter_normalize(bi);
-
-	blk = bi->blk;
-	offset = bi->offset;
-
-	if (offset == blk->size)
-		return 0;
-
-	*up = blk->data[offset];
-	if (*up < 0x80 || !buffer->utf8)
-		return 1;
-
-	*up = u_buf_get_char(blk->data, blk->size - offset, &offset);
-	return offset - bi->offset;
-}
-
 static int is_word_byte(unsigned char byte)
 {
 	return isalnum(byte) || byte == '_' || byte > 0x7f;
