@@ -200,10 +200,6 @@ void u_set_char_raw(char *str, unsigned int *idx, uchar uch)
 	}
 }
 
-/*
- * Printing functions, these lose information
- */
-
 void u_set_char(char *str, unsigned int *idx, uchar uch)
 {
 	unsigned int i = *idx;

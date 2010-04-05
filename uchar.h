@@ -5,25 +5,13 @@ typedef unsigned int uchar;
 
 extern const char hex_tab[16];
 
-/*
- * Invalid bytes are or'ed with this
- * for example 0xff -> 0x100000ff
- */
 #define U_INVALID_MASK 0x10000000U
 
-/*
- * @uch  potential unicode character
- *
- * Returns 1 if @uch is valid unicode character, 0 otherwise
- */
 static inline int u_is_unicode(uchar uch)
 {
 	return uch <= 0x0010ffffU;
 }
 
-/*
- * Returns size of @uch in bytes
- */
 static inline unsigned int u_char_size(uchar uch)
 {
 	if (uch <= 0x0000007fU)
@@ -79,39 +67,24 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 	return (1U << 7U >> len) - 1U;
 }
 
-/*
- * Returns width of @uch (normally 1 or 2, 4 for invalid chars (<xx>))
- */
 int u_char_width(uchar uch);
 
-/*
- * @str  null-terminated UTF-8 string
- *
- * Returns width of @str.
- */
 unsigned int u_str_width(const char *str, unsigned int size);
 
 uchar u_prev_char(const char *str, unsigned int *idx);
 uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
 
-/*
- * @str  destination buffer
- * @idx  pointer to byte index in @str (not UTF-8 character index!)
- * @uch  unicode character
- */
 void u_set_char_raw(char *str, unsigned int *idx, uchar uch);
 void u_set_char(char *str, unsigned int *idx, uchar uch);
 
 /*
- * @str    null-terminated UTF-8 string, must be long enough
- * @width  how much to skip
+ * Total width of skipped characters is stored back to @width.
  *
- * Skips @count UTF-8 characters.
- * Total width of skipped characters is stored to @width.
- * Returned @width can be the given @width + 1 if the last skipped
- * character was double width.
+ * Stored @width can be 1 more than given width if the last skipped
+ * character was double width or even 3 more if the last skipped
+ * character was invalid (<xx>).
  *
- * Returns number of _bytes_ skipped.
+ * Returns number of bytes skipped.
  */
 unsigned int u_skip_chars(const char *str, int *width);
 
