@@ -288,7 +288,7 @@ static void add_status_pos(char *buf, int size, int *posp)
 	}
 }
 
-static void format_status(char *buf, int size, const char *format)
+static int format_status(char *buf, int size, const char *format)
 {
 	int pos = 0;
 	int got_char;
@@ -374,6 +374,7 @@ static void format_status(char *buf, int size, const char *format)
 		}
 	}
 	buf[pos] = 0;
+	return pos;
 }
 
 void update_status_line(void)
@@ -399,14 +400,11 @@ void update_status_line(void)
 
 	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
-	format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left);
-	format_status(rbuf, sizeof(rbuf) - 5, options.statusline_right);
+	lw = format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left);
+	rw = format_status(rbuf, sizeof(rbuf) - 5, options.statusline_right);
 	if (term_flags & TERM_UTF8) {
 		lw = u_str_width(lbuf);
 		rw = u_str_width(rbuf);
-	} else {
-		lw = strlen(lbuf);
-		rw = strlen(rbuf);
 	}
 	if (lw + rw <= window->w) {
 		buf_add_str(lbuf);
