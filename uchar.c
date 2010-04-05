@@ -83,8 +83,8 @@ int u_char_width(uchar u)
 	if (unlikely(u < 0x20 || u == 0x7f))
 		return 2;
 
-	if (u < 0x1100U)
-		goto narrow;
+	if (likely(u < 0x1100U))
+		return 1;
 
 	/* Hangul Jamo init. consonants */
 	if (u <= 0x115fU)
@@ -141,14 +141,11 @@ int u_char_width(uchar u)
 
 	/* invalid bytes in unicode stream are rendered "<xx>" */
 	if (u & U_INVALID_MASK)
-		goto invalid;
+		return 4;
 narrow:
 	return 1;
 wide:
 	return 2;
-invalid:
-	/* <xx> */
-	return 4;
 }
 
 unsigned int u_str_width(const char *str)
