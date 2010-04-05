@@ -29,17 +29,15 @@ static inline int u_is_unicode(uchar uch)
  */
 static inline int u_char_size(uchar uch)
 {
-	if (uch <= 0x0000007fU) {
+	if (uch <= 0x0000007fU)
 		return 1;
-	} else if (uch <= 0x000007ffU) {
+	if (uch <= 0x000007ffU)
 		return 2;
-	} else if (uch <= 0x0000ffffU) {
+	if (uch <= 0x0000ffffU)
 		return 3;
-	} else if (uch <= 0x0010ffffU) {
+	if (uch <= 0x0010ffffU)
 		return 4;
-	} else {
-		return 1;
-	}
+	return 1;
 }
 
 static inline int u_seq_len(uchar first_byte)
