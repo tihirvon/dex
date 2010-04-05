@@ -5,10 +5,6 @@
 
 const char hex_tab[16] = "0123456789abcdef";
 
-/* index is length of the UTF-8 sequence - 1 */
-int u_min_val[4] = { 0x000000, 0x000080, 0x000800, 0x010000 };
-int u_max_val[4] = { 0x00007f, 0x0007ff, 0x00ffff, 0x10ffff };
-
 int u_is_valid(const char *str)
 {
 	const unsigned char *s = (const unsigned char *)str;

@@ -4,8 +4,6 @@
 typedef unsigned int uchar;
 
 extern const char hex_tab[16];
-extern int u_min_val[4];
-extern int u_max_val[4];
 
 /*
  * Invalid bytes are or'ed with this
@@ -63,8 +61,7 @@ static inline int u_is_continuation(uchar uch)
 
 static inline int u_seq_len_ok(uchar uch, int len)
 {
-	len--;
-	return uch >= u_min_val[len] && uch <= u_max_val[len];
+	return u_char_size(uch) == len;
 }
 
 /*
