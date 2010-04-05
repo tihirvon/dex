@@ -62,7 +62,7 @@ unsigned int block_iter_next_uchar(struct block_iter *i, uchar *up)
 	}
 
 	save = *i;
-	u = ch & u_first_byte_mask[len - 1];
+	u = ch & u_get_first_byte_mask(len);
 	for (c = 1; c < len; c++) {
 		if (!block_iter_next_byte(i, &ch))
 			goto crap;
@@ -114,7 +114,7 @@ unsigned int block_iter_prev_uchar(struct block_iter *i, uchar *up)
 	}
 	if (len != c)
 		goto crap;
-	u |= (ch & u_first_byte_mask[len - 1]) << shift;
+	u |= (ch & u_get_first_byte_mask(len)) << shift;
 	if (!u_seq_len_ok(u, len))
 		goto crap;
 	*up = u;

@@ -9,9 +9,6 @@ const char hex_tab[16] = "0123456789abcdef";
 int u_min_val[4] = { 0x000000, 0x000080, 0x000800, 0x010000 };
 int u_max_val[4] = { 0x00007f, 0x0007ff, 0x00ffff, 0x10ffff };
 
-/* get value bits from the first UTF-8 sequence byte */
-unsigned int u_first_byte_mask[4] = { 0x7f, 0x1f, 0x0f, 0x07 };
-
 int u_is_valid(const char *str)
 {
 	const unsigned char *s = (const unsigned char *)str;
@@ -29,7 +26,7 @@ int u_is_valid(const char *str)
 			uchar u;
 			int c;
 
-			u = ch & u_first_byte_mask[len - 1];
+			u = ch & u_get_first_byte_mask(len);
 			c = len - 1;
 			do {
 				ch = s[i++];
@@ -192,7 +189,7 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 			/* incorrect length */
 			break;
 		} else {
-			u |= (ch & u_first_byte_mask[len - 1]) << shift;
+			u |= (ch & u_get_first_byte_mask(len)) << shift;
 			if (!u_seq_len_ok(u, len))
 				break;
 
@@ -222,7 +219,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 	if (unlikely(len < 2 || len > size - i + 1))
 		goto invalid;
 
-	u = first & u_first_byte_mask[len - 1];
+	u = first & u_get_first_byte_mask(len);
 	c = len - 1;
 	do {
 		uchar ch = s[i++];

@@ -6,7 +6,6 @@ typedef unsigned int uchar;
 extern const char hex_tab[16];
 extern int u_min_val[4];
 extern int u_max_val[4];
-extern unsigned int u_first_byte_mask[4];
 
 /*
  * Invalid bytes are or'ed with this
@@ -66,6 +65,21 @@ static inline int u_seq_len_ok(uchar uch, int len)
 {
 	len--;
 	return uch >= u_min_val[len] && uch <= u_max_val[len];
+}
+
+/*
+ * Len  Mask         Note
+ * -------------------------------------------------
+ * 1    0111 1111    Not supported by this function!
+ * 2    0001 1111
+ * 3    0000 1111
+ * 4    0000 0111
+ * 5    0000 0011    Forbidded by RFC 3629
+ * 6    0000 0001    Forbidded by RFC 3629
+ */
+static inline unsigned int u_get_first_byte_mask(unsigned int len)
+{
+	return (1U << 7U >> len) - 1U;
 }
 
 /*
