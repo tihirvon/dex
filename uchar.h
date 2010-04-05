@@ -9,18 +9,18 @@ extern const char hex_tab[16];
 
 static inline int u_is_unicode(uchar uch)
 {
-	return uch <= 0x0010ffffU;
+	return uch <= 0x10ffffU;
 }
 
 static inline unsigned int u_char_size(uchar uch)
 {
-	if (uch <= 0x0000007fU)
+	if (uch <= 0x7fU)
 		return 1;
-	if (uch <= 0x000007ffU)
+	if (uch <= 0x7ffU)
 		return 2;
-	if (uch <= 0x0000ffffU)
+	if (uch <= 0xffffU)
 		return 3;
-	if (uch <= 0x0010ffffU)
+	if (uch <= 0x10ffffU)
 		return 4;
 	return 1;
 }

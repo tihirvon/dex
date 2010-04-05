@@ -172,25 +172,25 @@ void u_set_char_raw(char *str, unsigned int *idx, uchar uch)
 {
 	unsigned int i = *idx;
 
-	if (uch <= 0x0000007fU) {
+	if (uch <= 0x7fU) {
 		str[i++] = uch;
 		*idx = i;
-	} else if (uch <= 0x000007ffU) {
-		str[i + 1] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 0] = uch | 0x000000c0U;
+	} else if (uch <= 0x7ffU) {
+		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 0] = uch | 0xc0U;
 		i += 2;
 		*idx = i;
-	} else if (uch <= 0x0000ffffU) {
-		str[i + 2] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 1] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 0] = uch | 0x000000e0U;
+	} else if (uch <= 0xffffU) {
+		str[i + 2] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 0] = uch | 0xe0U;
 		i += 3;
 		*idx = i;
-	} else if (uch <= 0x0010ffffU) {
-		str[i + 3] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 2] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 1] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 0] = uch | 0x000000f0U;
+	} else if (uch <= 0x10ffffU) {
+		str[i + 3] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 2] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 0] = uch | 0xf0U;
 		i += 4;
 		*idx = i;
 	} else {
@@ -210,28 +210,28 @@ void u_set_char(char *str, unsigned int *idx, uchar uch)
 	if (unlikely(uch == 0x7f))
 		goto delete;
 
-	if (uch <= 0x0000007fU) {
+	if (uch <= 0x7fU) {
 		str[i++] = uch;
 		*idx = i;
 		return;
-	} else if (uch <= 0x000007ffU) {
-		str[i + 1] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 0] = uch | 0x000000c0U;
+	} else if (uch <= 0x7ffU) {
+		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 0] = uch | 0xc0U;
 		i += 2;
 		*idx = i;
 		return;
-	} else if (uch <= 0x0000ffffU) {
-		str[i + 2] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 1] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 0] = uch | 0x000000e0U;
+	} else if (uch <= 0xffffU) {
+		str[i + 2] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 0] = uch | 0xe0U;
 		i += 3;
 		*idx = i;
 		return;
-	} else if (uch <= 0x0010ffffU) {
-		str[i + 3] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 2] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 1] = (uch & 63) | 0x80; uch >>= 6;
-		str[i + 0] = uch | 0x000000f0U;
+	} else if (uch <= 0x10ffffU) {
+		str[i + 3] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 2] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
+		str[i + 0] = uch | 0xf0U;
 		i += 4;
 		*idx = i;
 		return;
@@ -239,8 +239,8 @@ void u_set_char(char *str, unsigned int *idx, uchar uch)
 
 	/* invalid */
 	str[i++] = '<';
-	str[i++] = hex_tab[(uch >> 4) & 0xf];
-	str[i++] = hex_tab[uch & 0xf];
+	str[i++] = hex_tab[(uch >> 4) & 0x0f];
+	str[i++] = hex_tab[uch & 0x0f];
 	str[i++] = '>';
 	*idx = i;
 	return;
