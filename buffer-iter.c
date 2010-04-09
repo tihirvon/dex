@@ -16,7 +16,7 @@ unsigned int buffer_get_char(struct block_iter *bi, uchar *up)
 	if (*up < 0x80 || !buffer->utf8)
 		return 1;
 
-	*up = u_buf_get_char(blk->data, blk->size - offset, &offset);
+	*up = u_buf_get_char(blk->data, blk->size, &offset);
 	return offset - bi->offset;
 }
 
@@ -39,7 +39,7 @@ unsigned int buffer_next_char(struct block_iter *bi, uchar *up)
 		return 1;
 	}
 
-	*up = u_buf_get_char(blk->data, blk->size - offset, &bi->offset);
+	*up = u_buf_get_char(blk->data, blk->size, &bi->offset);
 	return bi->offset - offset;
 }
 
