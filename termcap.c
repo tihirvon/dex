@@ -38,6 +38,8 @@ static const char *str_cap_names[] = {
 	"k;",
 	"F1",
 	"F2",
+	"#4",
+	"%i",
 	NULL
 };
 
@@ -73,6 +75,8 @@ static char **str_cap_ptrs[] = {
 	&term_keycodes[SKEY_F10],
 	&term_keycodes[SKEY_F11],
 	&term_keycodes[SKEY_F12],
+	&term_keycodes[SKEY_SHIFT_LEFT],
+	&term_keycodes[SKEY_SHIFT_RIGHT],
 	NULL
 };
 

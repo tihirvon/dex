@@ -34,7 +34,6 @@ enum term_key_type {
 };
 
 /* special keys */
-/* FIXME: shifted keys */
 enum {
 	SKEY_BACKSPACE,
 	SKEY_INSERT,
@@ -61,7 +60,8 @@ enum {
 	SKEY_F11,
 	SKEY_F12,
 
-	/* shifted keys */
+	SKEY_SHIFT_LEFT,
+	SKEY_SHIFT_RIGHT,
 
 	NR_SKEYS
 };

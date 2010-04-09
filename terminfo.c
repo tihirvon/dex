@@ -540,7 +540,10 @@ static int keymap[NR_SKEYS] = {
 	tcs_key_f9,
 	tcs_key_f10,
 	tcs_key_f11,
-	tcs_key_f12
+	tcs_key_f12,
+
+	tcs_key_sleft,
+	tcs_key_sright,
 };
 
 static unsigned int nr_bools, nr_nums, nr_strs, strs_size;

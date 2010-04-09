@@ -60,6 +60,8 @@ static const char *special_names[NR_SKEYS] = {
 	"f10",
 	"f11",
 	"f12",
+	"sleft",
+	"sright",
 };
 
 static void run_command(const struct command *cmds, char **av);
