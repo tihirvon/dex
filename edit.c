@@ -842,9 +842,90 @@ void move_eof(void)
 	update_preferred_x();
 }
 
+static int is_whitespace(unsigned char byte)
+{
+	return byte == ' ' || byte == '\t' || byte == '\n';
+}
+
 static int is_word_byte(unsigned char byte)
 {
 	return isalnum(byte) || byte == '_' || byte > 0x7f;
+}
+
+unsigned int word_fwd(struct block_iter *bi)
+{
+	enum { space, word, other } type = other;
+	unsigned int count;
+	uchar u;
+
+	if (!block_iter_next_byte(bi, &u))
+		return 0;
+
+	if (is_whitespace(u))
+		type = space;
+	else if (is_word_byte(u))
+		type = word;
+
+	count = 1;
+	while (block_iter_next_byte(bi, &u)) {
+		count++;
+		switch (type) {
+		case space:
+			if (is_whitespace(u))
+				continue;
+			break;
+		case word:
+			if (is_word_byte(u))
+				continue;
+			break;
+		case other:
+			if (!is_whitespace(u) && !is_word_byte(u))
+				continue;
+			break;
+		}
+		block_iter_prev_byte(bi, &u);
+		count--;
+		break;
+	}
+	return count;
+}
+
+unsigned int word_bwd(struct block_iter *bi)
+{
+	enum { space, word, other } type = other;
+	unsigned int count;
+	uchar u;
+
+	if (!block_iter_prev_byte(bi, &u))
+		return 0;
+
+	if (is_whitespace(u))
+		type = space;
+	else if (is_word_byte(u))
+		type = word;
+
+	count = 1;
+	while (block_iter_prev_byte(bi, &u)) {
+		count++;
+		switch (type) {
+		case space:
+			if (is_whitespace(u))
+				continue;
+			break;
+		case word:
+			if (is_word_byte(u))
+				continue;
+			break;
+		case other:
+			if (!is_whitespace(u) && !is_word_byte(u))
+				continue;
+			break;
+		}
+		block_iter_next_byte(bi, &u);
+		count--;
+		break;
+	}
+	return count;
 }
 
 char *get_word_under_cursor(void)
@@ -864,36 +945,6 @@ char *get_word_under_cursor(void)
 	while (ei + 1 < lr.size && is_word_byte(lr.line[ei + 1]))
 		ei++;
 	return xstrndup(lr.line + si, ei - si + 1);
-}
-
-void erase_word(void)
-{
-	struct block_iter bi = view->cursor;
-	unsigned int count = 0;
-	uchar u;
-
-	while (buffer_prev_char(&bi, &u)) {
-		if (isspace(u)) {
-			count++;
-			continue;
-		}
-		do {
-			if (!is_word_byte(u)) {
-				if (count)
-					buffer_next_char(&bi, &u);
-				else
-					count++;
-				break;
-			}
-			count += u_char_size(u);
-		} while (buffer_prev_char(&bi, &u));
-		break;
-	}
-
-	if (count) {
-		view->cursor = bi;
-		delete(count, 1);
-	}
 }
 
 static int use_spaces_for_indent(void)

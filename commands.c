@@ -336,7 +336,7 @@ static void cmd_erase(char **args)
 static void cmd_erase_word(char **args)
 {
 	if (no_args(args))
-		erase_word();
+		delete(word_bwd(&view->cursor), 1);
 }
 
 static void cmd_error(char **args)
@@ -1491,6 +1491,18 @@ static void cmd_view(char **args)
 	}
 }
 
+static void cmd_word_bwd(char **args)
+{
+	if (no_args(args))
+		word_bwd(&view->cursor);
+}
+
+static void cmd_word_fwd(char **args)
+{
+	if (no_args(args))
+		word_fwd(&view->cursor);
+}
+
 const struct command commands[] = {
 	{ "alias",		cmd_alias },
 	{ "bind",		cmd_bind },
@@ -1557,6 +1569,8 @@ const struct command commands[] = {
 	{ "undo",		cmd_undo },
 	{ "up",			cmd_up },
 	{ "view",		cmd_view },
+	{ "word-bwd",		cmd_word_bwd },
+	{ "word-fwd",		cmd_word_fwd },
 	{ NULL,			NULL }
 };
 
