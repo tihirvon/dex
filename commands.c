@@ -250,7 +250,6 @@ static void cmd_copy(char **args)
 	if (!no_args(args))
 		return;
 
-	undo_merge = UNDO_MERGE_NONE;
 	if (view->sel.blk) {
 		len = prepare_selection();
 	} else {
@@ -269,7 +268,6 @@ static void cmd_cut(char **args)
 	if (!no_args(args))
 		return;
 
-	undo_merge = UNDO_MERGE_NONE;
 	if (view->sel.blk) {
 		len = prepare_selection();
 		restore_col = view->sel_is_lines;
@@ -293,11 +291,7 @@ static void cmd_delete_eol(char **args)
 {
 	if (no_args(args)) {
 		struct block_iter bi = view->cursor;
-		unsigned int len = block_iter_eol(&bi);
-
-		undo_merge = UNDO_MERGE_NONE;
-		if (len)
-			delete(len, 0);
+		delete(block_iter_eol(&bi), 0);
 	}
 }
 
@@ -335,10 +329,8 @@ static void cmd_erase(char **args)
 
 static void cmd_erase_bol(char **args)
 {
-	if (no_args(args)) {
-		undo_merge = UNDO_MERGE_NONE;
+	if (no_args(args))
 		delete(block_iter_bol(&view->cursor), 1);
-	}
 }
 
 static void cmd_erase_word(char **args)
@@ -645,7 +637,7 @@ static void cmd_insert(char **args)
 
 	if (view->sel.blk)
 		delete_ch();
-	undo_merge = UNDO_MERGE_NONE;
+
 	if (strchr(pf, 'k')) {
 		int i;
 		for (i = 0; str[i]; i++)
