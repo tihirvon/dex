@@ -17,16 +17,9 @@ struct window {
 	int w, h;
 };
 
-enum editor_status {
-	EDITOR_INITIALIZING,
-	EDITOR_RUNNING,
-	EDITOR_EXITING,
-};
-
 extern struct window *window;
 extern struct list_head windows;
 extern int nr_pressed_keys;
-extern enum editor_status editor_status;
 
 static inline struct window *WINDOW(struct list_head *item)
 {

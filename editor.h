@@ -3,6 +3,13 @@
 
 #include "common.h"
 
+enum editor_status {
+	EDITOR_INITIALIZING,
+	EDITOR_RUNNING,
+	EDITOR_EXITING,
+};
+
+extern enum editor_status editor_status;
 extern char *home_dir;
 
 const char *editor_file(const char *name);
