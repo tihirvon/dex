@@ -309,6 +309,14 @@ static void cmd_delete_eol(char **args)
 	}
 }
 
+static void cmd_delete_word(char **args)
+{
+	if (no_args(args)) {
+		struct block_iter bi = view->cursor;
+		delete(word_fwd(&bi), 0);
+	}
+}
+
 static void cmd_down(char **args)
 {
 	if (no_args(args))
@@ -1518,6 +1526,7 @@ const struct command commands[] = {
 	{ "delete",		cmd_delete },
 	{ "delete-bol",		cmd_delete_bol },
 	{ "delete-eol",		cmd_delete_eol },
+	{ "delete-word",	cmd_delete_word },
 	{ "down",		cmd_down },
 	{ "eof",		cmd_eof },
 	{ "eol",		cmd_eol },
