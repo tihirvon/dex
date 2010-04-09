@@ -289,14 +289,6 @@ static void cmd_delete(char **args)
 		delete_ch();
 }
 
-static void cmd_delete_bol(char **args)
-{
-	if (no_args(args)) {
-		undo_merge = UNDO_MERGE_NONE;
-		delete(block_iter_bol(&view->cursor), 1);
-	}
-}
-
 static void cmd_delete_eol(char **args)
 {
 	if (no_args(args)) {
@@ -339,6 +331,14 @@ static void cmd_erase(char **args)
 {
 	if (no_args(args))
 		erase();
+}
+
+static void cmd_erase_bol(char **args)
+{
+	if (no_args(args)) {
+		undo_merge = UNDO_MERGE_NONE;
+		delete(block_iter_bol(&view->cursor), 1);
+	}
 }
 
 static void cmd_erase_word(char **args)
@@ -1524,13 +1524,13 @@ const struct command commands[] = {
 	{ "copy",		cmd_copy },
 	{ "cut",		cmd_cut },
 	{ "delete",		cmd_delete },
-	{ "delete-bol",		cmd_delete_bol },
 	{ "delete-eol",		cmd_delete_eol },
 	{ "delete-word",	cmd_delete_word },
 	{ "down",		cmd_down },
 	{ "eof",		cmd_eof },
 	{ "eol",		cmd_eol },
 	{ "erase",		cmd_erase },
+	{ "erase-bol",		cmd_erase_bol },
 	{ "erase-word",		cmd_erase_word },
 	{ "error",		cmd_error },
 	{ "errorfmt",		cmd_errorfmt },

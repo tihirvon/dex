@@ -14,7 +14,7 @@ bind ^A bol
 #bind ^E eol
 bind ^F right
 bind ^B left
-bind ^U delete-bol
+bind ^U erase-bol
 bind ^K delete-eol
 bind ^W erase-word
 
