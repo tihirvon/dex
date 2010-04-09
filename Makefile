@@ -45,6 +45,7 @@ WARNINGS += \
 	-Wshadow
 
 OBJECTS	:= 			\
+	bind.o			\
 	block.o			\
 	buffer-highlight.o	\
 	buffer-iter.o		\

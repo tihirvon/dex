@@ -10,6 +10,7 @@
 #include "util.h"
 #include "highlight.h"
 #include "screen.h"
+#include "bind.h"
 
 #include <locale.h>
 #include <langinfo.h>

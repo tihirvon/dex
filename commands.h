@@ -1,7 +1,6 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "term.h"
 #include "ptr-array.h"
 
 struct command {
@@ -27,7 +26,6 @@ int find_end(const char *cmd, int *posp);
 int parse_commands(struct ptr_array *array, const char *cmd);
 void run_commands(const struct ptr_array *array);
 void handle_command(const char *cmd);
-void handle_binding(enum term_key_type type, unsigned int key);
 int read_config(const char *filename, int must_exist);
 
 const char *parse_args(char **args, const char *flags, int min, int max);
