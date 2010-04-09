@@ -31,6 +31,7 @@ bind ^V "select -l"
 bind ^G center-view
 bind ^J join
 bind ^O new-line
+bind ^Q delete-word
 bind ^S clear
 bind ^C command
 bind ^L "command 'line '"
