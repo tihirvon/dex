@@ -1493,14 +1493,18 @@ static void cmd_view(char **args)
 
 static void cmd_word_bwd(char **args)
 {
-	if (no_args(args))
+	if (no_args(args)) {
 		word_bwd(&view->cursor);
+		update_preferred_x();
+	}
 }
 
 static void cmd_word_fwd(char **args)
 {
-	if (no_args(args))
+	if (no_args(args)) {
 		word_fwd(&view->cursor);
+		update_preferred_x();
+	}
 }
 
 const struct command commands[] = {
