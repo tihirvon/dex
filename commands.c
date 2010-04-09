@@ -1691,7 +1691,6 @@ void handle_binding(enum term_key_type type, unsigned int key)
 			continue;
 
 		if (b->nr_keys == nr_pressed_keys) {
-			undo_merge = UNDO_MERGE_NONE;
 			handle_command(b->command);
 			nr_pressed_keys = 0;
 		}
@@ -1802,6 +1801,8 @@ static void run_command(const struct command *cmds, char **av)
 void handle_command(const char *cmd)
 {
 	PTR_ARRAY(array);
+
+	undo_merge = UNDO_MERGE_NONE;
 
 	if (parse_commands(&array, cmd)) {
 		ptr_array_free(&array);
