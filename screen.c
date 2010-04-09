@@ -45,6 +45,20 @@ static int current_line;
 
 static const char *no_name = "(No name)";
 
+static uchar term_get_char(const char *buf, unsigned int size, unsigned int *idx)
+{
+	unsigned int i = *idx;
+	uchar u;
+
+	if (term_flags & TERM_UTF8) {
+		u = u_buf_get_char(buf, size, &i);
+	} else {
+		u = buf[i++];
+	}
+	*idx = i;
+	return u;
+}
+
 static unsigned int number_width(unsigned int n)
 {
 	unsigned int width = 0;
@@ -456,11 +470,7 @@ static void print_command(uchar prefix)
 	if (obuf.x < obuf.scroll_x) {
 		buf_skip(prefix, 0);
 		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
-			if (term_flags & TERM_UTF8) {
-				u = u_buf_get_char(cmdline.buffer, cmdline.len, &i);
-			} else {
-				u = cmdline.buffer[i++];
-			}
+			u = term_get_char(cmdline.buffer, cmdline.len, &i);
 			buf_skip(u, term_flags & TERM_UTF8);
 		}
 	} else {
@@ -470,11 +480,7 @@ static void print_command(uchar prefix)
 	cmdline_x = obuf.x - obuf.scroll_x;
 	while (cmdline.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		if (term_flags & TERM_UTF8) {
-			u = u_buf_get_char(cmdline.buffer, cmdline.len, &i);
-		} else {
-			u = cmdline.buffer[i++];
-		}
+		u = term_get_char(cmdline.buffer, cmdline.len, &i);
 		if (!buf_put_char(u, term_flags & TERM_UTF8))
 			break;
 		if (i <= cmdline_pos)
@@ -499,7 +505,6 @@ void update_command_line(void)
 		obuf.tab_width = 8;
 		obuf.scroll_x = 0;
 		if (error_buf[0]) {
-			unsigned int len = strlen(error_buf);
 			unsigned int i = 0;
 
 			if (msg_is_error) {
@@ -507,13 +512,8 @@ void update_command_line(void)
 			} else {
 				buf_set_color(&infomsg_color->color);
 			}
-			while (i < len) {
-				uchar u;
-				if (term_flags & TERM_UTF8) {
-					u = u_buf_get_char(error_buf, len, &i);
-				} else {
-					u = error_buf[i++];
-				}
+			while (error_buf[i]) {
+				uchar u = term_get_char(error_buf, i + 4, &i);
 				if (!buf_put_char(u, term_flags & TERM_UTF8))
 					break;
 			}
