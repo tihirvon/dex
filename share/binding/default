@@ -18,6 +18,10 @@ bind ^U delete-bol
 bind ^K delete-eol
 bind ^W erase-word
 
+# shift-left, shift-right
+bind sleft word-bwd
+bind sright word-fwd
+
 bind ^E undo
 bind ^R redo
 bind ^Y copy
