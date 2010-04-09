@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "cmdline.h"
 #include "options.h"
+#include "alias.h"
 #include "gbuf.h"
 #include "ptr-array.h"
 
@@ -56,11 +57,7 @@ static void collect_commands(const char *prefix)
 			add_completion(xstrdup(c->name));
 	}
 
-	for (i = 0; i < aliases.count; i++) {
-		struct alias *alias = aliases.ptrs[i];
-		if (!strncmp(prefix, alias->name, prefix_len))
-			add_completion(xstrdup(alias->name));
-	}
+	collect_aliases(prefix);
 	sort_completions();
 }
 

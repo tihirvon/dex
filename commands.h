@@ -8,18 +8,11 @@ struct command {
 	void (*cmd)(char **);
 };
 
-struct alias {
-	char *name;
-	char *value;
-};
-
 extern const struct command commands[];
 extern const struct command *current_command;
 
 extern const char *config_file;
 extern int config_line;
-
-extern struct ptr_array aliases;
 
 char *parse_command_arg(const char *cmd, int tilde);
 int find_end(const char *cmd, int *posp);
@@ -33,8 +26,6 @@ const struct command *find_command(const struct command *cmds, const char *name)
 void complete_command(void);
 void reset_completion(void);
 void add_completion(char *str);
-void sort_aliases(void);
-const char *find_alias(const char *name);
 void set_file_options(void);
 
 #endif

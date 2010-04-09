@@ -11,6 +11,7 @@
 #include "highlight.h"
 #include "screen.h"
 #include "bind.h"
+#include "alias.h"
 
 #include <locale.h>
 #include <langinfo.h>
