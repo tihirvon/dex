@@ -19,7 +19,6 @@ struct window {
 
 extern struct window *window;
 extern struct list_head windows;
-extern int nr_pressed_keys;
 
 static inline struct window *WINDOW(struct list_head *item)
 {
