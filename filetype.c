@@ -3,19 +3,21 @@
 #include "regexp.h"
 #include "ptr-array.h"
 
+enum detect_type {
+	FT_EXTENSION,
+	FT_FILENAME,
+	FT_CONTENT,
+};
+
 struct filetype {
 	char *name;
 	char *str;
-	enum {
-		FT_EXTENSION,
-		FT_FILENAME,
-		FT_CONTENT,
-	} type;
+	enum detect_type type;
 };
 
 static PTR_ARRAY(filetypes);
 
-static void add_filetype(const char *name, const char *str, int type)
+static void add_filetype(const char *name, const char *str, enum detect_type type)
 {
 	struct filetype *ft;
 
