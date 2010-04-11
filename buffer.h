@@ -166,7 +166,7 @@ int save_buffer(const char *filename, enum newline_sequence newline);
 void free_buffer(struct buffer *b);
 
 unsigned int buffer_offset(void);
-void move_offset(unsigned int offset);
+void move_to_offset(unsigned int offset);
 
 char *buffer_get_bytes(unsigned int len);
 

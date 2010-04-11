@@ -148,12 +148,12 @@ void end_change_chain(void)
 
 static void reverse_change(struct change *change)
 {
-	move_offset(change->offset);
+	move_to_offset(change->offset);
 	if (!change->ins_count) {
 		// convert delete to insert
 		do_insert(change->buf, change->del_count);
 		if (change->move_after)
-			move_offset(change->offset + change->del_count);
+			move_to_offset(change->offset + change->del_count);
 		change->ins_count = change->del_count;
 		change->del_count = 0;
 		free(change->buf);

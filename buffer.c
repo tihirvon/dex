@@ -100,7 +100,7 @@ unsigned int buffer_offset(void)
 	return block_iter_get_offset(&view->cursor);
 }
 
-void move_offset(unsigned int offset)
+void move_to_offset(unsigned int offset)
 {
 	block_iter_goto_offset(&view->cursor, offset);
 }
