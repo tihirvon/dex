@@ -847,9 +847,10 @@ int main(int argc, char *argv[])
 	 */
 	term_raw();
 	update_terminal_settings();
-	if (nr_errors)
+	if (nr_errors) {
 		any_key();
-	error_buf[0] = 0;
+		error_buf[0] = 0;
+	}
 
 	/* You can have "quit" in the rc file for testing purposes. */
 	if (editor_status == EDITOR_INITIALIZING)
