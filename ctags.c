@@ -1,32 +1,12 @@
-#include "editor.h"
-#include "window.h"
-#include "search.h"
+#include "ctags.h"
+#include "common.h"
 #include "util.h"
+#include "ptr-array.h"
 
-struct tag_file {
-	struct stat st;
-	int fd;
-	char *map;
-};
-
-struct tag_address {
-	char *filename;
-	char *pattern;
-	int line;
-};
-
-struct file_location {
-	struct list_head node;
-	char *filename;
-	int x, y;
-};
-
-static struct tag_file *tag_file;
-static LIST_HEAD(location_head);
-
-static struct tag_file *open_tag_file(const char *filename)
+struct tag_file *open_tag_file(const char *filename)
 {
-	struct tag_file *tf = xnew(struct tag_file, 1);
+	struct tag_file *tf = xnew0(struct tag_file, 1);
+	struct stat st;
 
 	tf->fd = open(filename, O_RDONLY);
 	if (tf->fd < 0) {
@@ -37,8 +17,10 @@ static struct tag_file *open_tag_file(const char *filename)
 	// don't leak file descriptor to parent processes
 	fcntl(tf->fd, F_SETFD, FD_CLOEXEC);
 
-	fstat(tf->fd, &tf->st);
-	tf->map = xmmap(tf->fd, 0, tf->st.st_size);
+	fstat(tf->fd, &st);
+	tf->size = st.st_size;
+	tf->mtime = st.st_mtime;
+	tf->map = xmmap(tf->fd, 0, tf->size);
 	if (!tf->map) {
 		close(tf->fd);
 		free(tf);
@@ -47,32 +29,25 @@ static struct tag_file *open_tag_file(const char *filename)
 	return tf;
 }
 
-static int tag_file_changed(struct tag_file *tf)
+void close_tag_file(struct tag_file *tf)
 {
-	struct stat st;
-	fstat(tf->fd, &st);
-	return st.st_mtime != tf->st.st_mtime;
-}
-
-static void free_tag_file(struct tag_file *tf)
-{
-	xmunmap(tf->map, tf->st.st_size);
+	xmunmap(tf->map, tf->size);
 	close(tf->fd);
 }
 
-static int parse_tag_address(struct tag_address *ta, char *buf)
+static int parse_excmd(struct tag *t, const char *buf, int size)
 {
 	char ch = *buf;
-	int i;
+	int i, line;
 
 	if (ch == '/' || ch == '?') {
 		// the search pattern is not real regular expression
 		// need to escape special characters
-		char *pattern = xnew(char, strlen(buf) * 2);
+		char *pattern = xnew(char, size * 2);
 		int j = 0;
 
-		for (i = 1; buf[i]; i++) {
-			if (buf[i] == '\\' && buf[i + 1]) {
+		for (i = 1; i < size; i++) {
+			if (buf[i] == '\\' && i + i < size) {
 				i++;
 				if (buf[i] == '\\')
 					pattern[j++] = '\\';
@@ -80,9 +55,11 @@ static int parse_tag_address(struct tag_address *ta, char *buf)
 				continue;
 			}
 			if (buf[i] == ch) {
+				if (i + 2 < size && buf[i + 1] == ';' && buf[i + 2] == '"')
+					i += 2;
 				pattern[j] = 0;
-				ta->pattern = pattern;
-				return 1;
+				t->pattern = pattern;
+				return i + 1;
 			}
 			switch (buf[i]) {
 			case '*':
@@ -96,121 +73,131 @@ static int parse_tag_address(struct tag_address *ta, char *buf)
 		free(pattern);
 		return 0;
 	}
-	ta->line = atoi(buf);
-	return ta->line > 0;
+
+	line = 0;
+	for (i = 0; i < size && isdigit(buf[i]); i++) {
+		line *= 10;
+		line += buf[i] - '0';
+	}
+
+	if (!i)
+		return 0;
+
+	if (i + 1 < size && buf[i] == ';' && buf[i + 1] == '"')
+		i += 2;
+
+	t->line = line;
+	return i;
 }
 
-static int do_search(struct tag_file *tf, struct tag_address *ta, const char *name)
+static int parse_line(struct tag *t, const char *buf, int size)
 {
-	const char *ptr, *buf = tf->map;
-	size_t size = tf->st.st_size;
-	int name_len = strlen(name);
+	const char *end;
+	int len, si = 0;
 
-	memset(ta, 0, sizeof(*ta));
-	ptr = buf;
-	while (ptr < buf + size) {
-		size_t n = buf + size - ptr;
-		char *end = memchr(ptr, '\n', n);
+	end = memchr(buf, '\t', size);
+	if (!end)
+		goto error;
 
-		if (end)
-			n = end - ptr;
+	len = end - buf;
+	t->name = xstrndup(buf, len);
 
-		// tag\tfilename\t[^;]+(;.*)?
-		if (name_len + 4 < n && !memcmp(ptr, name, name_len) && ptr[name_len] == '\t') {
-			char *filename = xstrndup(ptr + name_len + 1, n - name_len - 1);
-			char *tab = strchr(filename, '\t');
+	si = len + 1;
+	if (si >= size)
+		goto error;
 
-			if (tab && parse_tag_address(ta, tab + 1)) {
-				*tab = 0;
-				ta->filename = filename;
-				return 1;
-			}
-			free(filename);
+	end = memchr(buf + si, '\t', size - si);
+	len = end - buf - si;
+	t->filename = xstrndup(buf + si, len);
+
+	si += len + 1;
+	if (si >= size)
+		goto error;
+
+	// excmd can contain tabs
+	len = parse_excmd(t, buf + si, size - si);
+	if (!len)
+		goto error;
+
+	si += len;
+	if (si == size)
+		return 1;
+
+	/*
+	 * Extension fields (key:[value]):
+	 *
+	 * file:                              visibility limited to this file
+	 * struct:NAME                        tag is member of struct NAME
+	 * union:NAME                         tag is member of union NAME
+	 * typeref:struct:NAME::MEMBER_TYPE   MEMBER_TYPE is type of the tag
+	 */
+	if (buf[si] != '\t')
+		goto error;
+
+	si++;
+	while (si < size) {
+		int ei = si;
+
+		while (ei < size && buf[ei] != '\t')
+			ei++;
+
+		len = ei - si;
+		if (len == 1) {
+			t->kind = buf[si];
+		} else if (len == 5 && !memcmp(buf + si, "file:", 5)) {
+			t->local = 1;
 		}
-
-		ptr += n + 1;
+		// FIXME: struct/union/typeref
+		si = ei + 1;
 	}
+	return 1;
+error:
+	free(t->name);
+	free(t->filename);
 	return 0;
 }
 
-static struct file_location *create_location(void)
+void search_tags(struct tag_file *tf, struct ptr_array *tags, const char *name)
 {
-	struct file_location *loc;
+	int name_len = strlen(name);
+	size_t pos = 0;
 
-	loc = xnew(struct file_location, 1);
-	loc->filename = xstrdup(buffer->filename);
-	loc->x = view->cx_display;
-	loc->y = view->cy;
-	return loc;
+	while (pos < tf->size) {
+		size_t len = tf->size - pos;
+		char *line = tf->map + pos;
+		char *end = memchr(line, '\n', len);
+		struct tag *t;
+
+		if (end)
+			len = end - line;
+		pos += len + 1;
+
+		if (!len || line[0] == '!')
+			continue;
+
+		if (len <= name_len || memcmp(line, name, name_len) || line[name_len] != '\t')
+			continue;
+
+		t = xnew0(struct tag, 1);
+		if (parse_line(t, line, len))
+			ptr_array_add(tags, t);
+		else
+			free(t);
+	}
 }
 
-void pop_location(void)
+void free_tags(struct ptr_array *tags)
 {
-	struct file_location *loc;
-	struct view *v;
-
-	if (list_empty(&location_head))
-		return;
-	loc = container_of(location_head.next, struct file_location, node);
-	list_del(&loc->node);
-	v = open_buffer(loc->filename, 1);
-	if (v) {
-		set_view(v);
-		move_to_line(loc->y + 1);
-		move_to_column(loc->x + 1);
+	int i;
+	for (i = 0; i < tags->count; i++) {
+		struct tag *t = tags->ptrs[i];
+		free(t->name);
+		free(t->filename);
+		free(t->pattern);
+		free(t->member);
+		free(t->typeref);
+		free(t);
 	}
-	free(loc->filename);
-	free(loc);
-}
-
-void goto_tag(const char *name)
-{
-	struct tag_address ta;
-	struct view *v;
-	struct file_location *loc = NULL;
-
-	if (tag_file && tag_file_changed(tag_file)) {
-		free_tag_file(tag_file);
-		tag_file = NULL;
-	}
-	if (!tag_file)
-		tag_file = open_tag_file("tags");
-	if (!tag_file) {
-		error_msg("No tag file.");
-		return;
-	}
-	if (!do_search(tag_file, &ta, name)) {
-		error_msg("Tag %s not found.", name);
-		return;
-	}
-
-	if (buffer->filename)
-		loc = create_location();
-	v = open_buffer(ta.filename, 1);
-	if (!v) {
-		free(ta.filename);
-		free(ta.pattern);
-		if (loc) {
-			free(loc->filename);
-			free(loc);
-		}
-		return;
-	}
-	if (loc)
-		list_add_after(&loc->node, &location_head);
-	else
-		info_msg("Can't save current location because there's no filename.");
-
-	if (view != v) {
-		set_view(v);
-		/* force centering view to the cursor because file changed */
-		view->force_center = 1;
-	}
-	if (ta.pattern) {
-		search_tag(ta.pattern);
-	} else {
-		move_to_line(ta.line);
-	}
-	free(ta.filename);
-	free(ta.pattern);
+	free(tags->ptrs);
+	memset(tags, 0, sizeof(*tags));
 }

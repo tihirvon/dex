@@ -76,6 +76,7 @@ OBJECTS	:= 			\
 	search.o		\
 	spawn.o			\
 	syntax.o		\
+	tag.o			\
 	term.o			\
 	termcap.o		\
 	terminfo.o		\

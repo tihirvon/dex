@@ -185,9 +185,6 @@ void move_down(int count);
 void move_bof(void);
 void move_eof(void);
 
-void goto_tag(const char *name);
-void pop_location(void);
-
 unsigned int buffer_get_char(struct block_iter *bi, uchar *up);
 unsigned int buffer_next_char(struct block_iter *bi, uchar *up);
 unsigned int buffer_prev_char(struct block_iter *bi, uchar *up);

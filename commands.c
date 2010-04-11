@@ -18,6 +18,7 @@
 #include "ptr-array.h"
 #include "bind.h"
 #include "alias.h"
+#include "tag.h"
 
 const struct command *current_command;
 
@@ -1363,22 +1364,72 @@ static void cmd_syn(char **args)
 	run_command(syn_commands, args);
 }
 
+static void goto_tag(int pos, int save_location)
+{
+	if (current_tags.count > 1)
+		info_msg("[%d/%d]", pos + 1, current_tags.count);
+	move_to_tag(current_tags.ptrs[pos], save_location);
+}
+
 static void cmd_tag(char **args)
 {
-	const char *pf = parse_args(args, "", 0, 1);
+	const char *pf = parse_args(args, "np", 0, 1);
+	static int pos;
+	char dir = 0;
 
 	if (!pf)
 		return;
 
-	if (args[0]) {
-		goto_tag(args[0]);
-	} else {
-		char *word = get_word_under_cursor();
-		if (!word) {
+	while (*pf) {
+		switch (*pf) {
+		case 'n':
+		case 'p':
+			dir = *pf;
+			break;
+		}
+		pf++;
+	}
+
+	if (!dir) {
+		const char *name = args[0];
+		char *word = NULL;
+
+		if (!name) {
+			word = get_word_under_cursor();
+			if (!word)
+				return;
+			name = word;
+		}
+
+		pos = 0;
+		if (!find_tags(name)) {
+			error_msg("No tag file.");
+		} else if (!current_tags.count) {
+			error_msg("Tag %s not found.", name);
+		} else {
+			goto_tag(pos, 1);
+		}
+		free(word);
+		return;
+	}
+
+	if (!current_tags.count) {
+		error_msg("No tags.");
+		return;
+	}
+
+	if (dir == 'n') {
+		if (pos + 1 >= current_tags.count) {
+			error_msg("No more tags.");
 			return;
 		}
-		goto_tag(word);
-		free(word);
+		goto_tag(++pos, 0);
+	} else if (dir == 'p') {
+		if (!pos) {
+			error_msg("At first tag.");
+			return;
+		}
+		goto_tag(--pos, 0);
 	}
 }
 

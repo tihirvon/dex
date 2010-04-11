@@ -812,8 +812,11 @@ int main(int argc, char *argv[])
 	read_config(rc, 0);
 	if (command)
 		handle_command(command);
-	if (tag)
-		goto_tag(tag);
+	if (tag) {
+		const char *ptrs[3] = { "tag", tag, NULL };
+		struct ptr_array array = { (void **)ptrs, 3, 3 };
+		run_commands(&array);
+	}
 
 	update_all_syntax_colors();
 	sort_aliases();
