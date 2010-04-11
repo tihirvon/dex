@@ -30,12 +30,13 @@ void view_delete(struct view *v);
 
 struct window *window_new(void);
 struct view *window_add_buffer(struct buffer *b);
-
 void remove_view(void);
 void set_view(struct view *v);
 void next_buffer(void);
 void prev_buffer(void);
-
+void update_cursor_y(void);
+void update_cursor_x(void);
+void update_cursor(void);
 void center_view_to_cursor(void);
 
 static inline int get_scroll_margin(void)
