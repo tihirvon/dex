@@ -159,7 +159,6 @@ void move_up(int count)
 		if (!block_iter_prev_line(&view->cursor))
 			break;
 		count--;
-		view->cy--;
 	}
 	move_to_preferred_x();
 }
@@ -170,7 +169,6 @@ void move_down(int count)
 		if (!block_iter_next_line(&view->cursor))
 			break;
 		count--;
-		view->cy++;
 	}
 	move_to_preferred_x();
 }
