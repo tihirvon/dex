@@ -95,11 +95,6 @@ char *buffer_get_bytes(unsigned int len)
 	return buf;
 }
 
-unsigned int buffer_offset(void)
-{
-	return block_iter_get_offset(&view->cursor);
-}
-
 void move_to_offset(unsigned int offset)
 {
 	block_iter_goto_offset(&view->cursor, offset);

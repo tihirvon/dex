@@ -60,6 +60,11 @@ static struct change *new_change(void)
 	return change;
 }
 
+static unsigned int buffer_offset(void)
+{
+	return block_iter_get_offset(&view->cursor);
+}
+
 void record_insert(unsigned int len)
 {
 	struct change *change = (struct change *)buffer->cur_change_head;
