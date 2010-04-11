@@ -633,8 +633,10 @@ static void cmd_line(char **args)
 		return;
 
 	line = atoi(args[0]);
-	if (line > 0)
+	if (line > 0) {
 		move_to_line(line);
+		move_to_preferred_x();
+	}
 }
 
 static void cmd_load_syntax(char **args)

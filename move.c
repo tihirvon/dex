@@ -191,12 +191,23 @@ void move_eof(void)
 
 void move_to_line(int line)
 {
+	struct block *blk;
+	unsigned int nl = 0;
+
 	line--;
-	update_cursor_y();
-	if (view->cy > line)
-		move_up(view->cy - line);
-	if (view->cy < line)
-		move_down(line - view->cy);
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		if (nl + blk->nl > line)
+			break;
+		nl += blk->nl;
+	}
+
+	view->cursor.blk = blk;
+	view->cursor.offset = 0;
+	while (nl < line) {
+		if (!block_iter_next_line(&view->cursor))
+			break;
+		nl++;
+	}
 	view->center_on_scroll = 1;
 }
 
