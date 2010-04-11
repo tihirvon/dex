@@ -11,12 +11,6 @@ static char *copy_buf;
 static unsigned int copy_len;
 static int copy_is_lines;
 
-void update_preferred_x(void)
-{
-	update_cursor_x();
-	view->preferred_x = view->cx_display;
-}
-
 void move_to_preferred_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;

@@ -17,6 +17,12 @@ struct buffer *buffer;
 struct view *prev_view;
 enum undo_merge undo_merge;
 
+void update_preferred_x(void)
+{
+	update_cursor_x();
+	view->preferred_x = view->cx_display;
+}
+
 void init_selection(struct selection_info *info)
 {
 	uchar u;
