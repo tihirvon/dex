@@ -96,11 +96,6 @@ char *buffer_get_bytes(unsigned int len)
 	return buf;
 }
 
-void move_to_offset(unsigned int offset)
-{
-	block_iter_goto_offset(&view->cursor, offset);
-}
-
 static struct buffer *buffer_new(void)
 {
 	struct buffer *b;
