@@ -16,13 +16,5 @@ void shift_lines(int count);
 void clear_lines(void);
 void new_line(void);
 void format_paragraph(int pw);
-unsigned int word_fwd(struct block_iter *bi);
-unsigned int word_bwd(struct block_iter *bi);
-void move_left(int count);
-void move_right(int count);
-void move_cursor_left(void);
-void move_cursor_right(void);
-void move_bol(void);
-void move_eol(void);
 
 #endif

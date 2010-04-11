@@ -1,6 +1,7 @@
 #include "window.h"
 #include "editor.h"
 #include "change.h"
+#include "move.h"
 #include "util.h"
 #include "wbuf.h"
 #include "term.h"

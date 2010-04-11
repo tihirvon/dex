@@ -184,14 +184,3 @@ void center_view_to_cursor(void)
 		view->vy -= view->vy + window->h - buffer->nl - 1;
 	}
 }
-
-void move_to_line(int line)
-{
-	line--;
-	update_cursor_y();
-	if (view->cy > line)
-		move_up(view->cy - line);
-	if (view->cy < line)
-		move_down(line - view->cy);
-	view->center_on_scroll = 1;
-}

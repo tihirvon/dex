@@ -4,6 +4,7 @@
 #include "search.h"
 #include "gbuf.h"
 #include "edit.h"
+#include "move.h"
 #include "regexp.h"
 
 #define MAX_SUBSTRINGS 32

@@ -2,6 +2,7 @@
 #include "ctags.h"
 #include "editor.h"
 #include "window.h"
+#include "move.h"
 #include "search.h"
 #include "list.h"
 

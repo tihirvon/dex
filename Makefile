@@ -67,6 +67,7 @@ OBJECTS	:= 			\
 	history.o		\
 	iter.o			\
 	lock.o			\
+	move.o			\
 	obuf.o			\
 	options.o		\
 	parse-command.o		\

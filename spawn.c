@@ -2,6 +2,7 @@
 #include "editor.h"
 #include "buffer.h"
 #include "window.h"
+#include "move.h"
 #include "regexp.h"
 #include "gbuf.h"
 

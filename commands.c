@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "editor.h"
 #include "edit.h"
+#include "move.h"
 #include "window.h"
 #include "change.h"
 #include "term.h"

@@ -37,13 +37,6 @@ void next_buffer(void);
 void prev_buffer(void);
 
 void center_view_to_cursor(void);
-void move_to_line(int line);
-
-static inline void move_to_column(int column)
-{
-	view->preferred_x = column - 1;
-	move_to_preferred_x();
-}
 
 static inline int get_scroll_margin(void)
 {
