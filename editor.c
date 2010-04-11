@@ -58,7 +58,7 @@ static void insert_paste(void)
 	unsigned int size;
 	char *text = term_read_paste(&size);
 	insert(text, size);
-	move_offset(buffer_offset() + size);
+	block_iter_skip_bytes(&view->cursor, size);
 	free(text);
 }
 
@@ -522,7 +522,7 @@ static void insert_special(const char *buf, int size)
 	switch (input_mode) {
 	case INPUT_NORMAL:
 		insert(buf, size);
-		move_offset(buffer_offset() + size);
+		block_iter_skip_bytes(&view->cursor, size);
 		update_full();
 		break;
 	case INPUT_COMMAND:

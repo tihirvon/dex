@@ -600,7 +600,7 @@ static void cmd_insert(char **args)
 
 		insert(str, len);
 		if (strchr(pf, 'm'))
-			move_offset(buffer_offset() + len);
+			block_iter_skip_bytes(&view->cursor, len);
 	}
 	free(buf);
 }
