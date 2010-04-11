@@ -6,6 +6,7 @@ struct block_iter;
 int get_indent_level_bytes_left(void);
 int get_indent_level_bytes_right(void);
 
+void move_to_preferred_x(void);
 void move_left(int count);
 void move_right(int count);
 void move_cursor_left(void);
