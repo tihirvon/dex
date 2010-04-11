@@ -31,12 +31,6 @@ void view_delete(struct view *v);
 struct window *window_new(void);
 struct view *window_add_buffer(struct buffer *b);
 
-struct view *open_buffer(const char *filename, int must_exist);
-struct view *open_empty_buffer(void);
-void setup_buffer(void);
-
-int save_buffer(const char *filename, enum newline_sequence newline);
-void free_buffer(struct buffer *b);
 void remove_view(void);
 void set_view(struct view *v);
 void next_buffer(void);

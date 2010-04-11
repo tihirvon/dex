@@ -3,7 +3,6 @@
 #include "change.h"
 #include "search.h"
 #include "gbuf.h"
-#include "window.h"
 #include "edit.h"
 #include "regexp.h"
 
