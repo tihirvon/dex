@@ -132,7 +132,7 @@ static void full_debug(void)
 			}
 			free(bytes);
 			pos += hl_entry_len(e);
-			move_offset(pos);
+			block_iter_goto_offset(&view->cursor, pos);
 		}
 	}
 	fclose(f);
