@@ -857,7 +857,7 @@ static void cmd_repeat(char **args)
 		return;
 
 	count = atoi(args[0]);
-	cmd = find_command(commands, args[1]);
+	cmd = find_command(args[1]);
 	if (!cmd) {
 		error_msg("No such command: %s", args[1]);
 		return;

@@ -190,7 +190,7 @@ static void collect_completions(char **args, int argc)
 		return;
 	}
 
-	cmd = find_command(commands, args[0]);
+	cmd = find_command(args[0]);
 	if (!cmd)
 		return;
 

@@ -2,7 +2,6 @@
 #include "ptr-array.h"
 #include "common.h"
 #include "editor.h"
-#include "commands.h"
 #include "completion.h"
 #include "run.h"
 
@@ -34,7 +33,7 @@ void add_alias(const char *name, const char *value)
 		error_msg("Invalid alias name '%s'", name);
 		return;
 	}
-	if (find_command(commands, name)) {
+	if (find_command(name)) {
 		error_msg("Can't replace existing command %s with an alias", name);
 		return;
 	}

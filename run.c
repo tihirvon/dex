@@ -6,7 +6,7 @@
 
 const struct command *current_command;
 
-const struct command *find_command(const struct command *cmds, const char *name)
+static const struct command *find_command_from_array(const struct command *cmds, const char *name)
 {
 	int i;
 
@@ -17,6 +17,11 @@ const struct command *find_command(const struct command *cmds, const char *name)
 			return cmd;
 	}
 	return NULL;
+}
+
+const struct command *find_command(const char *name)
+{
+	return find_command_from_array(commands, name);
 }
 
 void run_commands(const struct ptr_array *array)
@@ -44,7 +49,7 @@ void run_command(const struct command *cmds, char **av)
 		error_msg("Subcommand required");
 		return;
 	}
-	cmd = find_command(cmds, av[0]);
+	cmd = find_command_from_array(cmds, av[0]);
 	if (!cmd) {
 		PTR_ARRAY(array);
 		const char *alias;
