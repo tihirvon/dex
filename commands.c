@@ -344,32 +344,6 @@ static void cmd_format_paragraph(char **args)
 	format_paragraph(text_width);
 }
 
-static char *unescape_string(const char *str)
-{
-	GBUF(buf);
-	int i = 0;
-
-	while (str[i]) {
-		char ch = str[i++];
-		if (ch == '\\' && str[i]) {
-			ch = str[i++];
-			switch (ch) {
-			case 'n':
-				ch = '\n';
-				break;
-			case 'r':
-				ch = '\r';
-				break;
-			case 't':
-				ch = '\t';
-				break;
-			}
-		}
-		gbuf_add_ch(&buf, ch);
-	}
-	return gbuf_steal(&buf);
-}
-
 static void cmd_hi(char **args)
 {
 	const char *pf = parse_args(args, "", 1, -1);
@@ -391,17 +365,11 @@ static void cmd_include(char **args)
 
 static void cmd_insert(char **args)
 {
-	const char *pf = parse_args(args, "ekm", 1, 1);
+	const char *pf = parse_args(args, "km", 1, 1);
 	const char *str = args[0];
-	char *buf = NULL;
 
 	if (!pf)
 		return;
-
-	if (strchr(pf, 'e')) {
-		buf = unescape_string(str);
-		str = buf;
-	}
 
 	if (view->sel.blk)
 		delete_ch();
@@ -417,7 +385,6 @@ static void cmd_insert(char **args)
 		if (strchr(pf, 'm'))
 			block_iter_skip_bytes(&view->cursor, len);
 	}
-	free(buf);
 }
 
 static void cmd_insert_special(char **args)
