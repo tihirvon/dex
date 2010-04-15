@@ -14,6 +14,7 @@
 #include "bind.h"
 #include "alias.h"
 #include "config.h"
+#include "run.h"
 
 #include <locale.h>
 #include <langinfo.h>

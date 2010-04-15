@@ -1,5 +1,6 @@
 #include "completion.h"
 #include "commands.h"
+#include "run.h"
 #include "cmdline.h"
 #include "options.h"
 #include "alias.h"

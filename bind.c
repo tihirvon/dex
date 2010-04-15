@@ -1,7 +1,7 @@
 #include "bind.h"
 #include "common.h"
 #include "editor.h"
-#include "commands.h"
+#include "run.h"
 #include "list.h"
 
 #define MAX_KEYS 4

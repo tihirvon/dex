@@ -4,6 +4,7 @@
 #include "editor.h"
 #include "commands.h"
 #include "completion.h"
+#include "run.h"
 
 struct alias {
 	char *name;

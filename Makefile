@@ -73,6 +73,7 @@ OBJECTS	:= 			\
 	parse-command.o		\
 	ptr-array.o		\
 	regexp.o		\
+	run.o			\
 	screen.o		\
 	search.o		\
 	spawn.o			\
