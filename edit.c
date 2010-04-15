@@ -56,7 +56,7 @@ static unsigned int append_to_current(const char *buf, unsigned int len)
 
 static unsigned int add_new_block(const char *buf, unsigned int len)
 {
-	struct block *blk = block_new(ALLOC_ROUND(len));
+	struct block *blk = block_new(len);
 
 	blk->nl = copy_count_nl(blk->data, buf, len);
 	blk->size = len;

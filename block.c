@@ -4,8 +4,8 @@ struct block *block_new(unsigned int alloc)
 {
 	struct block *blk = xnew0(struct block, 1);
 
-	if (alloc)
-		blk->data = xnew(char, alloc);
+	alloc = ALLOC_ROUND(alloc);
+	blk->data = xnew(char, alloc);
 	blk->alloc = alloc;
 	return blk;
 }

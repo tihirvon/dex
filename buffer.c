@@ -127,7 +127,7 @@ struct view *open_empty_buffer(void)
 	struct view *v;
 
 	// at least one block required
-	blk = block_new(ALLOC_ROUND(1));
+	blk = block_new(1);
 	list_add_before(&blk->node, &b->blocks);
 
 	v = window_add_buffer(b);
@@ -396,7 +396,7 @@ static int load_buffer(struct buffer *b, int must_exist)
 		}
 	}
 	if (list_empty(&b->blocks)) {
-		struct block *blk = block_new(ALLOC_ROUND(1));
+		struct block *blk = block_new(1);
 		list_add_before(&blk->node, &b->blocks);
 	}
 	return 0;
