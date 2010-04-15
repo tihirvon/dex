@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "buffer-highlight.h"
 #include "change.h"
+#include "block.h"
 #include "gbuf.h"
 
 unsigned int update_flags;

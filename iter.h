@@ -2,8 +2,21 @@
 #define ITER_H
 
 #include "common.h"
-#include "block.h"
 #include "uchar.h"
+#include "list.h"
+
+struct block {
+	struct list_head node;
+	char *data;
+	unsigned int size;
+	unsigned int alloc;
+	unsigned int nl;
+};
+
+static inline struct block *BLOCK(struct list_head *item)
+{
+	return container_of(item, struct block, node);
+}
 
 struct block_iter {
 	struct block *blk;

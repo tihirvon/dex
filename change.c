@@ -1,6 +1,7 @@
 #include "change.h"
 #include "editor.h"
 #include "buffer.h"
+#include "block.h"
 
 struct change {
 	struct change_head head;
