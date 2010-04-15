@@ -1,3 +1,4 @@
+#include "config.h"
 #include "util.h"
 #include "editor.h"
 #include "commands.h"

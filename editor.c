@@ -13,6 +13,7 @@
 #include "screen.h"
 #include "bind.h"
 #include "alias.h"
+#include "config.h"
 
 #include <locale.h>
 #include <langinfo.h>

@@ -12,6 +12,7 @@
 #include "commands.h"
 #include "file-history.h"
 #include "lock.h"
+#include "config.h"
 
 struct view *view;
 struct buffer *buffer;

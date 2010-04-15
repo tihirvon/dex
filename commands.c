@@ -20,6 +20,7 @@
 #include "bind.h"
 #include "alias.h"
 #include "tag.h"
+#include "config.h"
 
 const struct command *current_command;
 
