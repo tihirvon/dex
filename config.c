@@ -1,7 +1,6 @@
 #include "config.h"
 #include "util.h"
 #include "editor.h"
-#include "buffer.h"
 #include "run.h"
 
 const char *config_file;
