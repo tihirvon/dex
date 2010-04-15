@@ -25,11 +25,9 @@ static inline struct window *WINDOW(struct list_head *item)
 	return container_of(item, struct window, node);
 }
 
-struct view *view_new(struct window *w, struct buffer *b);
-void view_delete(struct view *v);
-
 struct window *window_new(void);
 struct view *window_add_buffer(struct buffer *b);
+void view_delete(struct view *v);
 void remove_view(void);
 void set_view(struct view *v);
 void next_buffer(void);

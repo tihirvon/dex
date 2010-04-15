@@ -1,4 +1,5 @@
 #include "window.h"
+#include "file-history.h"
 
 LIST_HEAD(windows);
 struct window *window;
@@ -16,14 +17,29 @@ struct window *window_new(void)
 
 struct view *window_add_buffer(struct buffer *b)
 {
-	struct view *v;
+	struct view *v = xnew0(struct view, 1);
 
-	BUG_ON(!b);
-	BUG_ON(!window);
-
-	v = view_new(window, b);
+	b->ref++;
+	v->buffer = b;
+	v->window = window;
 	list_add_before(&v->node, &window->views);
 	return v;
+}
+
+void view_delete(struct view *v)
+{
+	struct buffer *b = v->buffer;
+
+	if (v == prev_view)
+		prev_view = NULL;
+
+	if (!--b->ref) {
+		if (b->options.file_history && b->abs_filename)
+			add_file_history(v->cx_display, v->cy, b->abs_filename);
+		free_buffer(b);
+	}
+	list_del(&v->node);
+	free(v);
 }
 
 void remove_view(void)
