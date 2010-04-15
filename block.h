@@ -11,9 +11,6 @@ struct block {
 	unsigned int nl;
 };
 
-#define BLOCK_INIT_SIZE 8192
-#define BLOCK_EDIT_SIZE 512
-
 static inline struct block *BLOCK(struct list_head *item)
 {
 	return container_of(item, struct block, node);

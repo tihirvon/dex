@@ -2,6 +2,8 @@
 #include "buffer.h"
 #include "buffer-highlight.h"
 
+#define BLOCK_EDIT_SIZE 512
+
 static inline size_t ALLOC_ROUND(size_t size)
 {
 	return ROUND_UP(size, 64);

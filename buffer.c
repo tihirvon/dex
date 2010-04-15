@@ -162,7 +162,7 @@ static size_t add_block(struct buffer *b, const char *buf, size_t size)
 		const char *nl = memchr(start, '\n', eof - start);
 
 		end = nl ? nl + 1 : eof;
-		if (end - buf > BLOCK_INIT_SIZE) {
+		if (end - buf > 8192) {
 			if (start == buf) {
 				lines += !!nl;
 				break;
