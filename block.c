@@ -1,6 +1,6 @@
 #include "block.h"
 
-struct block *block_new(int alloc)
+struct block *block_new(unsigned int alloc)
 {
 	struct block *blk = xnew0(struct block, 1);
 
