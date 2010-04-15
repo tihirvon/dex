@@ -17,16 +17,6 @@ void delete_block(struct block *blk)
 	free(blk);
 }
 
-unsigned int count_nl(const char *buf, unsigned int size)
-{
-	unsigned int i, nl = 0;
-	for (i = 0; i < size; i++) {
-		if (buf[i] == '\n')
-			nl++;
-	}
-	return nl;
-}
-
 unsigned int copy_count_nl(char *dst, const char *src, unsigned int len)
 {
 	unsigned int i, nl = 0;

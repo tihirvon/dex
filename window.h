@@ -46,4 +46,6 @@ static inline int get_scroll_margin(void)
 	return options.scroll_margin;
 }
 
+unsigned int count_nl(const char *buf, unsigned int size);
+
 #endif

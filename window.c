@@ -100,6 +100,16 @@ void prev_buffer(void)
 	}
 }
 
+unsigned int count_nl(const char *buf, unsigned int size)
+{
+	unsigned int i, nl = 0;
+	for (i = 0; i < size; i++) {
+		if (buf[i] == '\n')
+			nl++;
+	}
+	return nl;
+}
+
 void update_cursor_y(void)
 {
 	struct block *blk;

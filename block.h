@@ -27,7 +27,6 @@ static inline struct block *BLOCK(struct list_head *item)
 
 struct block *block_new(unsigned int size);
 void delete_block(struct block *blk);
-unsigned int count_nl(const char *buf, unsigned int size);
 unsigned int copy_count_nl(char *dst, const char *src, unsigned int len);
 
 #endif
