@@ -1,7 +1,7 @@
 #include "syntax.h"
 #include "common.h"
 #include "editor.h"
-#include "commands.h"
+#include "parse-args.h"
 #include "regexp.h"
 
 static LIST_HEAD(syntaxes);

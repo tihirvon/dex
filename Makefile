@@ -70,6 +70,7 @@ OBJECTS	:= 			\
 	move.o			\
 	obuf.o			\
 	options.o		\
+	parse-args.o		\
 	parse-command.o		\
 	ptr-array.o		\
 	regexp.o		\
