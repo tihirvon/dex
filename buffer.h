@@ -168,8 +168,6 @@ void free_buffer(struct buffer *b);
 char *buffer_get_bytes(unsigned int len);
 
 void update_preferred_x(void);
-void do_insert(const char *buf, unsigned int len);
-char *do_delete(unsigned int len);
 void insert(const char *buf, unsigned int len);
 void replace(unsigned int del_count, const char *inserted, int ins_count);
 unsigned int count_bytes_eol(struct block_iter *bi);
