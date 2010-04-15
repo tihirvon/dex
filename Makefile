@@ -61,6 +61,7 @@ OBJECTS	:= 			\
 	edit.o			\
 	editor.o		\
 	file-history.o		\
+	file-option.o		\
 	filetype.o		\
 	gbuf.o			\
 	highlight.o		\

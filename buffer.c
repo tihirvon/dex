@@ -9,8 +9,8 @@
 #include "filetype.h"
 #include "buffer-highlight.h"
 #include "highlight.h"
-#include "commands.h"
 #include "file-history.h"
+#include "file-option.h"
 #include "lock.h"
 #include "config.h"
 

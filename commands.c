@@ -23,6 +23,7 @@
 #include "config.h"
 #include "run.h"
 #include "parse-args.h"
+#include "file-option.h"
 
 static int no_args(char **args)
 {
@@ -494,49 +495,6 @@ static void cmd_open(char **args)
 	}
 }
 
-enum file_options_type {
-	FILE_OPTIONS_FILENAME,
-	FILE_OPTIONS_FILETYPE,
-};
-
-struct file_option {
-	enum file_options_type type;
-	union {
-		char *filename_pattern;
-		char *filetype;
-	};
-	char **strs;
-};
-
-static PTR_ARRAY(file_options);
-
-static void set_options(char **args)
-{
-	int i;
-
-	for (i = 0; args[i]; i += 2)
-		set_option(args[i], args[i + 1], OPT_LOCAL);
-}
-
-void set_file_options(void)
-{
-	int i;
-
-	for (i = 0; i < file_options.count; i++) {
-		const struct file_option *opt = file_options.ptrs[i];
-
-		if (opt->type == FILE_OPTIONS_FILETYPE) {
-			if (!strcmp(opt->filetype, buffer->options.filetype))
-				set_options(opt->strs);
-		} else if (buffer->abs_filename && regexp_match_nosub(
-							opt->filename_pattern,
-							buffer->abs_filename,
-							strlen(buffer->abs_filename))) {
-			set_options(opt->strs);
-		}
-	}
-}
-
 static char **copy_string_array(char **src, int count)
 {
 	char **dst = xnew(char *, count + 1);
@@ -552,7 +510,6 @@ static void cmd_option_filename(char **args)
 {
 	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
-	struct file_option *opt;
 
 	if (!pf)
 		return;
@@ -562,18 +519,13 @@ static void cmd_option_filename(char **args)
 		return;
 	}
 
-	opt = xnew(struct file_option, 1);
-	opt->type = FILE_OPTIONS_FILENAME;
-	opt->filename_pattern = xstrdup(args[0]);
-	opt->strs = copy_string_array(args + 1, argc - 1);
-	ptr_array_add(&file_options, opt);
+	add_file_options(FILE_OPTIONS_FILENAME, xstrdup(args[0]), copy_string_array(args + 1, argc - 1));
 }
 
 static void cmd_option_filetype(char **args)
 {
 	const char *pf = parse_args(args, "", 3, -1);
 	int argc = count_strings(args);
-	struct file_option *opt;
 	char *list, *comma;
 	char **strs;
 
@@ -590,14 +542,11 @@ static void cmd_option_filetype(char **args)
 
 	list = args[0];
 	do {
+		int len;
+
 		comma = strchr(list, ',');
-
-		opt = xnew(struct file_option, 1);
-		opt->type = FILE_OPTIONS_FILETYPE;
-		opt->filetype = xstrndup(list, comma ? comma - list : strlen(list));
-		opt->strs = strs;
-		ptr_array_add(&file_options, opt);
-
+		len = comma ? comma - list : strlen(list);
+		add_file_options(FILE_OPTIONS_FILETYPE, xstrndup(list, len), strs);
 		list = comma + 1;
 	} while (comma);
 }
