@@ -492,10 +492,8 @@ static int parse_color(const char *str, int *val)
 
 	lval = strtol(str, &end, 10);
 	if (*str && !*end) {
-		if (lval < -2 || lval > 255) {
-			error_msg("color value out of range");
+		if (lval < -2 || lval > 255)
 			return 0;
-		}
 		*val = lval;
 		return 1;
 	}
