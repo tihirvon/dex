@@ -3,6 +3,7 @@
 #include "common.h"
 #include "editor.h"
 #include "commands.h"
+#include "completion.h"
 
 struct alias {
 	char *name;

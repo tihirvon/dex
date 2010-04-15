@@ -1,3 +1,4 @@
+#include "completion.h"
 #include "commands.h"
 #include "cmdline.h"
 #include "options.h"

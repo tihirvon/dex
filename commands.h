@@ -23,9 +23,6 @@ int read_config(const char *filename, int must_exist);
 
 const char *parse_args(char **args, const char *flags, int min, int max);
 const struct command *find_command(const struct command *cmds, const char *name);
-void complete_command(void);
-void reset_completion(void);
-void add_completion(char *str);
 void set_file_options(void);
 
 #endif

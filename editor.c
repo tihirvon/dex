@@ -4,6 +4,7 @@
 #include "obuf.h"
 #include "cmdline.h"
 #include "commands.h"
+#include "completion.h"
 #include "search.h"
 #include "history.h"
 #include "file-history.h"

@@ -2,7 +2,7 @@
 #include "editor.h"
 #include "options.h"
 #include "buffer.h"
-#include "commands.h"
+#include "completion.h"
 #include "filetype.h"
 
 struct global_options options = {
