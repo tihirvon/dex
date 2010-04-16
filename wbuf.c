@@ -1,6 +1,8 @@
 #include "wbuf.h"
 #include "util.h"
 
+#include <string.h>
+
 int wbuf_flush(struct wbuf *wbuf)
 {
 	if (wbuf->fill) {

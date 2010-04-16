@@ -1,5 +1,6 @@
 #include "term.h"
 #include "util.h"
+#include "common.h"
 
 static const char *str_cap_names[] = {
 	"ce",
