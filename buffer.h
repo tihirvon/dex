@@ -1,11 +1,11 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include "common.h"
 #include "iter.h"
 #include "list.h"
 #include "uchar.h"
 #include "options.h"
+#include "common.h"
 
 struct change_head {
 	struct change_head *next;

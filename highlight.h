@@ -114,7 +114,6 @@ void push_syntax_context(struct syntax_context_stack *stack, const struct syntax
 
 static inline void pop_syntax_context(struct syntax_context_stack *stack)
 {
-	BUG_ON(!stack->level);
 	stack->contexts[stack->level--] = NULL;
 }
 

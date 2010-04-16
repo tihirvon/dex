@@ -1,9 +1,10 @@
 #ifndef SYNTAX_H
 #define SYNTAX_H
 
-#include "common.h"
 #include "list.h"
 #include "color.h"
+
+#include <regex.h>
 
 #define SYNTAX_NODE_CONTEXT	0
 #define SYNTAX_NODE_PATTERN	1

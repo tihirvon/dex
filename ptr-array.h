@@ -1,6 +1,8 @@
 #ifndef PTR_ARRAY_H
 #define PTR_ARRAY_H
 
+#include <stdlib.h>
+
 struct ptr_array {
 	void **ptrs;
 	unsigned int alloc;

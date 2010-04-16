@@ -1,5 +1,7 @@
 #include "iter.h"
 
+#include <string.h>
+
 void block_iter_normalize(struct block_iter *bi)
 {
 	struct block *blk = bi->blk;

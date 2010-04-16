@@ -1,7 +1,6 @@
 #ifndef ITER_H
 #define ITER_H
 
-#include "common.h"
 #include "uchar.h"
 #include "list.h"
 

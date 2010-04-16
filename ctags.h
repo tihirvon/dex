@@ -1,8 +1,9 @@
 #ifndef CTAGS_H
 #define CTAGS_H
 
-#include "common.h"
 #include "ptr-array.h"
+
+#include <stdlib.h>
 
 struct tag_file {
 	char *map;

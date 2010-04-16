@@ -1,4 +1,5 @@
 #include "xmalloc.h"
+#include "common.h"
 
 static void __NORETURN malloc_fail(void)
 {

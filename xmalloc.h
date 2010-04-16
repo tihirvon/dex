@@ -1,7 +1,7 @@
 #ifndef XMALLOC_H
 #define XMALLOC_H
 
-#include "common.h"
+#include <stdlib.h>
 
 #if defined(__GNUC__) && (__GNUC__ >= 3)
 #define __MALLOC	__attribute__((__malloc__))
