@@ -1,7 +1,7 @@
+#include "search.h"
 #include "buffer.h"
 #include "editor.h"
 #include "change.h"
-#include "search.h"
 #include "gbuf.h"
 #include "edit.h"
 #include "move.h"

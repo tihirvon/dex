@@ -1,3 +1,4 @@
+#include "buffer.h"
 #include "window.h"
 #include "editor.h"
 #include "change.h"

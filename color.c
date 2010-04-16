@@ -1,7 +1,7 @@
-#include "common.h"
 #include "color.h"
-#include "editor.h"
 #include "ptr-array.h"
+#include "common.h"
+#include "editor.h"
 
 static const char * const color_names[] = {
 	"keep", "default",

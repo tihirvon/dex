@@ -1,9 +1,9 @@
-#include "common.h"
-#include "editor.h"
 #include "options.h"
 #include "buffer.h"
 #include "completion.h"
 #include "filetype.h"
+#include "common.h"
+#include "editor.h"
 
 struct global_options options = {
 	.auto_indent = 1,

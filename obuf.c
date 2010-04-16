@@ -1,8 +1,8 @@
-#include "common.h"
 #include "obuf.h"
 #include "term.h"
 #include "util.h"
 #include "options.h"
+#include "common.h"
 
 struct output_buffer obuf;
 

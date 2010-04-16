@@ -1,6 +1,6 @@
+#include "highlight.h"
 #include "color.h"
 #include "syntax.h"
-#include "highlight.h"
 #include "regexp.h"
 #include "common.h"
 
