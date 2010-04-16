@@ -1,8 +1,6 @@
 #include "uchar.h"
 #include "common.h"
 
-#include <wctype.h>
-
 const char hex_tab[16] = "0123456789abcdef";
 
 int u_char_width(uchar u)
