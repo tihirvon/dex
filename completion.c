@@ -6,6 +6,7 @@
 #include "alias.h"
 #include "gbuf.h"
 #include "ptr-array.h"
+#include "common.h"
 
 static struct {
 	// part of string which is to be replaced
