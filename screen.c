@@ -24,8 +24,6 @@ int nr_errors;
 int msg_is_error;
 char error_buf[256];
 
-static char misc_status[32];
-
 static struct hl_color *default_color;
 static struct hl_color *currentline_color;
 static struct hl_color *selection_color;
@@ -302,7 +300,7 @@ static void add_status_pos(char *buf, int size, int *posp)
 	}
 }
 
-static int format_status(char *buf, int size, const char *format)
+static int format_status(char *buf, int size, const char *format, const char *misc_status)
 {
 	int pos = 0;
 	int got_char;
@@ -391,31 +389,16 @@ static int format_status(char *buf, int size, const char *format)
 	return pos;
 }
 
-void update_status_line(void)
+void update_status_line(const char *misc_status)
 {
 	char lbuf[256];
 	char rbuf[256];
 	int lw, rw;
 
-	if (input_mode == INPUT_SEARCH) {
-		snprintf(misc_status, sizeof(misc_status), "[%s]",
-			options.ignore_case ? "case-insensitive" : "case-sensitive");
-	} else if (view->sel.blk) {
-		struct selection_info info;
-
-		init_selection(&info);
-		fill_selection_info(&info);
-		if (view->sel_is_lines) {
-			snprintf(misc_status, sizeof(misc_status), "[%d lines]", info.nr_lines);
-		} else {
-			snprintf(misc_status, sizeof(misc_status), "[%d chars]", info.nr_chars);
-		}
-	}
-
 	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
-	lw = format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left);
-	rw = format_status(rbuf, sizeof(rbuf) - 5, options.statusline_right);
+	lw = format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left, misc_status);
+	rw = format_status(rbuf, sizeof(rbuf) - 5, options.statusline_right, misc_status);
 	if (term_flags & TERM_UTF8) {
 		lw = u_str_width(lbuf, lw);
 		rw = u_str_width(rbuf, rw);
@@ -429,8 +412,6 @@ void update_status_line(void)
 		buf_move_cursor(window->x + window->w - rw, window->y + window->h);
 		buf_add_str(rbuf);
 	}
-
-	misc_status[0] = 0;
 }
 
 static int get_char_width(unsigned int *idx)
@@ -806,13 +787,6 @@ void update_range(int y1, int y2)
 	}
 
 	obuf.scroll_x = 0;
-	update_status_line();
-	update_command_line();
-}
-
-void update_full(void)
-{
-	update_range(view->vy, view->vy + window->h);
 }
 
 void restore_cursor(void)
@@ -847,21 +821,6 @@ void update_screen_size(void)
 			screen_h = 3;
 		update_window_sizes();
 	}
-}
-
-void update_everything(void)
-{
-	update_screen_size();
-	update_cursor();
-	buf_hide_cursor();
-	if (options.show_tab_bar)
-		print_tab_bar();
-	update_full();
-	restore_cursor();
-	buf_show_cursor();
-	buf_flush();
-
-	update_flags = 0;
 }
 
 void set_basic_colors(void)

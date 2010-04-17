@@ -22,12 +22,17 @@
 #include <signal.h>
 
 char *home_dir;
-
 enum input_mode input_mode;
 enum input_special input_special;
 enum editor_status editor_status;
 
 static int resized;
+static struct {
+	int base;
+	int max_chars;
+	int value;
+	int nr;
+} raw_input;
 
 static void debug_blocks(void)
 {
@@ -95,6 +100,94 @@ static void update_terminal_settings(void)
 	// use alternate buffer if possible
 	if (term_cap.ti)
 		buf_escape(term_cap.ti);
+}
+
+static void format_input_special_misc_status(char *status)
+{
+	int i, value = raw_input.value;
+	const char *str = "";
+	char buf[7];
+
+	if (input_special == INPUT_SPECIAL_UNKNOWN) {
+		strcpy(status, "[Insert special]");
+		return;
+	}
+
+	for (i = 0; i < raw_input.nr; i++) {
+		buf[raw_input.nr - i - 1] = hex_tab[value % raw_input.base];
+		value /= raw_input.base;
+	}
+	while (i < raw_input.max_chars)
+		buf[i++] = ' ';
+	buf[i] = 0;
+
+	switch (input_special) {
+	case INPUT_SPECIAL_NONE:
+		break;
+	case INPUT_SPECIAL_UNKNOWN:
+		break;
+	case INPUT_SPECIAL_OCT:
+		str = "Oct";
+		break;
+	case INPUT_SPECIAL_DEC:
+		str = "Dec";
+		break;
+	case INPUT_SPECIAL_HEX:
+		str = "Hex";
+		break;
+	case INPUT_SPECIAL_UNICODE:
+		str = "Unicode, hex";
+		break;
+	}
+
+	sprintf(status, "[%s <%s>]", str, buf);
+}
+
+static const char *format_misc_status(void)
+{
+	static char misc_status[32];
+
+	if (input_special) {
+		format_input_special_misc_status(misc_status);
+	} else if (input_mode == INPUT_SEARCH) {
+		snprintf(misc_status, sizeof(misc_status), "[%s]",
+			options.ignore_case ? "case-insensitive" : "case-sensitive");
+	} else if (view->sel.blk) {
+		struct selection_info info;
+
+		init_selection(&info);
+		fill_selection_info(&info);
+		if (view->sel_is_lines) {
+			snprintf(misc_status, sizeof(misc_status), "[%d lines]", info.nr_lines);
+		} else {
+			snprintf(misc_status, sizeof(misc_status), "[%d chars]", info.nr_chars);
+		}
+	} else {
+		misc_status[0] = 0;
+	}
+	return misc_status;
+}
+
+static void update_full(void)
+{
+	update_range(view->vy, view->vy + window->h);
+	update_status_line(format_misc_status());
+	update_command_line();
+}
+
+static void update_everything(void)
+{
+	update_screen_size();
+	update_cursor();
+	buf_hide_cursor();
+	if (options.show_tab_bar)
+		print_tab_bar();
+	update_full();
+	restore_cursor();
+	buf_show_cursor();
+	buf_flush();
+
+	update_flags = 0;
 }
 
 void ui_start(int prompt)
@@ -511,10 +604,14 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			y2 = tmp;
 		}
 		update_range(y1, y2 + 1);
+		update_status_line(format_misc_status());
+		update_command_line();
 	} else if (update_flags & UPDATE_CURSOR_LINE) {
 		update_range(view->cy, view->cy + 1);
+		update_status_line(format_misc_status());
+		update_command_line();
 	} else if (update_flags & UPDATE_STATUS_LINE) {
-		update_status_line();
+		update_status_line(format_misc_status());
 		update_command_line();
 	}
 	restore_cursor();
@@ -527,83 +624,19 @@ static void handle_key(enum term_key_type type, unsigned int key)
 
 static void insert_special(const char *buf, int size)
 {
-	buf_hide_cursor();
 	switch (input_mode) {
 	case INPUT_NORMAL:
 		insert(buf, size);
 		block_iter_skip_bytes(&view->cursor, size);
-		update_full();
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
 		cmdline_insert_bytes(buf, size);
-		update_status_line();
-		update_command_line();
 		break;
 	}
-	update_cursor();
-	restore_cursor();
-	buf_show_cursor();
-	buf_flush();
 }
 
-static struct {
-	int base;
-	int max_chars;
-	int value;
-	int nr;
-} raw_input;
-
-static void raw_status(void)
-{
-	int i, value = raw_input.value;
-	const char *str = "";
-	char buf[7];
-
-	if (input_special == INPUT_SPECIAL_UNKNOWN) {
-		info_msg("Insert special character");
-		goto update;
-	}
-
-	for (i = 0; i < raw_input.nr; i++) {
-		buf[raw_input.nr - i - 1] = hex_tab[value % raw_input.base];
-		value /= raw_input.base;
-	}
-	while (i < raw_input.max_chars)
-		buf[i++] = ' ';
-	buf[i] = 0;
-
-	switch (input_special) {
-	case INPUT_SPECIAL_NONE:
-		break;
-	case INPUT_SPECIAL_UNKNOWN:
-		break;
-	case INPUT_SPECIAL_OCT:
-		str = "oct";
-		break;
-	case INPUT_SPECIAL_DEC:
-		str = "dec";
-		break;
-	case INPUT_SPECIAL_HEX:
-		str = "hex";
-		break;
-	case INPUT_SPECIAL_UNICODE:
-		str = "unicode, hex";
-		break;
-	}
-
-	info_msg("Insert %s <%s>", str, buf);
-update:
-	buf_hide_cursor();
-	update_status_line();
-	update_command_line();
-	restore_cursor();
-	buf_show_cursor();
-	update_flags = 0;
-	buf_flush();
-}
-
-static void handle_raw(enum term_key_type type, unsigned int key)
+static void special_input_keypress(enum term_key_type type, unsigned int key)
 {
 	char buf[4];
 
@@ -681,14 +714,37 @@ static void handle_raw(enum term_key_type type, unsigned int key)
 	input_special = INPUT_SPECIAL_NONE;
 }
 
+static void special_input_handle_key(enum term_key_type type, unsigned int key)
+{
+	special_input_keypress(type, key);
+
+	buf_hide_cursor();
+	if (input_special) {
+		update_status_line(format_misc_status());
+	} else {
+		switch (input_mode) {
+		case INPUT_NORMAL:
+			update_cursor();
+			update_full();
+			break;
+		case INPUT_COMMAND:
+		case INPUT_SEARCH:
+			update_status_line(format_misc_status());
+			update_command_line();
+			break;
+		}
+	}
+	restore_cursor();
+	buf_show_cursor();
+	buf_flush();
+}
+
 static void handle_input(enum term_key_type type, unsigned int key)
 {
 	if (input_special)
-		handle_raw(type, key);
+		special_input_handle_key(type, key);
 	else
 		handle_key(type, key);
-	if (input_special)
-		raw_status();
 }
 
 static void set_signal_handler(int signum, void (*handler)(int))

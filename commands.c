@@ -389,8 +389,10 @@ static void cmd_insert(char **args)
 
 static void cmd_insert_special(char **args)
 {
-	if (no_args(args))
+	if (no_args(args)) {
 		input_special = INPUT_SPECIAL_UNKNOWN;
+		update_flags |= UPDATE_STATUS_LINE;
+	}
 }
 
 static void cmd_join(char **args)
