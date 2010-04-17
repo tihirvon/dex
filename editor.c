@@ -406,6 +406,63 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	}
 }
 
+static void keypress(enum term_key_type type, unsigned int key)
+{
+	if (nr_pressed_keys) {
+		handle_binding(type, key);
+		return;
+	}
+
+	switch (input_mode) {
+	case INPUT_NORMAL:
+		switch (type) {
+		case KEY_NORMAL:
+			if (key == '\t') {
+				insert_ch('\t');
+			} else if (key == '\r') {
+				insert_ch('\n');
+			} else if (key == 0x1a) {
+				ui_end();
+				kill(0, SIGSTOP);
+			} else if (key < 0x20) {
+				handle_binding(type, key);
+			} else {
+				insert_ch(key);
+			}
+			break;
+		case KEY_META:
+			handle_binding(type, key);
+			break;
+		case KEY_SPECIAL:
+			if (key == SKEY_DELETE) {
+				delete_ch();
+			} else if (key == SKEY_BACKSPACE) {
+				erase();
+			} else {
+				handle_binding(type, key);
+			}
+			break;
+		case KEY_PASTE:
+			insert_paste();
+			break;
+		}
+		break;
+	case INPUT_COMMAND:
+		if (common_key(&command_history, type, key)) {
+			reset_completion();
+		} else {
+			command_mode_key(type, key);
+		}
+		update_flags |= UPDATE_STATUS_LINE;
+		break;
+	case INPUT_SEARCH:
+		if (!common_key(&search_history, type, key))
+			search_mode_key(type, key);
+		update_flags |= UPDATE_STATUS_LINE;
+		break;
+	}
+}
+
 static void handle_key(enum term_key_type type, unsigned int key)
 {
 	int show_tab_bar = options.show_tab_bar;
@@ -415,59 +472,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vx = view->vx;
 	int vy = view->vy;
 
-	if (nr_pressed_keys) {
-		handle_binding(type, key);
-	} else {
-		switch (input_mode) {
-		case INPUT_NORMAL:
-			switch (type) {
-			case KEY_NORMAL:
-				if (key == '\t') {
-					insert_ch('\t');
-				} else if (key == '\r') {
-					insert_ch('\n');
-				} else if (key == 0x1a) {
-					ui_end();
-					kill(0, SIGSTOP);
-				} else if (key < 0x20) {
-					handle_binding(type, key);
-				} else {
-					insert_ch(key);
-				}
-				break;
-			case KEY_META:
-				handle_binding(type, key);
-				break;
-			case KEY_SPECIAL:
-				if (key == SKEY_DELETE) {
-					delete_ch();
-				} else if (key == SKEY_BACKSPACE) {
-					erase();
-				} else {
-					handle_binding(type, key);
-				}
-				break;
-			case KEY_PASTE:
-				insert_paste();
-				break;
-			}
-			break;
-		case INPUT_COMMAND:
-			if (common_key(&command_history, type, key)) {
-				reset_completion();
-			} else {
-				command_mode_key(type, key);
-			}
-			update_flags |= UPDATE_STATUS_LINE;
-			break;
-		case INPUT_SEARCH:
-			if (!common_key(&search_history, type, key))
-				search_mode_key(type, key);
-			update_flags |= UPDATE_STATUS_LINE;
-			break;
-		}
-	}
-
+	keypress(type, key);
 	debug_blocks();
 	update_cursor();
 
