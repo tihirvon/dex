@@ -164,7 +164,7 @@ void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
 	}
 }
 
-unsigned int block_iter_get_offset(struct block_iter *bi)
+unsigned int block_iter_get_offset(const struct block_iter *bi)
 {
 	struct block *blk;
 	unsigned int offset = 0;
