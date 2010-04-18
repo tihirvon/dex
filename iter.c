@@ -131,6 +131,23 @@ unsigned int block_iter_eol(struct block_iter *bi)
 	return bi->offset - offset;
 }
 
+unsigned int block_iter_count_to_next_line(const struct block_iter *bi)
+{
+	struct block *blk = bi->blk;
+	unsigned int offset = bi->offset;
+	const char *end;
+
+	if (offset == blk->size && blk->node.next != bi->head) {
+		blk = BLOCK(blk->node.next);
+		offset = 0;
+	}
+
+	end = memchr(blk->data + offset, '\n', blk->size - offset);
+	if (end)
+		return end + 1 - (blk->data + offset);
+	return blk->size - offset;
+}
+
 void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
 {
 	struct block *blk = bi->blk;

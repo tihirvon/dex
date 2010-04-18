@@ -100,17 +100,6 @@ unsigned int prepare_selection(void)
 	return info.eo - info.so;
 }
 
-unsigned int select_current_line(void)
-{
-	struct block_iter bi;
-
-	block_iter_bol(&view->cursor);
-	view->sel_is_lines = 1;
-
-	bi = view->cursor;
-	return count_bytes_eol(&bi);
-}
-
 void paste(void)
 {
 	if (view->sel.blk)

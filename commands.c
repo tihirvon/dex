@@ -105,7 +105,8 @@ static void cmd_copy(char **args)
 		copy(prepare_selection(), view->sel_is_lines);
 		select_end();
 	} else {
-		copy(select_current_line(), 1);
+		block_iter_bol(&view->cursor);
+		copy(block_iter_count_to_next_line(&view->cursor), 1);
 	}
 	view->cursor = save;
 }
@@ -121,7 +122,8 @@ static void cmd_cut(char **args)
 			move_to_preferred_x();
 		select_end();
 	} else {
-		cut(select_current_line(), 1);
+		block_iter_bol(&view->cursor);
+		cut(block_iter_count_to_next_line(&view->cursor), 1);
 		move_to_preferred_x();
 	}
 }
