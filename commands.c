@@ -96,19 +96,18 @@ static void cmd_command(char **args)
 
 static void cmd_copy(char **args)
 {
-	unsigned int len;
+	struct block_iter save = view->cursor;
 
 	if (!no_args(args))
 		return;
 
 	if (view->sel.blk) {
-		len = prepare_selection();
+		copy(prepare_selection(), view->sel_is_lines);
+		select_end();
 	} else {
-		len = select_current_line();
+		copy(select_current_line(), 1);
 	}
-	copy(len, view->sel_is_lines);
-	select_end();
-	move_to_preferred_x();
+	view->cursor = save;
 }
 
 static void cmd_cut(char **args)
