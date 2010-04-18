@@ -112,23 +112,18 @@ static void cmd_copy(char **args)
 
 static void cmd_cut(char **args)
 {
-	unsigned int len;
-	int restore_col;
-
 	if (!no_args(args))
 		return;
 
 	if (view->sel.blk) {
-		len = prepare_selection();
-		restore_col = view->sel_is_lines;
+		cut(prepare_selection(), view->sel_is_lines);
+		if (view->sel_is_lines)
+			move_to_preferred_x();
+		select_end();
 	} else {
-		len = select_current_line();
-		restore_col = 1;
-	}
-	cut(len, view->sel_is_lines);
-	select_end();
-	if (restore_col)
+		cut(select_current_line(), 1);
 		move_to_preferred_x();
+	}
 }
 
 static void cmd_delete(char **args)
