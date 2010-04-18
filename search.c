@@ -311,7 +311,7 @@ static unsigned int get_range(struct block_iter *bi)
 {
 	struct block_iter eof;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		unsigned int len = prepare_selection();
 		*bi = view->cursor;
 		return len;

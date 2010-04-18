@@ -101,7 +101,7 @@ static void cmd_copy(char **args)
 	if (!no_args(args))
 		return;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		copy(prepare_selection(), view->sel_is_lines);
 		select_end();
 	} else {
@@ -116,7 +116,7 @@ static void cmd_cut(char **args)
 	if (!no_args(args))
 		return;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		cut(prepare_selection(), view->sel_is_lines);
 		if (view->sel_is_lines)
 			move_to_preferred_x();
@@ -303,7 +303,7 @@ static void cmd_filter(char **args)
 	if (!pf)
 		return;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		spawn_unfiltered_len = prepare_selection();
 	} else {
 		struct block *blk;
@@ -367,7 +367,7 @@ static void cmd_insert(char **args)
 	if (!pf)
 		return;
 
-	if (view->sel.blk)
+	if (selecting())
 		delete_ch();
 
 	if (strchr(pf, 'k')) {
@@ -574,7 +574,7 @@ static void cmd_pass_through(char **args)
 	spawn_unfiltered_len = 0;
 	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDERR, NULL);
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		del_len = prepare_selection();
 		select_end();
 	}
@@ -1025,7 +1025,7 @@ static void cmd_select(char **args)
 		return;
 
 	select_lines = !!*pf;
-	if (view->sel.blk) {
+	if (selecting()) {
 		if (view->sel_is_lines == select_lines) {
 			select_end();
 			return;

@@ -156,6 +156,11 @@ static inline int buffer_modified(struct buffer *b)
 	return b->save_change_head != b->cur_change_head;
 }
 
+static inline int selecting(void)
+{
+	return view->sel.blk != NULL;
+}
+
 void init_selection(struct selection_info *info);
 void fill_selection_info(struct selection_info *info);
 

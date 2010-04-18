@@ -569,7 +569,7 @@ static void update_color(int nontext, int wserror)
 		mask_color(&color, &nontext_color->color);
 	if (wserror)
 		mask_color(&color, &wserror_color->color);
-	if (view->sel.blk && cur_offset >= sel_so && cur_offset <= sel_eo)
+	if (selecting() && cur_offset >= sel_so && cur_offset <= sel_eo)
 		mask_color(&color, &selection_color->color);
 	else if (current_line == view->cy)
 		mask_color(&color, &currentline_color->color);
@@ -592,7 +592,7 @@ static void set_hl_pos(struct block_iter *cur)
 
 static void selection_init(void)
 {
-	if (view->sel.blk) {
+	if (selecting()) {
 		struct block_iter si, ei;
 
 		si = view->sel;

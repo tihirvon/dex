@@ -102,7 +102,7 @@ unsigned int prepare_selection(void)
 
 void paste(void)
 {
-	if (view->sel.blk)
+	if (selecting())
 		delete_ch();
 
 	undo_merge = UNDO_MERGE_NONE;
@@ -154,7 +154,7 @@ static void delete_one_ch(void)
 
 void delete_ch(void)
 {
-	if (view->sel.blk) {
+	if (selecting()) {
 		unsigned int len;
 
 		undo_merge = UNDO_MERGE_NONE;
@@ -181,7 +181,7 @@ void delete_ch(void)
 
 void erase(void)
 {
-	if (view->sel.blk) {
+	if (selecting()) {
 		unsigned int len;
 
 		undo_merge = UNDO_MERGE_NONE;
@@ -271,7 +271,7 @@ static int goto_beginning_of_whitespace(void)
 
 void insert_ch(unsigned int ch)
 {
-	if (view->sel.blk)
+	if (selecting())
 		delete_ch();
 
 	if (undo_merge != UNDO_MERGE_INSERT)
@@ -389,7 +389,7 @@ void join_lines(void)
 	uchar u;
 	char *buf;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		join_selection();
 		return;
 	}
@@ -604,7 +604,7 @@ void shift_lines(int count)
 	int nr_lines = 1;
 	struct selection_info info;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		view->sel_is_lines = 1;
 		init_selection(&info);
 		fill_selection_info(&info);
@@ -629,7 +629,7 @@ void shift_lines(int count)
 	if (nr_lines > 1)
 		update_flags |= UPDATE_FULL;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		// make sure sel points to valid block
 		block_iter_goto_offset(&view->sel, info.so);
 
@@ -777,7 +777,7 @@ void format_paragraph(int text_width)
 
 	undo_merge = UNDO_MERGE_NONE;
 
-	if (view->sel.blk) {
+	if (selecting()) {
 		view->sel_is_lines = 1;
 		len = prepare_selection();
 	} else {
