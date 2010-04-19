@@ -67,11 +67,19 @@ static int kind_cmp(const struct tag *a, const struct tag *b)
 	if (a->kind == b->kind)
 		return 0;
 
-	// Type (s, u) is usually more interesting than global variable (v).
+	// Struct member (m) is not very interesting.
+	if (a->kind == 'm')
+		return 1;
+	if (b->kind == 'm')
+		return -1;
+
+	// Global variable (v) is not very interesting.
 	if (a->kind == 'v')
 		return 1;
 	if (b->kind == 'v')
 		return -1;
+
+	// Struct (s), union (u)
 	return 0;
 }
 
