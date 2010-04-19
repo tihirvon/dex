@@ -326,14 +326,14 @@ void insert_ch(unsigned int ch)
 
 static void join_selection(void)
 {
-	unsigned int count, len = 0, join = 0, del = 0;
-	struct selection_info info;
+	unsigned int count = prepare_selection();
+	unsigned int len = 0, join = 0, del = 0;
 	struct block_iter bi;
 	uchar ch = 0;
 
-	init_selection(&info);
-	count = info.eo - info.so;
-	bi = info.si;
+	select_end();
+	bi = view->cursor;
+
 	begin_change_chain();
 	while (count) {
 		if (!len)
@@ -377,9 +377,6 @@ static void join_selection(void)
 		}
 	}
 	end_change_chain();
-
-	block_iter_goto_offset(&view->sel, info.so);
-	block_iter_goto_offset(&view->cursor, info.eo - del - 1);
 }
 
 void join_lines(void)
