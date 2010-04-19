@@ -569,7 +569,7 @@ static void update_color(int nontext, int wserror)
 		mask_color(&color, &nontext_color->color);
 	if (wserror)
 		mask_color(&color, &wserror_color->color);
-	if (selecting() && cur_offset >= sel_so && cur_offset <= sel_eo)
+	if (selecting() && cur_offset >= sel_so && cur_offset < sel_eo)
 		mask_color(&color, &selection_color->color);
 	else if (current_line == view->cy)
 		mask_color(&color, &currentline_color->color);
@@ -593,6 +593,7 @@ static void set_hl_pos(struct block_iter *cur)
 static void selection_init(void)
 {
 	struct block_iter si, ei;
+	uchar u;
 
 	if (!selecting())
 		return;
@@ -615,11 +616,19 @@ static void selection_init(void)
 		sel_so = to;
 		if (view->selection == SELECT_LINES) {
 			sel_so -= block_iter_bol(&ei);
-			sel_eo += block_iter_eol(&si);
+			sel_eo += block_iter_eol(&si) + 1;
+		} else {
+			// character under cursor belongs to the selection
+			sel_eo += buffer_next_char(&si, &u);
 		}
-	} else if (view->selection == SELECT_LINES) {
-		sel_so -= block_iter_bol(&si);
-		sel_eo += block_iter_eol(&ei);
+	} else {
+		if (view->selection == SELECT_LINES) {
+			sel_so -= block_iter_bol(&si);
+			sel_eo += block_iter_eol(&ei) + 1;
+		} else {
+			// character under cursor belongs to the selection
+			sel_eo += buffer_next_char(&ei, &u);
+		}
 	}
 }
 
