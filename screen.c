@@ -592,8 +592,7 @@ static void set_hl_pos(struct block_iter *cur)
 
 static void selection_init(void)
 {
-	struct block_iter si, ei;
-	uchar u;
+	struct selection_info info;
 
 	if (!selecting())
 		return;
@@ -606,30 +605,9 @@ static void selection_init(void)
 		return;
 	}
 
-	sel_eo = block_iter_get_offset(&view->cursor);
-	si = view->cursor;
-	ei = view->cursor;
-	block_iter_goto_offset(&si, sel_so);
-	if (sel_so > sel_eo) {
-		unsigned int to = sel_eo;
-		sel_eo = sel_so;
-		sel_so = to;
-		if (view->selection == SELECT_LINES) {
-			sel_so -= block_iter_bol(&ei);
-			sel_eo += block_iter_eol(&si) + 1;
-		} else {
-			// character under cursor belongs to the selection
-			sel_eo += buffer_next_char(&si, &u);
-		}
-	} else {
-		if (view->selection == SELECT_LINES) {
-			sel_so -= block_iter_bol(&si);
-			sel_eo += block_iter_eol(&ei) + 1;
-		} else {
-			// character under cursor belongs to the selection
-			sel_eo += buffer_next_char(&ei, &u);
-		}
-	}
+	init_selection(&info);
+	sel_so = info.so;
+	sel_eo = info.eo;
 }
 
 static int is_non_text(uchar u)
