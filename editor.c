@@ -157,7 +157,7 @@ static const char *format_misc_status(void)
 
 		init_selection(&info);
 		fill_selection_info(&info);
-		if (view->sel_is_lines) {
+		if (view->selection == SELECT_LINES) {
 			snprintf(misc_status, sizeof(misc_status), "[%d lines]", info.nr_lines);
 		} else {
 			snprintf(misc_status, sizeof(misc_status), "[%d chars]", info.nr_chars);

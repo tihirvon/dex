@@ -102,7 +102,7 @@ static void cmd_copy(char **args)
 		return;
 
 	if (selecting()) {
-		copy(prepare_selection(), view->sel_is_lines);
+		copy(prepare_selection(), view->selection == SELECT_LINES);
 		select_end();
 	} else {
 		block_iter_bol(&view->cursor);
@@ -117,8 +117,8 @@ static void cmd_cut(char **args)
 		return;
 
 	if (selecting()) {
-		cut(prepare_selection(), view->sel_is_lines);
-		if (view->sel_is_lines)
+		cut(prepare_selection(), view->selection == SELECT_LINES);
+		if (view->selection == SELECT_LINES)
 			move_to_preferred_x();
 		select_end();
 	} else {
@@ -1019,24 +1019,26 @@ static void cmd_search_prev(char **args)
 static void cmd_select(char **args)
 {
 	const char *pf = parse_args(args, "l", 0, 0);
-	int select_lines;
+	int sel = SELECT_CHARS;
 
 	if (!pf)
 		return;
 
-	select_lines = !!*pf;
+	if (*pf)
+		sel = SELECT_LINES;
+
 	if (selecting()) {
-		if (view->sel_is_lines == select_lines) {
+		if (view->selection == sel) {
 			select_end();
 			return;
 		}
-		view->sel_is_lines = select_lines;
+		view->selection = sel;
 		update_flags |= UPDATE_FULL;
 		return;
 	}
 
 	view->sel = view->cursor;
-	view->sel_is_lines = select_lines;
+	view->selection = sel;
 	update_flags |= UPDATE_CURSOR_LINE;
 }
 

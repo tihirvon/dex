@@ -44,6 +44,12 @@ struct buffer {
 	struct list_head hl_head;
 };
 
+enum selection {
+	SELECT_NONE,
+	SELECT_CHARS,
+	SELECT_LINES,
+};
+
 struct view {
 	struct list_head node;
 	struct buffer *buffer;
@@ -75,7 +81,7 @@ struct view {
 	// current position of cursor regardless of whether your are selecting
 	// lines or not.
 	struct block_iter sel;
-	unsigned sel_is_lines : 1;
+	enum selection selection;
 
 	// center view to cursor if scrolled
 	unsigned center_on_scroll : 1;
@@ -158,7 +164,7 @@ static inline int buffer_modified(struct buffer *b)
 
 static inline int selecting(void)
 {
-	return view->sel.blk != NULL;
+	return view->selection;
 }
 
 void init_selection(struct selection_info *info);

@@ -604,11 +604,11 @@ static void selection_init(void)
 			unsigned int to = sel_eo;
 			sel_eo = sel_so;
 			sel_so = to;
-			if (view->sel_is_lines) {
+			if (view->selection == SELECT_LINES) {
 				sel_so -= block_iter_bol(&ei);
 				sel_eo += block_iter_eol(&si);
 			}
-		} else if (view->sel_is_lines) {
+		} else if (view->selection == SELECT_LINES) {
 			sel_so -= block_iter_bol(&si);
 			sel_eo += block_iter_eol(&ei);
 		}

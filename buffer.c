@@ -51,7 +51,7 @@ void init_selection(struct selection_info *info)
 			return;
 		info->eo -= buffer_prev_char(&info->ei, &u);
 	}
-	if (view->sel_is_lines) {
+	if (view->selection == SELECT_LINES) {
 		info->so -= block_iter_bol(&info->si);
 		info->eo += count_bytes_eol(&info->ei);
 	} else {

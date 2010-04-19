@@ -47,7 +47,7 @@ void select_end(void)
 	if (view->sel.blk) {
 		view->sel.blk = NULL;
 		view->sel.offset = 0;
-		view->sel_is_lines = 0;
+		view->selection = SELECT_NONE;
 		update_flags |= UPDATE_FULL;
 	}
 }
@@ -605,7 +605,7 @@ void shift_lines(int count)
 	struct selection_info info;
 
 	if (selecting()) {
-		view->sel_is_lines = 1;
+		view->selection = SELECT_LINES;
 		init_selection(&info);
 		fill_selection_info(&info);
 		view->cursor = info.si;
@@ -778,7 +778,7 @@ void format_paragraph(int text_width)
 	undo_merge = UNDO_MERGE_NONE;
 
 	if (selecting()) {
-		view->sel_is_lines = 1;
+		view->selection = SELECT_LINES;
 		len = prepare_selection();
 	} else {
 		struct block_iter bi;
