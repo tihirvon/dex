@@ -1037,7 +1037,8 @@ static void cmd_select(char **args)
 		return;
 	}
 
-	view->sel = view->cursor;
+	view->sel_so = block_iter_get_offset(&view->cursor);
+	view->sel_eo = UINT_MAX;
 	view->selection = sel;
 	update_flags |= UPDATE_CURSOR_LINE;
 }

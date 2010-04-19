@@ -77,11 +77,15 @@ struct view {
 	int tt_width;
 	int tt_truncated_width;
 
-	// Selection always starts at exact position of cursor and ends to
-	// current position of cursor regardless of whether your are selecting
-	// lines or not.
-	struct block_iter sel;
 	enum selection selection;
+
+	// cursor offset when selection was started
+	unsigned int sel_so;
+
+	// If sel_eo is UINT_MAX that means the offset must be calculated from
+	// the cursor iterator.  Otherwise the offset is precalculated and may
+	// not be same as cursor position (see search/replace code).
+	unsigned int sel_eo;
 
 	// center view to cursor if scrolled
 	unsigned center_on_scroll : 1;
@@ -95,7 +99,6 @@ struct view {
 
 struct selection_info {
 	struct block_iter si;
-	struct block_iter ei;
 	unsigned int so;
 	unsigned int eo;
 	int swapped;

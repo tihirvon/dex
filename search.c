@@ -285,6 +285,12 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 			free(str);
 			nr++;
 
+			/* update selection length */
+			if (selecting()) {
+				view->sel_eo += nr_insert;
+				view->sel_eo -= match_len;
+			}
+
 			/* move cursor after the replaced text */
 			block_iter_skip_bytes(&view->cursor, nr_insert);
 		}
@@ -312,9 +318,13 @@ static unsigned int get_range(struct block_iter *bi)
 	struct block_iter eof;
 
 	if (selecting()) {
-		unsigned int len = prepare_selection();
+		struct selection_info info;
+		init_selection(&info);
+		view->cursor = info.si;
+		view->sel_so = info.so;
+		view->sel_eo = info.eo;
 		*bi = view->cursor;
-		return len;
+		return info.eo - info.so;
 	}
 
 	bi->head = &buffer->blocks;
@@ -386,11 +396,9 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 	if (nr_substitutions) {
 		update_flags |= UPDATE_FULL;
-		select_end();
-	}
-
-	if (nr_substitutions)
 		info_msg("%d substitutions on %d lines", nr_substitutions, nr_lines);
-	else if (!(flags & REPLACE_CANCEL))
+	} else if (!(flags & REPLACE_CANCEL)) {
 		info_msg("Pattern '%s' not found.", pattern);
+	}
+	select_end();
 }

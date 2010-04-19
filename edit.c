@@ -44,9 +44,7 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 
 void select_end(void)
 {
-	if (view->sel.blk) {
-		view->sel.blk = NULL;
-		view->sel.offset = 0;
+	if (selecting()) {
 		view->selection = SELECT_NONE;
 		update_flags |= UPDATE_FULL;
 	}
@@ -96,7 +94,6 @@ unsigned int prepare_selection(void)
 	struct selection_info info;
 	init_selection(&info);
 	view->cursor = info.si;
-	view->sel = info.ei;
 	return info.eo - info.so;
 }
 
@@ -606,7 +603,6 @@ void shift_lines(int count)
 		init_selection(&info);
 		fill_selection_info(&info);
 		view->cursor = info.si;
-		view->sel = info.ei;
 		nr_lines = info.nr_lines;
 	}
 
@@ -627,14 +623,18 @@ void shift_lines(int count)
 		update_flags |= UPDATE_FULL;
 
 	if (selecting()) {
-		// make sure sel points to valid block
-		block_iter_goto_offset(&view->sel, info.so);
-
-		// restore cursor position as well as possible
-		if (!info.swapped) {
-			struct block_iter tmp = view->sel;
-			view->sel = view->cursor;
-			view->cursor = tmp;
+		if (info.swapped) {
+			// cursor should be at beginning of selection
+			block_iter_bol(&view->cursor);
+			view->sel_so = block_iter_get_offset(&view->cursor);
+			while (--nr_lines)
+				block_iter_prev_line(&view->cursor);
+		} else {
+			struct block_iter save = view->cursor;
+			while (--nr_lines)
+				block_iter_prev_line(&view->cursor);
+			view->sel_so = block_iter_get_offset(&view->cursor);
+			view->cursor = save;
 		}
 	}
 	move_to_preferred_x();

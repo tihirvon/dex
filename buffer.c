@@ -28,35 +28,37 @@ void update_preferred_x(void)
 
 void init_selection(struct selection_info *info)
 {
+	struct block_iter ei;
 	uchar u;
 
+	info->so = view->sel_so;
+	info->eo = block_iter_get_offset(&view->cursor);
 	info->si = view->cursor;
-	info->ei = view->sel;
-	info->so = block_iter_get_offset(&info->si);
-	info->eo = block_iter_get_offset(&info->ei);
+	block_iter_goto_offset(&info->si, info->so);
 	info->swapped = 0;
 	info->nr_lines = 1;
 	info->nr_chars = 0;
 	if (info->so > info->eo) {
-		struct block_iter bi = info->si;
 		unsigned int o = info->so;
-		info->si = info->ei;
-		info->ei = bi;
 		info->so = info->eo;
 		info->eo = o;
+		info->si = view->cursor;
 		info->swapped = 1;
 	}
-	if (block_iter_eof(&info->ei)) {
+
+	ei = info->si;
+	block_iter_skip_bytes(&ei, info->eo - info->so);
+	if (block_iter_eof(&ei)) {
 		if (info->so == info->eo)
 			return;
-		info->eo -= buffer_prev_char(&info->ei, &u);
+		info->eo -= buffer_prev_char(&ei, &u);
 	}
 	if (view->selection == SELECT_LINES) {
 		info->so -= block_iter_bol(&info->si);
-		info->eo += count_bytes_eol(&info->ei);
+		info->eo += count_bytes_eol(&ei);
 	} else {
 		// character under cursor belongs to the selection
-		info->eo += buffer_next_char(&info->ei, &u);
+		info->eo += buffer_next_char(&ei, &u);
 	}
 }
 
