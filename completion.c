@@ -26,6 +26,8 @@ static struct {
 	int tilde_expanded;
 } completion;
 
+static int directories_only;
+
 static int strptrcmp(const void *ap, const void *bp)
 {
 	const char *a = *(const char **)ap;
@@ -111,6 +113,8 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 			if (!stat(path, &st))
 				is_dir = S_ISDIR(st.st_mode);
 		}
+		if (!is_dir && directories_only)
+			continue;
 
 		c = xnew(char, dlen + len + 2);
 		memcpy(c, dirprefix, dlen);
@@ -200,6 +204,12 @@ static void collect_completions(char **args, int argc)
 	    !strcmp(cmd->name, "run") ||
 	    !strcmp(cmd->name, "pass-through") ||
 	    !strcmp(cmd->name, "include")) {
+		directories_only = 0;
+		collect_and_sort_files();
+		return;
+	}
+	if (!strcmp(cmd->name, "cd")) {
+		directories_only = 1;
 		collect_and_sort_files();
 		return;
 	}

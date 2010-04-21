@@ -316,6 +316,58 @@ struct syntax *load_syntax(const char *filetype)
 	return syn;
 }
 
+void update_short_filename(struct buffer *b, const char *cwd)
+{
+	const char *f = b->abs_filename;
+	int i, tpos, tlen, dotdot, len, clen = 0;
+
+	if (!f)
+		return;
+
+	free(b->filename);
+
+	// length of common path
+	while (cwd[clen] && cwd[clen] == f[clen])
+		clen++;
+
+	if (!cwd[clen] && f[clen] == '/') {
+		// cwd    = /home/user
+		// abs    = /home/user/project-a/file.c
+		// common = /home/user
+		b->filename = xstrdup(f + clen + 1);
+		return;
+	}
+
+	// cwd    = /home/user/src/project
+	// abs    = /home/user/save/parse.c
+	// common = /home/user/s
+	// find "save/parse.c"
+	tpos = clen;
+	while (tpos && f[tpos] != '/')
+		tpos--;
+	if (f[tpos] == '/')
+		tpos++;
+
+	// number of "../" needed
+	dotdot = 1;
+	for (i = clen + 1; cwd[i]; i++) {
+		if (cwd[i] == '/')
+			dotdot++;
+	}
+
+	tlen = strlen(f + tpos);
+	len = dotdot * 3 + tlen;
+	if (dotdot < 3 && len < strlen(f)) {
+		b->filename = xnew(char, len + 1);
+		for (i = 0; i < dotdot; i++)
+			memcpy(b->filename + i * 3, "../", 3);
+		memcpy(b->filename + dotdot * 3, f + tpos, tlen + 1);
+		return;
+	}
+
+	b->filename = xstrdup(f);
+}
+
 static int load_buffer(struct buffer *b, int must_exist);
 
 struct view *open_buffer(const char *filename, int must_exist)

@@ -59,6 +59,31 @@ static void cmd_cancel(char **args)
 		select_end();
 }
 
+static void cmd_cd(char **args)
+{
+	char buf[PATH_MAX];
+	struct window *w;
+	struct view *v;
+
+	if (!parse_args(args, "", 1, 1))
+		return;
+	if (chdir(args[0])) {
+		error_msg("cd: %s", strerror(errno));
+		return;
+	}
+	if (!getcwd(buf, sizeof(buf))) {
+		error_msg("Can't get current workind directory: %s", strerror(errno));
+		return;
+	}
+
+	list_for_each_entry(w, &windows, node) {
+		list_for_each_entry(v, &w->views, node)
+			update_short_filename(v->buffer, buf);
+	}
+
+	update_flags |= UPDATE_TAB_BAR | UPDATE_STATUS_LINE;
+}
+
 static void cmd_center_view(char **args)
 {
 	if (no_args(args))
@@ -1249,6 +1274,7 @@ const struct command commands[] = {
 	{ "bof",		cmd_bof },
 	{ "bol",		cmd_bol },
 	{ "cancel",		cmd_cancel },
+	{ "cd",			cmd_cd },
 	{ "center-view",	cmd_center_view },
 	{ "clear",		cmd_clear },
 	{ "close",		cmd_close },
