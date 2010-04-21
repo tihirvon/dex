@@ -281,7 +281,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	error_buf[pos++] = ' ';
 	error_buf[pos++] = '[';
 	for (i = 0; i < count; i++) {
-		if (isupper(choices[i]))
+		if (choices[i] >= 'A' && choices[i] <= 'Z')
 			def = tolower(choices[i]);
 		error_buf[pos++] = choices[i];
 		error_buf[pos++] = '/';

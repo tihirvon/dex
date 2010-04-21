@@ -58,6 +58,7 @@ OBJECTS	:= 			\
 	completion.o		\
 	config.o		\
 	ctags.o			\
+	ctype.o			\
 	edit.o			\
 	editor.o		\
 	file-history.o		\

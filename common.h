@@ -12,10 +12,11 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <dirent.h>
-#include <ctype.h>
 #include <pwd.h>
 #include <regex.h>
 #include <time.h>
+
+#include "ctype.h"
 
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
