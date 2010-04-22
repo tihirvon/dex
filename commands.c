@@ -1132,6 +1132,7 @@ static void goto_tag(int pos, int save_location)
 static void cmd_tag(char **args)
 {
 	const char *pf = parse_args(args, "np", 0, 1);
+	const char *name = args[0];
 	static int pos;
 	char dir = 0;
 
@@ -1148,8 +1149,12 @@ static void cmd_tag(char **args)
 		pf++;
 	}
 
+	if (dir && name) {
+		error_msg("Tag and direction (-n/-p) are mutually exclusive.");
+		return;
+	}
+
 	if (!dir) {
-		const char *name = args[0];
 		char *word = NULL;
 
 		if (!name) {
