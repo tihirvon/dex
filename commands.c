@@ -964,39 +964,6 @@ error:
 		free(absolute);
 }
 
-static void do_search_next(char **args, enum search_direction dir)
-{
-	const char *pf = parse_args(args, "w", 0, 1);
-	char *pattern = args[0];
-
-	if (!pf)
-		return;
-
-	if (*pf && !pattern) {
-		char *word = get_word_under_cursor();
-
-		if (!word) {
-			return;
-		}
-		pattern = xnew(char, strlen(word) + 5);
-		sprintf(pattern, "\\<%s\\>", word);
-		free(word);
-	}
-
-	if (pattern) {
-		search_init(dir);
-		search(pattern);
-		history_add(&search_history, pattern);
-
-		if (pattern != args[0])
-			free(pattern);
-	} else {
-		input_mode = INPUT_SEARCH;
-		search_init(dir);
-		update_flags |= UPDATE_STATUS_LINE;
-	}
-}
-
 static void cmd_scroll_pgdown(char **args)
 {
 	int max = buffer->nl - window->h + 1;
@@ -1025,14 +992,54 @@ static void cmd_scroll_pgup(char **args)
 	}
 }
 
-static void cmd_search_bwd(char **args)
+static void cmd_search(char **args)
 {
-	do_search_next(args, SEARCH_BWD);
-}
+	const char *pf = parse_args(args, "rw", 0, 1);
+	enum search_direction dir = SEARCH_FWD;
+	char *word = NULL;
+	char *pattern = args[0];
 
-static void cmd_search_fwd(char **args)
-{
-	do_search_next(args, SEARCH_FWD);
+	if (!pf)
+		return;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'r':
+			dir = SEARCH_BWD;
+			break;
+		case 'w':
+			if (pattern) {
+				error_msg("Flag -w can't be used with search pattern.");
+				return;
+			}
+			word = get_word_under_cursor();
+			if (!word) {
+				// error message would not be very useful here
+				return;
+			}
+			break;
+		}
+		pf++;
+	}
+
+	if (word) {
+		pattern = xnew(char, strlen(word) + 5);
+		sprintf(pattern, "\\<%s\\>", word);
+		free(word);
+	}
+
+	if (pattern) {
+		search_init(dir);
+		search(pattern);
+		history_add(&search_history, pattern);
+
+		if (pattern != args[0])
+			free(pattern);
+	} else {
+		input_mode = INPUT_SEARCH;
+		search_init(dir);
+		update_flags |= UPDATE_STATUS_LINE;
+	}
 }
 
 static void cmd_search_next(char **args)
@@ -1334,8 +1341,7 @@ const struct command commands[] = {
 	{ "save",		cmd_save },
 	{ "scroll-pgdown",	cmd_scroll_pgdown },
 	{ "scroll-pgup",	cmd_scroll_pgup },
-	{ "search-bwd",		cmd_search_bwd },
-	{ "search-fwd",		cmd_search_fwd },
+	{ "search",		cmd_search },
 	{ "search-next",	cmd_search_next },
 	{ "search-prev",	cmd_search_prev },
 	{ "select",		cmd_select },

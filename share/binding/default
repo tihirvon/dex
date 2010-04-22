@@ -42,12 +42,12 @@ bind insert insert-special
 # key chains
 bind '^X f' format-paragraph
 
-bind M-/ search-fwd
-bind M-? search-bwd
+bind M-/ "search"
+bind M-? "search -r"
 bind M-p search-prev
 bind M-n search-next
-bind M-f "search-fwd -w"
-bind M-b "search-bwd -w"
+bind M-f "search -w"
+bind M-b "search -rw"
 bind M-s select
 bind M-t bof
 bind M-e eof
