@@ -9,13 +9,13 @@
 
 #define MAX_SUBSTRINGS 32
 
-static int do_search_fwd(regex_t *regex, int skip_first_byte)
+static int do_search_fwd(regex_t *regex, int skip_first_char)
 {
 	struct block_iter bi = view->cursor;
 	uchar u;
 
-	if (skip_first_byte)
-		block_iter_next_byte(&bi, &u);
+	if (skip_first_char)
+		buffer_next_char(&bi, &u);
 	do {
 		regmatch_t match;
 		struct lineref lr;
