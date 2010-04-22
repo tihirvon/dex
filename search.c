@@ -33,11 +33,8 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 	return 0;
 }
 
-static int do_search_bwd(regex_t *regex, struct block_iter *bi)
+static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx)
 {
-	int cx = view->cx_char;
-
-	block_iter_bol(bi);
 	if (block_iter_is_eof(bi))
 		goto next;
 
@@ -180,11 +177,13 @@ void search_next(void)
 			info_msg("No matches.");
 		}
 	} else {
-		if (do_search_bwd(&current_search.regex, &bi))
+		int cursor_x = block_iter_bol(&bi);
+
+		if (do_search_bwd(&current_search.regex, &bi, cursor_x))
 			return;
 
 		buffer_eof(&bi);
-		if (do_search_bwd(&current_search.regex, &bi)) {
+		if (do_search_bwd(&current_search.regex, &bi, -1)) {
 			info_msg("Continuing at bottom.");
 		} else {
 			info_msg("No matches.");
