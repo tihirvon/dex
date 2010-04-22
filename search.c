@@ -9,40 +9,33 @@
 
 #define MAX_SUBSTRINGS 32
 
-static int do_search_fwd(regex_t *regex, int skip_first_char)
+static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 {
-	struct block_iter bi = view->cursor;
-	uchar u;
-
-	if (skip_first_char)
-		buffer_next_char(&bi, &u);
 	do {
 		regmatch_t match;
 		struct lineref lr;
 
-		if (block_iter_eof(&bi))
+		if (block_iter_eof(bi))
 			return 0;
 
-		fill_line_ref(&bi, &lr);
+		fill_line_ref(bi, &lr);
 		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, 0)) {
-			block_iter_skip_bytes(&bi, match.rm_so);
-			view->cursor = bi;
+			block_iter_skip_bytes(bi, match.rm_so);
+			view->cursor = *bi;
 			view->center_on_scroll = 1;
 			update_preferred_x();
 			return 1;
 		}
-	} while (block_iter_next_line(&bi));
+	} while (block_iter_next_line(bi));
 	return 0;
 }
 
-static int do_search_bwd(regex_t *regex)
+static int do_search_bwd(regex_t *regex, struct block_iter *bi)
 {
-	struct block_iter bi = view->cursor;
 	int cx = view->cx_char;
-	uchar u;
 
-	block_iter_bol(&bi);
-	if (block_iter_eof(&bi))
+	block_iter_bol(bi);
+	if (block_iter_eof(bi))
 		goto next;
 
 	do {
@@ -51,7 +44,7 @@ static int do_search_bwd(regex_t *regex)
 		int offset = -1;
 		int pos = 0;
 
-		fill_line_ref(&bi, &lr);
+		fill_line_ref(bi, &lr);
 		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
@@ -70,15 +63,15 @@ static int do_search_bwd(regex_t *regex)
 		}
 
 		if (offset >= 0) {
-			block_iter_skip_bytes(&bi, offset);
-			view->cursor = bi;
+			block_iter_skip_bytes(bi, offset);
+			view->cursor = *bi;
 			view->center_on_scroll = 1;
 			update_preferred_x();
 			return 1;
 		}
 next:
 		cx = -1;
-	} while (block_iter_prev_line(&bi));
+	} while (block_iter_prev_line(bi));
 	return 0;
 }
 
@@ -88,14 +81,13 @@ void search_tag(const char *pattern)
 
 	// NOTE: regex needs to be freed even if regcomp() fails
 	if (regexp_compile(&regex, pattern, REG_NEWLINE)) {
-		struct block_iter save = view->cursor;
+		struct block_iter bi = view->cursor;
 
-		move_bof();
-		if (do_search_fwd(&regex, 0)) {
+		buffer_bof(&bi);
+		if (do_search_fwd(&regex, &bi)) {
 			view->center_on_scroll = 1;
 		} else {
 			error_msg("Tag not found.");
-			view->cursor = save;
 
 			/* don't center view to cursor unnecessarily */
 			view->force_center = 0;
@@ -161,7 +153,7 @@ void search(const char *pattern)
 
 void search_next(void)
 {
-	struct block_iter save;
+	struct block_iter bi = view->cursor;
 
 	if (!current_search.pattern) {
 		error_msg("No previous search pattern");
@@ -170,26 +162,29 @@ void search_next(void)
 	if (!update_regex())
 		return;
 	if (current_search.direction == SEARCH_FWD) {
-		if (do_search_fwd(&current_search.regex, 1))
+		uchar tmp;
+
+		// skip character under cursor
+		buffer_next_char(&bi, &tmp);
+
+		if (do_search_fwd(&current_search.regex, &bi))
 			return;
-		save = view->cursor;
-		move_bof();
-		if (do_search_fwd(&current_search.regex, 0)) {
+
+		buffer_bof(&bi);
+		if (do_search_fwd(&current_search.regex, &bi)) {
 			info_msg("Continuing at top.");
 		} else {
 			info_msg("No matches.");
-			view->cursor = save;
 		}
 	} else {
-		if (do_search_bwd(&current_search.regex))
+		if (do_search_bwd(&current_search.regex, &bi))
 			return;
-		save = view->cursor;
-		move_eof();
-		if (do_search_bwd(&current_search.regex)) {
+
+		buffer_eof(&bi);
+		if (do_search_bwd(&current_search.regex, &bi)) {
 			info_msg("Continuing at bottom.");
 		} else {
 			info_msg("No matches.");
-			view->cursor = save;
 		}
 	}
 }
