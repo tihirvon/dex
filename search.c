@@ -41,11 +41,13 @@ static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx)
 	do {
 		regmatch_t match;
 		struct lineref lr;
+		int flags = 0;
 		int offset = -1;
 		int pos = 0;
 
 		fill_line_ref(bi, &lr);
-		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, 0)) {
+		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, flags)) {
+			flags = REG_NOTBOL;
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
 				/* match at or after cursor */
