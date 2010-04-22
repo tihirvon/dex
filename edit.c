@@ -140,7 +140,7 @@ static void delete_one_ch(void)
 		return;
 
 	if (u == '\n' && !options.allow_incomplete_last_line &&
-			block_iter_eof(&bi) && !would_become_empty()) {
+			block_iter_is_eof(&bi) && !would_become_empty()) {
 		/* don't make last line incomplete */
 	} else if (buffer->utf8) {
 		delete(u_char_size(u), 0);
@@ -312,7 +312,7 @@ void insert_ch(unsigned int ch)
 		} else {
 			buf[i++] = ch;
 		}
-		if (block_iter_eof(&view->cursor))
+		if (block_iter_is_eof(&view->cursor))
 			buf[i++] = '\n';
 		insert(buf, i);
 		move_right(chars);
@@ -390,7 +390,7 @@ void join_lines(void)
 
 	if (!block_iter_next_line(&bi))
 		return;
-	if (block_iter_eof(&bi))
+	if (block_iter_is_eof(&bi))
 		return;
 
 	next = bi;

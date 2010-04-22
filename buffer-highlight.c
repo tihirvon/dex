@@ -176,7 +176,7 @@ void highlight_buffer(struct buffer *b)
 
 	init_highlighter(&h, b);
 	init_syntax_context_stack(&h.stack, b->syn->root);
-	while (!block_iter_eof(&bi))
+	while (!block_iter_is_eof(&bi))
 		fetch_and_highlight(&bi, &h);
 
 	free(h.words);
@@ -260,7 +260,7 @@ static void update_hl_eof(void)
 	init_highlighter_heredoc(&h);
 
 	/* highlight to eof */
-	while (!block_iter_eof(&bi))
+	while (!block_iter_is_eof(&bi))
 		fetch_and_highlight(&bi, &h);
 
 	if (h.heredoc_context)
@@ -314,7 +314,7 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 		to_eol += block_iter_next_line(&bi);
 	to_eol += block_iter_eol(&bi);
 
-	if (block_iter_eof(&bi)) {
+	if (block_iter_is_eof(&bi)) {
 		/* last line was modified */
 		update_hl_eof();
 		verify_hl_size();
@@ -377,7 +377,7 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 
 		/* highlight to eof */
 		h.headp = &buffer->hl_head;
-		while (!block_iter_eof(&bi))
+		while (!block_iter_is_eof(&bi))
 			fetch_and_highlight(&bi, &h);
 
 		update_flags |= UPDATE_FULL;

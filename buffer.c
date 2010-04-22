@@ -48,7 +48,7 @@ void init_selection(struct selection_info *info)
 
 	ei = info->si;
 	block_iter_skip_bytes(&ei, info->eo - info->so);
-	if (block_iter_eof(&ei)) {
+	if (block_iter_is_eof(&ei)) {
 		if (info->so == info->eo)
 			return;
 		info->eo -= buffer_prev_char(&ei, &u);

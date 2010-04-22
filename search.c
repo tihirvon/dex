@@ -17,7 +17,7 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 		regmatch_t match;
 		struct lineref lr;
 
-		if (block_iter_eof(bi))
+		if (block_iter_is_eof(bi))
 			return 0;
 
 		fill_line_ref(bi, &lr);
@@ -38,7 +38,7 @@ static int do_search_bwd(regex_t *regex, struct block_iter *bi)
 	int cx = view->cx_char;
 
 	block_iter_bol(bi);
-	if (block_iter_eof(bi))
+	if (block_iter_is_eof(bi))
 		goto next;
 
 	do {

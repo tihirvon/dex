@@ -751,7 +751,7 @@ void update_range(int y1, int y2)
 	set_hl_pos(&bi);
 	selection_init();
 
-	got_line = !block_iter_eof(&bi);
+	got_line = !block_iter_is_eof(&bi);
 	for (i = y1; got_line && i < y2; i++) {
 		struct line_info info;
 
