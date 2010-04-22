@@ -44,8 +44,8 @@ bind '^X f' format-paragraph
 
 bind M-/ "search"
 bind M-? "search -r"
-bind M-p search-prev
-bind M-n search-next
+bind M-p "search -p"
+bind M-n "search -n"
 bind M-f "search -w"
 bind M-b "search -rw"
 bind M-s select

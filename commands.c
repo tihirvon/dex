@@ -994,7 +994,8 @@ static void cmd_scroll_pgup(char **args)
 
 static void cmd_search(char **args)
 {
-	const char *pf = parse_args(args, "rw", 0, 1);
+	const char *pf = parse_args(args, "nprw", 0, 1);
+	int cmd = 0;
 	enum search_direction dir = SEARCH_FWD;
 	char *word = NULL;
 	char *pattern = args[0];
@@ -1004,6 +1005,10 @@ static void cmd_search(char **args)
 
 	while (*pf) {
 		switch (*pf) {
+		case 'n':
+		case 'p':
+			cmd = *pf;
+			break;
 		case 'r':
 			dir = SEARCH_BWD;
 			break;
@@ -1035,23 +1040,15 @@ static void cmd_search(char **args)
 
 		if (pattern != args[0])
 			free(pattern);
+	} else if (cmd == 'n') {
+		search_next();
+	} else if (cmd == 'p') {
+		search_prev();
 	} else {
 		input_mode = INPUT_SEARCH;
 		search_init(dir);
 		update_flags |= UPDATE_STATUS_LINE;
 	}
-}
-
-static void cmd_search_next(char **args)
-{
-	if (no_args(args))
-		search_next();
-}
-
-static void cmd_search_prev(char **args)
-{
-	if (no_args(args))
-		search_prev();
 }
 
 static void cmd_select(char **args)
@@ -1342,8 +1339,6 @@ const struct command commands[] = {
 	{ "scroll-pgdown",	cmd_scroll_pgdown },
 	{ "scroll-pgup",	cmd_scroll_pgup },
 	{ "search",		cmd_search },
-	{ "search-next",	cmd_search_next },
-	{ "search-prev",	cmd_search_prev },
 	{ "select",		cmd_select },
 	{ "set",		cmd_set },
 	{ "shift",		cmd_shift },
