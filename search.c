@@ -22,10 +22,7 @@ static int do_search_fwd(regex_t *regex, int skip_first_byte)
 
 		fill_line_ref(&bi, &lr);
 		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, 0)) {
-			int offset = match.rm_so;
-
-			while (offset--)
-				block_iter_next_byte(&bi, &u);
+			block_iter_skip_bytes(&bi, match.rm_so);
 			view->cursor = bi;
 			view->center_on_scroll = 1;
 			update_preferred_x();
@@ -62,8 +59,7 @@ static int do_search_bwd(regex_t *regex)
 		}
 
 		if (offset >= 0) {
-			while (offset--)
-				block_iter_next_byte(&bi, &u);
+			block_iter_skip_bytes(&bi, offset);
 			view->cursor = bi;
 			view->center_on_scroll = 1;
 			update_preferred_x();
