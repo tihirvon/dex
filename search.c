@@ -20,6 +20,9 @@ static int do_search_fwd(regex_t *regex, int skip_first_byte)
 		regmatch_t match;
 		struct lineref lr;
 
+		if (block_iter_eof(&bi))
+			return 0;
+
 		fill_line_ref(&bi, &lr);
 		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, 0)) {
 			block_iter_skip_bytes(&bi, match.rm_so);
@@ -39,6 +42,9 @@ static int do_search_bwd(regex_t *regex)
 	uchar u;
 
 	block_iter_bol(&bi);
+	if (block_iter_eof(&bi))
+		goto next;
+
 	do {
 		regmatch_t match;
 		struct lineref lr;
@@ -65,6 +71,7 @@ static int do_search_bwd(regex_t *regex)
 			update_preferred_x();
 			return 1;
 		}
+next:
 		cx = -1;
 	} while (block_iter_prev_line(&bi));
 	return 0;
