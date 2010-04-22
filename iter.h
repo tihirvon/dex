@@ -40,6 +40,8 @@ void block_iter_skip_bytes(struct block_iter *bi, unsigned int count);
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset);
 unsigned int block_iter_get_offset(const struct block_iter *bi);
 
+int block_iter_is_bol(const struct block_iter *bi);
+
 static inline int block_iter_eof(struct block_iter *bi)
 {
 	return bi->offset == bi->blk->size && bi->blk->node.next == bi->head;

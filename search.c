@@ -11,6 +11,8 @@
 
 static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 {
+	int flags = block_iter_is_bol(bi) ? 0 : REG_NOTBOL;
+
 	do {
 		regmatch_t match;
 		struct lineref lr;
@@ -19,13 +21,14 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 			return 0;
 
 		fill_line_ref(bi, &lr);
-		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, 0)) {
+		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, flags)) {
 			block_iter_skip_bytes(bi, match.rm_so);
 			view->cursor = *bi;
 			view->center_on_scroll = 1;
 			update_preferred_x();
 			return 1;
 		}
+		flags = 0;
 	} while (block_iter_next_line(bi));
 	return 0;
 }
