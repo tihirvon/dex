@@ -52,7 +52,7 @@ static int do_search_bwd(regex_t *regex)
 		int pos = 0;
 
 		fill_line_ref(&bi, &lr);
-		while (!buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, 0)) {
+		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, 0)) {
 			pos += match.rm_so;
 			if (cx >= 0 && pos >= cx) {
 				/* match at or after cursor */
@@ -62,6 +62,11 @@ static int do_search_bwd(regex_t *regex)
 			/* this might be what we want (last match before cursor) */
 			offset = pos;
 			pos++;
+
+			if (match.rm_so == match.rm_eo) {
+				/* zero length match */
+				break;
+			}
 		}
 
 		if (offset >= 0) {
