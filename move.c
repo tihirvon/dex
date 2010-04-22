@@ -173,9 +173,7 @@ void move_cursor_right(void)
 	if (buffer->options.emulate_tab) {
 		int size = get_indent_level_bytes_right();
 		if (size) {
-			uchar u;
-			while (size--)
-				block_iter_next_byte(&view->cursor, &u);
+			block_iter_skip_bytes(&view->cursor, size);
 			update_preferred_x();
 			return;
 		}
