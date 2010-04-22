@@ -122,11 +122,11 @@ static void parse_var(const char *cmd, int *posp)
 	while (1) {
 		char ch = cmd[pos];
 
-		if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_') {
+		if (isalpha(ch) || ch == '_') {
 			pos++;
 			continue;
 		}
-		if (pos > *posp && ch >= '0' && ch <= '9') {
+		if (pos > *posp && isdigit(ch)) {
 			pos++;
 			continue;
 		}

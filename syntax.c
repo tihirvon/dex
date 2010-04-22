@@ -19,9 +19,7 @@ unsigned int buf_hash(const char *str, unsigned int size)
 	int i;
 
 	for (i = 0; i < size; i++) {
-		unsigned int ch = str[i];
-		if (ch >= 'A' && ch <= 'Z')
-			ch += 'a' - 'A';
+		unsigned int ch = tolower(str[i]);
 		hash = (hash << 5) - hash + ch;
 	}
 	return hash;

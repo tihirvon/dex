@@ -215,7 +215,7 @@ static char *int_cap(char *cap)
 	char *val = cap + 3;
 	int ival = 0;
 
-	while (*val >= '0' && *val <= '9') {
+	while (isdigit(*val)) {
 		ival *= 10;
 		ival += *val++ - '0';
 	}
@@ -239,7 +239,7 @@ static char *unescape(char *src, int len)
 
 				while (digits < 3) {
 					ch = src[s];
-					if (ch < '0' || ch > '9')
+					if (!isdigit(ch))
 						break;
 					digits++;
 					s++;
@@ -300,7 +300,7 @@ static char *str_cap(const char *buf, int size, char *cap)
 	end = val;
 	while (1) {
 		char ch = *end;
-		
+
 		if (ch == 0 || ch == ':')
 			break;
 
@@ -313,7 +313,7 @@ static char *str_cap(const char *buf, int size, char *cap)
 			break;
 
 		digits = 0;
-		while (ch >= '0' && ch <= '9') {
+		while (isdigit(ch)) {
 			digits++;
 			end++;
 			if (digits == 3)
