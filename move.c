@@ -217,15 +217,13 @@ void move_down(int count)
 
 void move_bof(void)
 {
-	view->cursor.blk = BLOCK(buffer->blocks.next);
-	view->cursor.offset = 0;
+	buffer_bof(&view->cursor);
 	view->preferred_x = 0;
 }
 
 void move_eof(void)
 {
-	view->cursor.blk = BLOCK(buffer->blocks.prev);
-	view->cursor.offset = view->cursor.blk->size;
+	buffer_eof(&view->cursor);
 	update_preferred_x();
 }
 

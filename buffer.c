@@ -283,9 +283,7 @@ int guess_filetype(void)
 		struct lineref lr;
 		struct block_iter bi;
 
-		bi.blk = BLOCK(buffer->blocks.next);
-		bi.head = &buffer->blocks;
-		bi.offset = 0;
+		buffer_bof(&bi);
 		fill_line_ref(&bi, &lr);
 		ft = find_ft(buffer->abs_filename, lr.line, lr.size);
 	} else if (buffer->abs_filename) {

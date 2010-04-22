@@ -43,9 +43,7 @@ static void init_highlighter_heredoc(struct highlighter *h)
 
 	BUG_ON(h->stack.heredoc_offset < 0);
 
-	bi.head = &buffer->blocks;
-	bi.blk = BLOCK(buffer->blocks.next);
-	bi.offset = 0;
+	buffer_bof(&bi);
 	block_iter_goto_offset(&bi, h->stack.heredoc_offset);
 	offset = block_iter_bol(&bi);
 	fill_line_nl_ref(&bi, &lr);
@@ -105,8 +103,7 @@ static void full_debug(void)
 	int i;
 	struct block_iter save = view->cursor;
 
-	view->cursor.blk = BLOCK(buffer->blocks.next);
-	view->cursor.offset = 0;
+	buffer_bof(&view->cursor);
 
 	snprintf(buf, sizeof(buf), "/tmp/hl-%d", counter++);
 	f = fopen(buf, "w");

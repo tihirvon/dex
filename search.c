@@ -335,13 +335,8 @@ static unsigned int get_range(struct block_iter *bi)
 		return info.eo - info.so;
 	}
 
-	bi->head = &buffer->blocks;
-	bi->blk = BLOCK(buffer->blocks.next);
-	bi->offset = 0;
-
-	eof.head = &buffer->blocks;
-	eof.blk = BLOCK(buffer->blocks.prev);
-	eof.offset = eof.blk->size;
+	buffer_bof(bi);
+	buffer_eof(&eof);
 	return block_iter_get_offset(&eof);
 }
 

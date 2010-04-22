@@ -195,6 +195,20 @@ unsigned int buffer_get_char(struct block_iter *bi, uchar *up);
 unsigned int buffer_next_char(struct block_iter *bi, uchar *up);
 unsigned int buffer_prev_char(struct block_iter *bi, uchar *up);
 
+static inline void buffer_bof(struct block_iter *bi)
+{
+	bi->head = &buffer->blocks;
+	bi->blk = BLOCK(buffer->blocks.next);
+	bi->offset = 0;
+}
+
+static inline void buffer_eof(struct block_iter *bi)
+{
+	bi->head = &buffer->blocks;
+	bi->blk = BLOCK(buffer->blocks.prev);
+	bi->offset = bi->blk->size;
+}
+
 char *get_word_under_cursor(void);
 
 int guess_filetype(void);
