@@ -966,24 +966,30 @@ error:
 
 static void do_search_next(char **args, enum search_direction dir)
 {
-	const char *pf = parse_args(args, "w", 0, 0);
+	const char *pf = parse_args(args, "w", 0, 1);
+	char *pattern = args[0];
 
 	if (!pf)
 		return;
 
-	if (*pf) {
-		char *pattern, *word = get_word_under_cursor();
+	if (*pf && !pattern) {
+		char *word = get_word_under_cursor();
 
 		if (!word) {
 			return;
 		}
 		pattern = xnew(char, strlen(word) + 5);
 		sprintf(pattern, "\\<%s\\>", word);
+		free(word);
+	}
+
+	if (pattern) {
 		search_init(dir);
 		search(pattern);
 		history_add(&search_history, pattern);
-		free(word);
-		free(pattern);
+
+		if (pattern != args[0])
+			free(pattern);
 	} else {
 		input_mode = INPUT_SEARCH;
 		search_init(dir);
