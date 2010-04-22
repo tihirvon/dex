@@ -50,7 +50,7 @@ syn addc block '\{' '\}'
 
 syn connect root comment block id pseudo1 pseudo2
 syn connect root html.tagname html.frameset html.transitional
-syn connect block color colorname unit zero property1 property2 value
+syn connect block comment color colorname unit zero property1 property2 value
 
 #syn join property property1 property2
 #syn join pseudo pseudo1 pseudo2
