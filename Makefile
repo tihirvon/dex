@@ -118,6 +118,7 @@ syntax	:=			\
 	syntax/diff		\
 	syntax/editor		\
 	syntax/gitcommit	\
+	syntax/gitrebase	\
 	syntax/go		\
 	syntax/html		\
 	syntax/make		\
