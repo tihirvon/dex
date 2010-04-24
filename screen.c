@@ -719,12 +719,13 @@ static void print_line(struct line_info *info)
 			int count = info->size - info->pos;
 			if (count && current_hl_list)
 				advance_hl(count);
-			cur_offset += count;
+			// +1 for newline
+			cur_offset += count + 1;
 			return;
 		}
 	}
 	update_color(1, 0);
-	cur_offset += 1;
+	cur_offset += 1; // newline
 	if (options.display_special && obuf.x >= obuf.scroll_x)
 		buf_put_char('$', utf8);
 	buf_clear_eol();
