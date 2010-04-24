@@ -597,10 +597,10 @@ static void selection_init(void)
 	if (!selecting())
 		return;
 
-	sel_so = view->sel_so;
-	sel_eo = view->sel_eo;
-	if (sel_eo != UINT_MAX) {
+	if (view->sel_eo != UINT_MAX) {
 		/* already calculated */
+		sel_so = view->sel_so;
+		sel_eo = view->sel_eo;
 		BUG_ON(sel_so > sel_eo);
 		return;
 	}
