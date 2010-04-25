@@ -254,25 +254,21 @@ static struct view *find_view(const char *abs_filename)
 {
 	struct window *w;
 	struct view *v;
+	struct view *found = NULL;
 
-	// open in current window?
-	list_for_each_entry(v, &window->views, node) {
-		const char *f = v->buffer->abs_filename;
-		if (f && !strcmp(f, abs_filename))
-			return v;
-	}
-
-	// open in any other window?
 	list_for_each_entry(w, &windows, node) {
-		if (w == window)
-			continue;
 		list_for_each_entry(v, &w->views, node) {
 			const char *f = v->buffer->abs_filename;
-			if (f && !strcmp(f, abs_filename))
-				return v;
+			if (f && !strcmp(f, abs_filename)) {
+				// found in current window?
+				if (v->window == window)
+					return v;
+
+				found = v;
+			}
 		}
 	}
-	return NULL;
+	return found;
 }
 
 int guess_filetype(void)
