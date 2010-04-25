@@ -136,7 +136,12 @@ void update_cursor_x(void)
 	view->cx_char = 0;
 	view->cx_display = 0;
 	while (idx < view->cx) {
-		uchar u = u_buf_get_char(lr.line, lr.size, &idx);
+		uchar u;
+
+		if (buffer->utf8)
+			u = u_buf_get_char(lr.line, lr.size, &idx);
+		else
+			u = (unsigned char)lr.line[idx++];
 		view->cx_char++;
 		if (u == '\t') {
 			view->cx_display = (view->cx_display + tw) / tw * tw;
