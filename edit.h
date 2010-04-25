@@ -15,5 +15,6 @@ void shift_lines(int count);
 void clear_lines(void);
 void new_line(void);
 void format_paragraph(int pw);
+void change_case(int mode, int move_after);
 
 #endif

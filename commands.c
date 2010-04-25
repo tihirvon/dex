@@ -59,6 +59,31 @@ static void cmd_cancel(char **args)
 		select_end();
 }
 
+static void cmd_case(char **args)
+{
+	const char *pf = parse_args(args, "lmu", 0, 0);
+	int mode = 't';
+	int move = 0;
+
+	if (!pf)
+		return;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'l':
+		case 'u':
+			mode = *pf;
+			break;
+		case 'm':
+			move = 1;
+			break;
+		}
+		pf++;
+	}
+
+	change_case(mode, move);
+}
+
 static void cmd_cd(char **args)
 {
 	char buf[PATH_MAX];
@@ -1292,6 +1317,7 @@ const struct command commands[] = {
 	{ "bof",		cmd_bof },
 	{ "bol",		cmd_bol },
 	{ "cancel",		cmd_cancel },
+	{ "case",		cmd_case },
 	{ "cd",			cmd_cd },
 	{ "center-view",	cmd_center_view },
 	{ "clear",		cmd_clear },

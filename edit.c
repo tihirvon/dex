@@ -861,3 +861,49 @@ void format_paragraph(int text_width)
 	update_flags |= UPDATE_FULL;
 	select_end();
 }
+
+void change_case(int mode, int move_after)
+{
+	unsigned int text_len, i;
+	char *src, *dst;
+
+	if (selecting()) {
+		text_len = prepare_selection();
+		select_end();
+	} else {
+		uchar u;
+
+		if (!buffer_get_char(&view->cursor, &u))
+			return;
+
+		text_len = 1;
+		if (buffer->utf8)
+			text_len = u_char_size(u);
+	}
+
+	src = do_delete(text_len);
+	dst = xnew(char, text_len);
+	for (i = 0; i < text_len; i++) {
+		char ch = src[i];
+		switch (mode) {
+		case 't':
+			if (ch >= 'A' && ch <= 'Z')
+				ch = tolower(ch);
+			else
+				ch = toupper(ch);
+			break;
+		case 'l':
+			ch = tolower(ch);
+			break;
+		case 'u':
+			ch = toupper(ch);
+			break;
+		}
+		dst[i] = ch;
+	}
+	do_insert(dst, text_len);
+	record_replace(src, text_len, text_len);
+
+	if (move_after)
+		block_iter_skip_bytes(&view->cursor, text_len);
+}
