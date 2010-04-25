@@ -109,12 +109,14 @@ char *buffer_get_bytes(unsigned int len)
 
 static struct buffer *buffer_new(void)
 {
+	static int id;
 	struct buffer *b;
 
 	b = xnew0(struct buffer, 1);
 	list_init(&b->blocks);
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
+	b->id = ++id;
 	b->utf8 = !!(term_flags & TERM_UTF8);
 
 	memcpy(&b->options, &options, sizeof(struct common_options));
@@ -269,6 +271,32 @@ static struct view *find_view(const char *abs_filename)
 		}
 	}
 	return found;
+}
+
+struct view *find_view_by_buffer_id(unsigned int buffer_id)
+{
+	struct window *w;
+	struct view *v;
+	struct view *found = NULL;
+
+	list_for_each_entry(w, &windows, node) {
+		list_for_each_entry(v, &w->views, node) {
+			if (buffer_id == v->buffer->id) {
+				// found in current window?
+				if (v->window == window)
+					return v;
+
+				found = v;
+			}
+		}
+	}
+	if (!found)
+		return NULL;
+
+	// open the buffer in other window to current window
+	v = window_add_buffer(found->buffer);
+	v->cursor = found->cursor;
+	return v;
 }
 
 int guess_filetype(void)

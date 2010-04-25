@@ -23,6 +23,9 @@ struct buffer {
 
 	struct stat st;
 
+	// needed for identifying buffers whose filename is NULL
+	unsigned int id;
+
 	unsigned int nl;
 
 	// number of views pointing to this buffer
@@ -174,6 +177,7 @@ void init_selection(struct selection_info *info);
 void fill_selection_info(struct selection_info *info);
 
 void update_short_filename(struct buffer *b, const char *cwd);
+struct view *find_view_by_buffer_id(unsigned int buffer_id);
 struct view *open_buffer(const char *filename, int must_exist);
 struct view *open_empty_buffer(void);
 void setup_buffer(void);

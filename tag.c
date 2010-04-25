@@ -9,6 +9,7 @@
 struct file_location {
 	struct list_head node;
 	char *filename;
+	unsigned int buffer_id;
 	int x, y;
 };
 
@@ -110,7 +111,8 @@ static struct file_location *create_location(void)
 	struct file_location *loc;
 
 	loc = xnew(struct file_location, 1);
-	loc->filename = xstrdup(buffer->abs_filename);
+	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
+	loc->buffer_id = buffer->id;
 	loc->x = view->cx_display;
 	loc->y = view->cy;
 	return loc;
@@ -125,7 +127,18 @@ void pop_location(void)
 		return;
 	loc = container_of(location_head.next, struct file_location, node);
 	list_del(&loc->node);
-	v = open_buffer(loc->filename, 1);
+	v = find_view_by_buffer_id(loc->buffer_id);
+	if (!v) {
+		if (loc->filename) {
+			v = open_buffer(loc->filename, 1);
+		} else {
+			// Can't restore closed buffer which had no filename.
+			free(loc->filename);
+			free(loc);
+			pop_location();
+			return;
+		}
+	}
 	if (v) {
 		set_view(v);
 		move_to_line(loc->y + 1);
@@ -140,7 +153,7 @@ void move_to_tag(const struct tag *t, int save_location)
 	struct file_location *loc = NULL;
 	struct view *v;
 
-	if (save_location && buffer->filename)
+	if (save_location)
 		loc = create_location();
 
 	v = open_buffer(t->filename, 1);
@@ -153,8 +166,6 @@ void move_to_tag(const struct tag *t, int save_location)
 	}
 	if (loc)
 		list_add_after(&loc->node, &location_head);
-	else if (save_location)
-		info_msg("Can't save current location because there's no filename.");
 
 	if (view != v) {
 		set_view(v);
