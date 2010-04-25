@@ -110,7 +110,7 @@ static struct file_location *create_location(void)
 	struct file_location *loc;
 
 	loc = xnew(struct file_location, 1);
-	loc->filename = xstrdup(buffer->filename);
+	loc->filename = xstrdup(buffer->abs_filename);
 	loc->x = view->cx_display;
 	loc->y = view->cy;
 	return loc;
