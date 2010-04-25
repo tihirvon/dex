@@ -392,19 +392,22 @@ static void cmd_insert(char **args)
 	if (!pf)
 		return;
 
-	if (selecting())
-		delete_ch();
-
 	if (strchr(pf, 'k')) {
 		int i;
 		for (i = 0; str[i]; i++)
 			insert_ch(str[i]);
 	} else {
-		int len = strlen(str);
+		unsigned int del_len = 0;
+		unsigned int ins_len = strlen(str);
 
-		insert(str, len);
+		if (selecting()) {
+			del_len = prepare_selection();
+			select_end();
+		}
+
+		replace(del_len, str, ins_len);
 		if (strchr(pf, 'm'))
-			block_iter_skip_bytes(&view->cursor, len);
+			block_iter_skip_bytes(&view->cursor, ins_len);
 	}
 }
 
