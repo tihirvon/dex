@@ -648,23 +648,28 @@ void shift_lines(int count)
 
 void clear_lines(void)
 {
-	unsigned int del_count, ins_count = 0;
-	char *indent, *deleted;
+	unsigned int del_count = 0, ins_count = 0;
+	char *indent = get_indent();
 
-	indent = get_indent();
+	if (selecting()) {
+		view->selection = SELECT_LINES;
+		del_count = prepare_selection();
+		select_end();
 
-	block_iter_eol(&view->cursor);
-	del_count = block_iter_bol(&view->cursor);
+		// don't delete last newline
+		if (del_count)
+			del_count--;
+	} else {
+		block_iter_eol(&view->cursor);
+		del_count = block_iter_bol(&view->cursor);
+	}
+
 	if (!indent && !del_count)
 		return;
 
-	deleted = do_delete(del_count);
-	if (indent) {
+	if (indent)
 		ins_count = strlen(indent);
-		do_insert(indent, ins_count);
-		free(indent);
-	}
-	record_replace(deleted, del_count, ins_count);
+	replace(del_count, indent, ins_count);
 	move_right(ins_count);
 
 	undo_merge = UNDO_MERGE_NONE;
