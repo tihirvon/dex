@@ -99,22 +99,28 @@ unsigned int prepare_selection(void)
 
 void paste(void)
 {
-	if (selecting())
-		delete_ch();
+	unsigned int del_count = 0;
 
 	undo_merge = UNDO_MERGE_NONE;
 	if (!copy_buf)
 		return;
+
+	if (selecting()) {
+		del_count = prepare_selection();
+		select_end();
+	}
+
 	if (copy_is_lines) {
-		update_preferred_x();
-		block_iter_next_line(&view->cursor);
+		int save = view->preferred_x;
 
-		record_insert(copy_len);
-		do_insert(copy_buf, copy_len);
+		if (!del_count)
+			block_iter_next_line(&view->cursor);
+		replace(del_count, copy_buf, copy_len);
 
+		view->preferred_x = save;
 		move_to_preferred_x();
 	} else {
-		insert(copy_buf, copy_len);
+		replace(del_count, copy_buf, copy_len);
 	}
 }
 
