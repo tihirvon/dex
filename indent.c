@@ -1,30 +1,47 @@
 #include "indent.h"
 #include "buffer.h"
 
-// get indentation of current or previous non-whitespace-only line
+static char *make_indent(struct indent_info *info)
+{
+	char *str;
+	int len;
+
+	if (!info->width)
+		return NULL;
+
+	if (use_spaces_for_indent()) {
+		len = info->width;
+		str = xnew(char, len + 1);
+		memset(str, ' ', len);
+		str[len] = 0;
+	} else {
+		int extra = info->width - info->level * buffer->options.indent_width;
+
+		len = info->level;
+		str = xnew(char, len + extra + 1);
+		memset(str, '\t', len);
+		memset(str + len, ' ', extra);
+		str[len + extra] = 0;
+	}
+	return str;
+}
+
+/*
+ * Get and sanitize indentation of current or previous non-whitespace-only line.
+ */
 char *get_indent(void)
 {
 	struct block_iter bi = view->cursor;
+	struct indent_info info;
 
 	block_iter_bol(&bi);
 	do {
 		struct lineref lr;
-		int i;
 
 		fill_line_ref(&bi, &lr);
-		for (i = 0; i < lr.size; i++) {
-			char ch = lr.line[i];
-
-			if (ch != ' ' && ch != '\t') {
-				char *str;
-
-				if (!i)
-					return NULL;
-				str = xmemdup(lr.line, i + 1);
-				str[i] = 0;
-				return str;
-			}
-		}
+		get_indent_info(lr.line, lr.size, &info);
+		if (!info.wsonly)
+			return make_indent(&info);
 	} while (block_iter_prev_line(&bi));
 	return NULL;
 }
