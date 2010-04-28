@@ -67,6 +67,7 @@ OBJECTS	:= 			\
 	gbuf.o			\
 	highlight.o		\
 	history.o		\
+	indent.o		\
 	iter.o			\
 	lock.o			\
 	move.o			\

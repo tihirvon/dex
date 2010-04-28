@@ -5,6 +5,7 @@
 #include "change.h"
 #include "block.h"
 #include "gbuf.h"
+#include "indent.h"
 
 unsigned int update_flags;
 
@@ -218,34 +219,6 @@ void erase(void)
 	}
 }
 
-// get indentation of current or previous non-whitespace-only line
-static char *get_indent(void)
-{
-	struct block_iter bi = view->cursor;
-
-	block_iter_bol(&bi);
-	do {
-		struct lineref lr;
-		int i;
-
-		fill_line_ref(&bi, &lr);
-		for (i = 0; i < lr.size; i++) {
-			char ch = lr.line[i];
-
-			if (ch != ' ' && ch != '\t') {
-				char *str;
-
-				if (!i)
-					return NULL;
-				str = xmemdup(lr.line, i + 1);
-				str[i] = 0;
-				return str;
-			}
-		}
-	} while (block_iter_prev_line(&bi));
-	return NULL;
-}
-
 // goto beginning of whitespace (tabs and spaces) under cursor and
 // return number of whitespace bytes after cursor after moving cursor
 static int goto_beginning_of_whitespace(void)
@@ -440,66 +413,6 @@ char *get_word_under_cursor(void)
 	while (ei + 1 < lr.size && is_word_byte(lr.line[ei + 1]))
 		ei++;
 	return xstrndup(lr.line + si, ei - si + 1);
-}
-
-static int use_spaces_for_indent(void)
-{
-	return buffer->options.expand_tab || buffer->options.indent_width != buffer->options.tab_width;
-}
-
-static char *alloc_indent(int count, int *sizep)
-{
-	char *indent;
-	int size;
-
-	if (use_spaces_for_indent()) {
-		size = buffer->options.indent_width * count;
-		indent = xnew(char, size);
-		memset(indent, ' ', size);
-	} else {
-		size = count;
-		indent = xnew(char, size);
-		memset(indent, '\t', size);
-	}
-	*sizep = size;
-	return indent;
-}
-
-struct indent_info {
-	int bytes;
-	int width;
-	int level;
-	int sane;
-	int wsonly;
-};
-
-static void get_indent_info(const char *buf, int len, struct indent_info *info)
-{
-	int spaces = 0;
-	int tabs = 0;
-	int pos = 0;
-
-	memset(info, 0, sizeof(struct indent_info));
-	info->sane = 1;
-	while (pos < len) {
-		if (buf[pos] == ' ') {
-			info->width++;
-			spaces++;
-		} else if (buf[pos] == '\t') {
-			int tw = buffer->options.tab_width;
-			info->width = (info->width + tw) / tw * tw;
-			tabs++;
-		} else {
-			break;
-		}
-		info->bytes++;
-		pos++;
-
-		if (info->width % buffer->options.indent_width == 0 && info->sane)
-			info->sane = use_spaces_for_indent() ? !tabs : !spaces;
-	}
-	info->level = info->width / buffer->options.indent_width;
-	info->wsonly = pos == len;
 }
 
 static void shift_right(int nr_lines, int count)
