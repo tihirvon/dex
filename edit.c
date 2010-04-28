@@ -466,8 +466,6 @@ static char *alloc_indent(int count, int *sizep)
 }
 
 struct indent_info {
-	int tabs;
-	int spaces;
 	int bytes;
 	int width;
 	int level;
@@ -477,6 +475,8 @@ struct indent_info {
 
 static void get_indent_info(const char *buf, int len, struct indent_info *info)
 {
+	int spaces = 0;
+	int tabs = 0;
 	int pos = 0;
 
 	memset(info, 0, sizeof(struct indent_info));
@@ -484,11 +484,11 @@ static void get_indent_info(const char *buf, int len, struct indent_info *info)
 	while (pos < len) {
 		if (buf[pos] == ' ') {
 			info->width++;
-			info->spaces++;
+			spaces++;
 		} else if (buf[pos] == '\t') {
 			int tw = buffer->options.tab_width;
 			info->width = (info->width + tw) / tw * tw;
-			info->tabs++;
+			tabs++;
 		} else {
 			break;
 		}
@@ -496,7 +496,7 @@ static void get_indent_info(const char *buf, int len, struct indent_info *info)
 		pos++;
 
 		if (info->width % buffer->options.indent_width == 0 && info->sane)
-			info->sane = use_spaces_for_indent() ? !info->tabs : !info->spaces;
+			info->sane = use_spaces_for_indent() ? !tabs : !spaces;
 	}
 	info->level = info->width / buffer->options.indent_width;
 	info->wsonly = pos == len;
