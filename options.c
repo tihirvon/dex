@@ -311,6 +311,11 @@ static void set_flag_opt(const struct option_description *desc, const char *valu
 	const char *ptr = value;
 	int flags = 0;
 
+	if (!value) {
+		error_msg("No value given for %s.", desc->name);
+		return;
+	}
+
 	while (*ptr) {
 		const char *end = strchr(ptr, ',');
 		char buf[64];
