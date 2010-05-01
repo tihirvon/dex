@@ -521,9 +521,6 @@ static void keypress(enum term_key_type type, unsigned int key)
 				insert_ch('\t');
 			} else if (key == '\r') {
 				insert_ch('\n');
-			} else if (key == 0x1a) {
-				ui_end();
-				kill(0, SIGSTOP);
 			} else if (key < 0x20 || key == 0x7f) {
 				handle_binding(type, key);
 			} else {

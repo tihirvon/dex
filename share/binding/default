@@ -8,6 +8,7 @@ bind end eol
 bind pgup pgup
 bind pgdown pgdown
 bind ^[ cancel
+bind ^Z suspend
 # backspace on most terminals
 bind ^? erase
 # backspace on some xterms

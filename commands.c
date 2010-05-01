@@ -999,6 +999,12 @@ static void cmd_shift(const char *pf, char **args)
 	shift_lines(count);
 }
 
+static void cmd_suspend(const char *pf, char **args)
+{
+	ui_end();
+	kill(0, SIGSTOP);
+}
+
 static const struct command syn_commands[] = {
 	{ "addc",	"hi",	3,  3, syn_addc },
 	{ "addr",	"i",	2,  2, syn_addr },
@@ -1207,6 +1213,7 @@ const struct command commands[] = {
 	{ "select",		"l",	0,  0, cmd_select },
 	{ "set",		"gl",	1,  2, cmd_set },
 	{ "shift",		"",	0,  1, cmd_shift },
+	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "syn",		"-",	0, -1, cmd_syn },
 	{ "tag",		"np",	0,  1, cmd_tag },
 	{ "toggle",		"gl",	1,  1, cmd_toggle },
