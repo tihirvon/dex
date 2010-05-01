@@ -346,6 +346,10 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case 0x04: // ^D
 			cmdline_delete();
 			break;
+		case 0x08: // ^H
+		case 0x7f: // ^?
+			cmdline_backspace();
+			break;
 		case 0x15: // ^U
 			cmdline_delete_bol();
 			break;
@@ -520,7 +524,7 @@ static void keypress(enum term_key_type type, unsigned int key)
 			} else if (key == 0x1a) {
 				ui_end();
 				kill(0, SIGSTOP);
-			} else if (key < 0x20) {
+			} else if (key < 0x20 || key == 0x7f) {
 				handle_binding(type, key);
 			} else {
 				insert_ch(key);

@@ -232,12 +232,6 @@ static int read_simple(unsigned int *key, enum term_key_type *type)
 	/* > 0 bytes in buf */
 	input_get_byte(&ch);
 
-	if (ch == 0x7f || ch == 0x08) {
-		*key = SKEY_BACKSPACE;
-		*type = KEY_SPECIAL;
-		return 1;
-	}
-
 	/* normal key */
 	if ((term_flags & TERM_UTF8) && ch > 0x7f) {
 		/*

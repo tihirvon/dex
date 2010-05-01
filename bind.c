@@ -64,10 +64,17 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 		return 1;
 	}
 	ch = toupper(str[1]);
-	if (str[0] == '^' && ch >= 0x40 && ch < 0x60 && len == 2) {
-		*type = KEY_NORMAL;
-		*key = ch - 0x40;
-		return 1;
+	if (str[0] == '^' && len == 2) {
+		if (ch >= 0x40 && ch < 0x60) {
+			*type = KEY_NORMAL;
+			*key = ch - 0x40;
+			return 1;
+		}
+		if (ch == '?') {
+			*type = KEY_NORMAL;
+			*key = 0x7f;
+			return 1;
+		}
 	}
 	if (toupper(str[0]) == 'M' && str[1] == '-' && parse_key(type, key, str + 2)) {
 		*type = KEY_META;
