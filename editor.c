@@ -365,6 +365,9 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case 0x06: // ^F
 			cmdline_next_char();
 			return 1;
+		case '\n': // ^J
+			// not allowed
+			return 1;
 		default:
 			return 0;
 		}
@@ -631,7 +634,8 @@ static void insert_special(const char *buf, int size)
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
-		cmdline_insert_bytes(buf, size);
+		if (buf[0] != '\n')
+			cmdline_insert_bytes(buf, size);
 		break;
 	}
 }
