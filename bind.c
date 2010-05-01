@@ -21,7 +21,6 @@ static unsigned int pressed_keys[MAX_KEYS];
 
 static LIST_HEAD(bindings);
 static const char *special_names[NR_SKEYS] = {
-	"backspace",
 	"insert",
 	"delete",
 	"home",

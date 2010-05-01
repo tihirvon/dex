@@ -518,7 +518,6 @@ enum {
 };
 
 static int keymap[NR_SKEYS] = {
-	tcs_key_backspace,
 	tcs_key_ic,
 	tcs_key_dc,
 	tcs_key_home,

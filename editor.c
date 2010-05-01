@@ -383,9 +383,6 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case SKEY_DELETE:
 			cmdline_delete();
 			break;
-		case SKEY_BACKSPACE:
-			cmdline_backspace();
-			break;
 
 		case SKEY_LEFT:
 			cmdline_prev_char();
@@ -533,8 +530,6 @@ static void keypress(enum term_key_type type, unsigned int key)
 		case KEY_SPECIAL:
 			if (key == SKEY_DELETE) {
 				delete_ch();
-			} else if (key == SKEY_BACKSPACE) {
-				erase();
 			} else {
 				handle_binding(type, key);
 			}

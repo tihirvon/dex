@@ -15,8 +15,6 @@ static const char *str_cap_names[] = {
 	 * keys
 	 */
 
-	// bc?
-	"kb",
 	"kI",
 	"kD",
 	"kh",
@@ -53,7 +51,6 @@ static char **str_cap_ptrs[] = {
 	&term_cap.ve,
 	&term_cap.vi,
 
-	&term_keycodes[SKEY_BACKSPACE],
 	&term_keycodes[SKEY_INSERT],
 	&term_keycodes[SKEY_DELETE],
 	&term_keycodes[SKEY_HOME],

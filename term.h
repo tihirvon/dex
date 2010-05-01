@@ -35,7 +35,6 @@ enum term_key_type {
 
 /* special keys */
 enum {
-	SKEY_BACKSPACE,
 	SKEY_INSERT,
 	SKEY_DELETE,
 	SKEY_HOME,
