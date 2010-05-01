@@ -7,6 +7,7 @@ bind home bol
 bind end eol
 bind pgup pgup
 bind pgdown pgdown
+bind delete delete
 bind ^[ cancel
 bind ^Z suspend
 # backspace on most terminals

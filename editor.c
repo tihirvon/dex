@@ -525,14 +525,8 @@ static void keypress(enum term_key_type type, unsigned int key)
 			}
 			break;
 		case KEY_META:
-			handle_binding(type, key);
-			break;
 		case KEY_SPECIAL:
-			if (key == SKEY_DELETE) {
-				delete_ch();
-			} else {
-				handle_binding(type, key);
-			}
+			handle_binding(type, key);
 			break;
 		case KEY_PASTE:
 			insert_paste();
