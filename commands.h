@@ -5,7 +5,10 @@
 
 struct command {
 	const char *name;
-	void (*cmd)(char **);
+	const char *flags;
+	signed char min_args;
+	signed char max_args;
+	void (*cmd)(const char *, char **);
 };
 
 extern const struct command commands[];

@@ -1,7 +1,6 @@
 #include "syntax.h"
 #include "common.h"
 #include "editor.h"
-#include "parse-args.h"
 #include "regexp.h"
 
 static LIST_HEAD(syntaxes);
@@ -105,12 +104,9 @@ static void add_node(union syntax_node *n, int type, const char *name, unsigned 
 	syntax_nodes[nr_syntax_nodes++] = n;
 }
 
-void syn_begin(char **args)
+void syn_begin(const char *pf, char **args)
 {
 	struct syntax_context *c;
-
-	if (!parse_args(args, "", 1, 1))
-		return;
 
 	if (cur_syntax) {
 		error_msg("Syntax definition already started.");
@@ -128,11 +124,8 @@ void syn_begin(char **args)
 	add_node((union syntax_node *)c, SYNTAX_NODE_CONTEXT, "root", 0);
 }
 
-void syn_end(char **args)
+void syn_end(const char *pf, char **args)
 {
-	if (!parse_args(args, "", 0, 0))
-		return;
-
 	if (!cur_syntax) {
 		error_msg("No syntax definition has been started.");
 		return;
@@ -153,17 +146,14 @@ static union syntax_node *find_syntax_node(const char *name)
 	return NULL;
 }
 
-void syn_addw(char **args)
+void syn_addw(const char *pf, char **args)
 {
-	const char *pf = parse_args(args, "i", 2, -1);
 	const char *name;
 	union syntax_node *n;
 	struct syntax_word *w = NULL;
 	unsigned int flags = 0;
 	int i;
 
-	if (!pf)
-		return;
 	if (*pf)
 		flags |= SYNTAX_FLAG_ICASE;
 	name = args[0];
@@ -206,17 +196,14 @@ void syn_addw(char **args)
 	}
 }
 
-void syn_addr(char **args)
+void syn_addr(const char *pf, char **args)
 {
-	const char *pf = parse_args(args, "i", 2, 2);
 	const char *name;
 	const char *pattern;
 	union syntax_node *n;
 	struct syntax_pattern *p;
 	unsigned int flags = 0;
 
-	if (!pf)
-		return;
 	if (*pf)
 		flags |= SYNTAX_FLAG_ICASE;
 	name = args[0];
@@ -241,16 +228,13 @@ void syn_addr(char **args)
 	add_node((union syntax_node *)p, SYNTAX_NODE_PATTERN, name, flags);
 }
 
-void syn_addc(char **args)
+void syn_addc(const char *pf, char **args)
 {
-	const char *pf = parse_args(args, "hi", 3, 3);
 	const char *name;
 	union syntax_node *n;
 	struct syntax_context *c;
 	unsigned int flags = 0;
 
-	if (!pf)
-		return;
 	while (*pf) {
 		switch (*pf) {
 		case 'h':
@@ -322,15 +306,11 @@ static void connect_by_name(struct syntax_context *c, const char *name)
 	connect_node(c, n);
 }
 
-void syn_connect(char **args)
+void syn_connect(const char *pf, char **args)
 {
-	const char *name;
+	const char *name = args[0];
 	union syntax_node *n;
 	int i;
-
-	if (!parse_args(args, "", 2, -1))
-		return;
-	name = args[0];
 
 	n = find_syntax_node(name);
 	if (!n) {
@@ -379,13 +359,10 @@ static int parse_specifier(const char *name, enum syntax_node_specifier *specifi
 	return 0;
 }
 
-void syn_join(char **args)
+void syn_join(const char *pf, char **args)
 {
 	struct syntax_join *join;
 	int i;
-
-	if (!parse_args(args, "", 2, -1))
-		return;
 
 	join = get_join(get_real_node_name(args[0]));
 	for (i = 1; args[i]; i++) {

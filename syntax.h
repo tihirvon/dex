@@ -95,13 +95,13 @@ extern int nr_syntax_nodes;
 extern struct syntax_join *syntax_joins;
 extern int nr_syntax_joins;
 
-void syn_begin(char **args);
-void syn_end(char **args);
-void syn_addw(char **args);
-void syn_addr(char **args);
-void syn_addc(char **args);
-void syn_connect(char **args);
-void syn_join(char **args);
+void syn_begin(const char *pf, char **args);
+void syn_end(const char *pf, char **args);
+void syn_addw(const char *pf, char **args);
+void syn_addr(const char *pf, char **args);
+void syn_addc(const char *pf, char **args);
+void syn_connect(const char *pf, char **args);
+void syn_join(const char *pf, char **args);
 
 unsigned int buf_hash(const char *str, unsigned int size);
 struct syntax *find_syntax(const char *name);

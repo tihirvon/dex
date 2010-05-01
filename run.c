@@ -3,6 +3,7 @@
 #include "editor.h"
 #include "alias.h"
 #include "commands.h"
+#include "parse-args.h"
 
 const struct command *current_command;
 
@@ -44,6 +45,8 @@ void run_commands(const struct ptr_array *array)
 void run_command(const struct command *cmds, char **av)
 {
 	const struct command *cmd;
+	const char *pf;
+	char **args;
 
 	if (!av[0]) {
 		error_msg("Subcommand required");
@@ -82,7 +85,10 @@ void run_command(const struct command *cmds, char **av)
 	}
 
 	current_command = cmd;
-	cmd->cmd(av + 1);
+	args = av + 1;
+	pf = parse_args(args, cmd->flags, cmd->min_args, cmd->max_args);
+	if (pf)
+		cmd->cmd(pf, args);
 	current_command = NULL;
 }
 
