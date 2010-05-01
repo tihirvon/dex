@@ -118,7 +118,7 @@ void add_binding(char *keys, const char *command)
 	}
 
 	b->command = xstrdup(command);
-	list_add_before(&b->node, &bindings);
+	list_add_after(&b->node, &bindings);
 	return;
 error:
 	free(b);
