@@ -137,6 +137,11 @@ static void cmd_close(char **args)
 
 static void cmd_command(char **args)
 {
+	const char *pf = parse_args(args, "", 0, 1);
+
+	if (!pf)
+		return;
+
 	input_mode = INPUT_COMMAND;
 	update_flags |= UPDATE_STATUS_LINE;
 
