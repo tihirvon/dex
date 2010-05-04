@@ -415,10 +415,6 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 		;
 	if (!quiet)
 		ui_start(flags & SPAWN_PROMPT);
-	if (flags & SPAWN_JUMP_TO_ERROR && cerr.count) {
-		cerr.pos = 0;
-		show_compile_error();
-	}
 }
 
 static void goto_file_line(const char *filename, int line, int column)

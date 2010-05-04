@@ -15,7 +15,6 @@
 /* Error collection. Use with SPAWN_PIPE_*. */
 #define SPAWN_IGNORE_REDUNDANT	(1 << 6)
 #define SPAWN_IGNORE_DUPLICATES	(1 << 7)
-#define SPAWN_JUMP_TO_ERROR	(1 << 8)
 
 struct compile_error {
 	char *file;

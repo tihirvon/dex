@@ -655,8 +655,9 @@ static void cmd_run(const char *pf, char **args)
 	const char *compiler = NULL;
 	struct compiler_format *cf = NULL;
 	unsigned int cbits = SPAWN_PIPE_STDOUT | SPAWN_IGNORE_DUPLICATES |
-			     SPAWN_IGNORE_REDUNDANT | SPAWN_JUMP_TO_ERROR;
+			     SPAWN_IGNORE_REDUNDANT;
 	unsigned int flags = 0;
+	int jump_to_error = 0;
 	int quoted = 0;
 
 	while (*pf) {
@@ -674,7 +675,7 @@ static void cmd_run(const char *pf, char **args)
 			flags |= SPAWN_IGNORE_REDUNDANT;
 			break;
 		case 'j':
-			flags |= SPAWN_JUMP_TO_ERROR;
+			jump_to_error = 1;
 			break;
 		case 'p':
 			flags |= SPAWN_PROMPT;
@@ -720,6 +721,11 @@ static void cmd_run(const char *pf, char **args)
 		ptr_array_free(&array);
 	} else {
 		spawn(args, flags, cf);
+	}
+
+	if (jump_to_error && cerr.count) {
+		cerr.pos = 0;
+		show_compile_error();
 	}
 }
 
