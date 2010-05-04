@@ -653,6 +653,7 @@ static void cmd_right(const char *pf, char **args)
 static void cmd_run(const char *pf, char **args)
 {
 	const char *compiler = NULL;
+	struct compiler_format *cf = NULL;
 	unsigned int cbits = SPAWN_PIPE_STDOUT | SPAWN_IGNORE_DUPLICATES |
 			     SPAWN_IGNORE_REDUNDANT | SPAWN_JUMP_TO_ERROR;
 	unsigned int flags = 0;
@@ -695,6 +696,13 @@ static void cmd_run(const char *pf, char **args)
 		error_msg("Error parser must be specified when collecting error messages.");
 		return;
 	}
+	if (compiler) {
+		cf = find_compiler_format(compiler);
+		if (!cf) {
+			error_msg("No such error parser %s", compiler);
+			return;
+		}
+	}
 
 	if (quoted) {
 		PTR_ARRAY(array);
@@ -708,10 +716,10 @@ static void cmd_run(const char *pf, char **args)
 			ptr_array_free(&array);
 			return;
 		}
-		spawn((char **)array.ptrs, flags, compiler);
+		spawn((char **)array.ptrs, flags, cf);
 		ptr_array_free(&array);
 	} else {
-		spawn(args, flags, compiler);
+		spawn(args, flags, cf);
 	}
 }
 

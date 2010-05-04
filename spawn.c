@@ -6,21 +6,6 @@
 #include "regexp.h"
 #include "gbuf.h"
 
-struct error_format {
-	enum msg_importance importance;
-	signed char msg_idx;
-	signed char file_idx;
-	signed char line_idx;
-	signed char column_idx;
-	const char *pattern;
-};
-
-struct compiler_format {
-	char *compiler;
-	struct error_format *formats;
-	int nr_formats;
-};
-
 static struct compiler_format **compiler_formats;
 static int nr_compiler_formats;
 
@@ -364,7 +349,7 @@ error:
 	return -1;
 }
 
-static struct compiler_format *find_compiler_format(const char *name)
+struct compiler_format *find_compiler_format(const char *name)
 {
 	int i;
 
@@ -375,22 +360,13 @@ static struct compiler_format *find_compiler_format(const char *name)
 	return NULL;
 }
 
-void spawn(char **args, unsigned int flags, const char *compiler)
+void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 {
-	struct compiler_format *cf = NULL;
 	unsigned int stdout_quiet = flags & (SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDOUT);
 	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
-	int quiet = stdout_quiet && stderr_quiet && !compiler;
+	int quiet = stdout_quiet && stderr_quiet && !cf;
 	int pid, status;
 	int p[2];
-
-	if (compiler) {
-		cf = find_compiler_format(compiler);
-		if (!cf) {
-			error_msg("No such error parser %s", compiler);
-			return;
-		}
-	}
 
 	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && pipe(p)) {
 		error_msg("pipe: %s", strerror(errno));

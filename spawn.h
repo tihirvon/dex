@@ -37,6 +37,21 @@ enum msg_importance {
 	IMPORTANT,
 };
 
+struct error_format {
+	enum msg_importance importance;
+	signed char msg_idx;
+	signed char file_idx;
+	signed char line_idx;
+	signed char column_idx;
+	const char *pattern;
+};
+
+struct compiler_format {
+	char *compiler;
+	struct error_format *formats;
+	int nr_formats;
+};
+
 struct filter_data {
 	char *in;
 	char *out;
@@ -47,7 +62,8 @@ struct filter_data {
 extern struct compile_errors cerr;
 
 void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc);
-void spawn(char **args, unsigned int flags, const char *compiler);
+struct compiler_format *find_compiler_format(const char *name);
+void spawn(char **args, unsigned int flags, struct compiler_format *cf);
 int spawn_filter(char **argv, struct filter_data *data);
 void show_compile_error(void);
 
