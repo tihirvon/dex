@@ -18,9 +18,6 @@
 #define SPAWN_IGNORE_DUPLICATES	(1 << 7)
 #define SPAWN_JUMP_TO_ERROR	(1 << 8)
 
-/* Filter selection or all lines through a command. Use with SPAWN_PIPE_*. */
-#define SPAWN_FILTER		(1 << 9)
-
 struct compile_error {
 	char *file;
 	char *msg;
@@ -41,15 +38,18 @@ enum msg_importance {
 	IMPORTANT,
 };
 
-extern struct compile_errors cerr;
+struct filter_data {
+	char *in;
+	char *out;
+	unsigned int in_len;
+	unsigned int out_len;
+};
 
-extern char *spawn_unfiltered;
-extern int spawn_unfiltered_len;
-extern char *spawn_filtered;
-extern int spawn_filtered_len;
+extern struct compile_errors cerr;
 
 void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc);
 void spawn(char **args, unsigned int flags, const char *compiler);
+int spawn_filter(char **argv, struct filter_data *data);
 void show_compile_error(void);
 
 #endif

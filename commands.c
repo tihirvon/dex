@@ -294,23 +294,30 @@ static void cmd_ft(const char *pf, char **args)
 
 static void cmd_filter(const char *pf, char **args)
 {
+	struct filter_data data;
+	struct block_iter save = view->cursor;
+
 	if (selecting()) {
-		spawn_unfiltered_len = prepare_selection();
+		data.in_len = prepare_selection();
 	} else {
 		struct block *blk;
 
-		spawn_unfiltered_len = 0;
+		data.in_len = 0;
 		list_for_each_entry(blk, &buffer->blocks, node)
-			spawn_unfiltered_len += blk->size;
+			data.in_len += blk->size;
 		move_bof();
 	}
 
-	spawn_unfiltered = buffer_get_bytes(spawn_unfiltered_len);
-	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDERR, NULL);
+	data.in = buffer_get_bytes(data.in_len);
+	if (spawn_filter(args, &data)) {
+		free(data.in);
+		view->cursor = save;
+		return;
+	}
 
-	free(spawn_unfiltered);
-	replace(spawn_unfiltered_len, spawn_filtered, spawn_filtered_len);
-	free(spawn_filtered);
+	free(data.in);
+	replace(data.in_len, data.out, data.out_len);
+	free(data.out);
 
 	select_end();
 }
@@ -512,26 +519,26 @@ static void cmd_option(const char *pf, char **args)
 
 static void cmd_pass_through(const char *pf, char **args)
 {
+	struct filter_data data;
 	unsigned int del_len = 0;
-	int strip_nl;
+	int strip_nl = *pf == 's';
 
-	strip_nl = *pf == 's';
-
-	spawn_unfiltered = NULL;
-	spawn_unfiltered_len = 0;
-	spawn(args, SPAWN_FILTER | SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDERR, NULL);
+	data.in = NULL;
+	data.in_len = 0;
+	if (spawn_filter(args, &data))
+		return;
 
 	if (selecting()) {
 		del_len = prepare_selection();
 		select_end();
 	}
-	if (strip_nl && spawn_filtered_len > 0 && spawn_filtered[spawn_filtered_len - 1] == '\n') {
-		if (--spawn_filtered_len > 0 && spawn_filtered[spawn_filtered_len - 1] == '\r')
-			spawn_filtered_len--;
+	if (strip_nl && data.out_len > 0 && data.out[data.out_len - 1] == '\n') {
+		if (--data.out_len > 0 && data.out[data.out_len - 1] == '\r')
+			data.out_len--;
 	}
 
-	replace(del_len, spawn_filtered, spawn_filtered_len);
-	free(spawn_filtered);
+	replace(del_len, data.out, data.out_len);
+	free(data.out);
 }
 
 static void cmd_paste(const char *pf, char **args)

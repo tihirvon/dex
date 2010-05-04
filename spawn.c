@@ -27,11 +27,6 @@ static struct compiler_format *compiler_format;
 
 struct compile_errors cerr;
 
-char *spawn_unfiltered;
-int spawn_unfiltered_len;
-char *spawn_filtered;
-int spawn_filtered_len;
-
 static void free_compile_error(struct compile_error *e)
 {
 	free(e->msg);
@@ -136,13 +131,13 @@ static void read_stderr(int fd, unsigned int flags)
 	fclose(f);
 }
 
-static void filter(int rfd, int wfd)
+static void filter(int rfd, int wfd, struct filter_data *fdata)
 {
 	unsigned int wlen = 0;
 	GBUF(buf);
 	int rc;
 
-	if (!spawn_unfiltered_len) {
+	if (!fdata->in_len) {
 		close(wfd);
 		wfd = -1;
 	}
@@ -179,20 +174,20 @@ static void filter(int rfd, int wfd)
 				break;
 			}
 			if (!rc) {
-				if (wlen < spawn_unfiltered_len)
+				if (wlen < fdata->in_len)
 					error_msg("Command did not read all data.");
 				break;
 			}
 			gbuf_add_buf(&buf, data, rc);
 		}
 		if (wfdsp && FD_ISSET(wfd, &wfds)) {
-			rc = write(wfd, spawn_unfiltered + wlen, spawn_unfiltered_len - wlen);
+			rc = write(wfd, fdata->in + wlen, fdata->in_len - wlen);
 			if (rc < 0) {
 				error_msg("write: %s", strerror(errno));
 				break;
 			}
 			wlen += rc;
-			if (wlen == spawn_unfiltered_len) {
+			if (wlen == fdata->in_len) {
 				close(wfd);
 				wfd = -1;
 			}
@@ -200,12 +195,174 @@ static void filter(int rfd, int wfd)
 	}
 
 	if (buf.len) {
-		spawn_filtered_len = buf.len;
-		spawn_filtered = gbuf_steal(&buf);
+		fdata->out_len = buf.len;
+		fdata->out = gbuf_steal(&buf);
 	} else {
-		spawn_filtered_len = 0;
-		spawn_filtered = NULL;
+		fdata->out_len = 0;
+		fdata->out = NULL;
 	}
+}
+
+static void close_on_exec(int fd)
+{
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
+}
+
+static int dup_close_on_exec(int old, int new)
+{
+	if (dup2(old, new) < 0)
+		return -1;
+	fcntl(new, F_SETFD, FD_CLOEXEC);
+	return new;
+}
+
+static void handle_child(char **argv, int fd[3], int error_fd)
+{
+	int i, error, nr_fds = 3;
+	int move = error_fd < nr_fds;
+	int max = error_fd;
+
+	/*
+	 * Find if we must move fds out of the way.
+	 */
+	for (i = 0; i < nr_fds; i++) {
+		if (fd[i] > max)
+			max = fd[i];
+		if (fd[i] < i)
+			move = 1;
+	}
+
+	if (move) {
+		int next_free = max + 1;
+
+		if (error_fd < nr_fds) {
+			error_fd = dup_close_on_exec(error_fd, next_free++);
+			if (error_fd < 0)
+				goto out;
+		}
+		for (i = 0; i < nr_fds; i++) {
+			if (fd[i] < i) {
+				fd[i] = dup_close_on_exec(fd[i], next_free++);
+				if (fd[i] < 0)
+					goto out;
+			}
+		}
+	}
+
+	/*
+	 * Now it is safe to duplicate fds in this order.
+	 */
+	for (i = 0; i < nr_fds; i++) {
+		if (i == fd[i]) {
+			// Clear FD_CLOEXEC flag
+			fcntl(fd[i], F_SETFD, 0);
+		} else {
+			if (dup2(fd[i], i) < 0)
+				goto out;
+		}
+	}
+
+	execvp(argv[0], argv);
+out:
+	error = errno;
+	error = write(error_fd, &error, sizeof(error));
+	exit(42);
+}
+
+static int fork_exec(char **argv, int fd[3])
+{
+	int pid, rc, status, error = 0;
+	int ep[2];
+
+	if (pipe(ep))
+		return -1;
+
+	close_on_exec(ep[0]);
+	close_on_exec(ep[1]);
+
+	pid = fork();
+	if (pid < 0) {
+		error = errno;
+		close(ep[0]);
+		close(ep[1]);
+		errno = error;
+		return pid;
+	}
+	if (!pid)
+		handle_child(argv, fd, ep[1]);
+
+	close(ep[1]);
+	rc = read(ep[0], &error, sizeof(error));
+	if (rc > 0 && rc != sizeof(error))
+		error = EPIPE;
+	if (rc < 0)
+		error = errno;
+	close(ep[0]);
+
+	if (!rc) {
+		// child exec was successful
+		return pid;
+	}
+
+	while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
+		;
+	errno = error;
+	return -1;
+}
+
+int spawn_filter(char **argv, struct filter_data *data)
+{
+	int p0[2] = { -1, -1 };
+	int p1[2] = { -1, -1 };
+	int dev_null = -1;
+	int fd[3], pid, status;
+
+	data->out = NULL;
+	data->out_len = 0;
+
+	if (pipe(p0) || pipe(p1)) {
+		error_msg("pipe: %s", strerror(errno));
+		goto error;
+	}
+	dev_null = open("/dev/null", O_WRONLY);
+	if (dev_null < 0) {
+		error_msg("Error opening /dev/null: %s", strerror(errno));
+		goto error;
+	}
+
+	close_on_exec(p0[0]);
+	close_on_exec(p0[1]);
+	close_on_exec(p1[0]);
+	close_on_exec(p1[1]);
+	close_on_exec(dev_null);
+
+	fd[0] = p0[0];
+	fd[1] = p1[1];
+	fd[2] = dev_null;
+	pid = fork_exec(argv, fd);
+	if (pid < 0) {
+		error_msg("Error: %s", strerror(errno));
+		goto error;
+	}
+
+	close(dev_null);
+	close(p0[0]);
+	close(p1[1]);
+	filter(p1[0], p0[1], data);
+	close(p1[0]);
+	close(p0[1]);
+
+	while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
+		;
+
+	return 0;
+error:
+	close(p0[0]);
+	close(p0[1]);
+	close(p1[0]);
+	close(p1[1]);
+	close(dev_null);
+	return -1;
 }
 
 static struct compiler_format *find_compiler_format(const char *name)
@@ -225,7 +382,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
 	int quiet = stdout_quiet && stderr_quiet && !(flags & SPAWN_COLLECT_ERRORS);
 	int pid, status;
-	int p[2], fp[2];
+	int p[2];
 
 	compiler_format = NULL;
 	if (compiler) {
@@ -237,10 +394,6 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	}
 
 	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && pipe(p)) {
-		error_msg("pipe: %s", strerror(errno));
-		return;
-	}
-	if (flags & SPAWN_FILTER && pipe(fp)) {
 		error_msg("pipe: %s", strerror(errno));
 		return;
 	}
@@ -266,8 +419,6 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 			if (flags & SPAWN_REDIRECT_STDERR)
 				dup2(dev_null, 2);
 		}
-		if (flags & SPAWN_FILTER)
-			dup2(fp[0], 0);
 		if (flags & SPAWN_PIPE_STDERR)
 			dup2(p[1], 2);
 		if (flags & SPAWN_PIPE_STDOUT)
@@ -284,12 +435,6 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 		close(p[1]);
 		read_stderr(p[0], flags);
 		close(p[0]);
-	} else if (flags & SPAWN_FILTER) {
-		close(fp[0]);
-		close(p[1]);
-		filter(p[0], fp[1]);
-		close(p[0]);
-		close(fp[1]);
 	}
 	while (wait(&status) < 0 && errno == EINTR)
 		;
