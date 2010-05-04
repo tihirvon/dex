@@ -23,7 +23,6 @@ struct compiler_format {
 
 static struct compiler_format **compiler_formats;
 static int nr_compiler_formats;
-static struct compiler_format *compiler_format;
 
 struct compile_errors cerr;
 
@@ -79,7 +78,7 @@ static void add_error_msg(struct compile_error *e, unsigned int flags)
 	cerr.errors[cerr.count++] = e;
 }
 
-static void handle_error_msg(char *str, unsigned int flags)
+static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int flags)
 {
 	const struct error_format *p;
 	struct compile_error *e;
@@ -91,7 +90,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 	fprintf(stderr, "%s\n", str);
 
 	for (i = 0; ; i++) {
-		if (i == compiler_format->nr_formats) {
+		if (i == cf->nr_formats) {
 			e = xnew(struct compile_error, 1);
 			e->msg = xstrdup(str);
 			e->file = NULL;
@@ -99,7 +98,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 			add_error_msg(e, flags);
 			return;
 		}
-		p = &compiler_format->formats[i];
+		p = &cf->formats[i];
 		if (regexp_match(p->pattern, str))
 			break;
 	}
@@ -119,7 +118,7 @@ static void handle_error_msg(char *str, unsigned int flags)
 	free_regexp_matches();
 }
 
-static void read_stderr(int fd, unsigned int flags)
+static void read_stderr(struct compiler_format *cf, int fd, unsigned int flags)
 {
 	FILE *f = fdopen(fd, "r");
 	char line[4096];
@@ -127,7 +126,7 @@ static void read_stderr(int fd, unsigned int flags)
 	free_errors();
 
 	while (fgets(line, sizeof(line), f))
-		handle_error_msg(line, flags);
+		handle_error_msg(cf, line, flags);
 	fclose(f);
 }
 
@@ -378,16 +377,16 @@ static struct compiler_format *find_compiler_format(const char *name)
 
 void spawn(char **args, unsigned int flags, const char *compiler)
 {
+	struct compiler_format *cf = NULL;
 	unsigned int stdout_quiet = flags & (SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDOUT);
 	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
 	int quiet = stdout_quiet && stderr_quiet && !(flags & SPAWN_COLLECT_ERRORS);
 	int pid, status;
 	int p[2];
 
-	compiler_format = NULL;
 	if (compiler) {
-		compiler_format = find_compiler_format(compiler);
-		if (!compiler_format) {
+		cf = find_compiler_format(compiler);
+		if (!cf) {
 			error_msg("No such error parser %s", compiler);
 			return;
 		}
@@ -433,7 +432,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	}
 	if (flags & SPAWN_COLLECT_ERRORS) {
 		close(p[1]);
-		read_stderr(p[0], flags);
+		read_stderr(cf, p[0], flags);
 		close(p[0]);
 	}
 	while (wait(&status) < 0 && errno == EINTR)
