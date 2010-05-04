@@ -362,50 +362,46 @@ struct compiler_format *find_compiler_format(const char *name)
 
 void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 {
-	unsigned int stdout_quiet = flags & (SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDOUT);
-	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
-	int quiet = stdout_quiet && stderr_quiet && !cf;
-	int pid, status;
-	int p[2];
+	int pid, status, quiet;
+	int dev_null = -1;
+	int p[2] = { -1, -1 };
+	int fd[3] = { 0, 1, 2 };
 
 	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && pipe(p)) {
 		error_msg("pipe: %s", strerror(errno));
 		return;
 	}
+	if (flags & (SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR)) {
+		dev_null = open("/dev/null", O_WRONLY);
+		if (dev_null < 0) {
+			error_msg("Error opening /dev/null: %s", strerror(errno));
+			goto error;
+		}
+	}
+
+	if (flags & SPAWN_REDIRECT_STDOUT)
+		fd[1] = dev_null;
+	if (flags & SPAWN_REDIRECT_STDERR)
+		fd[2] = dev_null;
+	if (flags & SPAWN_PIPE_STDOUT)
+		fd[1] = p[1];
+	if (flags & SPAWN_PIPE_STDERR)
+		fd[2] = p[1];
+
+	quiet = fd[1] != 1 && fd[2] != 2 && !cf;
 
 	if (!quiet)
 		ui_end();
-	pid = fork();
+
+	pid = fork_exec(args, fd);
 	if (pid < 0) {
-		int error = errno;
+		error_msg("Error: %s", strerror(errno));
 		if (!quiet)
 			ui_start(0);
-		error_msg("fork: %s", strerror(error));
-		return;
+		goto error;
 	}
-	if (!pid) {
-		int i, dev_null = -1;
 
-		if (flags & (SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR))
-			dev_null = open("/dev/null", O_WRONLY);
-		if (dev_null != -1) {
-			if (flags & SPAWN_REDIRECT_STDOUT)
-				dup2(dev_null, 1);
-			if (flags & SPAWN_REDIRECT_STDERR)
-				dup2(dev_null, 2);
-		}
-		if (flags & SPAWN_PIPE_STDERR)
-			dup2(p[1], 2);
-		if (flags & SPAWN_PIPE_STDOUT)
-			dup2(p[1], 1);
-
-		// this should be unnecessary but better safe than sorry
-		for (i = 3; i < 30; i++)
-			close(i);
-
-		execvp(args[0], args);
-		exit(42);
-	}
+	close(dev_null);
 	if (cf) {
 		close(p[1]);
 		read_stderr(cf, p[0], flags);
@@ -415,6 +411,11 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 		;
 	if (!quiet)
 		ui_start(flags & SPAWN_PROMPT);
+	return;
+error:
+	close(p[0]);
+	close(p[1]);
+	close(dev_null);
 }
 
 static void goto_file_line(const char *filename, int line, int column)
