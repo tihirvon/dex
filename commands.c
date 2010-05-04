@@ -653,28 +653,27 @@ static void cmd_right(const char *pf, char **args)
 static void cmd_run(const char *pf, char **args)
 {
 	const char *compiler = NULL;
+	unsigned int cbits = SPAWN_PIPE_STDOUT | SPAWN_IGNORE_DUPLICATES |
+			     SPAWN_IGNORE_REDUNDANT | SPAWN_JUMP_TO_ERROR;
 	unsigned int flags = 0;
 	int quoted = 0;
 
 	while (*pf) {
 		switch (*pf) {
 		case '1':
-			flags |= SPAWN_COLLECT_ERRORS | SPAWN_PIPE_STDOUT;
+			flags |= SPAWN_PIPE_STDOUT;
 			break;
 		case 'c':
 			quoted = 1;
 			break;
 		case 'd':
-			flags |= SPAWN_COLLECT_ERRORS | SPAWN_IGNORE_DUPLICATES;
-			break;
-		case 'e':
-			flags |= SPAWN_COLLECT_ERRORS;
+			flags |= SPAWN_IGNORE_DUPLICATES;
 			break;
 		case 'i':
-			flags |= SPAWN_COLLECT_ERRORS | SPAWN_IGNORE_REDUNDANT;
+			flags |= SPAWN_IGNORE_REDUNDANT;
 			break;
 		case 'j':
-			flags |= SPAWN_COLLECT_ERRORS | SPAWN_JUMP_TO_ERROR;
+			flags |= SPAWN_JUMP_TO_ERROR;
 			break;
 		case 'p':
 			flags |= SPAWN_PROMPT;
@@ -689,13 +688,10 @@ static void cmd_run(const char *pf, char **args)
 		pf++;
 	}
 
-	if (compiler)
-		flags |= SPAWN_COLLECT_ERRORS;
-
-	if (flags & SPAWN_COLLECT_ERRORS && !(flags & SPAWN_PIPE_STDOUT))
+	if (flags & cbits && !(flags & SPAWN_PIPE_STDOUT))
 		flags |= SPAWN_PIPE_STDERR;
 
-	if (flags & SPAWN_COLLECT_ERRORS && !compiler) {
+	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && !compiler) {
 		error_msg("Error parser must be specified when collecting error messages.");
 		return;
 	}
@@ -1212,7 +1208,7 @@ const struct command commands[] = {
 	{ "repeat",		"",	2, -1, cmd_repeat },
 	{ "replace",		"bcgi",	2,  2, cmd_replace },
 	{ "right",		"",	0,  0, cmd_right },
-	{ "run",		"-1cdef=ijps",	1, -1, cmd_run },
+	{ "run",		"-1cdf=ijps",	1, -1, cmd_run },
 	{ "save",		"dfu",	0,  1, cmd_save },
 	{ "scroll-pgdown",	"",	0,  0, cmd_scroll_pgdown },
 	{ "scroll-pgup",	"",	0,  0, cmd_scroll_pgup },

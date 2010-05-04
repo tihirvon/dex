@@ -380,7 +380,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 	struct compiler_format *cf = NULL;
 	unsigned int stdout_quiet = flags & (SPAWN_PIPE_STDOUT | SPAWN_REDIRECT_STDOUT);
 	unsigned int stderr_quiet = flags & (SPAWN_PIPE_STDERR | SPAWN_REDIRECT_STDERR);
-	int quiet = stdout_quiet && stderr_quiet && !(flags & SPAWN_COLLECT_ERRORS);
+	int quiet = stdout_quiet && stderr_quiet && !compiler;
 	int pid, status;
 	int p[2];
 
@@ -430,7 +430,7 @@ void spawn(char **args, unsigned int flags, const char *compiler)
 		execvp(args[0], args);
 		exit(42);
 	}
-	if (flags & SPAWN_COLLECT_ERRORS) {
+	if (cf) {
 		close(p[1]);
 		read_stderr(cf, p[0], flags);
 		close(p[0]);
