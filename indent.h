@@ -19,6 +19,7 @@ struct indent_info {
 	int wsonly;
 };
 
+char *make_indent(struct indent_info *info);
 char *get_indent(void);
 void get_indent_info(const char *buf, int len, struct indent_info *info);
 int use_spaces_for_indent(void);

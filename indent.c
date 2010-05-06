@@ -1,7 +1,7 @@
 #include "indent.h"
 #include "buffer.h"
 
-static char *make_indent(struct indent_info *info)
+char *make_indent(struct indent_info *info)
 {
 	char *str;
 	int len;

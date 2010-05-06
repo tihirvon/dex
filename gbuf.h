@@ -13,6 +13,13 @@ extern char gbuf_empty_buffer[];
 
 #define GBUF(name) struct gbuf name = { gbuf_empty_buffer, 0, 0 }
 
+static inline void gbuf_init(struct gbuf *buf)
+{
+	buf->buffer = gbuf_empty_buffer;
+	buf->alloc = 0;
+	buf->len = 0;
+}
+
 static inline void gbuf_clear(struct gbuf *buf)
 {
 	buf->len = 0;

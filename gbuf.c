@@ -7,13 +7,6 @@
 
 char gbuf_empty_buffer[1];
 
-static inline void gbuf_init(struct gbuf *buf)
-{
-	buf->buffer = gbuf_empty_buffer;
-	buf->alloc = 0;
-	buf->len = 0;
-}
-
 void gbuf_grow(struct gbuf *buf, size_t more)
 {
 	size_t alloc = ROUND_UP(buf->len + more + 1, 16);

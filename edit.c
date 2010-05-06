@@ -7,6 +7,15 @@
 #include "gbuf.h"
 #include "indent.h"
 
+struct paragraph_formatter {
+	struct gbuf buf;
+	char *indent;
+	int indent_len;
+	int indent_width;
+	int cur_width;
+	int text_width;
+};
+
 unsigned int update_flags;
 
 static char *copy_buf;
@@ -610,28 +619,49 @@ void new_line(void)
 	undo_merge = UNDO_MERGE_NONE;
 }
 
-static void add_paragraph_line(struct gbuf *buf, const char *str, int len)
+static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 {
-	int i = 0;
-	int dot = 0;
+	unsigned int i = 0;
+	int word_width = 0;
+	int sentence_end = 0;
+	int bol = !pf->cur_width;
 
 	while (i < len) {
-		if (isspace(str[i])) {
+		unsigned char ch = word[i];
+		if (ch < 0x80 || !buffer->utf8) {
+			word_width++;
 			i++;
-			while (i < len && isspace(str[i]))
-				i++;
-			if (i == len)
-				break;
-			gbuf_add_ch(buf, ' ');
-			if (dot)
-				gbuf_add_ch(buf, ' ');
 		} else {
-			char ch = str[i++];
-			gbuf_add_ch(buf, ch);
-			dot = ch == '.' || ch == '?' || ch == '!';
+			word_width += u_char_width(u_buf_get_char(word, len, &i));
 		}
 	}
-	gbuf_add_ch(buf, '\n');
+
+	if (!bol) {
+		char ch = pf->buf.buffer[pf->buf.len - 1];
+		if (ch == '.' || ch == '?' || ch == '!')
+			sentence_end = 1;
+	}
+
+	if (pf->cur_width + sentence_end + 1 + word_width > pf->text_width) {
+		gbuf_add_ch(&pf->buf, '\n');
+		pf->cur_width = 0;
+		bol = 1;
+	}
+
+	if (bol) {
+		gbuf_add_buf(&pf->buf, pf->indent, pf->indent_len);
+		pf->cur_width = pf->indent_width;
+	} else {
+		if (sentence_end) {
+			gbuf_add_ch(&pf->buf, ' ');
+			pf->cur_width++;
+		}
+		gbuf_add_ch(&pf->buf, ' ');
+		pf->cur_width++;
+	}
+
+	gbuf_add_buf(&pf->buf, word, len);
+	pf->cur_width += word_width;
 }
 
 static int is_ws_line(const struct block_iter *i)
@@ -689,10 +719,10 @@ static unsigned int goto_eop(struct block_iter *bi)
 
 void format_paragraph(int text_width)
 {
+	struct paragraph_formatter pf;
 	struct indent_info info;
 	unsigned int len, i;
 	char *sel;
-	GBUF(buf);
 
 	undo_merge = UNDO_MERGE_NONE;
 
@@ -710,12 +740,17 @@ void format_paragraph(int text_width)
 
 	sel = do_delete(len);
 	get_indent_info(sel, len, &info);
+
+	gbuf_init(&pf.buf);
+	pf.indent = make_indent(&info);
+	pf.indent_len = pf.indent ? strlen(pf.indent) : 0;
+	pf.indent_width = info.width;
+	pf.cur_width = 0;
+	pf.text_width = text_width;
+
 	i = 0;
 	while (1) {
-		int start;
-		int ws_idx = -1;
-		int dot = 0;
-		int w = 0;
+		unsigned int start;
 
 		while (i < len && isspace(sel[i]))
 			i++;
@@ -723,51 +758,20 @@ void format_paragraph(int text_width)
 			break;
 
 		start = i;
-		while (i < len) {
-			if (isspace(sel[i])) {
-				ws_idx = i++;
-				while (i < len && isspace(sel[i]))
-					i++;
-				if (info.width + w + dot + 1 >= text_width) {
-					gbuf_add_buf(&buf, sel, info.bytes);
-					add_paragraph_line(&buf, sel + start, ws_idx - start);
-					w = 0;
-					break;
-				}
-				w += dot + 1;
-				dot = 0;
-			} else {
-				uchar u;
-				if (buffer->utf8) {
-					u = u_buf_get_char(sel, len, &i);
-					w += u_char_width(u);
-				} else {
-					u = sel[i++];
-					w++;
-				}
-				dot = u == '.' || u == '?' || u == '!';
-				if (info.width + w > text_width && ws_idx >= 0) {
-					gbuf_add_buf(&buf, sel, info.bytes);
-					add_paragraph_line(&buf, sel + start, ws_idx - start);
-					w = 0;
-					i = ws_idx + 1;
-					break;
-				}
-			}
-		}
+		while (i < len && !isspace(sel[i]))
+			i++;
 
-		if (w) {
-			gbuf_add_buf(&buf, sel, info.bytes);
-			add_paragraph_line(&buf, sel + start, i - start);
-			w = 0;
-		}
+		add_word(&pf, sel + start, i - start);
 	}
 
-	if (buf.len)
-		do_insert(buf.buffer, buf.len);
-	record_replace(sel, len, buf.len);
-	move_right(buf.len);
-	gbuf_free(&buf);
+	if (pf.buf.len) {
+		gbuf_add_ch(&pf.buf, '\n');
+		do_insert(pf.buf.buffer, pf.buf.len);
+	}
+	record_replace(sel, len, pf.buf.len);
+	move_right(pf.buf.len);
+	gbuf_free(&pf.buf);
+	free(pf.indent);
 
 	update_flags |= UPDATE_FULL;
 	select_end();
