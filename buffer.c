@@ -394,6 +394,7 @@ static int load_buffer(struct buffer *b, int must_exist);
 
 struct view *open_buffer(const char *filename, int must_exist)
 {
+	char cwd[PATH_MAX];
 	struct buffer *b;
 	struct view *v;
 	char *absolute;
@@ -419,8 +420,14 @@ struct view *open_buffer(const char *filename, int must_exist)
 	}
 
 	b = buffer_new();
-	b->filename = xstrdup(filename);
 	b->abs_filename = absolute;
+
+	if (getcwd(cwd, sizeof(cwd))) {
+		update_short_filename(b, cwd);
+	} else {
+		b->filename = xstrdup(b->abs_filename);
+	}
+
 	if (load_buffer(b, must_exist)) {
 		free_buffer(b);
 		return NULL;
