@@ -80,6 +80,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 			e->msg = xstrdup(str);
 			e->file = NULL;
 			e->line = -1;
+			e->column = -1;
 			add_error_msg(e, flags);
 			return;
 		}
