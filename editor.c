@@ -46,11 +46,12 @@ static void debug_blocks(void)
 	list_for_each_entry(blk, &buffer->blocks, node) {
 		BUG_ON(!blk->size && buffer->blocks.next->next != &buffer->blocks);
 		BUG_ON(blk->size > blk->alloc);
-		BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
 		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
 		BUG_ON(blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks);
 		if (blk == view->cursor.blk)
 			cursor_seen = 1;
+		if (DEBUG > 1)
+			BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
 	}
 	BUG_ON(!cursor_seen);
 #endif
