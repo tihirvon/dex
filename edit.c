@@ -675,16 +675,14 @@ static unsigned int goto_eop(struct block_iter *bi)
 	unsigned int count = 0;
 
 	while (1) {
-		unsigned int c;
+		uchar u;
 
 		if (is_ws_line(bi))
 			break;
-		c = block_iter_next_line(bi);
-		if (!c) {
-			count += block_iter_eol(bi);
+		count += block_iter_eol(bi);
+		if (!block_iter_next_byte(bi, &u))
 			break;
-		}
-		count += c;
+		count++;
 	}
 	return count;
 }
