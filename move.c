@@ -232,28 +232,37 @@ static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type typ
 	return count;
 }
 
-unsigned int word_fwd(struct block_iter *bi)
+unsigned int word_fwd(struct block_iter *bi, int skip_non_word)
 {
 	unsigned int count = 0;
 	enum char_type type;
 
-	if (!get_current_char_type(bi, &type))
-		return 0;
+	while (1) {
+		count += skip_fwd_char_type(bi, CT_SPACE);
+		if (!get_current_char_type(bi, &type))
+			return count;
 
-	count += skip_fwd_char_type(bi, type);
-	count += skip_fwd_char_type(bi, CT_SPACE);
-	return count;
+		if (count && (!skip_non_word || type == CT_WORD))
+			return count;
+
+		count += skip_fwd_char_type(bi, type);
+	}
 }
 
-unsigned int word_bwd(struct block_iter *bi)
+unsigned int word_bwd(struct block_iter *bi, int skip_non_word)
 {
-	unsigned int count;
+	unsigned int count = 0;
+	enum char_type type;
 	uchar u;
 
-	count = skip_bwd_char_type(bi, CT_SPACE);
-	if (block_iter_prev_byte(bi, &u)) {
-		enum char_type type = get_char_type(u);
+	do {
+		count += skip_bwd_char_type(bi, CT_SPACE);
+		if (!block_iter_prev_byte(bi, &u))
+			return count;
+
+		type = get_char_type(u);
+		count++;
 		count += skip_bwd_char_type(bi, type);
-	}
+	} while (skip_non_word && type != CT_WORD);
 	return count;
 }

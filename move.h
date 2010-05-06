@@ -17,7 +17,7 @@ void move_eof(void);
 void move_to_line(int line);
 void move_to_column(int column);
 
-unsigned int word_fwd(struct block_iter *bi);
-unsigned int word_bwd(struct block_iter *bi);
+unsigned int word_fwd(struct block_iter *bi, int skip_non_word);
+unsigned int word_bwd(struct block_iter *bi, int skip_non_word);
 
 #endif

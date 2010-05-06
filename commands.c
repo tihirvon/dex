@@ -162,8 +162,9 @@ static void cmd_delete_eol(const char *pf, char **args)
 
 static void cmd_delete_word(const char *pf, char **args)
 {
+	int skip_non_word = *pf == 's';
 	struct block_iter bi = view->cursor;
-	delete(word_fwd(&bi), 0);
+	delete(word_fwd(&bi, skip_non_word), 0);
 }
 
 static void cmd_down(const char *pf, char **args)
@@ -193,7 +194,8 @@ static void cmd_erase_bol(const char *pf, char **args)
 
 static void cmd_erase_word(const char *pf, char **args)
 {
-	delete(word_bwd(&view->cursor), 1);
+	int skip_non_word = *pf == 's';
+	delete(word_bwd(&view->cursor, skip_non_word), 1);
 }
 
 static void cmd_error(const char *pf, char **args)
@@ -1160,13 +1162,15 @@ static void cmd_view(const char *pf, char **args)
 
 static void cmd_word_bwd(const char *pf, char **args)
 {
-	word_bwd(&view->cursor);
+	int skip_non_word = *pf == 's';
+	word_bwd(&view->cursor, skip_non_word);
 	update_preferred_x();
 }
 
 static void cmd_word_fwd(const char *pf, char **args)
 {
-	word_fwd(&view->cursor);
+	int skip_non_word = *pf == 's';
+	word_fwd(&view->cursor, skip_non_word);
 	update_preferred_x();
 }
 
@@ -1186,13 +1190,13 @@ const struct command commands[] = {
 	{ "cut",		"",	0,  0, cmd_cut },
 	{ "delete",		"",	0,  0, cmd_delete },
 	{ "delete-eol",		"",	0,  0, cmd_delete_eol },
-	{ "delete-word",	"",	0,  0, cmd_delete_word },
+	{ "delete-word",	"s",	0,  0, cmd_delete_word },
 	{ "down",		"",	0,  0, cmd_down },
 	{ "eof",		"",	0,  0, cmd_eof },
 	{ "eol",		"",	0,  0, cmd_eol },
 	{ "erase",		"",	0,  0, cmd_erase },
 	{ "erase-bol",		"",	0,  0, cmd_erase_bol },
-	{ "erase-word",		"",	0,  0, cmd_erase_word },
+	{ "erase-word",		"s",	0,  0, cmd_erase_word },
 	{ "error",		"np",	0,  1, cmd_error },
 	{ "errorfmt",		"ir",	2, -1, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
@@ -1237,7 +1241,7 @@ const struct command commands[] = {
 	{ "undo",		"",	0,  0, cmd_undo },
 	{ "up",			"",	0,  0, cmd_up },
 	{ "view",		"",	1,  1, cmd_view },
-	{ "word-bwd",		"",	0,  0, cmd_word_bwd },
-	{ "word-fwd",		"",	0,  0, cmd_word_fwd },
+	{ "word-bwd",		"s",	0,  0, cmd_word_bwd },
+	{ "word-fwd",		"s",	0,  0, cmd_word_fwd },
 	{ NULL,			NULL,	0,  0, NULL }
 };
