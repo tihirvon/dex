@@ -66,11 +66,18 @@ static int verify_counter;
 
 static void verify_hl_list(struct list_head *head, const char *suffix)
 {
-#if DEBUG_SYNTAX
 	struct hl_list *list;
-#if DEBUG_SYNTAX > 1
 	char buf[128];
 	FILE *f;
+
+	if (!DEBUG_SYNTAX)
+		return;
+
+	list_for_each_entry(list, head, node)
+		BUG_ON(!list->count);
+
+	if (DEBUG_SYNTAX < 2)
+		return;
 
 	snprintf(buf, sizeof(buf), "/tmp/verify-%d-%d-%s", verify_count, verify_counter++, suffix);
 	f = fopen(buf, "w");
@@ -85,16 +92,10 @@ static void verify_hl_list(struct list_head *head, const char *suffix)
 		}
 	}
 	fclose(f);
-#endif
-
-	list_for_each_entry(list, head, node)
-		BUG_ON(!list->count);
-#endif
 }
 
 static void full_debug(void)
 {
-#if DEBUG_SYNTAX > 1
 	struct hl_list *list;
 	unsigned int pos = 0;
 	static int counter;
@@ -102,6 +103,9 @@ static void full_debug(void)
 	FILE *f;
 	int i;
 	struct block_iter save = view->cursor;
+
+	if (DEBUG_SYNTAX < 2)
+		return;
 
 	buffer_bof(&view->cursor);
 
@@ -134,17 +138,18 @@ static void full_debug(void)
 	}
 	fclose(f);
 	view->cursor = save;
-#endif
 }
 
 static void verify_hl_size(void)
 {
-#if DEBUG_SYNTAX
 	struct hl_list *list;
 	struct block *blk;
 	unsigned int hl_size = 0;
 	unsigned int size = 0;
 	int i;
+
+	if (!DEBUG_SYNTAX)
+		return;
 
 	list_for_each_entry(list, &buffer->hl_head, node) {
 		BUG_ON(!list->count);
@@ -159,7 +164,6 @@ static void verify_hl_size(void)
 
 	if (hl_size != size)
 		BUG("hl_size != size, %d %d\n", hl_size, size);
-#endif
 }
 
 void highlight_buffer(struct buffer *b)

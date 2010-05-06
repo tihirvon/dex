@@ -323,9 +323,11 @@ static void add_word_matches(struct highlighter *h, const union syntax_node *n)
 
 static void debug_match(const char *msg, const struct highlighter *h, const struct hl_match *m)
 {
-#if DEBUG_SYNTAX > 0
 	char buf[1024];
 	int pos, len = m->match.rm_eo - m->match.rm_so;
+
+	if (!DEBUG_SYNTAX)
+		return;
 
 	pos = snprintf(buf, sizeof(buf), "%s %s O=%d L=%d '",
 		msg, m->node->any.name, m->match.rm_so, len);
@@ -334,7 +336,6 @@ static void debug_match(const char *msg, const struct highlighter *h, const stru
 	buf[pos++] = '\'';
 	buf[pos++] = 0;
 	ds_print("%s\n", buf);
-#endif
 }
 
 static int highlight_line_context(struct highlighter *h)
@@ -343,14 +344,15 @@ static int highlight_line_context(struct highlighter *h)
 	int eflags = 0;
 	int i, offset;
 
-#if DEBUG_SYNTAX > 0
-	int line_len = h->line_len - h->offset;
-	char *line_buf = xmalloc(line_len + 1);
-	memcpy(line_buf, h->line + h->offset, line_len);
-	line_buf[line_len] = 0;
-	ds_print("line: '%s'\n", line_buf);
-	free(line_buf);
-#endif
+	if (DEBUG_SYNTAX > 0) {
+		int line_len = h->line_len - h->offset;
+		char *line_buf = xmalloc(line_len + 1);
+		memcpy(line_buf, h->line + h->offset, line_len);
+		line_buf[line_len] = 0;
+		ds_print("line: '%s'\n", line_buf);
+		free(line_buf);
+	}
+
 	if (h->offset > 0)
 		eflags |= REG_NOTBOL;
 

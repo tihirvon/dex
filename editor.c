@@ -37,9 +37,11 @@ static struct {
 
 static void debug_blocks(void)
 {
-#if DEBUG > 0
 	struct block *blk;
 	int cursor_seen = 0;
+
+	if (!DEBUG)
+		return;
 
 	BUG_ON(list_empty(&buffer->blocks));
 
@@ -54,7 +56,6 @@ static void debug_blocks(void)
 			BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
 	}
 	BUG_ON(!cursor_seen);
-#endif
 }
 
 static void discard_paste(void)
