@@ -370,6 +370,10 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case 0x06: // ^F
 			cmdline_next_char();
 			return 1;
+		case 0x1a: // ^Z
+			ui_end();
+			kill(0, SIGSTOP);
+			return 1;
 		case '\n': // ^J
 			// not allowed
 			return 1;
