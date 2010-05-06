@@ -18,5 +18,6 @@ void info_msg(const char *format, ...) __FORMAT(1, 2);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 void ui_start(int prompt);
 void ui_end(void);
+void set_signal_handler(int signum, void (*handler)(int));
 
 #endif

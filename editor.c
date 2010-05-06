@@ -741,7 +741,7 @@ static void handle_input(enum term_key_type type, unsigned int key)
 		handle_key(type, key);
 }
 
-static void set_signal_handler(int signum, void (*handler)(int))
+void set_signal_handler(int signum, void (*handler)(int))
 {
 	struct sigaction act;
 
