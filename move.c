@@ -176,11 +176,6 @@ void move_to_column(int column)
 	move_to_preferred_x();
 }
 
-static int is_whitespace(unsigned char byte)
-{
-	return byte == ' ' || byte == '\t' || byte == '\n';
-}
-
 unsigned int word_fwd(struct block_iter *bi)
 {
 	enum { space, word, other } type = other;
@@ -190,7 +185,7 @@ unsigned int word_fwd(struct block_iter *bi)
 	if (!block_iter_next_byte(bi, &u))
 		return 0;
 
-	if (is_whitespace(u))
+	if (isspace(u))
 		type = space;
 	else if (is_word_byte(u))
 		type = word;
@@ -200,7 +195,7 @@ unsigned int word_fwd(struct block_iter *bi)
 		count++;
 		switch (type) {
 		case space:
-			if (is_whitespace(u))
+			if (isspace(u))
 				continue;
 			break;
 		case word:
@@ -208,7 +203,7 @@ unsigned int word_fwd(struct block_iter *bi)
 				continue;
 			break;
 		case other:
-			if (!is_whitespace(u) && !is_word_byte(u))
+			if (!isspace(u) && !is_word_byte(u))
 				continue;
 			break;
 		}
@@ -228,7 +223,7 @@ unsigned int word_bwd(struct block_iter *bi)
 	if (!block_iter_prev_byte(bi, &u))
 		return 0;
 
-	if (is_whitespace(u))
+	if (isspace(u))
 		type = space;
 	else if (is_word_byte(u))
 		type = word;
@@ -238,7 +233,7 @@ unsigned int word_bwd(struct block_iter *bi)
 		count++;
 		switch (type) {
 		case space:
-			if (is_whitespace(u))
+			if (isspace(u))
 				continue;
 			break;
 		case word:
@@ -246,7 +241,7 @@ unsigned int word_bwd(struct block_iter *bi)
 				continue;
 			break;
 		case other:
-			if (!is_whitespace(u) && !is_word_byte(u))
+			if (!isspace(u) && !is_word_byte(u))
 				continue;
 			break;
 		}
