@@ -2,6 +2,12 @@
 #include "buffer.h"
 #include "indent.h"
 
+enum char_type {
+	CT_SPACE,
+	CT_WORD,
+	CT_OTHER,
+};
+
 void move_to_preferred_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;
@@ -176,78 +182,78 @@ void move_to_column(int column)
 	move_to_preferred_x();
 }
 
-unsigned int word_fwd(struct block_iter *bi)
+static enum char_type get_char_type(char ch)
 {
-	enum { space, word, other } type = other;
-	unsigned int count;
+	if (isspace(ch))
+		return CT_SPACE;
+	if (is_word_byte(ch))
+		return CT_WORD;
+	return CT_OTHER;
+}
+
+static int get_current_char_type(struct block_iter *bi, enum char_type *type)
+{
 	uchar u;
 
-	if (!block_iter_next_byte(bi, &u))
+	if (!buffer_get_char(bi, &u))
 		return 0;
 
-	if (isspace(u))
-		type = space;
-	else if (is_word_byte(u))
-		type = word;
+	*type = get_char_type(u);
+	return 1;
+}
 
-	count = 1;
+static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type type)
+{
+	unsigned int count = 0;
+	uchar u;
+
 	while (block_iter_next_byte(bi, &u)) {
-		count++;
-		switch (type) {
-		case space:
-			if (isspace(u))
-				continue;
-			break;
-		case word:
-			if (is_word_byte(u))
-				continue;
-			break;
-		case other:
-			if (!isspace(u) && !is_word_byte(u))
-				continue;
-			break;
+		if (get_char_type(u) != type) {
+			block_iter_prev_byte(bi, &u);
+			return count;
 		}
-		block_iter_prev_byte(bi, &u);
-		count--;
-		break;
+		count++;
 	}
+	return count;
+}
+
+static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type type)
+{
+	unsigned int count = 0;
+	uchar u;
+
+	while (block_iter_prev_byte(bi, &u)) {
+		if (get_char_type(u) != type) {
+			block_iter_next_byte(bi, &u);
+			return count;
+		}
+		count++;
+	}
+	return count;
+}
+
+unsigned int word_fwd(struct block_iter *bi)
+{
+	unsigned int count = 0;
+	enum char_type type;
+
+	if (!get_current_char_type(bi, &type))
+		return 0;
+
+	count += skip_fwd_char_type(bi, type);
+	count += skip_fwd_char_type(bi, CT_SPACE);
 	return count;
 }
 
 unsigned int word_bwd(struct block_iter *bi)
 {
-	enum { space, word, other } type = other;
 	unsigned int count;
 	uchar u;
 
-	if (!block_iter_prev_byte(bi, &u))
-		return 0;
-
-	if (isspace(u))
-		type = space;
-	else if (is_word_byte(u))
-		type = word;
-
-	count = 1;
-	while (block_iter_prev_byte(bi, &u)) {
-		count++;
-		switch (type) {
-		case space:
-			if (isspace(u))
-				continue;
-			break;
-		case word:
-			if (is_word_byte(u))
-				continue;
-			break;
-		case other:
-			if (!isspace(u) && !is_word_byte(u))
-				continue;
-			break;
-		}
-		block_iter_next_byte(bi, &u);
-		count--;
-		break;
+	count = skip_bwd_char_type(bi, CT_SPACE);
+	if (block_iter_prev_byte(bi, &u)) {
+		enum char_type type = get_char_type(u);
+		count += skip_bwd_char_type(bi, type);
 	}
 	return count;
 }
