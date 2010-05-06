@@ -890,6 +890,7 @@ int main(int argc, char *argv[])
 	/* Terminal does not generate signals for control keys. */
 	set_signal_handler(SIGINT, SIG_IGN);
 	set_signal_handler(SIGQUIT, SIG_IGN);
+	set_signal_handler(SIGPIPE, SIG_IGN);
 
 	/* Terminal does not generate signal for ^Z but someone can send
 	 * us SIGSTOP or SIGTSTP nevertheless.
