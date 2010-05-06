@@ -11,6 +11,7 @@ enum editor_status {
 
 extern enum editor_status editor_status;
 extern char *home_dir;
+extern int child_controls_terminal;
 
 const char *editor_file(const char *name);
 void error_msg(const char *format, ...) __FORMAT(1, 2);

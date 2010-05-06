@@ -397,8 +397,10 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 
 	quiet = fd[1] != 1 && fd[2] != 2 && !cf;
 
-	if (!quiet)
+	if (!quiet) {
+		child_controls_terminal = 1;
 		ui_end();
+	}
 
 	pid = fork_exec(args, fd);
 	if (pid < 0) {
@@ -416,8 +418,10 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 	}
 	while (wait(&status) < 0 && errno == EINTR)
 		;
-	if (!quiet)
+	if (!quiet) {
 		ui_start(flags & SPAWN_PROMPT);
+		child_controls_terminal = 0;
+	}
 	return;
 error:
 	close(p[0]);

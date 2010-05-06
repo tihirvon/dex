@@ -25,6 +25,7 @@ char *home_dir;
 enum input_mode input_mode;
 enum input_special input_special;
 enum editor_status editor_status;
+int child_controls_terminal;
 
 static int resized;
 static struct {
@@ -753,13 +754,15 @@ void set_signal_handler(int signum, void (*handler)(int))
 
 static void handle_sigtstp(int signum)
 {
-	ui_end();
+	if (!child_controls_terminal)
+		ui_end();
 	kill(0, SIGSTOP);
 }
 
 static void handle_sigcont(int signum)
 {
-	ui_start(0);
+	if (!child_controls_terminal)
+		ui_start(0);
 }
 
 static void handle_sigwinch(int signum)
