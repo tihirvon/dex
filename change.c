@@ -243,7 +243,7 @@ int redo(unsigned int change_id)
 		/* default to newest change  */
 		change_id = head->nr_prev - 1;
 		if (head->nr_prev > 1)
-			info_msg("Redoing newest of %d possible changes.", head->nr_prev);
+			info_msg("Redoing newest (%d) of %d possible changes.", change_id + 1, head->nr_prev);
 	}
 
 	head = head->prev[change_id];
