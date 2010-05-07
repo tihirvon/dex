@@ -173,7 +173,7 @@ void delete_ch(void)
 		delete(len, 0);
 		select_end();
 	} else {
-		begin_change(UNDO_MERGE_DELETE);
+		begin_change(CHANGE_MERGE_DELETE);
 
 		if (buffer->options.emulate_tab) {
 			int size = get_indent_level_bytes_right();
@@ -198,7 +198,7 @@ void erase(void)
 	} else {
 		uchar u;
 
-		begin_change(UNDO_MERGE_BACKSPACE);
+		begin_change(CHANGE_MERGE_ERASE);
 
 		if (buffer->options.emulate_tab) {
 			int size = get_indent_level_bytes_left();
@@ -273,7 +273,7 @@ void insert_ch(unsigned int ch)
 		do_insert("\n", 1);
 		ins_count++;
 
-		begin_change(UNDO_MERGE_NONE);
+		begin_change(CHANGE_MERGE_NONE);
 		record_replace(deleted, del_count, ins_count);
 		end_change();
 
@@ -294,7 +294,7 @@ void insert_ch(unsigned int ch)
 		if (block_iter_is_eof(&view->cursor))
 			buf[i++] = '\n';
 
-		begin_change(UNDO_MERGE_INSERT);
+		begin_change(CHANGE_MERGE_INSERT);
 		insert(buf, i);
 		end_change();
 

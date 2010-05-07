@@ -84,7 +84,7 @@ void run_command(const struct command *cmds, char **av)
 		return;
 	}
 
-	begin_change(UNDO_MERGE_NONE);
+	begin_change(CHANGE_MERGE_NONE);
 
 	current_command = cmd;
 	args = av + 1;

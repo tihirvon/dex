@@ -14,8 +14,8 @@ struct change {
 	char *buf;
 };
 
-static enum undo_merge undo_merge;
-static enum undo_merge prev_undo_merge;
+static enum change_merge change_merge;
+static enum change_merge prev_change_merge;
 
 static struct change *alloc_change(void)
 {
@@ -79,7 +79,7 @@ void record_insert(unsigned int len)
 	struct change *change = (struct change *)buffer->cur_change_head;
 
 	BUG_ON(!len);
-	if (undo_merge == prev_undo_merge && undo_merge == UNDO_MERGE_INSERT) {
+	if (change_merge == prev_change_merge && change_merge == CHANGE_MERGE_INSERT) {
 		BUG_ON(change->del_count);
 		change->ins_count += len;
 		return;
@@ -96,15 +96,15 @@ void record_delete(char *buf, unsigned int len, int move_after)
 
 	BUG_ON(!len);
 	BUG_ON(!buf);
-	if (undo_merge == prev_undo_merge) {
-		if (undo_merge == UNDO_MERGE_DELETE) {
+	if (change_merge == prev_change_merge) {
+		if (change_merge == CHANGE_MERGE_DELETE) {
 			xrenew(change->buf, change->del_count + len);
 			memcpy(change->buf + change->del_count, buf, len);
 			change->del_count += len;
 			free(buf);
 			return;
 		}
-		if (undo_merge == UNDO_MERGE_BACKSPACE) {
+		if (change_merge == CHANGE_MERGE_ERASE) {
 			xrenew(buf, len + change->del_count);
 			memcpy(buf + len, change->buf, change->del_count);
 			change->del_count += len;
@@ -137,14 +137,14 @@ void record_replace(char *deleted, unsigned int del_count, unsigned int ins_coun
 	change->buf = deleted;
 }
 
-void begin_change(enum undo_merge m)
+void begin_change(enum change_merge m)
 {
-	undo_merge = m;
+	change_merge = m;
 }
 
 void end_change(void)
 {
-	prev_undo_merge = undo_merge;
+	prev_change_merge = change_merge;
 }
 
 void begin_change_chain(void)
@@ -156,7 +156,7 @@ void begin_change_chain(void)
 	 * there will be any real changes
 	 */
 	change_barrier = alloc_change();
-	undo_merge = UNDO_MERGE_NONE;
+	change_merge = CHANGE_MERGE_NONE;
 }
 
 void end_change_chain(void)

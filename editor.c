@@ -70,7 +70,7 @@ static void insert_paste(void)
 {
 	unsigned int size;
 	char *text = term_read_paste(&size);
-	begin_change(UNDO_MERGE_NONE);
+	begin_change(CHANGE_MERGE_NONE);
 	insert(text, size);
 	end_change();
 	block_iter_skip_bytes(&view->cursor, size);
@@ -629,7 +629,7 @@ static void insert_special(const char *buf, int size)
 {
 	switch (input_mode) {
 	case INPUT_NORMAL:
-		begin_change(UNDO_MERGE_NONE);
+		begin_change(CHANGE_MERGE_NONE);
 		insert(buf, size);
 		end_change();
 		block_iter_skip_bytes(&view->cursor, size);
