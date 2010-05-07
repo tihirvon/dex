@@ -2,6 +2,7 @@
 #include "util.h"
 #include "editor.h"
 #include "run.h"
+#include "gbuf.h"
 
 const char *config_file;
 int config_line;
@@ -25,8 +26,9 @@ int read_config(const char *filename, int must_exist)
 	int saved_config_line = config_line;
 
 	struct stat st;
-	size_t size, alloc = 0;
-	char *buf, *ptr, *line = NULL;
+	size_t size;
+	GBUF(line);
+	char *buf, *ptr;
 	int fd;
 
 	fd = open(filename, O_RDONLY);
@@ -56,18 +58,14 @@ int read_config(const char *filename, int must_exist)
 			n = end - ptr;
 
 		if (is_command(ptr, n)) {
-			if (alloc < n + 1) {
-				alloc = ROUND_UP(n + 1, 64);
-				xrenew(line, alloc);
-			}
-			memcpy(line, ptr, n);
-			line[n] = 0;
-			handle_command(line);
+			gbuf_add_buf(&line, ptr, n);
+			handle_command(line.buffer);
+			gbuf_clear(&line);
 		}
 		config_line++;
 		ptr += n + 1;
 	}
-	free(line);
+	gbuf_free(&line);
 	xmunmap(buf, st.st_size);
 	config_file = saved_config_file;
 	config_line = saved_config_line;
