@@ -57,14 +57,20 @@ int read_config(const char *filename, int must_exist)
 		if (end)
 			n = end - ptr;
 
-		if (is_command(ptr, n)) {
-			gbuf_add_buf(&line, ptr, n);
-			handle_command(line.buffer);
-			gbuf_clear(&line);
+		if (line.len || is_command(ptr, n)) {
+			if (n && ptr[n - 1] == '\\') {
+				gbuf_add_buf(&line, ptr, n - 1);
+			} else {
+				gbuf_add_buf(&line, ptr, n);
+				handle_command(line.buffer);
+				gbuf_clear(&line);
+			}
 		}
 		config_line++;
 		ptr += n + 1;
 	}
+	if (line.len)
+		handle_command(line.buffer);
 	gbuf_free(&line);
 	xmunmap(buf, st.st_size);
 	config_file = saved_config_file;
