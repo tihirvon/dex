@@ -109,13 +109,6 @@ struct selection_info {
 	int nr_chars;
 };
 
-enum undo_merge {
-	UNDO_MERGE_NONE,
-	UNDO_MERGE_INSERT,
-	UNDO_MERGE_DELETE,
-	UNDO_MERGE_BACKSPACE
-};
-
 enum input_mode {
 	INPUT_NORMAL,
 	INPUT_COMMAND,
@@ -153,7 +146,6 @@ extern struct view *view;
 extern struct buffer *buffer;
 extern struct view *prev_view;
 
-extern enum undo_merge undo_merge;
 extern unsigned int update_flags;
 extern enum input_mode input_mode;
 extern enum input_special input_special;

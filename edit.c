@@ -111,7 +111,6 @@ void paste(void)
 {
 	unsigned int del_count = 0;
 
-	undo_merge = UNDO_MERGE_NONE;
 	if (!copy_buf)
 		return;
 
@@ -170,25 +169,21 @@ void delete_ch(void)
 	if (selecting()) {
 		unsigned int len;
 
-		undo_merge = UNDO_MERGE_NONE;
 		len = prepare_selection();
 		delete(len, 0);
 		select_end();
 	} else {
-		if (undo_merge != UNDO_MERGE_DELETE)
-			undo_merge = UNDO_MERGE_NONE;
+		begin_change(UNDO_MERGE_DELETE);
 
 		if (buffer->options.emulate_tab) {
 			int size = get_indent_level_bytes_right();
 			if (size) {
 				delete(size, 0);
-				undo_merge = UNDO_MERGE_DELETE;
 				return;
 			}
 		}
 
 		delete_one_ch();
-		undo_merge = UNDO_MERGE_DELETE;
 	}
 }
 
@@ -197,22 +192,19 @@ void erase(void)
 	if (selecting()) {
 		unsigned int len;
 
-		undo_merge = UNDO_MERGE_NONE;
 		len = prepare_selection();
 		delete(len, 1);
 		select_end();
 	} else {
 		uchar u;
 
-		if (undo_merge != UNDO_MERGE_BACKSPACE)
-			undo_merge = UNDO_MERGE_NONE;
+		begin_change(UNDO_MERGE_BACKSPACE);
 
 		if (buffer->options.emulate_tab) {
 			int size = get_indent_level_bytes_left();
 			if (size) {
 				move_left(size);
 				delete(size, 1);
-				undo_merge = UNDO_MERGE_BACKSPACE;
 				return;
 			}
 		}
@@ -224,7 +216,6 @@ void erase(void)
 				delete(1, 1);
 			}
 		}
-		undo_merge = UNDO_MERGE_BACKSPACE;
 	}
 }
 
@@ -259,9 +250,6 @@ void insert_ch(unsigned int ch)
 	if (selecting())
 		delete_ch();
 
-	if (undo_merge != UNDO_MERGE_INSERT)
-		undo_merge = UNDO_MERGE_NONE;
-
 	if (ch == '\n') {
 		char *indent = NULL;
 		char *deleted = NULL;
@@ -284,9 +272,12 @@ void insert_ch(unsigned int ch)
 		}
 		do_insert("\n", 1);
 		ins_count++;
+
+		begin_change(UNDO_MERGE_NONE);
 		record_replace(deleted, del_count, ins_count);
+		end_change();
+
 		move_right(ins_count);
-		undo_merge = UNDO_MERGE_NONE;
 	} else {
 		char buf[9];
 		unsigned int chars = 1;
@@ -302,10 +293,12 @@ void insert_ch(unsigned int ch)
 		}
 		if (block_iter_is_eof(&view->cursor))
 			buf[i++] = '\n';
-		insert(buf, i);
-		move_right(chars);
 
-		undo_merge = UNDO_MERGE_INSERT;
+		begin_change(UNDO_MERGE_INSERT);
+		insert(buf, i);
+		end_change();
+
+		move_right(chars);
 	}
 }
 
@@ -397,7 +390,6 @@ void join_lines(void)
 		count++;
 	}
 
-	undo_merge = UNDO_MERGE_NONE;
 	view->cursor = bi;
 	buf = do_delete(count);
 	do_insert(" ", 1);
@@ -593,8 +585,6 @@ void clear_lines(void)
 		ins_count = strlen(indent);
 	replace(del_count, indent, ins_count);
 	move_right(ins_count);
-
-	undo_merge = UNDO_MERGE_NONE;
 }
 
 void new_line(void)
@@ -615,8 +605,6 @@ void new_line(void)
 
 	record_insert(ins_count);
 	move_right(ins_count);
-
-	undo_merge = UNDO_MERGE_NONE;
 }
 
 static void add_word(struct paragraph_formatter *pf, const char *word, int len)
@@ -723,8 +711,6 @@ void format_paragraph(int text_width)
 	struct indent_info info;
 	unsigned int len, i;
 	char *sel;
-
-	undo_merge = UNDO_MERGE_NONE;
 
 	if (selecting()) {
 		view->selection = SELECT_LINES;

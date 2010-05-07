@@ -1,9 +1,9 @@
 #include "run.h"
-#include "buffer.h"
 #include "editor.h"
 #include "alias.h"
 #include "commands.h"
 #include "parse-args.h"
+#include "change.h"
 
 const struct command *current_command;
 
@@ -84,19 +84,21 @@ void run_command(const struct command *cmds, char **av)
 		return;
 	}
 
+	begin_change(UNDO_MERGE_NONE);
+
 	current_command = cmd;
 	args = av + 1;
 	pf = parse_args(args, cmd->flags, cmd->min_args, cmd->max_args);
 	if (pf)
 		cmd->cmd(pf, args);
 	current_command = NULL;
+
+	end_change();
 }
 
 void handle_command(const char *cmd)
 {
 	PTR_ARRAY(array);
-
-	undo_merge = UNDO_MERGE_NONE;
 
 	if (parse_commands(&array, cmd)) {
 		ptr_array_free(&array);

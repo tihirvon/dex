@@ -14,6 +14,9 @@ struct change {
 	char *buf;
 };
 
+static enum undo_merge undo_merge;
+static enum undo_merge prev_undo_merge;
+
 static struct change *alloc_change(void)
 {
 	return xcalloc(sizeof(struct change));
@@ -76,7 +79,8 @@ void record_insert(unsigned int len)
 	struct change *change = (struct change *)buffer->cur_change_head;
 
 	BUG_ON(!len);
-	if (undo_merge == UNDO_MERGE_INSERT && change && !change->del_count) {
+	if (undo_merge == prev_undo_merge && undo_merge == UNDO_MERGE_INSERT) {
+		BUG_ON(change->del_count);
 		change->ins_count += len;
 		return;
 	}
@@ -92,7 +96,7 @@ void record_delete(char *buf, unsigned int len, int move_after)
 
 	BUG_ON(!len);
 	BUG_ON(!buf);
-	if (change && !change->ins_count) {
+	if (undo_merge == prev_undo_merge) {
 		if (undo_merge == UNDO_MERGE_DELETE) {
 			xrenew(change->buf, change->del_count + len);
 			memcpy(change->buf + change->del_count, buf, len);
@@ -131,6 +135,16 @@ void record_replace(char *deleted, unsigned int del_count, unsigned int ins_coun
 	change->ins_count = ins_count;
 	change->del_count = del_count;
 	change->buf = deleted;
+}
+
+void begin_change(enum undo_merge m)
+{
+	undo_merge = m;
+}
+
+void end_change(void)
+{
+	prev_undo_merge = undo_merge;
 }
 
 void begin_change_chain(void)
@@ -193,7 +207,6 @@ int undo(void)
 	struct change_head *head = buffer->cur_change_head;
 	struct change *change;
 
-	undo_merge = UNDO_MERGE_NONE;
 	if (!head->next)
 		return 0;
 
@@ -224,8 +237,6 @@ int redo(unsigned int change_id)
 {
 	struct change_head *head = buffer->cur_change_head;
 	struct change *change;
-
-	undo_merge = UNDO_MERGE_NONE;
 
 	if (!head->prev) {
 		/* don't complain if change_id is 0 */

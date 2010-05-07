@@ -16,6 +16,7 @@
 #include "alias.h"
 #include "config.h"
 #include "run.h"
+#include "change.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -69,7 +70,9 @@ static void insert_paste(void)
 {
 	unsigned int size;
 	char *text = term_read_paste(&size);
+	begin_change(UNDO_MERGE_NONE);
 	insert(text, size);
+	end_change();
 	block_iter_skip_bytes(&view->cursor, size);
 	free(text);
 }
@@ -626,7 +629,9 @@ static void insert_special(const char *buf, int size)
 {
 	switch (input_mode) {
 	case INPUT_NORMAL:
+		begin_change(UNDO_MERGE_NONE);
 		insert(buf, size);
+		end_change();
 		block_iter_skip_bytes(&view->cursor, size);
 		break;
 	case INPUT_COMMAND:
