@@ -140,6 +140,7 @@ enum input_special {
 #define UPDATE_RANGE		(1 << 2)
 #define UPDATE_FULL		(1 << 3)
 #define UPDATE_TAB_BAR		(1 << 4)
+#define UPDATE_COMMAND_LINE	(1 << 5)
 
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;

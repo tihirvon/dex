@@ -250,7 +250,7 @@ void error_msg(const char *format, ...)
 	vsnprintf(error_buf + pos, sizeof(error_buf) - pos, format, ap);
 	va_end(ap);
 	msg_is_error = 1;
-	update_flags |= UPDATE_STATUS_LINE;
+	update_flags |= UPDATE_COMMAND_LINE;
 
 	if (editor_status == EDITOR_INITIALIZING) {
 		if (current_command)
@@ -269,7 +269,7 @@ void info_msg(const char *format, ...)
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
 	msg_is_error = 0;
-	update_flags |= UPDATE_STATUS_LINE;
+	update_flags |= UPDATE_COMMAND_LINE;
 }
 
 char get_confirmation(const char *choices, const char *format, ...)
@@ -348,6 +348,8 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			input_mode = INPUT_NORMAL;
 			// clear possible parse error
 			error_buf[0] = 0;
+			// "misc status" needs to be updated
+			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case 0x04: // ^D
 			cmdline_delete();
@@ -361,6 +363,8 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			break;
 		case 0x16: // ^V
 			input_special = INPUT_SPECIAL_UNKNOWN;
+			// "misc status" needs to be updated
+			update_flags |= UPDATE_STATUS_LINE;
 			break;
 
 		case 0x01: // ^A
@@ -500,6 +504,8 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		switch (key) {
 		case 'c':
 			options.ignore_case ^= 1;
+			// "misc status" needs to be updated
+			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case 'r':
 			search_init(current_search_direction() ^ 1);
@@ -549,12 +555,12 @@ static void keypress(enum term_key_type type, unsigned int key)
 		} else {
 			command_mode_key(type, key);
 		}
-		update_flags |= UPDATE_STATUS_LINE;
+		update_flags |= UPDATE_COMMAND_LINE;
 		break;
 	case INPUT_SEARCH:
 		if (!common_key(&search_history, type, key))
 			search_mode_key(type, key);
-		update_flags |= UPDATE_STATUS_LINE;
+		update_flags |= UPDATE_COMMAND_LINE;
 		break;
 	}
 }
@@ -615,10 +621,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	} else if (update_flags & UPDATE_CURSOR_LINE) {
 		update_range(view->cy, view->cy + 1);
 	}
-	if (update_flags & UPDATE_STATUS_LINE) {
+	if (update_flags & UPDATE_STATUS_LINE)
 		update_status_line(format_misc_status());
+	if (update_flags & UPDATE_COMMAND_LINE)
 		update_command_line();
-	}
 	restore_cursor();
 	buf_show_cursor();
 
@@ -964,7 +970,10 @@ int main(int argc, char *argv[])
 			enum term_key_type type;
 			if (term_read_key(&key, &type)) {
 				/* clear possible error message */
-				error_buf[0] = 0;
+				if (error_buf[0]) {
+					error_buf[0] = 0;
+					update_flags |= UPDATE_COMMAND_LINE;
+				}
 				handle_input(type, key);
 			}
 		}
