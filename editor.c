@@ -592,6 +592,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 	}
 
+	if (update_flags & (UPDATE_CURSOR_LINE | UPDATE_RANGE | UPDATE_FULL))
+		update_flags |= UPDATE_STATUS_LINE;
+
 	if (!update_flags)
 		return;
 
@@ -599,7 +602,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tab_bar();
 	if (update_flags & UPDATE_FULL) {
-		update_full();
+		update_range(view->vy, view->vy + window->h);
 	} else if (update_flags & UPDATE_RANGE) {
 		int y1 = cy;
 		int y2 = view->cy;
@@ -609,13 +612,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			y2 = tmp;
 		}
 		update_range(y1, y2 + 1);
-		update_status_line(format_misc_status());
-		update_command_line();
 	} else if (update_flags & UPDATE_CURSOR_LINE) {
 		update_range(view->cy, view->cy + 1);
-		update_status_line(format_misc_status());
-		update_command_line();
-	} else if (update_flags & UPDATE_STATUS_LINE) {
+	}
+	if (update_flags & UPDATE_STATUS_LINE) {
 		update_status_line(format_misc_status());
 		update_command_line();
 	}
