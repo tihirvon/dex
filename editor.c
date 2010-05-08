@@ -563,6 +563,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 {
 	int show_tab_bar = options.show_tab_bar;
 	int is_modified = buffer_modified(buffer);
+	int id = buffer->id;
 	int cx = view->cx_display;
 	int cy = view->cy;
 	int vx = view->vx;
@@ -572,8 +573,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	debug_blocks();
 	update_cursor();
 
-	if (!(update_flags & UPDATE_TAB_BAR)) {
-		// view has not changed
+	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {
 			update_flags |= UPDATE_FULL;
 		} else if (cy != view->cy) {
