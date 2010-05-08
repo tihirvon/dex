@@ -585,6 +585,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		} else if (cy != view->cy) {
 			update_flags |= UPDATE_RANGE;
 		} else if (cx != view->cx_display) {
+			// Current line must be updated if selecting text
+			// or the line has trailing whitespace (trailing
+			// whitespace isn't shown if cursor is positioned
+			// at or after the whitespace).
 			update_flags |= UPDATE_CURSOR_LINE;
 		}
 		if (is_modified != buffer_modified(buffer))
