@@ -176,7 +176,9 @@ static const char *format_misc_status(void)
 
 static void update_full(void)
 {
-	update_cursor();
+	update_cursor_x();
+	update_cursor_y();
+	update_view();
 	update_range(view->vy, view->vy + window->h);
 	update_status_line(format_misc_status());
 	update_command_line();
@@ -576,7 +578,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 
 	keypress(type, key);
 	debug_blocks();
-	update_cursor();
+	update_cursor_x();
+	update_cursor_y();
+	update_view();
 
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {

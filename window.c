@@ -185,11 +185,8 @@ static int update_view_y(void)
 	return 0;
 }
 
-void update_cursor(void)
+void update_view(void)
 {
-	update_cursor_x();
-	update_cursor_y();
-
 	update_view_x();
 	if (view->force_center || (view->center_on_scroll && cursor_outside_view()))
 		center_view_to_cursor();
