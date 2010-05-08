@@ -583,6 +583,8 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		}
 		if (is_modified != buffer_modified(buffer))
 			update_flags |= UPDATE_STATUS_LINE | UPDATE_TAB_BAR;
+	} else {
+		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 	}
 
 	if (show_tab_bar != options.show_tab_bar) {
