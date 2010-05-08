@@ -176,6 +176,7 @@ static const char *format_misc_status(void)
 
 static void update_full(void)
 {
+	update_cursor();
 	update_range(view->vy, view->vy + window->h);
 	update_status_line(format_misc_status());
 	update_command_line();
@@ -184,7 +185,6 @@ static void update_full(void)
 static void update_everything(void)
 {
 	update_screen_size();
-	update_cursor();
 	buf_hide_cursor();
 	if (options.show_tab_bar)
 		print_tab_bar();
@@ -296,7 +296,6 @@ char get_confirmation(const char *choices, const char *format, ...)
 	error_buf[pos++] = ']';
 	error_buf[pos] = 0;
 
-	update_cursor();
 	buf_hide_cursor();
 	update_full();
 	restore_cursor();
@@ -742,7 +741,6 @@ static void special_input_handle_key(enum term_key_type type, unsigned int key)
 	} else {
 		switch (input_mode) {
 		case INPUT_NORMAL:
-			update_cursor();
 			update_full();
 			break;
 		case INPUT_COMMAND:
