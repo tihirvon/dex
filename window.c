@@ -151,14 +151,37 @@ void update_cursor_x(void)
 	}
 }
 
+static int cursor_outside_view(void)
+{
+	return view->cy < view->vy || view->cy > view->vy + window->h - 1;
+}
+
+static void update_view_x(void)
+{
+	unsigned int c = 8;
+
+	if (view->cx_display - view->vx >= window->w)
+		view->vx = (view->cx_display - window->w + c) / c * c;
+	if (view->cx_display < view->vx)
+		view->vx = view->cx_display / c * c;
+}
+
 static int update_view_y(void)
 {
-	if (view->cy < view->vy) {
-		view->vy = view->cy;
+	int max_y, margin = get_scroll_margin();
+
+	if (view->cy < view->vy + margin) {
+		view->vy = view->cy - margin;
+		if (view->vy < 0)
+			view->vy = 0;
 		return 1;
 	}
-	if (view->cy > view->vy + window->h - 1) {
-		view->vy = view->cy - window->h + 1;
+	max_y = view->vy + window->h - 1 - margin;
+	if (view->cy > max_y) {
+		view->vy += view->cy - max_y;
+		max_y = buffer->nl - window->h + 1;
+		if (view->vy > max_y && max_y >= 0)
+			view->vy = max_y;
 		return 1;
 	}
 	return 0;
@@ -166,35 +189,14 @@ static int update_view_y(void)
 
 void update_cursor(void)
 {
-	unsigned int c = 8;
-
 	update_cursor_x();
 	update_cursor_y();
-	if (view->cx_display - view->vx >= window->w)
-		view->vx = (view->cx_display - window->w + c) & ~(c - 1);
-	if (view->cx_display < view->vx)
-		view->vx = view->cx_display / c * c;
 
-	if (view->force_center || (update_view_y() && view->center_on_scroll))
+	update_view_x();
+	if (view->force_center || (view->center_on_scroll && cursor_outside_view()))
 		center_view_to_cursor();
-	else {
-		int margin = get_scroll_margin();
-		int max_y;
-
-		if (view->cy < view->vy + margin) {
-			if (view->cy < margin)
-				view->vy = 0;
-			else
-				view->vy = view->cy - margin;
-		}
-		max_y = view->vy + window->h - 1 - margin;
-		if (view->cy > max_y) {
-			view->vy += view->cy - max_y;
-			max_y = buffer->nl - window->h + 1;
-			if (view->vy > max_y && max_y >= 0)
-				view->vy = max_y;
-		}
-	}
+	else
+		update_view_y();
 
 	view->force_center = 0;
 	view->center_on_scroll = 0;
