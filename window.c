@@ -80,8 +80,6 @@ void set_view(struct view *v)
 
 void next_buffer(void)
 {
-	BUG_ON(!window);
-	BUG_ON(!window->view);
 	if (window->view->node.next == &window->views) {
 		set_view(VIEW(window->views.next));
 	} else {
