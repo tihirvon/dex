@@ -1,10 +1,21 @@
 #include "obuf.h"
 #include "term.h"
 #include "util.h"
-#include "options.h"
 #include "common.h"
 
 struct output_buffer obuf;
+int screen_w = 80;
+int screen_h = 24;
+
+void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
+{
+	obuf.x = 0;
+	obuf.start_x = start_x;
+	obuf.width = width;
+	obuf.scroll_x = scroll_x;
+	obuf.tab_width = 8;
+	obuf.tab = TAB_CONTROL;
+}
 
 // does not update obuf.x
 static void buf_add_bytes(const char *str, int count)
@@ -83,7 +94,6 @@ void buf_show_cursor(void)
 void buf_move_cursor(int x, int y)
 {
 	buf_escape(term_move_cursor(x, y));
-	obuf.x = x;
 }
 
 void buf_set_color(const struct term_color *color)
@@ -98,7 +108,9 @@ void buf_set_color(const struct term_color *color)
 void buf_clear_eol(void)
 {
 	if (obuf.x < obuf.scroll_x + obuf.width) {
-		if (term_cap.ce && (obuf.color.bg < 0 || term_cap.ut)) {
+		int can_clear = obuf.start_x + obuf.width == screen_w;
+
+		if (can_clear && term_cap.ce && (obuf.color.bg < 0 || term_cap.ut)) {
 			buf_escape(term_cap.ce);
 		} else {
 			buf_set_bytes(' ', obuf.scroll_x + obuf.width - obuf.x);
@@ -121,9 +133,9 @@ static void skipped_too_much(uchar u)
 
 	if (obuf.alloc - obuf.count < 8)
 		buf_flush();
-	if (u == '\t') {
+	if (u == '\t' && obuf.tab != TAB_CONTROL) {
 		char ch = ' ';
-		if (options.display_special)
+		if (obuf.tab == TAB_SPECIAL)
 			ch = '-';
 		memset(obuf.buf + obuf.count, ch, n);
 		obuf.count += n;
@@ -145,7 +157,7 @@ void buf_skip(uchar u, int utf8)
 	if (u < 0x80 || !utf8) {
 		if (u >= 0x20) {
 			obuf.x++;
-		} else if (u == '\t') {
+		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
 			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
 		} else {
 			// control
@@ -163,7 +175,7 @@ static void print_tab(unsigned int width)
 {
 	char ch = ' ';
 
-	if (options.display_special) {
+	if (obuf.tab == TAB_SPECIAL) {
 		obuf.buf[obuf.count++] = '>';
 		obuf.x++;
 		width--;
@@ -190,7 +202,7 @@ int buf_put_char(uchar u, int utf8)
 		if (u >= 0x20 && u != 0x7f) {
 			obuf.buf[obuf.count++] = u;
 			obuf.x++;
-		} else if (u == '\t') {
+		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
 			width = (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
 			if (width > space)
 				width = space;

@@ -16,16 +16,24 @@ struct output_buffer {
 	// if smaller than scroll_x printed characters are not visible
 	unsigned int x;
 
-	// width of screen
+	unsigned int start_x;
 	unsigned int width;
 
 	unsigned int tab_width;
+	enum {
+		TAB_NORMAL,
+		TAB_SPECIAL,
+		TAB_CONTROL,
+	} tab;
 
 	struct term_color color;
 };
 
 extern struct output_buffer obuf;
+extern int screen_w;
+extern int screen_h;
 
+void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x);
 void buf_set_bytes(char ch, int count);
 void buf_ch(char ch);
 void buf_escape(const char *str);

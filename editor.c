@@ -923,7 +923,6 @@ int main(int argc, char *argv[])
 
 	obuf.alloc = 8192;
 	obuf.buf = xmalloc(obuf.alloc);
-	obuf.width = 80;
 
 	load_file_history();
 	history_load(&command_history, editor_file("command-history"));

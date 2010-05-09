@@ -17,9 +17,6 @@ struct line_info {
 	unsigned int trailing_ws_offset;
 };
 
-int screen_w = 80;
-int screen_h = 24;
-
 int nr_errors;
 int msg_is_error;
 char error_buf[256];
@@ -212,6 +209,7 @@ void print_tab_bar(void)
 		}
 	}
 
+	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y - 1);
 	buf_set_color(&tab_inactive_color->color);
 
@@ -395,6 +393,7 @@ void update_status_line(const char *misc_status)
 	char rbuf[256];
 	int lw, rw;
 
+	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y + window->h);
 	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf) - 5, options.statusline_left, misc_status);
@@ -409,6 +408,7 @@ void update_status_line(const char *misc_status)
 		buf_add_str(rbuf);
 	} else {
 		buf_add_str(lbuf);
+		obuf.x = window->w - rw;
 		buf_move_cursor(window->x + window->w - rw, window->y + window->h);
 		buf_add_str(rbuf);
 	}
@@ -442,8 +442,6 @@ static void print_command(uchar prefix)
 	if (!cmdline.buffer[cmdline_pos])
 		w++;
 
-	obuf.tab_width = 8;
-	obuf.scroll_x = 0;
 	if (w > window->w)
 		obuf.scroll_x = w - window->w;
 
@@ -472,6 +470,7 @@ static void print_command(uchar prefix)
 
 void update_command_line(void)
 {
+	buf_reset(0, screen_w, 0);
 	buf_move_cursor(0, screen_h - 1);
 	switch (input_mode) {
 	case INPUT_COMMAND:
@@ -483,8 +482,6 @@ void update_command_line(void)
 		print_command(current_search_direction() == SEARCH_FWD ? '/' : '?');
 		break;
 	default:
-		obuf.tab_width = 8;
-		obuf.scroll_x = 0;
 		if (error_buf[0]) {
 			unsigned int i = 0;
 
@@ -736,8 +733,9 @@ void update_range(int y1, int y2)
 	struct block_iter bi = view->cursor;
 	int i, got_line;
 
+	buf_reset(window->x, window->w, view->vx);
 	obuf.tab_width = buffer->options.tab_width;
-	obuf.scroll_x = view->vx;
+	obuf.tab = options.display_special ? TAB_SPECIAL : TAB_NORMAL;
 
 	for (i = 0; i < view->cy - y1; i++)
 		block_iter_prev_line(&bi);
@@ -756,6 +754,7 @@ void update_range(int y1, int y2)
 	for (i = y1; got_line && i < y2; i++) {
 		struct line_info info;
 
+		obuf.x = 0;
 		buf_move_cursor(window->x, window->y + i);
 
 		init_line_info(&info, &bi);
@@ -769,6 +768,7 @@ void update_range(int y1, int y2)
 
 	if (i < y2 && current_line == view->cy) {
 		// dummy empty line
+		obuf.x = 0;
 		update_color(0, 0);
 		buf_move_cursor(window->x, window->y + i++);
 		buf_clear_eol();
@@ -777,12 +777,11 @@ void update_range(int y1, int y2)
 	if (i < y2)
 		buf_set_color(&nontext_color->color);
 	for (; i < y2; i++) {
+		obuf.x = 0;
 		buf_move_cursor(window->x, window->y + i);
 		buf_ch('~');
 		buf_clear_eol();
 	}
-
-	obuf.scroll_x = 0;
 }
 
 void restore_cursor(void)
@@ -802,10 +801,10 @@ void restore_cursor(void)
 
 void update_window_sizes(void)
 {
+	window->x = 0;
 	window->y = options.show_tab_bar;
 	window->w = screen_w;
 	window->h = screen_h - window->y - 2;
-	obuf.width = screen_w;
 }
 
 void update_screen_size(void)
