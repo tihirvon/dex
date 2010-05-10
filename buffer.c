@@ -337,15 +337,9 @@ struct syntax *load_syntax(const char *filetype)
 	return syn;
 }
 
-void update_short_filename(struct buffer *b, const char *cwd)
+static char *relative_filename(const char *f, const char *cwd)
 {
-	const char *f = b->abs_filename;
 	int i, tpos, tlen, dotdot, len, clen = 0;
-
-	if (!f)
-		return;
-
-	free(b->filename);
 
 	// length of common path
 	while (cwd[clen] && cwd[clen] == f[clen])
@@ -355,8 +349,7 @@ void update_short_filename(struct buffer *b, const char *cwd)
 		// cwd    = /home/user
 		// abs    = /home/user/project-a/file.c
 		// common = /home/user
-		b->filename = xstrdup(f + clen + 1);
-		return;
+		return xstrdup(f + clen + 1);
 	}
 
 	// cwd    = /home/user/src/project
@@ -379,14 +372,44 @@ void update_short_filename(struct buffer *b, const char *cwd)
 	tlen = strlen(f + tpos);
 	len = dotdot * 3 + tlen;
 	if (dotdot < 3 && len < strlen(f)) {
-		b->filename = xnew(char, len + 1);
+		char *filename = xnew(char, len + 1);
 		for (i = 0; i < dotdot; i++)
-			memcpy(b->filename + i * 3, "../", 3);
-		memcpy(b->filename + dotdot * 3, f + tpos, tlen + 1);
+			memcpy(filename + i * 3, "../", 3);
+		memcpy(filename + dotdot * 3, f + tpos, tlen + 1);
+		return filename;
+	}
+	return NULL;
+}
+
+void update_short_filename(struct buffer *b, const char *cwd)
+{
+	const char *absolute = b->abs_filename;
+	int home_len;
+	char *rel;
+
+	if (!absolute)
 		return;
+
+	free(b->filename);
+	rel = relative_filename(absolute, cwd);
+	home_len = strlen(home_dir);
+	if (!memcmp(absolute, home_dir, home_len) && absolute[home_len] == '/') {
+		int abs_len = strlen(absolute);
+		int len = abs_len - home_len + 1;
+		if (!rel || len < strlen(rel)) {
+			char *filename = xnew(char, len + 1);
+			filename[0] = '~';
+			memcpy(filename + 1, absolute + home_len, len);
+			b->filename = filename;
+			free(rel);
+			return;
+		}
 	}
 
-	b->filename = xstrdup(f);
+	if (rel)
+		b->filename = rel;
+	else
+		b->filename = xstrdup(absolute);
 }
 
 static int load_buffer(struct buffer *b, int must_exist);
