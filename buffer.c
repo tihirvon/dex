@@ -381,7 +381,7 @@ static char *relative_filename(const char *f, const char *cwd)
 	return NULL;
 }
 
-void update_short_filename(struct buffer *b, const char *cwd)
+void update_short_filename_cwd(struct buffer *b, const char *cwd)
 {
 	const char *absolute = b->abs_filename;
 	int home_len;
@@ -412,11 +412,22 @@ void update_short_filename(struct buffer *b, const char *cwd)
 		b->filename = xstrdup(absolute);
 }
 
+void update_short_filename(struct buffer *b)
+{
+	char cwd[PATH_MAX];
+
+	if (getcwd(cwd, sizeof(cwd))) {
+		update_short_filename_cwd(b, cwd);
+	} else {
+		free(b->filename);
+		b->filename = xstrdup(b->abs_filename);
+	}
+}
+
 static int load_buffer(struct buffer *b, int must_exist);
 
 struct view *open_buffer(const char *filename, int must_exist)
 {
-	char cwd[PATH_MAX];
 	struct buffer *b;
 	struct view *v;
 	char *absolute;
@@ -443,12 +454,7 @@ struct view *open_buffer(const char *filename, int must_exist)
 
 	b = buffer_new();
 	b->abs_filename = absolute;
-
-	if (getcwd(cwd, sizeof(cwd))) {
-		update_short_filename(b, cwd);
-	} else {
-		b->filename = xstrdup(b->abs_filename);
-	}
+	update_short_filename(b);
 
 	if (load_buffer(b, must_exist)) {
 		free_buffer(b);

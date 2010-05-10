@@ -86,7 +86,7 @@ static void cmd_cd(const char *pf, char **args)
 	list_for_each_entry(w, &windows, node) {
 		list_for_each_entry(v, &w->views, node) {
 			if (got_cwd)
-				update_short_filename(v->buffer, cwd);
+				update_short_filename_cwd(v->buffer, cwd);
 			else
 				v->buffer->filename = xstrdup(v->buffer->abs_filename);
 		}

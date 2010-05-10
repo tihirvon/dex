@@ -169,7 +169,8 @@ static inline int selecting(void)
 void init_selection(struct selection_info *info);
 void fill_selection_info(struct selection_info *info);
 
-void update_short_filename(struct buffer *b, const char *cwd);
+void update_short_filename_cwd(struct buffer *b, const char *cwd);
+void update_short_filename(struct buffer *b);
 struct view *find_view_by_buffer_id(unsigned int buffer_id);
 struct view *open_buffer(const char *filename, int must_exist);
 struct view *open_empty_buffer(void);
