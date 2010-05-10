@@ -440,43 +440,44 @@ struct view *open_buffer(const char *filename, int must_exist)
 
 static int load_buffer(struct buffer *b, int must_exist)
 {
+	const char *filename = b->abs_filename;
 	int fd;
 
 	if (options.lock_files) {
-		if (lock_file(b->abs_filename)) {
+		if (lock_file(filename)) {
 			b->ro = 1;
 		} else {
 			b->locked = 1;
 		}
 	}
 
-	fd = open(b->filename, O_RDONLY);
+	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
 		if (errno != ENOENT) {
-			error_msg("Error opening %s: %s", b->filename, strerror(errno));
+			error_msg("Error opening %s: %s", filename, strerror(errno));
 			return -1;
 		}
 		if (must_exist) {
-			error_msg("File %s does not exist.", b->filename);
+			error_msg("File %s does not exist.", filename);
 			return -1;
 		}
 	} else {
 		fstat(fd, &b->st);
 		if (!S_ISREG(b->st.st_mode)) {
-			error_msg("Can't open %s %s", get_file_type(b->st.st_mode), b->filename);
+			error_msg("Can't open %s %s", get_file_type(b->st.st_mode), filename);
 			close(fd);
 			return -1;
 		}
 
 		if (read_blocks(b, fd)) {
-			error_msg("Error reading %s: %s", b->filename, strerror(errno));
+			error_msg("Error reading %s: %s", filename, strerror(errno));
 			close(fd);
 			return -1;
 		}
 		close(fd);
 
-		if (!b->ro && access(b->abs_filename, W_OK)) {
-			error_msg("No write permission to %s, marking read-only.", b->filename);
+		if (!b->ro && access(filename, W_OK)) {
+			error_msg("No write permission to %s, marking read-only.", filename);
 			b->ro = 1;
 		}
 	}
