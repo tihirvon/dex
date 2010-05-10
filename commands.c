@@ -865,10 +865,9 @@ static void cmd_save(const char *pf, char **args)
 		}
 		buffer->locked = new_locked;
 
-		free(buffer->filename);
 		free(buffer->abs_filename);
-		buffer->filename = xstrdup(args[0]);
 		buffer->abs_filename = absolute;
+		update_short_filename(buffer);
 	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
