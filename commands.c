@@ -72,22 +72,24 @@ static void cmd_case(const char *pf, char **args)
 
 static void cmd_cd(const char *pf, char **args)
 {
-	char buf[PATH_MAX];
+	char cwd[PATH_MAX];
 	struct window *w;
 	struct view *v;
+	int got_cwd;
 
 	if (chdir(args[0])) {
 		error_msg("cd: %s", strerror(errno));
 		return;
 	}
-	if (!getcwd(buf, sizeof(buf))) {
-		error_msg("Can't get current workind directory: %s", strerror(errno));
-		return;
-	}
 
+	got_cwd = !!getcwd(cwd, sizeof(cwd));
 	list_for_each_entry(w, &windows, node) {
-		list_for_each_entry(v, &w->views, node)
-			update_short_filename(v->buffer, buf);
+		list_for_each_entry(v, &w->views, node) {
+			if (got_cwd)
+				update_short_filename(v->buffer, cwd);
+			else
+				v->buffer->filename = xstrdup(v->buffer->abs_filename);
+		}
 	}
 
 	update_flags |= UPDATE_TAB_BAR | UPDATE_STATUS_LINE;
