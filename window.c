@@ -178,25 +178,21 @@ static void update_view_x(void)
 		view->vx = view->cx_display / c * c;
 }
 
-static int update_view_y(void)
+static void update_view_y(void)
 {
-	int max_y, margin = get_scroll_margin();
+	int margin = get_scroll_margin();
+	int max_y = view->vy + window->h - 1 - margin;
 
 	if (view->cy < view->vy + margin) {
 		view->vy = view->cy - margin;
 		if (view->vy < 0)
 			view->vy = 0;
-		return 1;
-	}
-	max_y = view->vy + window->h - 1 - margin;
-	if (view->cy > max_y) {
+	} else if (view->cy > max_y) {
 		view->vy += view->cy - max_y;
 		max_y = buffer->nl - window->h + 1;
 		if (view->vy > max_y && max_y >= 0)
 			view->vy = max_y;
-		return 1;
 	}
-	return 0;
 }
 
 void update_view(void)
