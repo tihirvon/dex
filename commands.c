@@ -868,6 +868,9 @@ static void cmd_save(const char *pf, char **args)
 		free(buffer->abs_filename);
 		buffer->abs_filename = absolute;
 		update_short_filename(buffer);
+
+		// filename change is not detected (only buffer_modified() change)
+		update_flags |= UPDATE_STATUS_LINE | UPDATE_TAB_BAR;
 	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
