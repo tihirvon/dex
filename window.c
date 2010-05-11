@@ -152,6 +152,22 @@ static int cursor_outside_view(void)
 	return view->cy < view->vy || view->cy > view->vy + window->h - 1;
 }
 
+static void center_view_to_cursor(void)
+{
+	unsigned int hh = window->h / 2;
+
+	if (window->h >= buffer->nl || view->cy < hh) {
+		view->vy = 0;
+		return;
+	}
+
+	view->vy = view->cy - hh;
+	if (view->vy + window->h > buffer->nl) {
+		/* -1 makes one ~ line visible so that you know where the EOF is */
+		view->vy -= view->vy + window->h - buffer->nl - 1;
+	}
+}
+
 static void update_view_x(void)
 {
 	unsigned int c = 8;
@@ -193,20 +209,4 @@ void update_view(void)
 
 	view->force_center = 0;
 	view->center_on_scroll = 0;
-}
-
-void center_view_to_cursor(void)
-{
-	unsigned int hh = window->h / 2;
-
-	if (window->h >= buffer->nl || view->cy < hh) {
-		view->vy = 0;
-		return;
-	}
-
-	view->vy = view->cy - hh;
-	if (view->vy + window->h > buffer->nl) {
-		/* -1 makes one ~ line visible so that you know where the EOF is */
-		view->vy -= view->vy + window->h - buffer->nl - 1;
-	}
 }

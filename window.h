@@ -35,7 +35,6 @@ void prev_buffer(void);
 void update_cursor_y(void);
 void update_cursor_x(void);
 void update_view(void);
-void center_view_to_cursor(void);
 
 static inline int get_scroll_margin(void)
 {
