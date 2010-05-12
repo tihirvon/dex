@@ -379,5 +379,5 @@ void reset_completion(void)
 	for (i = 0; i < completion.count; i++)
 		free(completion.matches[i]);
 	free(completion.matches);
-	memset(&completion, 0, sizeof(completion));
+	clear(&completion);
 }

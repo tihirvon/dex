@@ -215,7 +215,7 @@ static void free_tags(struct ptr_array *tags)
 		free(t);
 	}
 	free(tags->ptrs);
-	memset(tags, 0, sizeof(*tags));
+	clear(tags);
 }
 
 int find_tags(const char *name)

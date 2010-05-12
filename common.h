@@ -29,6 +29,8 @@
 
 #define ARRAY_COUNT(x) (sizeof(x) / sizeof(x[0]))
 
+#define clear(ptr) memset((ptr), 0, sizeof(*(ptr)))
+
 static inline size_t ROUND_UP(size_t x, size_t r)
 {
 	r--;

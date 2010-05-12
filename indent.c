@@ -52,7 +52,7 @@ void get_indent_info(const char *buf, int len, struct indent_info *info)
 	int tabs = 0;
 	int pos = 0;
 
-	memset(info, 0, sizeof(struct indent_info));
+	clear(info);
 	info->sane = 1;
 	while (pos < len) {
 		if (buf[pos] == ' ') {

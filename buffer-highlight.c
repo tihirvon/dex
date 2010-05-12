@@ -17,7 +17,7 @@ static void fetch_and_highlight(struct block_iter *bi, struct highlighter *h)
 
 static void init_highlighter(struct highlighter *h, struct buffer *b)
 {
-	memset(h, 0, sizeof(*h));
+	clear(h);
 	h->headp = &b->hl_head;
 	h->syn = b->syn;
 }

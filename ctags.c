@@ -179,7 +179,7 @@ int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, s
 		if (exact && line[prefix_len] != '\t')
 			continue;
 
-		memset(t, 0, sizeof(*t));
+		clear(t);
 		if (!parse_line(t, line, len))
 			continue;
 
