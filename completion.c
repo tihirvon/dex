@@ -267,7 +267,7 @@ static void init_completion(void)
 			break;
 		}
 
-		if (semicolon == array.count - 1) {
+		if (semicolon + 1 == array.count) {
 			char *name = xstrndup(cmd + pos, end - pos);
 			const char *value = find_alias(name);
 
@@ -281,6 +281,9 @@ static void init_completion(void)
 					}
 					array.count = save;
 					ptr_array_add(&array, parse_command_arg(name, 1));
+				} else {
+					// Remove NULL
+					array.count--;
 				}
 			} else {
 				ptr_array_add(&array, parse_command_arg(name, 1));
