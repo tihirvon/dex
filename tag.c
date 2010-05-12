@@ -237,13 +237,17 @@ void collect_tags(const char *prefix)
 {
 	struct tag t;
 	size_t pos = 0;
+	char *prev = NULL;
 
 	if (!load_tag_file())
 		return;
 
 	while (next_tag(tag_file, &pos, prefix, 0, &t)) {
-		add_completion(t.name);
-		t.name = NULL;
+		if (!prev || strcmp(prev, t.name)) {
+			add_completion(t.name);
+			prev = t.name;
+			t.name = NULL;
+		}
 		free_tag(&t);
 	}
 }
