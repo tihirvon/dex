@@ -207,11 +207,7 @@ static void free_tags(struct ptr_array *tags)
 	int i;
 	for (i = 0; i < tags->count; i++) {
 		struct tag *t = tags->ptrs[i];
-		free(t->name);
-		free(t->filename);
-		free(t->pattern);
-		free(t->member);
-		free(t->typeref);
+		free_tag(t);
 		free(t);
 	}
 	free(tags->ptrs);
@@ -245,6 +241,9 @@ void collect_tags(const char *prefix)
 	if (!load_tag_file())
 		return;
 
-	while (next_tag(tag_file, &pos, prefix, 0, &t))
-		add_completion(xstrdup(t.name));
+	while (next_tag(tag_file, &pos, prefix, 0, &t)) {
+		add_completion(t.name);
+		t.name = NULL;
+		free_tag(&t);
+	}
 }

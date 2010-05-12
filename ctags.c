@@ -94,6 +94,7 @@ static int parse_line(struct tag *t, const char *buf, int size)
 	const char *end;
 	int len, si = 0;
 
+	clear(t);
 	end = memchr(buf, '\t', size);
 	if (!end)
 		goto error;
@@ -151,8 +152,7 @@ static int parse_line(struct tag *t, const char *buf, int size)
 	}
 	return 1;
 error:
-	free(t->name);
-	free(t->filename);
+	free_tag(t);
 	return 0;
 }
 
@@ -179,7 +179,6 @@ int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, s
 		if (exact && line[prefix_len] != '\t')
 			continue;
 
-		clear(t);
 		if (!parse_line(t, line, len))
 			continue;
 
@@ -187,4 +186,14 @@ int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, s
 		return 1;
 	}
 	return 0;
+}
+
+// NOTE: t itself is not freed
+void free_tag(struct tag *t)
+{
+	free(t->name);
+	free(t->filename);
+	free(t->pattern);
+	free(t->member);
+	free(t->typeref);
 }
