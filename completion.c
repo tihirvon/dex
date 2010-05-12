@@ -6,6 +6,7 @@
 #include "alias.h"
 #include "gbuf.h"
 #include "ptr-array.h"
+#include "tag.h"
 #include "common.h"
 
 static struct {
@@ -221,8 +222,14 @@ static void collect_completions(char **args, int argc)
 		}
 		return;
 	}
-	if (!strcmp(cmd->name, "toggle") && argc == 1)
+	if (!strcmp(cmd->name, "toggle") && argc == 1) {
 		collect_toggleable_options(completion.parsed);
+		return;
+	}
+	if (!strcmp(cmd->name, "tag") && argc == 1) {
+		collect_tags(completion.parsed);
+		return;
+	}
 }
 
 static void init_completion(void)

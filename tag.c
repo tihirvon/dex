@@ -6,6 +6,7 @@
 #include "search.h"
 #include "list.h"
 #include "ptr-array.h"
+#include "completion.h"
 
 struct file_location {
 	struct list_head node;
@@ -234,4 +235,16 @@ int find_tags(const char *name)
 	free(t);
 	sort_tags(&current_tags);
 	return 1;
+}
+
+void collect_tags(const char *prefix)
+{
+	struct tag t;
+	size_t pos = 0;
+
+	if (!load_tag_file())
+		return;
+
+	while (next_tag(tag_file, &pos, prefix, 0, &t))
+		add_completion(xstrdup(t.name));
 }
