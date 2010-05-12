@@ -885,6 +885,11 @@ error:
 		free(absolute);
 }
 
+static void cmd_scroll_down(const char *pf, char **args)
+{
+	view->vy++;
+}
+
 static void cmd_scroll_pgdown(const char *pf, char **args)
 {
 	int max = buffer->nl - window->h + 1;
@@ -911,6 +916,12 @@ static void cmd_scroll_pgup(const char *pf, char **args)
 		move_up(count);
 		update_flags |= UPDATE_FULL;
 	}
+}
+
+static void cmd_scroll_up(const char *pf, char **args)
+{
+	if (view->vy)
+		view->vy--;
 }
 
 static void cmd_search(const char *pf, char **args)
@@ -1232,8 +1243,10 @@ const struct command commands[] = {
 	{ "right",		"",	0,  0, cmd_right },
 	{ "run",		"-1cdf=ijps",	1, -1, cmd_run },
 	{ "save",		"dfu",	0,  1, cmd_save },
+	{ "scroll-down",	"",	0,  0, cmd_scroll_down },
 	{ "scroll-pgdown",	"",	0,  0, cmd_scroll_pgdown },
 	{ "scroll-pgup",	"",	0,  0, cmd_scroll_pgup },
+	{ "scroll-up",		"",	0,  0, cmd_scroll_up },
 	{ "search",		"nprw",	0,  1, cmd_search },
 	{ "select",		"l",	0,  0, cmd_select },
 	{ "set",		"gl",	1,  2, cmd_set },
