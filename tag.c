@@ -5,6 +5,7 @@
 #include "move.h"
 #include "search.h"
 #include "list.h"
+#include "ptr-array.h"
 
 struct file_location {
 	struct list_head node;
@@ -200,12 +201,37 @@ static int load_tag_file(void)
 	return !!tag_file;
 }
 
+static void free_tags(struct ptr_array *tags)
+{
+	int i;
+	for (i = 0; i < tags->count; i++) {
+		struct tag *t = tags->ptrs[i];
+		free(t->name);
+		free(t->filename);
+		free(t->pattern);
+		free(t->member);
+		free(t->typeref);
+		free(t);
+	}
+	free(tags->ptrs);
+	memset(tags, 0, sizeof(*tags));
+}
+
 int find_tags(const char *name)
 {
+	struct tag *t;
+	size_t pos = 0;
+
 	if (!load_tag_file())
 		return 0;
+
 	free_tags(&current_tags);
-	search_tags(tag_file, &current_tags, name);
+	t = xnew(struct tag, 1);
+	while (next_tag(tag_file, &pos, name, 1, t)) {
+		ptr_array_add(&current_tags, t);
+		t = xnew(struct tag, 1);
+	}
+	free(t);
 	sort_tags(&current_tags);
 	return 1;
 }

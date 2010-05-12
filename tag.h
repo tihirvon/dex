@@ -2,6 +2,7 @@
 #define TAG_H
 
 #include "ctags.h"
+#include "ptr-array.h"
 
 extern struct ptr_array current_tags;
 

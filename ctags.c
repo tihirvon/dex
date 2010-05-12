@@ -1,7 +1,6 @@
 #include "ctags.h"
 #include "common.h"
 #include "util.h"
-#include "ptr-array.h"
 
 struct tag_file *open_tag_file(const char *filename)
 {
@@ -157,16 +156,15 @@ error:
 	return 0;
 }
 
-void search_tags(struct tag_file *tf, struct ptr_array *tags, const char *name)
+int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, struct tag *t)
 {
-	int name_len = strlen(name);
-	size_t pos = 0;
+	size_t prefix_len = strlen(prefix);
+	size_t pos = *posp;
 
 	while (pos < tf->size) {
 		size_t len = tf->size - pos;
 		char *line = tf->map + pos;
 		char *end = memchr(line, '\n', len);
-		struct tag *t;
 
 		if (end)
 			len = end - line;
@@ -175,29 +173,18 @@ void search_tags(struct tag_file *tf, struct ptr_array *tags, const char *name)
 		if (!len || line[0] == '!')
 			continue;
 
-		if (len <= name_len || memcmp(line, name, name_len) || line[name_len] != '\t')
+		if (len <= prefix_len || memcmp(line, prefix, prefix_len))
 			continue;
 
-		t = xnew0(struct tag, 1);
-		if (parse_line(t, line, len))
-			ptr_array_add(tags, t);
-		else
-			free(t);
-	}
-}
+		if (exact && line[prefix_len] != '\t')
+			continue;
 
-void free_tags(struct ptr_array *tags)
-{
-	int i;
-	for (i = 0; i < tags->count; i++) {
-		struct tag *t = tags->ptrs[i];
-		free(t->name);
-		free(t->filename);
-		free(t->pattern);
-		free(t->member);
-		free(t->typeref);
-		free(t);
+		memset(t, 0, sizeof(*t));
+		if (!parse_line(t, line, len))
+			continue;
+
+		*posp = pos;
+		return 1;
 	}
-	free(tags->ptrs);
-	memset(tags, 0, sizeof(*tags));
+	return 0;
 }

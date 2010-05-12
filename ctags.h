@@ -1,8 +1,6 @@
 #ifndef CTAGS_H
 #define CTAGS_H
 
-#include "ptr-array.h"
-
 #include <stdlib.h>
 
 struct tag_file {
@@ -25,7 +23,6 @@ struct tag {
 
 struct tag_file *open_tag_file(const char *filename);
 void close_tag_file(struct tag_file *tf);
-void search_tags(struct tag_file *tf, struct ptr_array *tags, const char *name);
-void free_tags(struct ptr_array *tags);
+int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, struct tag *t);
 
 #endif
