@@ -16,9 +16,7 @@ static struct {
 
 	char *head;
 	char *tail;
-	char **matches;
-	int count;
-	int alloc;
+	struct ptr_array completions;
 	int idx;
 
 	// should we add space after completed string if we have only one match?
@@ -38,17 +36,14 @@ static int strptrcmp(const void *ap, const void *bp)
 
 static void sort_completions(void)
 {
-	if (completion.count > 1)
-		qsort(completion.matches, completion.count, sizeof(*completion.matches), strptrcmp);
+	struct ptr_array *a = &completion.completions;
+	if (a->count > 1)
+		qsort(a->ptrs, a->count, sizeof(*a->ptrs), strptrcmp);
 }
 
 void add_completion(char *str)
 {
-	if (completion.count == completion.alloc) {
-		completion.alloc = ROUND_UP(completion.count + 1, 8);
-		xrenew(completion.matches, completion.alloc);
-	}
-	completion.matches[completion.count++] = str;
+	ptr_array_add(&completion.completions, str);
 }
 
 static void collect_commands(const char *prefix)
@@ -179,11 +174,12 @@ static void collect_and_sort_files(void)
 {
 	collect_files();
 	sort_completions();
-	if (completion.count == 1) {
+	if (completion.completions.count == 1) {
 		// if we have only one match we add space after completed
 		// string for files, not directories
-		int len = strlen(completion.matches[0]);
-		completion.add_space = completion.matches[0][len - 1] != '/';
+		const char *str = completion.completions.ptrs[0];
+		int len = strlen(str);
+		completion.add_space = str[len - 1] != '/';
 	}
 }
 
@@ -341,10 +337,10 @@ void complete_command(void)
 
 	if (!completion.head)
 		init_completion();
-	if (!completion.count)
+	if (!completion.completions.count)
 		return;
 
-	middle = shell_escape(completion.matches[completion.idx]);
+	middle = shell_escape(completion.completions.ptrs[completion.idx]);
 	middle_len = strlen(middle);
 	head_len = strlen(completion.head);
 	tail_len = strlen(completion.tail);
@@ -352,7 +348,7 @@ void complete_command(void)
 	str = xmalloc(head_len + middle_len + tail_len + 2);
 	memcpy(str, completion.head, head_len);
 	memcpy(str + head_len, middle, middle_len);
-	if (completion.count == 1 && completion.add_space) {
+	if (completion.completions.count == 1 && completion.add_space) {
 		str[head_len + middle_len] = ' ';
 		middle_len++;
 	}
@@ -363,21 +359,17 @@ void complete_command(void)
 
 	free(middle);
 	free(str);
-	completion.idx = (completion.idx + 1) % completion.count;
-	if (completion.count == 1)
+	completion.idx = (completion.idx + 1) % completion.completions.count;
+	if (completion.completions.count == 1)
 		reset_completion();
 }
 
 void reset_completion(void)
 {
-	int i;
-
 	free(completion.escaped);
 	free(completion.parsed);
 	free(completion.head);
 	free(completion.tail);
-	for (i = 0; i < completion.count; i++)
-		free(completion.matches[i]);
-	free(completion.matches);
+	ptr_array_free(&completion.completions);
 	clear(&completion);
 }
