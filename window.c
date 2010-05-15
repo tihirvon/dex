@@ -98,10 +98,15 @@ void prev_buffer(void)
 
 unsigned int count_nl(const char *buf, unsigned int size)
 {
-	unsigned int i, nl = 0;
-	for (i = 0; i < size; i++) {
-		if (buf[i] == '\n')
-			nl++;
+	const char *end = buf + size;
+	unsigned int nl = 0;
+
+	while (buf < end) {
+		buf = memchr(buf, '\n', end - buf);
+		if (!buf)
+			break;
+		buf++;
+		nl++;
 	}
 	return nl;
 }
