@@ -40,6 +40,8 @@ static int nr_errors;
 static int msg_is_error;
 static char error_buf[256];
 
+static int cmdline_x;
+
 static void debug_blocks(void)
 {
 	struct block *blk;
@@ -180,17 +182,19 @@ static const char *format_misc_status(void)
 
 static void update_command_line(void)
 {
+	char prefix = ':';
+
 	buf_reset(0, screen_w, 0);
 	buf_move_cursor(0, screen_h - 1);
 	switch (input_mode) {
 	case INPUT_NORMAL:
 		print_message(error_buf, msg_is_error);
 		break;
-	case INPUT_COMMAND:
-		print_command(':');
-		break;
 	case INPUT_SEARCH:
-		print_command(current_search_direction() == SEARCH_FWD ? '/' : '?');
+		prefix = current_search_direction() == SEARCH_FWD ? '/' : '?';
+		// fallthrough
+	case INPUT_COMMAND:
+		cmdline_x = print_command(prefix);
 		break;
 	}
 	buf_clear_eol();
@@ -204,6 +208,21 @@ static void update_full(void)
 	update_range(view->vy, view->vy + window->h);
 	update_status_line(format_misc_status());
 	update_command_line();
+}
+
+static void restore_cursor(void)
+{
+	switch (input_mode) {
+	case INPUT_NORMAL:
+		buf_move_cursor(
+			window->x + view->cx_display - view->vx,
+			window->y + view->cy - view->vy);
+		break;
+	case INPUT_COMMAND:
+	case INPUT_SEARCH:
+		buf_move_cursor(cmdline_x, screen_h - 1);
+		break;
+	}
 }
 
 static void update_everything(void)

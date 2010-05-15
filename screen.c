@@ -31,7 +31,6 @@ static struct hl_color *tab_active_color;
 static struct hl_color *tab_inactive_color;
 
 static int separator;
-static int cmdline_x;
 static int current_line;
 
 static const char *no_name = "(No name)";
@@ -425,10 +424,11 @@ static int get_char_width(unsigned int *idx)
 	}
 }
 
-void print_command(char prefix)
+int print_command(char prefix)
 {
 	unsigned int i, w;
 	uchar u;
+	int x;
 
 	// width of characters up to and including cursor position
 	w = 1; // ":" (prefix)
@@ -453,15 +453,16 @@ void print_command(char prefix)
 		buf_put_char(prefix, 0);
 	}
 
-	cmdline_x = obuf.x - obuf.scroll_x;
+	x = obuf.x - obuf.scroll_x;
 	while (cmdline.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = term_get_char(cmdline.buffer, cmdline.len, &i);
 		if (!buf_put_char(u, term_flags & TERM_UTF8))
 			break;
 		if (i <= cmdline_pos)
-			cmdline_x = obuf.x - obuf.scroll_x;
+			x = obuf.x - obuf.scroll_x;
 	}
+	return x;
 }
 
 void print_message(const char *msg, int is_error)
@@ -757,21 +758,6 @@ void update_range(int y1, int y2)
 		buf_move_cursor(window->x, window->y + i);
 		buf_ch('~');
 		buf_clear_eol();
-	}
-}
-
-void restore_cursor(void)
-{
-	switch (input_mode) {
-	case INPUT_NORMAL:
-		buf_move_cursor(
-			window->x + view->cx_display - view->vx,
-			window->y + view->cy - view->vy);
-		break;
-	case INPUT_COMMAND:
-	case INPUT_SEARCH:
-		buf_move_cursor(cmdline_x, screen_h - 1);
-		break;
 	}
 }
 
