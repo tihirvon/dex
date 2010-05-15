@@ -115,26 +115,6 @@ enum input_mode {
 	INPUT_SEARCH,
 };
 
-enum input_special {
-	/* not inputting special characters */
-	INPUT_SPECIAL_NONE,
-
-	/* not known yet (just started by hitting ^V) */
-	INPUT_SPECIAL_UNKNOWN,
-
-	/* accept any value 0-255 (3 octal digits) */
-	INPUT_SPECIAL_OCT,
-
-	/* accept any value 0-255 (3 decimal digits) */
-	INPUT_SPECIAL_DEC,
-
-	/* accept any value 0-255 (2 hexadecimal digits) */
-	INPUT_SPECIAL_HEX,
-
-	/* accept any valid unicode value (6 hexadecimal digits) */
-	INPUT_SPECIAL_UNICODE,
-};
-
 #define UPDATE_STATUS_LINE	(1 << 0)
 #define UPDATE_CURSOR_LINE	(1 << 1)
 #define UPDATE_RANGE		(1 << 2)
@@ -149,7 +129,6 @@ extern struct view *prev_view;
 
 extern unsigned int update_flags;
 extern enum input_mode input_mode;
-extern enum input_special input_special;
 
 static inline struct view *VIEW(struct list_head *item)
 {

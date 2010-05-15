@@ -22,10 +22,10 @@
 #include <langinfo.h>
 #include <signal.h>
 
-char *home_dir;
+enum editor_status editor_status;
 enum input_mode input_mode;
 enum input_special input_special;
-enum editor_status editor_status;
+char *home_dir;
 int child_controls_terminal;
 
 static int resized;
