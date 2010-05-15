@@ -1,7 +1,7 @@
 #include "cmdline.h"
-#include "buffer.h"
 #include "gbuf.h"
 #include "term.h"
+#include "common.h"
 
 GBUF(cmdline);
 unsigned int cmdline_pos;
@@ -40,9 +40,6 @@ void cmdline_backspace(void)
 	if (cmdline_pos) {
 		u_prev_char(cmdline.buffer, &cmdline_pos);
 		cmdline_delete();
-	} else {
-		if (!cmdline.len)
-			input_mode = INPUT_NORMAL;
 	}
 }
 

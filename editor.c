@@ -357,7 +357,10 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			break;
 		case 0x08: // ^H
 		case 0x7f: // ^?
-			cmdline_backspace();
+			if (cmdline.len)
+				cmdline_backspace();
+			else
+				input_mode = INPUT_NORMAL;
 			break;
 		case 0x15: // ^U
 			cmdline_delete_bol();
