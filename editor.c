@@ -174,6 +174,24 @@ static const char *format_misc_status(void)
 	return misc_status;
 }
 
+static void update_command_line(void)
+{
+	buf_reset(0, screen_w, 0);
+	buf_move_cursor(0, screen_h - 1);
+	switch (input_mode) {
+	case INPUT_NORMAL:
+		print_message(error_buf, msg_is_error);
+		break;
+	case INPUT_COMMAND:
+		print_command(':');
+		break;
+	case INPUT_SEARCH:
+		print_command(current_search_direction() == SEARCH_FWD ? '/' : '?');
+		break;
+	}
+	buf_clear_eol();
+}
+
 static void update_full(void)
 {
 	update_cursor_x();

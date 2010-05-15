@@ -429,7 +429,7 @@ static int get_char_width(unsigned int *idx)
 	}
 }
 
-static void print_command(uchar prefix)
+void print_command(char prefix)
 {
 	unsigned int i, w;
 	uchar u;
@@ -445,6 +445,7 @@ static void print_command(uchar prefix)
 	if (w > window->w)
 		obuf.scroll_x = w - window->w;
 
+	buf_set_color(&commandline_color->color);
 	i = 0;
 	if (obuf.x < obuf.scroll_x) {
 		buf_skip(prefix, 0);
@@ -465,41 +466,20 @@ static void print_command(uchar prefix)
 		if (i <= cmdline_pos)
 			cmdline_x = obuf.x - obuf.scroll_x;
 	}
-	buf_clear_eol();
 }
 
-void update_command_line(void)
+void print_message(const char *msg, int is_error)
 {
-	buf_reset(0, screen_w, 0);
-	buf_move_cursor(0, screen_h - 1);
-	switch (input_mode) {
-	case INPUT_COMMAND:
-		buf_set_color(&commandline_color->color);
-		print_command(':');
-		break;
-	case INPUT_SEARCH:
-		buf_set_color(&commandline_color->color);
-		print_command(current_search_direction() == SEARCH_FWD ? '/' : '?');
-		break;
-	default:
-		if (error_buf[0]) {
-			unsigned int i = 0;
+	const struct term_color *color = &commandline_color->color;
+	unsigned int i = 0;
 
-			if (msg_is_error) {
-				buf_set_color(&errormsg_color->color);
-			} else {
-				buf_set_color(&infomsg_color->color);
-			}
-			while (error_buf[i]) {
-				uchar u = term_get_char(error_buf, i + 4, &i);
-				if (!buf_put_char(u, term_flags & TERM_UTF8))
-					break;
-			}
-		} else {
-			buf_set_color(&commandline_color->color);
-		}
-		buf_clear_eol();
-		break;
+	if (msg[0])
+		color = is_error ? &errormsg_color->color : &infomsg_color->color;
+	buf_set_color(color);
+	while (msg[i]) {
+		uchar u = term_get_char(msg, i + 4, &i);
+		if (!buf_put_char(u, term_flags & TERM_UTF8))
+			break;
 	}
 }
 
