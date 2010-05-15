@@ -375,10 +375,13 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			break;
 		case 0x08: // ^H
 		case 0x7f: // ^?
-			if (cmdline.len)
+			if (cmdline.len) {
 				cmdline_backspace();
-			else
+			} else {
 				input_mode = INPUT_NORMAL;
+				// "misc status" needs to be updated
+				update_flags |= UPDATE_STATUS_LINE;
+			}
 			break;
 		case 0x15: // ^U
 			cmdline_delete_bol();
