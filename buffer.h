@@ -109,12 +109,6 @@ struct selection_info {
 	int nr_chars;
 };
 
-enum input_mode {
-	INPUT_NORMAL,
-	INPUT_COMMAND,
-	INPUT_SEARCH,
-};
-
 #define UPDATE_STATUS_LINE	(1 << 0)
 #define UPDATE_CURSOR_LINE	(1 << 1)
 #define UPDATE_RANGE		(1 << 2)
@@ -128,7 +122,6 @@ extern struct buffer *buffer;
 extern struct view *prev_view;
 
 extern unsigned int update_flags;
-extern enum input_mode input_mode;
 
 static inline struct view *VIEW(struct list_head *item)
 {

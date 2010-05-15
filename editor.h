@@ -9,6 +9,12 @@ enum editor_status {
 	EDITOR_EXITING,
 };
 
+enum input_mode {
+	INPUT_NORMAL,
+	INPUT_COMMAND,
+	INPUT_SEARCH,
+};
+
 enum input_special {
 	/* not inputting special characters */
 	INPUT_SPECIAL_NONE,
@@ -30,6 +36,7 @@ enum input_special {
 };
 
 extern enum editor_status editor_status;
+extern enum input_mode input_mode;
 extern enum input_special input_special;
 extern char *home_dir;
 extern int child_controls_terminal;
