@@ -17,10 +17,6 @@ struct line_info {
 	unsigned int trailing_ws_offset;
 };
 
-int nr_errors;
-int msg_is_error;
-char error_buf[256];
-
 static struct hl_color *default_color;
 static struct hl_color *currentline_color;
 static struct hl_color *selection_color;

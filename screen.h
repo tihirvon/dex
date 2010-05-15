@@ -1,10 +1,6 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-extern int nr_errors;
-extern int msg_is_error;
-extern char error_buf[256];
-
 void print_tab_bar(void);
 void print_command(char prefix);
 void print_message(const char *msg, int is_error);

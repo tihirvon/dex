@@ -36,6 +36,10 @@ static struct {
 	int nr;
 } raw_input;
 
+static int nr_errors;
+static int msg_is_error;
+static char error_buf[256];
+
 static void debug_blocks(void)
 {
 	struct block *blk;
