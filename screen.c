@@ -483,43 +483,7 @@ void print_message(const char *msg, int is_error)
 // selection start / end buffer byte offsets
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
-
-static const struct hl_color *current_hl_color;
-static const struct hl_list *current_hl_list;
-static int current_hl_entry_idx;
-static int current_hl_entry_pos;
-
-static void advance_hl(unsigned int count)
-{
-	BUG_ON(!buffer->syn);
-	while (1) {
-		const struct hl_entry *e = &current_hl_list->entries[current_hl_entry_idx];
-		unsigned int avail = hl_entry_len(e) - current_hl_entry_pos;
-
-		BUG_ON(!current_hl_list->count);
-		if (avail >= count) {
-			union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
-			unsigned int type = hl_entry_type(e);
-			current_hl_entry_pos += count;
-			current_hl_color = NULL;
-			if (type == HL_ENTRY_SOC)
-				current_hl_color = n->context.scolor;
-			if (type == HL_ENTRY_EOC)
-				current_hl_color = n->context.ecolor;
-			if (!current_hl_color)
-				current_hl_color = n->any.color;
-			return;
-		}
-		count -= avail;
-		current_hl_entry_idx++;
-		current_hl_entry_pos = 0;
-		if (current_hl_entry_idx == current_hl_list->count) {
-			BUG_ON(current_hl_list->node.next == &buffer->hl_head);
-			current_hl_list = HL_LIST(current_hl_list->node.next);
-			current_hl_entry_idx = 0;
-		}
-	}
-}
+static struct hl_iterator hl_iter;
 
 static void mask_color(struct term_color *color, const struct term_color *over)
 {
@@ -535,8 +499,8 @@ static void update_color(int nontext, int wserror)
 {
 	struct term_color color;
 
-	if (current_hl_color)
-		color = current_hl_color->color;
+	if (hl_iter.color)
+		color = hl_iter.color->color;
 	else
 		color = default_color->color;
 	if (nontext)
@@ -548,20 +512,6 @@ static void update_color(int nontext, int wserror)
 	else if (current_line == view->cy)
 		mask_color(&color, &currentline_color->color);
 	buf_set_color(&color);
-}
-
-static void set_hl_pos(struct block_iter *cur)
-{
-	cur_offset = block_iter_get_offset(cur);
-
-	current_hl_color = NULL;
-	current_hl_list = NULL;
-	current_hl_entry_idx = 0;
-	current_hl_entry_pos = 0;
-	if (!list_empty(&buffer->hl_head)) {
-		current_hl_list = HL_LIST(buffer->hl_head.next);
-		advance_hl(cur_offset);
-	}
 }
 
 static void selection_init(void)
@@ -643,8 +593,7 @@ static uchar screen_next_char(struct line_info *info)
 		info->pos++;
 		count = 1;
 	}
-	if (current_hl_list)
-		advance_hl(count);
+	hl_iter_advance(&hl_iter, count);
 
 	if (u == '\t' || u == ' ')
 		ws_error = whitespace_error(info, u, pos);
@@ -691,8 +640,8 @@ static void print_line(struct line_info *info)
 		u = screen_next_char(info);
 		if (!buf_put_char(u, utf8)) {
 			int count = info->size - info->pos;
-			if (count && current_hl_list)
-				advance_hl(count);
+			if (count)
+				hl_iter_advance(&hl_iter, count);
 			// +1 for newline
 			cur_offset += count + 1;
 			return;
@@ -724,7 +673,8 @@ void update_range(int y1, int y2)
 	y1 -= view->vy;
 	y2 -= view->vy;
 
-	set_hl_pos(&bi);
+	cur_offset = block_iter_get_offset(&bi);
+	hl_iter_set_pos(&hl_iter, &buffer->hl_head, cur_offset);
 	selection_init();
 
 	got_line = !block_iter_is_eof(&bi);
@@ -738,8 +688,8 @@ void update_range(int y1, int y2)
 		print_line(&info);
 
 		got_line = block_iter_next_line(&bi);
-		if (got_line && current_hl_list)
-			advance_hl(1);
+		if (got_line)
+			hl_iter_advance(&hl_iter, 1);
 		current_line++;
 	}
 

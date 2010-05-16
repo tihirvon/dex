@@ -104,6 +104,13 @@ struct highlighter {
 	int word_alloc;
 };
 
+struct hl_iterator {
+	const struct hl_color *color;
+	const struct hl_list *list;
+	int entry_idx;
+	int entry_pos;
+};
+
 static inline struct hl_list *HL_LIST(struct list_head *item)
 {
 	return container_of(item, struct hl_list, node);
@@ -138,6 +145,8 @@ void truncate_hl_list(struct list_head *head, unsigned int new_size);
 void split_hl_list(struct list_head *head, unsigned int offset, struct list_head *other);
 void delete_hl_range(struct list_head *head, unsigned int so, unsigned int eo);
 void join_hl_lists(struct list_head *head, struct list_head *other);
+void hl_iter_set_pos(struct hl_iterator *iter, struct list_head *hl_head, unsigned int offset);
+void hl_iter_advance(struct hl_iterator *iter, unsigned int count);
 
 #define DO_FOR_EACH_HL_ENTRY(entry, head, __head, __list, __i)	\
 do {								\

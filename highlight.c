@@ -709,3 +709,50 @@ void join_hl_lists(struct list_head *head, struct list_head *other)
 	last->next = other->next;
 	head->prev = other->prev;
 }
+
+static const struct hl_color *hl_entry_color(const struct hl_entry *e)
+{
+	union syntax_node *n = idx_to_syntax_node(hl_entry_idx(e));
+	unsigned int type = hl_entry_type(e);
+	const struct hl_color *color = NULL;
+
+	if (type == HL_ENTRY_SOC)
+		color = n->context.scolor;
+	if (type == HL_ENTRY_EOC)
+		color = n->context.ecolor;
+	if (!color)
+		color = n->any.color;
+	return color;
+}
+
+void hl_iter_set_pos(struct hl_iterator *iter, struct list_head *hl_head, unsigned int offset)
+{
+	clear(iter);
+	if (!list_empty(hl_head))
+		iter->list = HL_LIST(hl_head->next);
+	hl_iter_advance(iter, offset);
+}
+
+void hl_iter_advance(struct hl_iterator *iter, unsigned int count)
+{
+	if (!iter->list)
+		return;
+	while (1) {
+		const struct hl_entry *e = &iter->list->entries[iter->entry_idx];
+		unsigned int avail = hl_entry_len(e) - iter->entry_pos;
+
+		BUG_ON(!iter->list->count);
+		if (avail >= count) {
+			iter->entry_pos += count;
+			iter->color = hl_entry_color(e);
+			return;
+		}
+		count -= avail;
+		iter->entry_idx++;
+		iter->entry_pos = 0;
+		if (iter->entry_idx == iter->list->count) {
+			iter->list = HL_LIST(iter->list->node.next);
+			iter->entry_idx = 0;
+		}
+	}
+}
