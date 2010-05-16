@@ -7,7 +7,7 @@
 
 const struct command *current_command;
 
-static const struct command *find_command_from_array(const struct command *cmds, const char *name)
+const struct command *find_command(const struct command *cmds, const char *name)
 {
 	int i;
 
@@ -20,12 +20,7 @@ static const struct command *find_command_from_array(const struct command *cmds,
 	return NULL;
 }
 
-const struct command *find_command(const char *name)
-{
-	return find_command_from_array(commands, name);
-}
-
-void run_commands(const struct ptr_array *array)
+void run_commands(const struct command *cmds, const struct ptr_array *array)
 {
 	int s, e;
 
@@ -36,7 +31,7 @@ void run_commands(const struct ptr_array *array)
 			e++;
 
 		if (e > s)
-			run_command(commands, (char **)array->ptrs + s);
+			run_command(cmds, (char **)array->ptrs + s);
 
 		s = e + 1;
 	}
@@ -52,7 +47,7 @@ void run_command(const struct command *cmds, char **av)
 		error_msg("Subcommand required");
 		return;
 	}
-	cmd = find_command_from_array(cmds, av[0]);
+	cmd = find_command(cmds, av[0]);
 	if (!cmd) {
 		PTR_ARRAY(array);
 		const char *alias;
@@ -79,7 +74,7 @@ void run_command(const struct command *cmds, char **av)
 			ptr_array_add(&array, xstrdup(av[i]));
 		ptr_array_add(&array, NULL);
 
-		run_commands(&array);
+		run_commands(cmds, &array);
 		ptr_array_free(&array);
 		return;
 	}
@@ -96,7 +91,7 @@ void run_command(const struct command *cmds, char **av)
 	end_change();
 }
 
-void handle_command(const char *cmd)
+void handle_command(const struct command *cmds, const char *cmd)
 {
 	PTR_ARRAY(array);
 
@@ -105,6 +100,6 @@ void handle_command(const char *cmd)
 		return;
 	}
 
-	run_commands(&array);
+	run_commands(cmds, &array);
 	ptr_array_free(&array);
 }

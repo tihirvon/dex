@@ -1,9 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "commands.h"
+
 extern const char *config_file;
 extern int config_line;
 
-int read_config(const char *filename, int must_exist);
+int read_config(const struct command *cmds, const char *filename, int must_exist);
 
 #endif

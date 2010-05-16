@@ -2,6 +2,7 @@
 #include "common.h"
 #include "editor.h"
 #include "run.h"
+#include "commands.h"
 #include "list.h"
 
 #define MAX_KEYS 4
@@ -142,7 +143,7 @@ void handle_binding(enum term_key_type type, unsigned int key)
 			continue;
 
 		if (b->nr_keys == nr_pressed_keys) {
-			handle_command(b->command);
+			handle_command(commands, b->command);
 			nr_pressed_keys = 0;
 		}
 		return;

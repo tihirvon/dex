@@ -349,7 +349,7 @@ static void cmd_hi(const char *pf, char **args)
 
 static void cmd_include(const char *pf, char **args)
 {
-	read_config(args[0], 1);
+	read_config(commands, args[0], 1);
 }
 
 static void cmd_insert(const char *pf, char **args)
@@ -626,7 +626,7 @@ static void cmd_repeat(const char *pf, char **args)
 	int count;
 
 	count = atoi(args[0]);
-	cmd = find_command(args[1]);
+	cmd = find_command(commands, args[1]);
 	if (!cmd) {
 		error_msg("No such command: %s", args[1]);
 		return;

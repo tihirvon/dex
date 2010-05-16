@@ -19,7 +19,7 @@ static int is_command(const char *str, int len)
 	return 0;
 }
 
-int read_config(const char *filename, int must_exist)
+int read_config(const struct command *cmds, const char *filename, int must_exist)
 {
 	/* recursive */
 	const char *saved_config_file = config_file;
@@ -62,7 +62,7 @@ int read_config(const char *filename, int must_exist)
 				gbuf_add_buf(&line, ptr, n - 1);
 			} else {
 				gbuf_add_buf(&line, ptr, n);
-				handle_command(line.buffer);
+				handle_command(cmds, line.buffer);
 				gbuf_clear(&line);
 			}
 		}
@@ -70,7 +70,7 @@ int read_config(const char *filename, int must_exist)
 		ptr += n + 1;
 	}
 	if (line.len)
-		handle_command(line.buffer);
+		handle_command(cmds, line.buffer);
 	gbuf_free(&line);
 	xmunmap(buf, st.st_size);
 	config_file = saved_config_file;

@@ -326,9 +326,9 @@ struct syntax *load_syntax(const char *filetype)
 	struct syntax *syn;
 
 	snprintf(filename, sizeof(filename), "%s/.editor/syntax/%s", home_dir, filetype);
-	if (read_config(filename, 0)) {
+	if (read_config(commands, filename, 0)) {
 		snprintf(filename, sizeof(filename), "%s/editor/syntax/%s", DATADIR, filetype);
-		if (read_config(filename, 0))
+		if (read_config(commands, filename, 0))
 			return NULL;
 	}
 	syn = find_syntax(filetype);

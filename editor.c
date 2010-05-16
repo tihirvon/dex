@@ -496,7 +496,7 @@ static void command_line_enter(void)
 	cmdline_clear();
 
 	if (!ret)
-		run_commands(&array);
+		run_commands(commands, &array);
 	ptr_array_free(&array);
 }
 
@@ -943,13 +943,13 @@ int main(int argc, char *argv[])
 	tmp_view = open_empty_buffer();
 	tmp_view->rc_tmp = 1;
 	set_view(tmp_view);
-	read_config(rc, 0);
+	read_config(commands, rc, 0);
 	if (command)
-		handle_command(command);
+		handle_command(commands, command);
 	if (tag) {
 		const char *ptrs[3] = { "tag", tag, NULL };
 		struct ptr_array array = { (void **)ptrs, 3, 3 };
-		run_commands(&array);
+		run_commands(commands, &array);
 	}
 
 	update_all_syntax_colors();

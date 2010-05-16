@@ -3,6 +3,7 @@
 #include "common.h"
 #include "editor.h"
 #include "completion.h"
+#include "commands.h"
 #include "run.h"
 
 struct alias {
@@ -33,7 +34,7 @@ void add_alias(const char *name, const char *value)
 		error_msg("Invalid alias name '%s'", name);
 		return;
 	}
-	if (find_command(name)) {
+	if (find_command(commands, name)) {
 		error_msg("Can't replace existing command %s with an alias", name);
 		return;
 	}
