@@ -888,6 +888,8 @@ error:
 static void cmd_scroll_down(const char *pf, char **args)
 {
 	view->vy++;
+	if (view->cy < view->vy)
+		move_down(1);
 }
 
 static void cmd_scroll_pgdown(const char *pf, char **args)
@@ -922,6 +924,8 @@ static void cmd_scroll_up(const char *pf, char **args)
 {
 	if (view->vy)
 		view->vy--;
+	if (view->vy + window->h <= view->cy)
+		move_up(1);
 }
 
 static void cmd_search(const char *pf, char **args)
