@@ -133,19 +133,6 @@ void paste(void)
 	}
 }
 
-static int would_become_empty(void)
-{
-	struct block *blk;
-	int size = 0;
-
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		size += blk->size;
-		if (size > 1)
-			return 0;
-	}
-	return 1;
-}
-
 static void delete_one_ch(void)
 {
 	struct block_iter bi = view->cursor;
@@ -154,10 +141,14 @@ static void delete_one_ch(void)
 	if (!buffer_next_char(&bi, &u))
 		return;
 
-	if (u == '\n' && !options.allow_incomplete_last_line &&
-			block_iter_is_eof(&bi) && !would_become_empty()) {
+	if (u == '\n' && block_iter_is_eof(&bi) &&
+			!block_iter_is_bol(&view->cursor) &&
+			!options.allow_incomplete_last_line) {
 		/* don't make last line incomplete */
-	} else if (buffer->utf8) {
+		return;
+	}
+
+	if (buffer->utf8) {
 		delete(u_char_size(u), 0);
 	} else {
 		delete(1, 0);
