@@ -1,4 +1,4 @@
-#include "commands.h"
+#include "command.h"
 #include "editor.h"
 #include "gbuf.h"
 #include "buffer.h"

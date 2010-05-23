@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "commands.h"
+#include "command.h"
 
 extern const char *config_file;
 extern int config_line;

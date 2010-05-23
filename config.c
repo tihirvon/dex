@@ -1,7 +1,7 @@
 #include "config.h"
 #include "util.h"
 #include "editor.h"
-#include "run.h"
+#include "command.h"
 #include "gbuf.h"
 
 const char *config_file;

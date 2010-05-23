@@ -4,7 +4,6 @@
 #include "term.h"
 #include "obuf.h"
 #include "cmdline.h"
-#include "commands.h"
 #include "completion.h"
 #include "search.h"
 #include "history.h"
@@ -15,7 +14,7 @@
 #include "bind.h"
 #include "alias.h"
 #include "config.h"
-#include "run.h"
+#include "command.h"
 #include "change.h"
 
 #include <locale.h>

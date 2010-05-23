@@ -1,4 +1,3 @@
-#include "commands.h"
 #include "editor.h"
 #include "edit.h"
 #include "move.h"
@@ -20,7 +19,7 @@
 #include "alias.h"
 #include "tag.h"
 #include "config.h"
-#include "run.h"
+#include "command.h"
 #include "parse-args.h"
 #include "file-option.h"
 
