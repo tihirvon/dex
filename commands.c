@@ -525,7 +525,19 @@ static void cmd_pass_through(const char *pf, char **args)
 {
 	struct filter_data data;
 	unsigned int del_len = 0;
-	int strip_nl = *pf == 's';
+	int strip_nl = 0;
+	int move = 0;
+
+	while (*pf) {
+		switch (*pf++) {
+		case 'm':
+			move = 1;
+			break;
+		case 's':
+			strip_nl = 1;
+			break;
+		}
+	}
 
 	data.in = NULL;
 	data.in_len = 0;
@@ -543,6 +555,9 @@ static void cmd_pass_through(const char *pf, char **args)
 
 	replace(del_len, data.out, data.out_len);
 	free(data.out);
+
+	if (move)
+		move_right(data.out_len);
 }
 
 static void cmd_paste(const char *pf, char **args)
@@ -1234,7 +1249,7 @@ const struct command commands[] = {
 	{ "next",		"",	0,  0, cmd_next },
 	{ "open",		"",	0, -1, cmd_open },
 	{ "option",		"-",	0, -1, cmd_option },
-	{ "pass-through",	"-s",	1, -1, cmd_pass_through },
+	{ "pass-through",	"-ms",	1, -1, cmd_pass_through },
 	{ "paste",		"",	0,  0, cmd_paste },
 	{ "pgdown",		"",	0,  0, cmd_pgdown },
 	{ "pgup",		"",	0,  0, cmd_pgup },
