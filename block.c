@@ -171,6 +171,7 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 		list_add_before(&new->node, &blk->node);
 
 		nl_added += new->nl;
+		size = 0;
 	}
 
 	view->cursor.blk = BLOCK(prev_node->next);
