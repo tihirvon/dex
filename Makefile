@@ -172,7 +172,7 @@ distclean: clean
 	rm -f tags
 
 tags:
-	exuberant-ctags *.[ch]
+	ctags *.[ch]
 
 REV     = $(shell git rev-parse --short HEAD)
 RELEASE	= editor-$(REV)
