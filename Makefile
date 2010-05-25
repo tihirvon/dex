@@ -181,4 +181,4 @@ TARBALL	= $(RELEASE).tar.gz
 dist:
 	git archive --format=tar --prefix=$(RELEASE)/ $(REV) | gzip -c -9 > $(TARBALL)
 
-.PHONY: all clean distclean install dist
+.PHONY: all clean distclean install tags dist
