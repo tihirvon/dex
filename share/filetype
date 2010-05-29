@@ -1,29 +1,24 @@
-ft extension c c h
-ft extension cpp cpp hpp cc hh C H cxx hxx c++ moc inl
-ft extension css css
-ft extension sh sh
-ft extension bash bash
+ft content '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)(\s|$)'
+
+ft match '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql)$'
 ft match bash '/\.bash(rc|_profile|_logout)$'
-ft match indent '/\.indent\.pro$'
-ft extension cpp pro
-ft extension python py
-ft extension perl pl perl
+ft match bash '.*/PKGBUILD'
 ft match editor '/\.editor/(rc|filetype|syntax/.*)$'
 ft match gitcommit '/COMMIT_EDITMSG$'
 ft match gitrebase '/git-rebase-todo$'
+ft match indent '/\.indent\.pro$'
 ft match make '[mM]akefile(\..*)?$'
+
+# other extensions
+ft extension c h
+ft extension cpp hpp cc hh C H cxx hxx c++ moc inl pro
+ft extension diff patch
+ft extension html htm xhtml
 ft extension make mk mak
-ft content sh '^#!.*/sh(\s|$)'
-ft content bash '^#!.*/bash(\s|$)'
-ft content perl '^#!.*/perl(\s|$)'
-ft content php '^#!/.*/php(\s|$)'
-ft content python '^#!.*/python(\s|$)'
-ft match bash '.*/PKGBUILD'
-ft match config '^/etc/.*'
-ft extension diff diff patch
-ft extension go go
+ft extension perl pl
+ft extension php php3 php4
 ft extension python py
-ft extension sql sql
-ft extension html html htm xhtml
-ft extension php php php3 php4
 ft extension smarty tpl
+
+# should be last
+ft match config '/etc/.*'

@@ -300,7 +300,7 @@ struct view *find_view_by_buffer_id(unsigned int buffer_id)
 
 int guess_filetype(void)
 {
-	const char *ft = NULL;
+	char *ft = NULL;
 
 	if (BLOCK(buffer->blocks.next)->size) {
 		struct lineref lr;
@@ -314,9 +314,10 @@ int guess_filetype(void)
 	}
 	if (ft && strcmp(ft, buffer->options.filetype)) {
 		free(buffer->options.filetype);
-		buffer->options.filetype = xstrdup(ft);
+		buffer->options.filetype = ft;
 		return 1;
 	}
+	free(ft);
 	return 0;
 }
 
