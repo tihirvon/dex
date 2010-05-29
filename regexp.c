@@ -21,7 +21,8 @@ int regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 
 char *regexp_matches[REGEXP_SUBSTRINGS + 1];
 
-int regexp_match(const char *pattern, const char *str)
+// returns number of regexp_matches[]
+int regexp_match(const char *pattern, const char *buf, unsigned int len)
 {
 	regmatch_t m[REGEXP_SUBSTRINGS];
 	regex_t re;
@@ -32,16 +33,17 @@ int regexp_match(const char *pattern, const char *str)
 		regfree(&re);
 		return 0;
 	}
-	ret = !regexec(&re, str, REGEXP_SUBSTRINGS, m, 0);
+	ret = !buf_regexec(&re, buf, len, REGEXP_SUBSTRINGS, m, 0);
 	regfree(&re);
 	if (ret) {
 		int i;
 		for (i = 0; i < REGEXP_SUBSTRINGS; i++) {
 			if (m[i].rm_so == -1)
 				break;
-			regexp_matches[i] = xstrndup(str + m[i].rm_so, m[i].rm_eo - m[i].rm_so);
+			regexp_matches[i] = xstrndup(buf + m[i].rm_so, m[i].rm_eo - m[i].rm_so);
 		}
 		regexp_matches[i] = NULL;
+		return i;
 	}
 	return ret;
 }

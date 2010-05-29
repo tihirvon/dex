@@ -68,10 +68,11 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	const struct error_format *p;
 	struct compile_error *e;
 	char *nl = strchr(str, '\n');
-	int min_level, i;
+	int min_level, i, len;
 
 	if (nl)
 		*nl = 0;
+	len = strlen(str);
 	fprintf(stderr, "%s\n", str);
 
 	for (i = 0; ; i++) {
@@ -85,7 +86,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 			return;
 		}
 		p = &cf->formats[i];
-		if (regexp_match(p->pattern, str))
+		if (regexp_match(p->pattern, str, len))
 			break;
 	}
 
