@@ -55,7 +55,7 @@ syn connect cppcomment notice multilinecomment
 syn connect ccomment notice
 syn connect root keyword type float oct dec hex char escchar string if0 preproc
 syn connect root ccomment cppcomment constant label
-syn connect preproc ccomment cppcomment preprocesc preproccont
+syn connect preproc char escchar string ccomment cppcomment preprocesc preproccont
 
 syn join numeric oct dec hex float
 syn join special esc escchar escoct eschex convdir
