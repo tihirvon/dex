@@ -170,6 +170,7 @@ void highlight_buffer(struct buffer *b)
 	struct block_iter bi;
 	struct highlighter h;
 
+	free_hl_list(&b->hl_head);
 	if (!b->syn)
 		return;
 
@@ -307,6 +308,9 @@ void update_hl_insert(unsigned int ins_nl, int ins_count)
 	int i, top;
 
 	if (!buffer->syn)
+		return;
+
+	if (++buffer->hl_counter > MAX_HL_UPDATES)
 		return;
 
 	verify_hl_list(&buffer->hl_head, "unmodified");

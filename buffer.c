@@ -537,7 +537,6 @@ void syntax_changed(void)
 		return;
 
 	buffer->syn = syn;
-	free_hl_list(&buffer->hl_head);
 	highlight_buffer(buffer);
 
 	update_flags |= UPDATE_FULL;

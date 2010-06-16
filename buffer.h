@@ -7,6 +7,8 @@
 #include "options.h"
 #include "common.h"
 
+#define MAX_HL_UPDATES 5
+
 struct change_head {
 	struct change_head *next;
 	struct change_head **prev;
@@ -45,6 +47,7 @@ struct buffer {
 
 	const struct syntax *syn;
 	struct list_head hl_head;
+	int hl_counter;
 };
 
 enum selection {
