@@ -1,6 +1,5 @@
 #include "block.h"
 #include "buffer.h"
-#include "buffer-highlight.h"
 
 #define BLOCK_EDIT_SIZE 512
 

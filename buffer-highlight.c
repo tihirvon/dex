@@ -1,4 +1,3 @@
-#include "buffer-highlight.h"
 #include "highlight.h"
 #include "buffer.h"
 #include "regexp.h"

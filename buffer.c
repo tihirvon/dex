@@ -8,7 +8,6 @@
 #include "wbuf.h"
 #include "term.h"
 #include "filetype.h"
-#include "buffer-highlight.h"
 #include "highlight.h"
 #include "file-history.h"
 #include "file-option.h"

@@ -183,6 +183,8 @@ char *get_word_under_cursor(void);
 
 int guess_filetype(void);
 struct syntax *load_syntax(const char *filetype);
+void update_hl_insert(unsigned int lines, int count);
+void highlight_buffer(struct buffer *b);
 void syntax_changed(void);
 void filetype_changed(void);
 
