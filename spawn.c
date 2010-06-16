@@ -63,6 +63,16 @@ static void add_error_msg(struct compile_error *e, unsigned int flags)
 	cerr.errors[cerr.count++] = e;
 }
 
+static char *format_msg(const char *msg)
+{
+	int i, len = strlen(msg);
+	char *buf = xnew(char, len + 1);
+
+	for (i = 0; i <= len; i++)
+		buf[i] = msg[i] == '\t' ? ' ' : msg[i];
+	return buf;
+}
+
 static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int flags)
 {
 	const struct error_format *p;
@@ -78,7 +88,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	for (i = 0; ; i++) {
 		if (i == cf->nr_formats) {
 			e = xnew(struct compile_error, 1);
-			e->msg = xstrdup(str);
+			e->msg = format_msg(str);
 			e->file = NULL;
 			e->line = -1;
 			e->column = -1;
