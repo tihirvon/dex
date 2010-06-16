@@ -1,7 +1,6 @@
 #include "edit.h"
 #include "move.h"
 #include "buffer.h"
-#include "buffer-highlight.h"
 #include "change.h"
 #include "block.h"
 #include "gbuf.h"

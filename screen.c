@@ -5,7 +5,6 @@
 #include "search.h"
 #include "color.h"
 #include "highlight.h"
-#include "buffer-highlight.h"
 
 struct line_info {
 	// struct lineref
