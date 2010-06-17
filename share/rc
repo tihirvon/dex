@@ -1,6 +1,7 @@
 include $DATADIR/editor/binding/default
 include $DATADIR/editor/color/light
 include $DATADIR/editor/compiler/gcc
+include $DATADIR/editor/compiler/go
 include $DATADIR/editor/filetype
 
 alias cl close
