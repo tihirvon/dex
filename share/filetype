@@ -7,7 +7,8 @@ ft match editor '/\.editor/(rc|filetype|syntax/.*)$'
 ft match gitcommit '/COMMIT_EDITMSG$'
 ft match gitrebase '/git-rebase-todo$'
 ft match indent '/\.indent\.pro$'
-ft match make '[mM]akefile(\..*)?$'
+ft match make '[mM]akefile(\.[^/]*)?$'
+ft match make '/Make\.[^/]*$'
 
 # other extensions
 ft extension c h
