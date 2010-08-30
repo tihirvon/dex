@@ -10,10 +10,10 @@ bind pgdown pgdown
 bind delete delete
 bind ^[ cancel
 bind ^Z suspend
-# backspace on most terminals
+
+# backspace is either ^? or ^H
 bind ^? erase
-# backspace on some xterms
-#bind ^H erase
+bind ^H erase
 
 # commonly used
 bind ^A bol
