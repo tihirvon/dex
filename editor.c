@@ -188,11 +188,22 @@ static void update_command_line(void)
 	buf_clear_eol();
 }
 
+static void update_term_title(void)
+{
+	char buf[1024];
+
+	snprintf(buf, sizeof(buf), "%s %c editor",
+		buffer->filename ? buffer->filename : "(No name)",
+		buffer_modified(buffer) ? '+' : '-');
+	print_term_title(buf);
+}
+
 static void update_full(void)
 {
 	update_cursor_x();
 	update_cursor_y();
 	update_view();
+	update_term_title();
 	if (options.show_tab_bar)
 		print_tab_bar();
 	update_range(view->vy, view->vy + window->h);
@@ -663,6 +674,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		return;
 
 	buf_hide_cursor();
+
+	if (update_flags & UPDATE_STATUS_LINE)
+		update_term_title();
+
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tab_bar();
 	if (update_flags & UPDATE_FULL) {

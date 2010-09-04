@@ -479,6 +479,29 @@ void print_message(const char *msg, int is_error)
 	}
 }
 
+static int term_title_supported(void)
+{
+	static int supported = -1;
+
+	if (supported == -1) {
+		const char *term = getenv("TERM");
+
+		supported = term && (strstr(term, "xterm") || strstr(term, "rxvt"));
+	}
+	return supported;
+}
+
+// title must not contain control characters
+void print_term_title(const char *title)
+{
+	if (!term_title_supported())
+		return;
+
+	buf_escape("\033]2;");
+	buf_escape(title);
+	buf_escape("\007");
+}
+
 // selection start / end buffer byte offsets
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
