@@ -27,7 +27,7 @@ enum input_special input_special;
 char *home_dir;
 int child_controls_terminal;
 
-static int resized;
+static int resized = 1;
 static struct {
 	int base;
 	int max_chars;
@@ -100,17 +100,6 @@ static void any_key(void)
 		;
 	if (type == KEY_PASTE)
 		discard_paste();
-}
-
-static void update_terminal_settings(void)
-{
-	// turn keypad on (makes cursor keys work)
-	if (term_cap.ks)
-		buf_escape(term_cap.ks);
-
-	// use alternate buffer if possible
-	if (term_cap.ti)
-		buf_escape(term_cap.ti);
 }
 
 static void format_input_special_misc_status(char *status)
@@ -204,6 +193,8 @@ static void update_full(void)
 	update_cursor_x();
 	update_cursor_y();
 	update_view();
+	if (options.show_tab_bar)
+		print_tab_bar();
 	update_range(view->vy, view->vy + window->h);
 	update_status_line(format_misc_status());
 	update_command_line();
@@ -224,12 +215,22 @@ static void restore_cursor(void)
 	}
 }
 
-static void update_everything(void)
+static void resize(void)
 {
+	resized = 0;
 	update_screen_size();
+
+	// "dtach -r winch" sends SIGWINCH after program has been attached
+	if (term_cap.ks) {
+		// turn keypad on (makes cursor keys work)
+		buf_escape(term_cap.ks);
+	}
+	if (term_cap.ti) {
+		// use alternate buffer if possible
+		buf_escape(term_cap.ti);
+	}
+
 	buf_hide_cursor();
-	if (options.show_tab_bar)
-		print_tab_bar();
 	update_full();
 	restore_cursor();
 	buf_show_cursor();
@@ -244,10 +245,9 @@ void ui_start(int prompt)
 		return;
 
 	term_raw();
-	update_terminal_settings();
 	if (prompt)
 		any_key();
-	update_everything();
+	resize();
 }
 
 void ui_end(void)
@@ -367,9 +367,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 			if (key == def)
 				break;
 		} else if (resized) {
-			resized = 0;
-			update_terminal_settings();
-			update_everything();
+			resize();
 		}
 	}
 	error_buf[0] = 0;
@@ -986,7 +984,6 @@ int main(int argc, char *argv[])
 	 * during reading configuration files.
 	 */
 	term_raw();
-	update_terminal_settings();
 	if (nr_errors) {
 		any_key();
 		error_buf[0] = 0;
@@ -1016,13 +1013,9 @@ int main(int argc, char *argv[])
 		open_empty_buffer();
 	set_view(VIEW(window->views.next));
 
-	update_everything();
-
 	while (editor_status == EDITOR_RUNNING) {
 		if (resized) {
-			resized = 0;
-			update_terminal_settings();
-			update_everything();
+			resize();
 		} else {
 			unsigned int key;
 			enum term_key_type type;
