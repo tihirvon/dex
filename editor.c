@@ -21,6 +21,9 @@
 #include <langinfo.h>
 #include <signal.h>
 
+// control key
+#define CTRL(x) ((x) & ~0x40)
+
 enum editor_status editor_status;
 enum input_mode input_mode;
 enum input_special input_special;
@@ -364,7 +367,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 			if (type != KEY_NORMAL)
 				continue;
 
-			if (key == 0x03) { // ^C
+			if (key == CTRL('C')) {
 				key = 0;
 				break;
 			}
@@ -392,8 +395,8 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 	switch (type) {
 	case KEY_NORMAL:
 		switch (key) {
-		case 0x1b: // ESC
-		case 0x03: // ^C
+		case CTRL('['): // ESC
+		case CTRL('C'):
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
 			// clear possible parse error
@@ -401,10 +404,10 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			// "misc status" needs to be updated
 			update_flags |= UPDATE_STATUS_LINE;
 			break;
-		case 0x04: // ^D
+		case CTRL('D'):
 			cmdline_delete();
 			break;
-		case 0x08: // ^H
+		case CTRL('H'):
 		case 0x7f: // ^?
 			if (cmdline.len) {
 				cmdline_backspace();
@@ -414,32 +417,32 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 				update_flags |= UPDATE_STATUS_LINE;
 			}
 			break;
-		case 0x15: // ^U
+		case CTRL('U'):
 			cmdline_delete_bol();
 			break;
-		case 0x16: // ^V
+		case CTRL('V'):
 			input_special = INPUT_SPECIAL_UNKNOWN;
 			// "misc status" needs to be updated
 			update_flags |= UPDATE_STATUS_LINE;
 			break;
 
-		case 0x01: // ^A
+		case CTRL('A'):
 			cmdline_pos = 0;
 			return 1;
-		case 0x02: // ^B
+		case CTRL('B'):
 			cmdline_prev_char();
 			return 1;
-		case 0x05: // ^E
+		case CTRL('E'):
 			cmdline_pos = strlen(cmdline.buffer);
 			return 1;
-		case 0x06: // ^F
+		case CTRL('F'):
 			cmdline_next_char();
 			return 1;
-		case 0x1a: // ^Z
+		case CTRL('Z'):
 			ui_end();
 			kill(0, SIGSTOP);
 			return 1;
-		case '\n': // ^J
+		case CTRL('J'): // '\n'
 			// not allowed
 			return 1;
 		default:
