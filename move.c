@@ -156,14 +156,13 @@ void move_eof(void)
 
 void move_to_line(int line)
 {
-	struct block *blk;
+	struct block *blk = BLOCK(buffer->blocks.next);
 	unsigned int nl = 0;
 
 	line--;
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (nl + blk->nl > line)
-			break;
+	while (blk->node.next != &buffer->blocks && nl + blk->nl < line) {
 		nl += blk->nl;
+		blk = BLOCK(blk->node.next);
 	}
 
 	view->cursor.blk = blk;
