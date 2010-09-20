@@ -1,4 +1,4 @@
-ft content '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)(\s|$)'
+ft content '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)[0-9.]*(\s|$)'
 
 ft match '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql)$'
 ft match bash '/\.bash(rc|_profile|_logout)$'
