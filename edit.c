@@ -778,7 +778,7 @@ void change_case(int mode, int move_after)
 		char ch = src[i];
 		switch (mode) {
 		case 't':
-			if (ch >= 'A' && ch <= 'Z')
+			if (isupper(ch))
 				ch = tolower(ch);
 			else
 				ch = toupper(ch);
