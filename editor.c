@@ -159,8 +159,7 @@ static const char *format_misc_status(void)
 	if (input_special) {
 		format_input_special_misc_status(misc_status);
 	} else if (input_mode == INPUT_SEARCH) {
-		snprintf(misc_status, sizeof(misc_status), "[%s]",
-			options.ignore_case ? "case-insensitive" : "case-sensitive");
+		snprintf(misc_status, sizeof(misc_status), "[%s]", search_case_enum[options.search_case]);
 	} else if (selecting()) {
 		struct selection_info info;
 
@@ -568,7 +567,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_META:
 		switch (key) {
 		case 'c':
-			options.ignore_case ^= 1;
+			options.search_case = (options.search_case + 1) % 3;
 			// "misc status" needs to be updated
 			update_flags |= UPDATE_STATUS_LINE;
 			break;

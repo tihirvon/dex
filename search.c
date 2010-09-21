@@ -125,12 +125,32 @@ static void free_regex(void)
 	}
 }
 
+static int has_upper(const char *str)
+{
+	int i;
+
+	for (i = 0; str[i]; i++) {
+		if (isupper(str[i]))
+			return 1;
+	}
+	return 0;
+}
+
 static int update_regex(void)
 {
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
 
-	if (options.ignore_case)
+	switch (options.search_case) {
+	case SC_SENSITIVE:
+		break;
+	case SC_INSENSITIVE:
 		re_flags |= REG_ICASE;
+		break;
+	case SC_AUTO:
+		if (!has_upper(current_search.pattern))
+			re_flags |= REG_ICASE;
+		break;
+	}
 
 	if (re_flags == current_search.re_flags)
 		return 1;

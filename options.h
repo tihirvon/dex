@@ -24,6 +24,12 @@ enum {
 	WSE_TAB_AFTER_INDENT	= 1 << 4,
 };
 
+enum search_case {
+	SC_SENSITIVE,
+	SC_INSENSITIVE,
+	SC_AUTO,
+};
+
 struct common_options {
 	int auto_indent;
 	int emulate_tab;
@@ -80,12 +86,13 @@ struct global_options {
 	int display_special;
 	int esc_timeout;
 	int show_tab_bar;
-	int ignore_case;
 	int lock_files;
 	int scroll_margin;
+	enum search_case search_case;
 };
 
 extern struct global_options options;
+extern const char *search_case_enum[];
 
 #define OPT_LOCAL	(1 << 0)
 #define OPT_GLOBAL	(1 << 1)
