@@ -3,8 +3,35 @@
 #include "alias.h"
 #include "parse-args.h"
 #include "change.h"
+#include "config.h"
+
+// commands that are allowed in config files
+static const char *config_commands[] = {
+	"alias",
+	"bind",
+	"cd",
+	"errorfmt",
+	"ft",
+	"hi",
+	"include",
+	"load-syntax",
+	"option",
+	"set",
+	"syn",
+};
 
 const struct command *current_command;
+
+static int allowed_command(const char *name)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(config_commands); i++) {
+		if (!strcmp(name, config_commands[i]))
+			return 1;
+	}
+	return 0;
+}
 
 const struct command *find_command(const struct command *cmds, const char *name)
 {
@@ -75,6 +102,11 @@ void run_command(const struct command *cmds, char **av)
 
 		run_commands(cmds, &array);
 		ptr_array_free(&array);
+		return;
+	}
+
+	if (config_file && cmds == commands && !allowed_command(cmd->name)) {
+		error_msg("Command %s not allowed in config file.", cmd->name);
 		return;
 	}
 
