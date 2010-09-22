@@ -478,14 +478,19 @@ static int toggle(int value, const char **values)
 	return value;
 }
 
-void toggle_option(const char *name, unsigned int flags)
+void toggle_option(const char *name, unsigned int flags, int verbose)
 {
 	const struct option_description *desc = find_option(name, flags);
+	char *ptr = NULL;
 
 	if (!desc)
 		return;
 	if (desc->type != OPT_ENUM) {
 		error_msg("Option %s is not toggleable.", name);
+		return;
+	}
+	if (flags & OPT_LOCAL && flags & OPT_GLOBAL) {
+		error_msg("Can't toggle both local and global option value");
 		return;
 	}
 
@@ -498,12 +503,18 @@ void toggle_option(const char *name, unsigned int flags)
 	}
 
 	if (flags & OPT_LOCAL) {
-		char *ptr = local_ptr(desc, &buffer->options);
+		ptr = local_ptr(desc, &buffer->options);
 		desc->enum_opt.set((int *)ptr, NULL, toggle(*(int *)ptr, desc->enum_opt.values));
 	}
 	if (flags & OPT_GLOBAL) {
-		char *ptr = global_ptr(desc);
+		ptr = global_ptr(desc);
 		desc->enum_opt.set(NULL, (int *)ptr, toggle(*(int *)ptr, desc->enum_opt.values));
+	}
+
+	if (verbose) {
+		char *str = option_to_string(desc, ptr);
+		info_msg("%s = %s", desc->name, str);
+		free(str);
 	}
 }
 

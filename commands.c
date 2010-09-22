@@ -1146,6 +1146,7 @@ static void cmd_tag(const char *pf, char **args)
 static void cmd_toggle(const char *pf, char **args)
 {
 	unsigned int flags = 0;
+	int verbose = 0;
 
 	while (*pf) {
 		switch (*pf) {
@@ -1155,10 +1156,13 @@ static void cmd_toggle(const char *pf, char **args)
 		case 'l':
 			flags |= OPT_LOCAL;
 			break;
+		case 'v':
+			verbose = 1;
+			break;
 		}
 		pf++;
 	}
-	toggle_option(args[0], flags);
+	toggle_option(args[0], flags, verbose);
 }
 
 static void cmd_undo(const char *pf, char **args)
@@ -1272,7 +1276,7 @@ const struct command commands[] = {
 	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "syn",		"-",	0, -1, cmd_syn },
 	{ "tag",		"np",	0,  1, cmd_tag },
-	{ "toggle",		"gl",	1,  1, cmd_toggle },
+	{ "toggle",		"glv",	1,  1, cmd_toggle },
 	{ "undo",		"",	0,  0, cmd_undo },
 	{ "up",			"",	0,  0, cmd_up },
 	{ "view",		"",	1,  1, cmd_view },
