@@ -527,6 +527,11 @@ void syntax_changed(void)
 {
 	const struct syntax *syn = NULL;
 
+	if (!buffer) {
+		// syntax option was changed in config file
+		return;
+	}
+
 	if (buffer->options.syntax) {
 		/* even "none" can have syntax */
 		syn = find_syntax(buffer->options.filetype);

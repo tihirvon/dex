@@ -389,10 +389,15 @@ void set_option(const char *name, const char *value, unsigned int flags)
 		return;
 
 	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
-		if (desc->local)
+		if (desc->local && buffer)
 			flags |= OPT_LOCAL;
 		if (desc->global)
 			flags |= OPT_GLOBAL;
+	}
+
+	if (!buffer && (!flags || flags & OPT_LOCAL)) {
+		error_msg("Local option can't be set in config file.");
+		return;
 	}
 
 	if (flags & OPT_LOCAL)
