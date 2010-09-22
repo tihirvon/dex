@@ -107,7 +107,7 @@ static void parse_dq(const char *cmd, int *posp)
 }
 
 /*
- * $FILENAME	current filename
+ * $FILE	current filename
  * $DATADIR	set at compile time
  * $WORD	word under cursor
  *
@@ -139,7 +139,7 @@ static void parse_var(const char *cmd, int *posp)
 	if (!len)
 		return;
 
-	if (len == 8 && !memcmp(var, "FILENAME", len)) {
+	if (len == 4 && !memcmp(var, "FILE", len)) {
 		if (buffer->abs_filename)
 			gbuf_add_str(&arg, buffer->abs_filename);
 		return;
