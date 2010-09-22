@@ -356,6 +356,46 @@ static void set_flag_opt(const struct option_description *desc, const char *valu
 	desc->flag_opt.set(local, global, flags);
 }
 
+static char *flags_to_string(const char **values, int flags)
+{
+	char buf[1024];
+	char *ptr = buf;
+	int i;
+
+	if (!flags)
+		return xstrdup("0");
+
+	for (i = 0; values[i]; i++) {
+		if (flags & (1 << i)) {
+			int len = strlen(values[i]);
+			memcpy(ptr, values[i], len);
+			ptr += len;
+			*ptr++ = ',';
+		}
+	}
+	ptr[-1] = 0;
+	return xstrdup(buf);
+}
+
+static char *option_to_string(const struct option_description *desc, const char *ptr)
+{
+	char buf[32];
+
+	switch (desc->type) {
+	case OPT_INT:
+		snprintf(buf, sizeof(buf), "%d", *(int *)ptr);
+		return xstrdup(buf);
+	case OPT_STR:
+		return xstrdup(*(const char **)ptr);
+	case OPT_ENUM:
+		return xstrdup(desc->enum_opt.values[*(int *)ptr]);
+	case OPT_FLAG:
+		return flags_to_string(desc->flag_opt.values, *(int *)ptr);
+	}
+	BUG("unreachable\n");
+	return NULL;
+}
+
 static const struct option_description *find_option(const char *name, unsigned int flags)
 {
 	int i;
@@ -484,28 +524,6 @@ void collect_toggleable_options(const char *prefix)
 	}
 }
 
-static void add_flag_completion(const char **values, int flags)
-{
-	char buf[1024];
-	char *ptr = buf;
-	int i;
-
-	if (!flags) {
-		add_completion(xstrdup("0"));
-		return;
-	}
-	for (i = 0; values[i]; i++) {
-		if (flags & (1 << i)) {
-			int len = strlen(values[i]);
-			memcpy(ptr, values[i], len);
-			ptr += len;
-			*ptr++ = ',';
-		}
-	}
-	ptr[-1] = 0;
-	add_completion(xstrdup(buf));
-}
-
 void collect_option_values(const char *name, const char *prefix)
 {
 	int i;
@@ -519,28 +537,13 @@ void collect_option_values(const char *name, const char *prefix)
 		if (!*prefix) {
 			/* complete value */
 			const char *ptr;
-			char buf[32];
 
 			if (desc->local) {
 				ptr = (const char *)&buffer->options + desc->offset;
 			} else {
 				ptr = (const char *)&options + desc->offset;
 			}
-			switch (desc->type) {
-			case OPT_INT:
-				snprintf(buf, sizeof(buf), "%d", *(int *)ptr);
-				add_completion(xstrdup(buf));
-				break;
-			case OPT_STR:
-				add_completion(xstrdup(*(const char **)ptr));
-				break;
-			case OPT_ENUM:
-				add_completion(xstrdup(desc->enum_opt.values[*(int *)ptr]));
-				break;
-			case OPT_FLAG:
-				add_flag_completion(desc->flag_opt.values, *(int *)ptr);
-				break;
-			}
+			add_completion(option_to_string(desc, ptr));
 		} else if (desc->type == OPT_ENUM) {
 			/* complete possible values */
 			int j, len = strlen(prefix);
