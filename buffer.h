@@ -98,9 +98,6 @@ struct view {
 
 	// force centering view to cursor
 	unsigned force_center : 1;
-
-	// used only when reading rc file
-	unsigned rc_tmp : 1;
 };
 
 struct selection_info {

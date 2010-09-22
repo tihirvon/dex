@@ -30,7 +30,7 @@ enum input_special input_special;
 char *home_dir;
 int child_controls_terminal;
 
-static int resized = 1;
+static int resized;
 static struct {
 	int base;
 	int max_chars;
@@ -892,7 +892,6 @@ int main(int argc, char *argv[])
 	const char *rc = NULL;
 	const char *command = NULL;
 	const char *charset;
-	struct view *tmp_view;
 
 	if (!home)
 		home = "";
@@ -966,18 +965,7 @@ int main(int argc, char *argv[])
 	window = window_new();
 	update_screen_size();
 
-	/* there must be always at least one buffer open */
-	tmp_view = open_empty_buffer();
-	tmp_view->rc_tmp = 1;
-	set_view(tmp_view);
 	read_config(commands, rc, 0);
-	if (command)
-		handle_command(commands, command);
-	if (tag) {
-		const char *ptrs[3] = { "tag", tag, NULL };
-		struct ptr_array array = { (void **)ptrs, 3, 3 };
-		run_commands(commands, &array);
-	}
 
 	update_all_syntax_colors();
 	sort_aliases();
@@ -1012,29 +1000,25 @@ int main(int argc, char *argv[])
 		error_buf[0] = 0;
 	}
 
-	/* You can have "quit" in the rc file for testing purposes. */
-	if (editor_status == EDITOR_INITIALIZING)
-		editor_status = EDITOR_RUNNING;
+	editor_status = EDITOR_RUNNING;
 
 	for (; i < argc; i++)
 		open_buffer(argv[i], 0);
-
-	/* remove the temporary view we created before reading rc
-	 * if the view's buffer was not touched
-	 */
-	list_for_each_entry(tmp_view, &window->views, node) {
-		if (tmp_view->rc_tmp) {
-			if (!tmp_view->buffer->change_head.prev) {
-				set_view(tmp_view);
-				remove_view();
-			}
-			break;
-		}
-	}
-
 	if (list_empty(&window->views))
 		open_empty_buffer();
 	set_view(VIEW(window->views.next));
+
+	if (command || tag)
+		resize();
+
+	if (command)
+		handle_command(commands, command);
+	if (tag) {
+		const char *ptrs[3] = { "tag", tag, NULL };
+		struct ptr_array array = { (void **)ptrs, 3, 3 };
+		run_commands(commands, &array);
+	}
+	resize();
 
 	while (editor_status == EDITOR_RUNNING) {
 		if (resized) {
