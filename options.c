@@ -242,6 +242,16 @@ static const struct option_description option_desc[] = {
 	C_FLAG("ws-error", ws_error, ws_error_values, default_flag_set),
 };
 
+static inline char *local_ptr(const struct option_description *desc, const struct local_options *opt)
+{
+	return (char *)opt + desc->offset;
+}
+
+static inline char *global_ptr(const struct option_description *desc)
+{
+	return (char *)&options + desc->offset;
+}
+
 static int parse_int(const char *value, int *ret)
 {
 	char *end;
@@ -441,9 +451,9 @@ void set_option(const char *name, const char *value, unsigned int flags)
 	}
 
 	if (flags & OPT_LOCAL)
-		local = (char *)&buffer->options + desc->offset;
+		local = local_ptr(desc, &buffer->options);
 	if (flags & OPT_GLOBAL)
-		global = (char *)&options + desc->offset;
+		global = global_ptr(desc);
 
 	switch (desc->type) {
 	case OPT_INT:
@@ -461,12 +471,11 @@ void set_option(const char *name, const char *value, unsigned int flags)
 	}
 }
 
-static void toggle(int *valuep, const char **values)
+static int toggle(int value, const char **values)
 {
-	int value = *valuep + 1;
-	if (!values[value])
+	if (!values[++value])
 		value = 0;
-	*valuep = value;
+	return value;
 }
 
 void toggle_option(const char *name, unsigned int flags)
@@ -489,14 +498,12 @@ void toggle_option(const char *name, unsigned int flags)
 	}
 
 	if (flags & OPT_LOCAL) {
-		int *local = (int *)((char *)&buffer->options + desc->offset);
-		toggle(local, desc->enum_opt.values);
-		desc->enum_opt.set(local, NULL, *local);
+		char *ptr = local_ptr(desc, &buffer->options);
+		desc->enum_opt.set((int *)ptr, NULL, toggle(*(int *)ptr, desc->enum_opt.values));
 	}
 	if (flags & OPT_GLOBAL) {
-		int *global = (int *)((char *)&options + desc->offset);
-		toggle(global, desc->enum_opt.values);
-		desc->enum_opt.set(NULL, global, *global);
+		char *ptr = global_ptr(desc);
+		desc->enum_opt.set(NULL, (int *)ptr, toggle(*(int *)ptr, desc->enum_opt.values));
 	}
 }
 
@@ -539,9 +546,9 @@ void collect_option_values(const char *name, const char *prefix)
 			const char *ptr;
 
 			if (desc->local) {
-				ptr = (const char *)&buffer->options + desc->offset;
+				ptr = local_ptr(desc, &buffer->options);
 			} else {
-				ptr = (const char *)&options + desc->offset;
+				ptr = global_ptr(desc);
 			}
 			add_completion(option_to_string(desc, ptr));
 		} else if (desc->type == OPT_ENUM) {
@@ -592,7 +599,7 @@ void free_local_options(struct local_options *opt)
 		if (desc->type != OPT_STR)
 			continue;
 		if (desc->local) {
-			char **local = (char **)((char *)opt + desc->offset);
+			char **local = (char **)local_ptr(desc, opt);
 			free(*local);
 			*local = NULL;
 		}
