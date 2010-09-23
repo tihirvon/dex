@@ -104,7 +104,7 @@ static void add_node(union syntax_node *n, int type, const char *name, unsigned 
 	syntax_nodes[nr_syntax_nodes++] = n;
 }
 
-void syn_begin(const char *pf, char **args)
+static void syn_begin(const char *pf, char **args)
 {
 	struct syntax_context *c;
 
@@ -124,7 +124,7 @@ void syn_begin(const char *pf, char **args)
 	add_node((union syntax_node *)c, SYNTAX_NODE_CONTEXT, "root", 0);
 }
 
-void syn_end(const char *pf, char **args)
+static void syn_end(const char *pf, char **args)
 {
 	if (!cur_syntax) {
 		error_msg("No syntax definition has been started.");
@@ -146,7 +146,7 @@ static union syntax_node *find_syntax_node(const char *name)
 	return NULL;
 }
 
-void syn_addw(const char *pf, char **args)
+static void syn_addw(const char *pf, char **args)
 {
 	const char *name;
 	union syntax_node *n;
@@ -196,7 +196,7 @@ void syn_addw(const char *pf, char **args)
 	}
 }
 
-void syn_addr(const char *pf, char **args)
+static void syn_addr(const char *pf, char **args)
 {
 	const char *name;
 	const char *pattern;
@@ -228,7 +228,7 @@ void syn_addr(const char *pf, char **args)
 	add_node((union syntax_node *)p, SYNTAX_NODE_PATTERN, name, flags);
 }
 
-void syn_addc(const char *pf, char **args)
+static void syn_addc(const char *pf, char **args)
 {
 	const char *name;
 	union syntax_node *n;
@@ -306,7 +306,7 @@ static void connect_by_name(struct syntax_context *c, const char *name)
 	connect_node(c, n);
 }
 
-void syn_connect(const char *pf, char **args)
+static void syn_connect(const char *pf, char **args)
 {
 	const char *name = args[0];
 	union syntax_node *n;
@@ -359,7 +359,7 @@ static int parse_specifier(const char *name, enum syntax_node_specifier *specifi
 	return 0;
 }
 
-void syn_join(const char *pf, char **args)
+static void syn_join(const char *pf, char **args)
 {
 	struct syntax_join *join;
 	int i;
@@ -406,3 +406,14 @@ struct syntax *find_syntax(const char *name)
 	}
 	return NULL;
 }
+
+const struct command syn_commands[] = {
+	{ "addc",	"hi",	3,  3, syn_addc },
+	{ "addr",	"i",	2,  2, syn_addr },
+	{ "addw",	"i",	2, -1, syn_addw },
+	{ "begin",	"",	1,  1, syn_begin },
+	{ "connect",	"",	2, -1, syn_connect },
+	{ "end",	"",	0,  0, syn_end },
+	{ "join",	"",	2, -1, syn_join },
+	{ NULL,		NULL,	0,  0, NULL }
+};

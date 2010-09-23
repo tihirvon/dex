@@ -3,6 +3,7 @@
 
 #include "list.h"
 #include "color.h"
+#include "command.h"
 
 #include <regex.h>
 
@@ -95,13 +96,7 @@ extern int nr_syntax_nodes;
 extern struct syntax_join *syntax_joins;
 extern int nr_syntax_joins;
 
-void syn_begin(const char *pf, char **args);
-void syn_end(const char *pf, char **args);
-void syn_addw(const char *pf, char **args);
-void syn_addr(const char *pf, char **args);
-void syn_addc(const char *pf, char **args);
-void syn_connect(const char *pf, char **args);
-void syn_join(const char *pf, char **args);
+extern const struct command syn_commands[];
 
 unsigned int buf_hash(const char *str, unsigned int size);
 struct syntax *find_syntax(const char *name);

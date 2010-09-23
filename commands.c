@@ -1057,17 +1057,6 @@ static void cmd_suspend(const char *pf, char **args)
 	kill(0, SIGSTOP);
 }
 
-static const struct command syn_commands[] = {
-	{ "addc",	"hi",	3,  3, syn_addc },
-	{ "addr",	"i",	2,  2, syn_addr },
-	{ "addw",	"i",	2, -1, syn_addw },
-	{ "begin",	"",	1,  1, syn_begin },
-	{ "connect",	"",	2, -1, syn_connect },
-	{ "end",	"",	0,  0, syn_end },
-	{ "join",	"",	2, -1, syn_join },
-	{ NULL,		NULL,	0,  0, NULL }
-};
-
 static void cmd_syn(const char *pf, char **args)
 {
 	run_command(syn_commands, args);
