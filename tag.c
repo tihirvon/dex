@@ -120,7 +120,7 @@ static struct file_location *create_location(void)
 	return loc;
 }
 
-void pop_location(void)
+void tag_pop(void)
 {
 	struct file_location *loc;
 	struct view *v;
@@ -137,7 +137,7 @@ void pop_location(void)
 			// Can't restore closed buffer which had no filename.
 			free(loc->filename);
 			free(loc);
-			pop_location();
+			tag_pop();
 			return;
 		}
 	}

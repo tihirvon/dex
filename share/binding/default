@@ -41,7 +41,7 @@ bind ^Q delete-word
 bind ^S clear
 bind ^C command
 bind ^L "command 'line '"
-bind ^T pop
+bind ^T "tag -r"
 bind ^] tag
 bind insert insert-special
 

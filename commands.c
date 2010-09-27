@@ -574,11 +574,6 @@ static void cmd_pgup(const char *pf, char **args)
 	move_up(window->h - 1 - get_scroll_margin() * 2);
 }
 
-static void cmd_pop(const char *pf, char **args)
-{
-	pop_location();
-}
-
 static void cmd_prev(const char *pf, char **args)
 {
 	prev_buffer();
@@ -1074,6 +1069,7 @@ static void cmd_tag(const char *pf, char **args)
 	const char *name = args[0];
 	static int pos;
 	char dir = 0;
+	int pop = 0;
 
 	while (*pf) {
 		switch (*pf) {
@@ -1081,12 +1077,19 @@ static void cmd_tag(const char *pf, char **args)
 		case 'p':
 			dir = *pf;
 			break;
+		case 'r':
+			pop = 1;
+			break;
 		}
 		pf++;
 	}
 
 	if (dir && name) {
 		error_msg("Tag and direction (-n/-p) are mutually exclusive.");
+		return;
+	}
+	if (pop) {
+		tag_pop();
 		return;
 	}
 
@@ -1245,7 +1248,6 @@ const struct command commands[] = {
 	{ "paste",		"",	0,  0, cmd_paste },
 	{ "pgdown",		"",	0,  0, cmd_pgdown },
 	{ "pgup",		"",	0,  0, cmd_pgup },
-	{ "pop",		"",	0,  0, cmd_pop },
 	{ "prev",		"",	0,  0, cmd_prev },
 	{ "quit",		"f",	0,  0, cmd_quit },
 	{ "redo",		"",	0,  1, cmd_redo },
@@ -1264,7 +1266,7 @@ const struct command commands[] = {
 	{ "shift",		"",	0,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "syn",		"-",	0, -1, cmd_syn },
-	{ "tag",		"np",	0,  1, cmd_tag },
+	{ "tag",		"npr",	0,  1, cmd_tag },
 	{ "toggle",		"glv",	1,  1, cmd_toggle },
 	{ "undo",		"",	0,  0, cmd_undo },
 	{ "up",			"",	0,  0, cmd_up },
