@@ -1,8 +1,0 @@
-syn begin gitrebase
-
-syn addr keyword '^(e|f|p|r|s|edit|fixup|pick|reword|squash)\b'
-syn addc comment '^#' '$'
-
-syn connect root comment keyword
-
-syn end

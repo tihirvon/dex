@@ -1,9 +1,0 @@
-syn begin config
-
-syn addw notice FIXME TODO XXX
-syn addc comment '#' '\n'
-
-syn connect comment notice
-syn connect root comment
-
-syn end

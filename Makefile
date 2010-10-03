@@ -112,23 +112,6 @@ config	:=			\
 	# end
 
 syntax	:=			\
-	syntax/bash		\
-	syntax/c		\
-	syntax/config		\
-	syntax/cpp		\
-	syntax/css		\
-	syntax/diff		\
-	syntax/editor		\
-	syntax/gitcommit	\
-	syntax/gitrebase	\
-	syntax/go		\
-	syntax/html		\
-	syntax/make		\
-	syntax/php		\
-	syntax/python		\
-	syntax/sh		\
-	syntax/smarty		\
-	syntax/sql		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
