@@ -1,6 +1,7 @@
 ft content '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)[0-9.]*(\s|$)'
+ft content xml '^<\?xml(\s|$)'
 
-ft match '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql)$'
+ft match '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql|xml)$'
 ft match bash '/\.bash(rc|_profile|_logout)$'
 ft match bash '.*/PKGBUILD'
 ft match editor '/\.editor/(rc|filetype|syntax/.*)$'
