@@ -2,41 +2,52 @@
 #include "term.h"
 #include "window.h"
 
-static int separator;
+struct formatter {
+	char *buf;
+	unsigned int size;
+	unsigned int pos;
+	int separator;
+};
 
-static void add_status_str(char *buf, int size, int *posp, const char *str)
+static void add_ch(struct formatter *f, char ch)
 {
-	unsigned int pos = *posp;
+	f->buf[f->pos++] = ch;
+}
+
+static void add_separator(struct formatter *f)
+{
+	if (f->separator && f->pos < f->size)
+		add_ch(f, ' ');
+	f->separator = 0;
+}
+
+static void add_status_str(struct formatter *f, const char *str)
+{
 	unsigned int idx = 0;
 
 	if (!*str)
 		return;
 
-	if (separator) {
-		if (pos + 2 < size)
-			buf[pos++] = ' ';
-		separator = 0;
-	}
+	add_separator(f);
 	if (term_flags & TERM_UTF8) {
-		while (pos < size && str[idx]) {
+		while (f->pos < f->size && str[idx]) {
 			uchar u = u_buf_get_char(str, idx + 4, &idx);
-			u_set_char(buf, &pos, u);
+			u_set_char(f->buf, &f->pos, u);
 		}
 	} else {
-		while (pos < size && str[idx]) {
+		while (f->pos < f->size && str[idx]) {
 			unsigned char ch = str[idx++];
 			if (ch < 0x20) {
-				buf[pos++] = '^';
-				buf[pos++] = ch | 0x40;
+				add_ch(f, '^');
+				add_ch(f, ch | 0x40);
 			} else if (ch == 0x7f) {
-				buf[pos++] = '^';
-				buf[pos++] = '?';
+				add_ch(f, '^');
+				add_ch(f, '?');
 			} else {
-				buf[pos++] = ch;
+				add_ch(f, ch);
 			}
 		}
 	}
-	*posp = pos;
 }
 
 __FORMAT(1, 2)
@@ -51,114 +62,111 @@ static const char *ssprintf(const char *format, ...)
 	return buf;
 }
 
-static void add_status_pos(char *buf, int size, int *posp)
+static void add_status_pos(struct formatter *f)
 {
 	int h = window->h;
 	int pos = view->vy;
 
 	if (buffer->nl <= h) {
 		if (pos)
-			add_status_str(buf, size, posp, "Bot");
+			add_status_str(f, "Bot");
 		else
-			add_status_str(buf, size, posp, "All");
+			add_status_str(f, "All");
 	} else if (pos == 0) {
-		add_status_str(buf, size, posp, "Top");
+		add_status_str(f, "Top");
 	} else if (pos + h - 1 >= buffer->nl) {
-		add_status_str(buf, size, posp, "Bot");
+		add_status_str(f, "Bot");
 	} else {
 		int d = buffer->nl - (h - 1);
-		add_status_str(buf, size, posp, ssprintf("%2d%%", (pos * 100 + d / 2) / d));
+		add_status_str(f, ssprintf("%2d%%", (pos * 100 + d / 2) / d));
 	}
 }
 
 int format_status(char *buf, int size, const char *format, const char *misc_status)
 {
-	int pos = 0;
+	struct formatter f;
 	int got_char;
 	uchar u;
 
-	separator = 0;
+	f.buf = buf;
+	f.size = size - 5; // max length of char and terminating NUL
+	f.pos = 0;
+	f.separator = 0;
+
 	got_char = buffer_get_char(&view->cursor, &u);
 	if (got_char)
 		u &= ~U_INVALID_MASK;
-	while (pos < size && *format) {
+	while (f.pos < f.size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
-			if (separator)
-				buf[pos++] = ' ';
-			if (pos < size - 1)
-				buf[pos++] = ch;
-			separator = 0;
+			add_separator(&f);
+			add_ch(&f, ch);
 		} else {
 			ch = *format++;
 			switch (ch) {
 			case 'f':
-				add_status_str(buf, size, &pos,
-						buffer->filename ? buffer->filename : "(No name)");
+				add_status_str(&f, buffer->filename ? buffer->filename : "(No name)");
 				break;
 			case 'm':
 				if (buffer_modified(buffer))
-					add_status_str(buf, size, &pos, "*");
+					add_status_str(&f, "*");
 				break;
 			case 'r':
 				if (buffer->ro)
-					add_status_str(buf, size, &pos, "RO");
+					add_status_str(&f, "RO");
 				break;
 			case 'y':
-				add_status_str(buf, size, &pos, ssprintf("%d", view->cy + 1));
+				add_status_str(&f, ssprintf("%d", view->cy + 1));
 				break;
 			case 'x':
-				add_status_str(buf, size, &pos, ssprintf("%d", view->cx_display + 1));
+				add_status_str(&f, ssprintf("%d", view->cx_display + 1));
 				break;
 			case 'X':
-				add_status_str(buf, size, &pos, ssprintf("%d", view->cx_char + 1));
+				add_status_str(&f, ssprintf("%d", view->cx_char + 1));
 				if (view->cx_display != view->cx_char)
-					add_status_str(buf, size, &pos, ssprintf("-%d", view->cx_display + 1));
+					add_status_str(&f, ssprintf("-%d", view->cx_display + 1));
 				break;
 			case 'c':
 				if (got_char)
-					add_status_str(buf, size, &pos, ssprintf("%3d", u));
+					add_status_str(&f, ssprintf("%3d", u));
 				break;
 			case 'C':
 				if (got_char)
-					add_status_str(buf, size, &pos, ssprintf("0x%02x", u));
+					add_status_str(&f, ssprintf("0x%02x", u));
 				break;
 			case 'p':
-				add_status_pos(buf, size, &pos);
+				add_status_pos(&f);
 				break;
 			case 'E':
-				add_status_str(buf, size, &pos, buffer->utf8 ? "UTF-8" : "8-bit");
+				add_status_str(&f, buffer->utf8 ? "UTF-8" : "8-bit");
 				break;
 			case 'M':
 				if (misc_status[0])
-					add_status_str(buf, size, &pos, misc_status);
+					add_status_str(&f, misc_status);
 				break;
 			case 'n':
 				switch (buffer->newline) {
 				case NEWLINE_UNIX:
-					add_status_str(buf, size, &pos, "LF");
+					add_status_str(&f, "LF");
 					break;
 				case NEWLINE_DOS:
-					add_status_str(buf, size, &pos, "CRLF");
+					add_status_str(&f, "CRLF");
 					break;
 				}
 				break;
 			case 's':
-				separator = 1;
+				f.separator = 1;
 				break;
 			case 't':
-				add_status_str(buf, size, &pos, buffer->options.filetype);
+				add_status_str(&f, buffer->options.filetype);
 				break;
 			case '%':
-				if (separator)
-					buf[pos++] = ' ';
-				if (pos < size - 1)
-					buf[pos++] = ch;
-				separator = 0;
+				add_separator(&f);
+				add_ch(&f, ch);
 				break;
 			}
 		}
 	}
-	buf[pos] = 0;
-	return pos;
+	f.buf[f.pos] = 0;
+	return f.pos;
 }
