@@ -81,6 +81,7 @@ OBJECTS	:= 			\
 	screen.o		\
 	search.o		\
 	spawn.o			\
+	format-status.o		\
 	syntax.o		\
 	tag.o			\
 	term.o			\
