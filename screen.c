@@ -367,6 +367,9 @@ static int format_status(char *buf, int size, const char *format, const char *mi
 			case 's':
 				separator = 1;
 				break;
+			case 't':
+				add_status_str(buf, size, &pos, buffer->options.filetype);
+				break;
 			case '%':
 				if (separator)
 					buf[pos++] = ' ';
