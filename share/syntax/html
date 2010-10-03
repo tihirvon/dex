@@ -25,7 +25,7 @@ syn addr numberentity '&#[0-9]+;'
 
 syn addc attrvalue '"' '("|\n)'
 syn addc tag '<' '>'
-syn addc html.comment -- '<!--' '-->'
+syn addc comment -- '<!--' '-->'
 
 syn connect attrvalue reservedcharentity symbolentity charentity numberentity
 syn connect tag tagname frameset transitional deprecated attrvalue
