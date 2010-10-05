@@ -8,7 +8,6 @@
 #include "wbuf.h"
 #include "term.h"
 #include "filetype.h"
-#include "highlight.h"
 #include "file-history.h"
 #include "file-option.h"
 #include "lock.h"
@@ -136,7 +135,6 @@ static struct buffer *buffer_new(void)
 	b->options.filetype = xstrdup("none");
 
 	b->newline = options.newline;
-	list_init(&b->hl_head);
 	return b;
 }
 
@@ -257,7 +255,6 @@ void free_buffer(struct buffer *b)
 		item = next;
 	}
 	free_changes(&b->change_head);
-	free_hl_list(&b->hl_head);
 
 	free(b->filename);
 	free(b->abs_filename);

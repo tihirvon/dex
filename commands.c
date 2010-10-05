@@ -11,8 +11,6 @@
 #include "util.h"
 #include "filetype.h"
 #include "color.h"
-#include "syntax.h"
-#include "highlight.h"
 #include "lock.h"
 #include "ptr-array.h"
 #include "bind.h"
@@ -1052,11 +1050,6 @@ static void cmd_suspend(const char *pf, char **args)
 	kill(0, SIGSTOP);
 }
 
-static void cmd_syn(const char *pf, char **args)
-{
-	run_command(syn_commands, args);
-}
-
 static void goto_tag(int pos, int save_location)
 {
 	if (current_tags.count > 1)
@@ -1265,7 +1258,6 @@ const struct command commands[] = {
 	{ "set",		"gl",	1,  2, cmd_set },
 	{ "shift",		"",	0,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
-	{ "syn",		"-",	0, -1, cmd_syn },
 	{ "tag",		"npr",	0,  1, cmd_tag },
 	{ "toggle",		"glv",	1,  1, cmd_toggle },
 	{ "undo",		"",	0,  0, cmd_undo },

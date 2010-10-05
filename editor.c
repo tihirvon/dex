@@ -9,7 +9,6 @@
 #include "history.h"
 #include "file-history.h"
 #include "util.h"
-#include "highlight.h"
 #include "screen.h"
 #include "bind.h"
 #include "alias.h"
@@ -642,13 +641,6 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	update_cursor_x();
 	update_cursor_y();
 	update_view();
-
-	if (buffer->hl_counter > MAX_HL_UPDATES) {
-		// Highlight updates were stopped because there were so
-		// many changes.  Need to rehighlight whole buffer.
-		highlight_buffer(buffer);
-	}
-	buffer->hl_counter = 0;
 
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {

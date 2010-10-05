@@ -5,7 +5,6 @@
 #include "cmdline.h"
 #include "search.h"
 #include "color.h"
-#include "highlight.h"
 
 struct line_info {
 	// struct lineref
@@ -349,7 +348,6 @@ void print_term_title(const char *title)
 // selection start / end buffer byte offsets
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
-static struct hl_iterator hl_iter;
 
 static void mask_color(struct term_color *color, const struct term_color *over)
 {
@@ -365,9 +363,6 @@ static void update_color(int nontext, int wserror)
 {
 	struct term_color color;
 
-	if (hl_iter.color)
-		color = hl_iter.color->color;
-	else
 		color = default_color->color;
 	if (nontext)
 		mask_color(&color, &nontext_color->color);
@@ -459,7 +454,6 @@ static uchar screen_next_char(struct line_info *info)
 		info->pos++;
 		count = 1;
 	}
-	hl_iter_advance(&hl_iter, count);
 
 	if (u == '\t' || u == ' ')
 		ws_error = whitespace_error(info, u, pos);
@@ -506,8 +500,6 @@ static void print_line(struct line_info *info)
 		u = screen_next_char(info);
 		if (!buf_put_char(u, utf8)) {
 			int count = info->size - info->pos;
-			if (count)
-				hl_iter_advance(&hl_iter, count);
 			// +1 for newline
 			cur_offset += count + 1;
 			return;
@@ -540,7 +532,6 @@ void update_range(int y1, int y2)
 	y2 -= view->vy;
 
 	cur_offset = block_iter_get_offset(&bi);
-	hl_iter_set_pos(&hl_iter, &buffer->hl_head, cur_offset);
 	selection_init();
 
 	got_line = !block_iter_is_eof(&bi);
@@ -554,8 +545,6 @@ void update_range(int y1, int y2)
 		print_line(&info);
 
 		got_line = block_iter_next_line(&bi);
-		if (got_line)
-			hl_iter_advance(&hl_iter, 1);
 		current_line++;
 	}
 

@@ -30,7 +30,6 @@ datadir = $(prefix)/share
 # 1: Enable BUG_ON() and light-weight sanity checks.
 # 2: Enable logging to /tmp/editor.log and expensive sanity checks.
 DEBUG = 1
-DEBUG_SYNTAX = 0
 
 # enabled if CC supports them
 WARNINGS = \
@@ -48,7 +47,6 @@ OBJECTS	:= 			\
 	alias.o			\
 	bind.o			\
 	block.o			\
-	buffer-highlight.o	\
 	buffer-iter.o		\
 	buffer.o		\
 	change.o		\
@@ -65,7 +63,6 @@ OBJECTS	:= 			\
 	file-option.o		\
 	filetype.o		\
 	gbuf.o			\
-	highlight.o		\
 	history.o		\
 	indent.o		\
 	iter.o			\
@@ -82,7 +79,6 @@ OBJECTS	:= 			\
 	search.o		\
 	spawn.o			\
 	format-status.o		\
-	syntax.o		\
 	tag.o			\
 	term.o			\
 	termcap.o		\
@@ -131,7 +127,6 @@ endif
 
 CFLAGS += -DDATADIR=\"$(datadir)\"
 CFLAGS += -DDEBUG=$(DEBUG)
-CFLAGS += -DDEBUG_SYNTAX=$(DEBUG_SYNTAX)
 
 editor: $(OBJECTS)
 	$(call cmd,ld,)

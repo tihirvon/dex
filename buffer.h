@@ -46,8 +46,6 @@ struct buffer {
 	struct local_options options;
 
 	const struct syntax *syn;
-	struct list_head hl_head;
-	int hl_counter;
 };
 
 enum selection {

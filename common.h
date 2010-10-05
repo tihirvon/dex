@@ -55,15 +55,6 @@ static inline void d_print(const char *fmt, ...)
 #define d_print(...) debug_print(__FUNCTION__, __VA_ARGS__)
 #endif
 
-#if DEBUG_SYNTAX <= 0
-__FORMAT(1, 2)
-static inline void ds_print(const char *fmt, ...)
-{
-}
-#else
-#define ds_print(...) debug_print(__FUNCTION__, __VA_ARGS__)
-#endif
-
 #define __STR(a) #a
 #define BUG_ON(a) \
 	do { \
