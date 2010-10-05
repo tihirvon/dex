@@ -1,0 +1,46 @@
+state start text
+	char "\n" start
+	char # comment
+	char -b a-zA-Z0-9_ word
+	eat error
+
+state word text
+	char -b a-zA-Z0-9_ word
+	listed keyword separator1
+	bufis x exec
+	bufis exec exec
+	noeat error
+
+# FIXME: can be annoying
+state error
+	char "\n" start
+	eat error
+
+state separator1 text
+	char " \t" space1
+	noeat error
+
+state space1 text
+	char " \t" space1
+	noeat sha1
+
+state sha1 constant
+	char 0-9a-fA-F sha1
+	char "\n" start
+	char " \t" title
+	noeat error
+
+state title text
+	char "\n" start
+	eat title
+
+state exec
+	char "\n" start
+	eat exec
+
+state comment
+	char "\n" start
+	eat comment
+
+list keyword \
+	e f p r s edit fixup pick reword squash
