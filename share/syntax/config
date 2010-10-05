@@ -1,0 +1,15 @@
+state text
+	char # comment
+	eat text
+
+state comment
+	char "\n" text
+	char -b a-zA-Z0-9_ word
+	eat comment
+
+state word comment
+	char -b a-zA-Z0-9_ word
+	bufis FIXME comment notice
+	bufis TODO comment notice
+	bufis XXX comment notice
+	noeat comment
