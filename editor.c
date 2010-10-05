@@ -965,7 +965,7 @@ int main(int argc, char *argv[])
 
 	read_config(commands, rc, 0);
 
-	update_all_syntax_colors();
+//	update_all_syntax_colors();
 	sort_aliases();
 
 	/* Terminal does not generate signals for control keys. */
