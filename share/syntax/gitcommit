@@ -1,0 +1,38 @@
+state start text
+	char # comment-start
+	noeat text
+
+state text
+	char "\n" start
+	eat text
+
+state comment-start comment
+	char "\n" start
+	char "\t" tab
+	str ' On branch ' 		branch comment
+	str ' Changes to be committed:' comment added
+	str ' Changed but not updated:' comment modified
+	str ' Untracked files:' 	comment untracked
+	eat comment
+
+state comment
+	char "\n" start
+	eat comment
+
+state branch notice
+	char "\n" start
+	eat branch
+
+state tab comment
+	char "\n" start
+	char -b "a-z " newfile
+	eat comment
+
+state newfile
+	char "\n" start
+	char : file label
+	buffer newfile
+
+state file
+	char "\n" start
+	eat file

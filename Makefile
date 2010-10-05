@@ -113,6 +113,7 @@ syntax	:=			\
 	syntax/c		\
 	syntax/config		\
 	syntax/editor		\
+	syntax/gitcommit	\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
