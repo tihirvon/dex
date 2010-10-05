@@ -5,6 +5,7 @@
 #include "cmdline.h"
 #include "search.h"
 #include "color.h"
+#include "hl.h"
 
 struct line_info {
 	// struct lineref
@@ -14,6 +15,8 @@ struct line_info {
 	unsigned int pos;
 	unsigned int indent_size;
 	unsigned int trailing_ws_offset;
+
+	struct hl_color **colors;
 };
 
 static struct hl_color *default_color;
@@ -359,11 +362,15 @@ static void mask_color(struct term_color *color, const struct term_color *over)
 		color->attr = over->attr;
 }
 
-static void update_color(int nontext, int wserror)
+static void update_color(struct hl_color *hl_color, int nontext, int wserror)
 {
 	struct term_color color;
 
+	if (hl_color)
+		color = hl_color->color;
+	else
 		color = default_color->color;
+
 	if (nontext)
 		mask_color(&color, &nontext_color->color);
 	if (wserror)
@@ -458,17 +465,28 @@ static uchar screen_next_char(struct line_info *info)
 	if (u == '\t' || u == ' ')
 		ws_error = whitespace_error(info, u, pos);
 
-	update_color(is_non_text(u), ws_error);
+	update_color(info->colors ? info->colors[pos] : NULL, is_non_text(u), ws_error);
 	cur_offset += count;
 	return u;
 }
 
-static void init_line_info(struct line_info *info, struct block_iter *bi)
+static void init_line_info(struct line_info *info, struct block_iter *bi, int line_nr)
 {
 	int i;
 
-	fill_line_ref(bi, (struct lineref *)info);
+	fill_line_nl_ref(bi, (struct lineref *)info);
 	info->pos = 0;
+
+	if (line_nr < buffer->line_states.count) {
+		struct state *st = buffer->line_states.ptrs[line_nr];
+		info->colors = highlight_line(st, info->line, info->size, NULL);
+	} else {
+		info->colors = NULL;
+	}
+	if (info->size && info->line[info->size - 1] == '\n') {
+		// highlighter needs \n but other code does not want it
+		info->size--;
+	}
 
 	for (i = 0; i < info->size; i++) {
 		char ch = info->line[i];
@@ -499,13 +517,12 @@ static void print_line(struct line_info *info)
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = screen_next_char(info);
 		if (!buf_put_char(u, utf8)) {
-			int count = info->size - info->pos;
 			// +1 for newline
-			cur_offset += count + 1;
+			cur_offset += info->size - info->pos + 1;
 			return;
 		}
 	}
-	update_color(1, 0);
+	update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
 	cur_offset += 1; // newline
 	if (options.display_special && obuf.x >= obuf.scroll_x)
 		buf_put_char('$', utf8);
@@ -541,7 +558,7 @@ void update_range(int y1, int y2)
 		obuf.x = 0;
 		buf_move_cursor(window->x, window->y + i);
 
-		init_line_info(&info, &bi);
+		init_line_info(&info, &bi, current_line);
 		print_line(&info);
 
 		got_line = block_iter_next_line(&bi);
@@ -551,7 +568,7 @@ void update_range(int y1, int y2)
 	if (i < y2 && current_line == view->cy) {
 		// dummy empty line
 		obuf.x = 0;
-		update_color(0, 0);
+		update_color(NULL, 0, 0);
 		buf_move_cursor(window->x, window->y + i++);
 		buf_clear_eol();
 	}
