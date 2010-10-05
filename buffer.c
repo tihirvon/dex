@@ -320,17 +320,24 @@ int guess_filetype(void)
 	return 0;
 }
 
-struct syntax *load_syntax(const char *filetype)
+struct syntax *load_syntax(const char *filetype, const char *filename)
 {
-	char filename[1024];
 	struct syntax *syn;
 
-	snprintf(filename, sizeof(filename), "%s/.editor/syntax/%s", home_dir, filetype);
-	if (read_config(commands, filename, 0)) {
-		snprintf(filename, sizeof(filename), "%s/editor/syntax/%s", DATADIR, filetype);
+	if (filename) {
 		if (read_config(commands, filename, 0))
 			return NULL;
+	} else {
+		char buf[1024];
+
+		snprintf(buf, sizeof(buf), "%s/.editor/syntax/%s", home_dir, filetype);
+		if (read_config(commands, buf, 0)) {
+			snprintf(buf, sizeof(buf), "%s/editor/syntax/%s", DATADIR, filetype);
+			if (read_config(commands, buf, 0))
+				return NULL;
+		}
 	}
+
 	syn = find_syntax(filetype);
 	if (syn)
 		update_syntax_colors();
@@ -536,7 +543,7 @@ void syntax_changed(void)
 		/* even "none" can have syntax */
 		syn = find_syntax(buffer->options.filetype);
 		if (!syn)
-			syn = load_syntax(buffer->options.filetype);
+			syn = load_syntax(buffer->options.filetype, NULL);
 	}
 	if (syn == buffer->syn)
 		return;

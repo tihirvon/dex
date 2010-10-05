@@ -182,7 +182,7 @@ static inline void buffer_eof(struct block_iter *bi)
 char *get_word_under_cursor(void);
 
 int guess_filetype(void);
-struct syntax *load_syntax(const char *filetype);
+struct syntax *load_syntax(const char *filetype, const char *filename);
 void update_hl_insert(unsigned int lines, int count);
 void highlight_buffer(struct buffer *b);
 void syntax_changed(void);
