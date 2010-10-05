@@ -1,0 +1,240 @@
+state start text
+	char " \t" start
+	char # preproc
+	noeat c
+
+state preproc
+	char -b a-zA-Z_ preproc-ident
+	noeat preproc-misc
+
+state preproc-ident preproc
+	char -b a-zA-Z0-9_ preproc-ident
+	bufis "include" preproc-include
+	noeat preproc-misc
+
+state preproc-misc preproc
+	char "\n" start
+	char "\\" preproc-cont
+	eat preproc-misc
+
+# Only '#include\s*<header>' or '#include\s*"header"' are recognized although
+# '#include /* comment */ <header>' is valid too.
+state preproc-include preproc
+	char " \t" preproc-include
+	char "\n" start
+	char "\\" preproc-cont
+	char '"' local-include
+	char '<' system-include
+	noeat preproc-error
+
+state preproc-cont preproc
+	char "\n" preproc-misc
+	noeat preproc-misc
+
+state local-include string
+	char '"' end-include string
+	eat local-include
+
+state system-include string
+	char '>' end-include string
+	eat system-include
+
+state end-include preproc
+	char "\n" start
+	char " \t" end-include
+	str "//" cpp-comment
+	str "/*" c-comment
+	eat preproc-error
+
+state preproc-error error
+	char "\n" start
+	eat preproc-error
+
+state c text
+	char -b a-zA-Z_ ident
+	char -b 0 zero
+	char -b 1-9 dec
+	char -b . dot
+	char "\"" string
+	char "'" char
+	char "\n" start
+	str "//" cpp-comment
+	str "/*" c-comment
+	eat c
+
+state ident
+	char -b a-zA-Z0-9_ ident
+	listed keyword c
+	listed type c
+	listed constant c
+	noeat c
+
+state zero numeric
+	char xX hex
+	char 0-7 oct
+	char . float
+	noeat check-suffix
+
+state oct numeric
+	char 0-7 oct
+	noeat check-suffix
+
+state dec numeric
+	char 0-9 dec
+	char eE exp
+	char . float
+	noeat check-suffix
+
+state hex numeric
+	char 0-9a-fA-F hex
+	noeat check-suffix
+
+state check-suffix error
+	char -b a-zA-Z0-9_ check-suffix
+	listed numeric-suffix c numeric
+	noeat c
+
+state dot text
+	char 0-9 float
+	noeat c
+
+state float numeric
+	char 0-9 float
+	char eE exp
+	char fFlL float-suffix
+	char a-zA-Z0-9_ error-ident
+	noeat c
+
+state float-suffix numeric
+	char a-zA-Z0-9_ error-ident
+	noeat c
+
+state exp numeric
+	char +- exp-digit
+	char 0-9 exp-digit
+	char a-zA-Z0-9_ error-ident
+	noeat c
+
+state exp-digit numeric
+	char 0-9 exp-digit
+	char a-zA-Z0-9_ error-ident
+	noeat c
+
+state string
+	char "\"" c string
+	# avoid highlighting rest of the file again
+	char "\n" start
+	char -b "\\" string-esc
+	eat string
+
+state string-esc special
+	char "abfnrtv'\\\"" string special
+	char 0-3 string-oct1
+	char 4-7 string-oct2
+	char x string-hex0
+	char "\n" start
+	eat string error
+
+state string-oct1 special
+	char 0-7 string-oct2
+	noeat string
+
+state string-oct2 special
+	char 0-7 string special
+	noeat string
+
+state string-hex0 special
+	char 0-9a-fA-F string-hex1
+	noeat string
+
+state string-hex1 special
+	char 0-9a-fA-F string-hex2
+	noeat string
+
+# "\xaff" is an error but "\xafg" is not!
+state string-hex2 special
+	char 0-9a-fA-F string error
+	noeat string
+
+state char
+	char "'" c error
+	char "\\" char-esc
+	char "\n" start
+	eat char-end
+
+state char-esc special
+	char "abfnrtv'\\\"" char-end special
+	char 0-3 char-oct1
+	char 4-7 char-oct2
+	char x char-hex0
+	char "\n" start
+	eat c error
+
+state char-oct1 special
+	char 0-7 char-oct2
+	noeat char-end
+
+state char-oct2 special
+	char 0-7 char-end special
+	noeat char-end
+
+state char-hex0 special
+	char 0-9a-fA-F char-hex1
+	noeat char-end
+
+state char-hex1 special
+	char 0-9a-fA-F char-end special
+	noeat char-end
+
+state char-end char
+	char "'" c char
+	char "\n" start
+	eat c error
+
+state error-ident error
+	char a-zA-Z0-9_ error-ident
+	noeat c
+
+state cpp-comment comment
+	char "\n" start
+	# multiline comment?
+	str "\\\n" cpp-comment
+	char -b a-zA-Z0-9_ cpp-comment-word
+	eat cpp-comment
+
+state cpp-comment-word comment
+	char -b a-zA-Z0-9_ cpp-comment-word
+	listed notice cpp-comment
+	noeat cpp-comment
+
+state c-comment comment
+	str "*/" c comment
+	char -b a-zA-Z0-9_ c-comment-word
+	eat c-comment
+
+state c-comment-word comment
+	char -b a-zA-Z0-9_ c-comment-word
+	listed notice c-comment
+	noeat c-comment
+
+list notice \
+	TODO FIXME XXX
+
+list keyword \
+	if else for while do continue switch case break default return goto \
+	asm const static inline register extern volatile auto restrict sizeof \
+	typedef
+
+list type \
+	struct union enum void char short int long float double signed \
+	unsigned size_t ssize_t off_t ptrdiff_t time_t va_list FILE DIR
+
+list constant \
+	NULL stdin stdout stderr \
+	EPERM ENOENT ESRCH EINTR EIO ENXIO E2BIG ENOEXEC EBADF ECHILD EAGAIN \
+	ENOMEM EACCES EFAULT ENOTBLK EBUSY EEXIST EXDEV ENODEV ENOTDIR EISDIR \
+	EINVAL ENFILE EMFILE ENOTTY ETXTBSY EFBIG ENOSPC ESPIPE EROFS EMLINK \
+	EPIPE EDOM ERANGE
+
+list -i numeric-suffix \
+	ULL UL U LLU LU LL L

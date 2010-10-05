@@ -110,6 +110,7 @@ config	:=			\
 	# end
 
 syntax	:=			\
+	syntax/c		\
 	syntax/editor		\
 	# end
 
