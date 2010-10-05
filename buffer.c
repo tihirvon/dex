@@ -256,6 +256,7 @@ void free_buffer(struct buffer *b)
 		item = next;
 	}
 	free_changes(&b->change_head);
+	free(b->line_states.ptrs);
 
 	free(b->filename);
 	free(b->abs_filename);

@@ -64,6 +64,7 @@ OBJECTS	:= 			\
 	filetype.o		\
 	gbuf.o			\
 	history.o		\
+	hl.o			\
 	indent.o		\
 	iter.o			\
 	lock.o			\

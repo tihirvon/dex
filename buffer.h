@@ -6,6 +6,7 @@
 #include "uchar.h"
 #include "options.h"
 #include "common.h"
+#include "ptr-array.h"
 
 #define MAX_HL_UPDATES 5
 
@@ -46,6 +47,7 @@ struct buffer {
 	struct local_options options;
 
 	const struct syntax *syn;
+	struct ptr_array line_states;
 };
 
 enum selection {
