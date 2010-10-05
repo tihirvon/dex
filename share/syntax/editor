@@ -1,0 +1,39 @@
+state start text
+	char " \t" start
+	char # comment
+	noeat command
+
+state comment
+	char "\n" start
+	eat comment
+
+state command text
+	char "'" sq
+	char '"' dq
+	char "\n" start
+	char "\\" escape
+	char -b \$ variable
+	eat command
+
+state sq string
+	char "'" command string
+	char "\n" start
+	eat sq
+
+state dq string
+	char -b "\\" dq-escape
+	char '"' command string
+	char "\n" start
+	eat dq
+
+state dq-escape special
+	char "abfnrtv'\\\"" dq special
+	eat dq
+
+state escape special
+	char "\n" command
+	eat command special
+
+state variable
+	char -b a-zA-Z_ variable
+	noeat command

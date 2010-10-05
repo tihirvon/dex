@@ -110,6 +110,7 @@ config	:=			\
 	# end
 
 syntax	:=			\
+	syntax/editor		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
