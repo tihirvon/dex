@@ -8,6 +8,7 @@
 #include "wbuf.h"
 #include "term.h"
 #include "filetype.h"
+#include "state.h"
 #include "file-history.h"
 #include "file-option.h"
 #include "lock.h"

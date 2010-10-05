@@ -11,6 +11,7 @@
 #include "util.h"
 #include "filetype.h"
 #include "color.h"
+#include "state.h"
 #include "lock.h"
 #include "ptr-array.h"
 #include "bind.h"

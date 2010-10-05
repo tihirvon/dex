@@ -79,6 +79,7 @@ OBJECTS	:= 			\
 	search.o		\
 	spawn.o			\
 	format-status.o		\
+	state.o			\
 	tag.o			\
 	term.o			\
 	termcap.o		\
