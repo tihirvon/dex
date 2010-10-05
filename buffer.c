@@ -351,8 +351,8 @@ struct syntax *load_syntax(const char *filetype, const char *filename)
 		}
 	}
 
-//	if (syn)
-//		update_syntax_colors();
+	if (syn)
+		update_syntax_colors(syn);
 	return syn;
 }
 

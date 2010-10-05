@@ -15,6 +15,7 @@
 #include "config.h"
 #include "command.h"
 #include "change.h"
+#include "state.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -957,7 +958,7 @@ int main(int argc, char *argv[])
 
 	read_config(commands, rc, 0);
 
-//	update_all_syntax_colors();
+	update_all_syntax_colors();
 	sort_aliases();
 
 	/* Terminal does not generate signals for control keys. */

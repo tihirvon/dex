@@ -339,8 +339,8 @@ static void cmd_hi(const char *pf, char **args)
 
 		// Don't call update_all_syntax_colors() needlessly.
 		// It is called right after config has been loaded.
-//		if (editor_status != EDITOR_INITIALIZING)
-//			update_all_syntax_colors();
+		if (editor_status != EDITOR_INITIALIZING)
+			update_all_syntax_colors();
 	}
 }
 
