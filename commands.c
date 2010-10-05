@@ -342,8 +342,14 @@ static void cmd_hi(const char *pf, char **args)
 {
 	struct term_color color;
 
-	if (parse_term_color(&color, args + 1))
+	if (parse_term_color(&color, args + 1)) {
 		set_highlight_color(args[0], &color);
+
+		// Don't call update_all_syntax_colors() needlessly.
+		// It is called right after config has been loaded.
+		if (editor_status != EDITOR_INITIALIZING)
+			update_all_syntax_colors();
+	}
 }
 
 static void cmd_include(const char *pf, char **args)
