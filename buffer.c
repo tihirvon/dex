@@ -339,20 +339,18 @@ struct syntax *load_syntax(const char *filetype, const char *filename)
 	struct syntax *syn;
 
 	if (filename) {
-		if (read_config(commands, filename, 0))
-			return NULL;
+		syn = load_syntax_file(filename, filetype);
 	} else {
 		char buf[1024];
 
 		snprintf(buf, sizeof(buf), "%s/.editor/syntax/%s", home_dir, filetype);
-		if (read_config(commands, buf, 0)) {
+		syn = load_syntax_file(buf, filetype);
+		if (!syn) {
 			snprintf(buf, sizeof(buf), "%s/editor/syntax/%s", DATADIR, filetype);
-			if (read_config(commands, buf, 0))
-				return NULL;
+			syn = load_syntax_file(buf, filetype);
 		}
 	}
 
-	syn = find_syntax(filetype);
 //	if (syn)
 //		update_syntax_colors();
 	return syn;
