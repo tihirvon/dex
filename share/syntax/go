@@ -1,0 +1,187 @@
+state go text
+	char -b A-Z exported
+	char -b a-z_ ident
+	char -b 0 zero
+	char -b 1-9 dec
+	char -b . dot
+	char "\"" string
+	char "'" char
+	char ` raw-string
+	str "//" cpp-comment
+	str "/*" c-comment
+	eat go
+
+state exported
+	char -b a-zA-Z0-9_ exported
+	noeat go
+
+state ident
+	char -b a-zA-Z0-9_ ident
+	listed keyword go
+	listed type go
+	listed constant go
+	noeat go
+
+state zero numeric
+	char xX hex
+	char 0-7 oct
+	char . float
+	noeat check-imag
+
+state oct numeric
+	char 0-7 oct
+	noeat check-suffix
+
+state dec numeric
+	char 0-9 dec
+	char eE exp
+	char . float
+	noeat check-imag
+
+state hex numeric
+	char 0-9a-fA-F hex
+	noeat check-suffix
+
+state check-suffix error
+	char -b a-zA-Z0-9_ check-suffix
+	noeat go
+
+state check-imag text
+	char i check-suffix numeric
+	noeat check-suffix
+
+state dot text
+	char 0-9 float
+	noeat go
+
+state float numeric
+	char 0-9 float
+	char eE exp
+	noeat check-imag
+
+state exp numeric
+	char +- exp-digit
+	char 0-9 exp-digit
+	noeat check-imag
+	char a-zA-Z0-9_ error-ident
+	noeat go
+
+state exp-digit numeric
+	char 0-9 exp-digit
+	noeat check-imag
+
+state string
+	char "\"" go string
+	# avoid highlighting rest of the file again
+	char "\n" go
+	char -b "\\" string-esc
+	eat string
+
+state string-esc special
+	char "abfnrtv'\\\"" string special
+	char 0-3 string-oct1
+	char 4-7 string-oct2
+	char x string-hex0
+	eat string error
+
+state string-oct1 special
+	char 0-7 string-oct2
+	noeat string
+
+state string-oct2 special
+	char 0-7 string special
+	noeat string
+
+state string-hex0 special
+	char 0-9a-fA-F string-hex1
+	noeat string
+
+state string-hex1 special
+	char 0-9a-fA-F string-hex2
+	noeat string
+
+# "\xaff" is an error but "\xafg" is not!
+state string-hex2 special
+	char 0-9a-fA-F string error
+	noeat string
+
+state char
+	char "'" go error
+	char "\\" char-esc
+	char "\n" go
+	eat char-end
+
+state char-esc special
+	char "abfnrtv'\\\"" char-end special
+	char 0-3 char-oct1
+	char 4-7 char-oct2
+	char x char-hex0
+	eat go error
+
+state char-oct1 special
+	char 0-7 char-oct2
+	noeat char-end
+
+state char-oct2 special
+	char 0-7 char special
+	noeat char-end
+
+state char-hex0 special
+	char 0-9a-fA-F char-hex1
+	noeat char-end
+
+state char-hex1 special
+	char 0-9a-fA-F char-end special
+	noeat char-end
+
+state char-end char
+	char "'" go char
+	eat go error
+
+state raw-string string
+	char ` go string
+	eat raw-string
+
+state error-ident error
+	char a-zA-Z0-9_ error-ident
+	noeat go
+
+state cpp-comment comment
+	char "\n" go
+	char -b a-zA-Z0-9_ cpp-comment-word
+	eat cpp-comment
+
+state cpp-comment-word comment
+	char -b a-zA-Z0-9_ cpp-comment-word
+	listed notice cpp-comment
+	noeat cpp-comment
+
+state c-comment comment
+	str "*/" go comment
+	char -b a-zA-Z0-9_ c-comment-word
+	eat c-comment
+
+state c-comment-word comment
+	char -b a-zA-Z0-9_ c-comment-word
+	listed notice c-comment
+	noeat c-comment
+
+list notice \
+	TODO FIXME XXX
+
+list keyword \
+	break case chan const continue default defer else fallthrough \
+	for func go goto if import interface map package range return \
+	select struct switch type var
+
+list constant \
+	false true iota nil
+
+list builtin \
+	cap close closed cmplx copy imag len make \
+	new panic print println real recover
+
+list type \
+	bool byte complex64 complex128 float32 float64 \
+	int8 int16 int32 int64 string uint8 uint16 uint32 uint64 \
+	complex float int uint uintptr
