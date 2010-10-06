@@ -112,6 +112,7 @@ config	:=			\
 syntax	:=			\
 	syntax/c		\
 	syntax/config		\
+	syntax/diff		\
 	syntax/editor		\
 	syntax/gitcommit	\
 	syntax/gitrebase	\
