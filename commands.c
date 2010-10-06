@@ -419,10 +419,23 @@ static void cmd_load_syntax(const char *pf, char **args)
 static void cmd_move_tab(const char *pf, char **args)
 {
 	struct list_head *item;
-	char *str, *end;
+	char *end, *str = args[0];
 	long num;
 
-	str = args[0];
+	if (!strcmp(str, "left")) {
+		item = view->node.prev;
+		list_del(&view->node);
+		list_add_before(&view->node, item);
+		update_flags |= UPDATE_TAB_BAR;
+		return;
+	}
+	if (!strcmp(str, "right")) {
+		item = view->node.next;
+		list_del(&view->node);
+		list_add_after(&view->node, item);
+		update_flags |= UPDATE_TAB_BAR;
+		return;
+	}
 	num = strtol(str, &end, 10);
 	if (!*str || *end || num < 1)
 		return error_msg("Invalid tab position %s", str);
