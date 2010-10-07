@@ -44,27 +44,20 @@ static char error_buf[256];
 
 static int cmdline_x;
 
-static void debug_blocks(void)
+static void sanity_check(void)
 {
 	struct block *blk;
-	int cursor_seen = 0;
 
 	if (!DEBUG)
 		return;
 
-	BUG_ON(list_empty(&buffer->blocks));
-
 	list_for_each_entry(blk, &buffer->blocks, node) {
-		BUG_ON(!blk->size && buffer->blocks.next->next != &buffer->blocks);
-		BUG_ON(blk->size > blk->alloc);
-		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
-		BUG_ON(blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks);
-		if (blk == view->cursor.blk)
-			cursor_seen = 1;
-		if (DEBUG > 1)
-			BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
+		if (blk == view->cursor.blk) {
+			BUG_ON(view->cursor.offset > view->cursor.blk->size);
+			return;
+		}
 	}
-	BUG_ON(!cursor_seen);
+	BUG("cursor not seen\n");
 }
 
 static void discard_paste(void)
@@ -645,7 +638,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vy = view->vy;
 
 	keypress(type, key);
-	debug_blocks();
+	sanity_check();
 	update_cursor_x();
 	update_cursor_y();
 	update_view();

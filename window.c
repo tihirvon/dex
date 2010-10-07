@@ -96,21 +96,6 @@ void prev_buffer(void)
 	}
 }
 
-unsigned int count_nl(const char *buf, unsigned int size)
-{
-	const char *end = buf + size;
-	unsigned int nl = 0;
-
-	while (buf < end) {
-		buf = memchr(buf, '\n', end - buf);
-		if (!buf)
-			break;
-		buf++;
-		nl++;
-	}
-	return nl;
-}
-
 void update_cursor_y(void)
 {
 	struct block *blk;

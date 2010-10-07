@@ -3,6 +3,30 @@
 
 #define BLOCK_EDIT_SIZE 512
 
+static void sanity_check(void)
+{
+	struct block *blk;
+	int cursor_seen = 0;
+
+	if (!DEBUG)
+		return;
+
+	BUG_ON(list_empty(&buffer->blocks));
+
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		BUG_ON(!blk->size && buffer->blocks.next->next != &buffer->blocks);
+		BUG_ON(blk->size > blk->alloc);
+		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
+		BUG_ON(blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks);
+		if (blk == view->cursor.blk)
+			cursor_seen = 1;
+		if (DEBUG > 1)
+			BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
+	}
+	BUG_ON(!cursor_seen);
+	BUG_ON(view->cursor.offset > view->cursor.blk->size);
+}
+
 static inline size_t ALLOC_ROUND(size_t size)
 {
 	return ROUND_UP(size, 64);
@@ -210,6 +234,7 @@ void do_insert(const char *buf, unsigned int len)
 	if (nl)
 		update_flags |= UPDATE_FULL;
 
+	sanity_check();
 	update_hl_insert(nl, len);
 }
 
@@ -290,6 +315,7 @@ char *do_delete(unsigned int len)
 	if (buffer_nl != buffer->nl)
 		update_flags |= UPDATE_FULL;
 
+	sanity_check();
 	update_hl_insert(0, -len);
 	return buf;
 }

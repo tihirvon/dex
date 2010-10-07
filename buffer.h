@@ -138,6 +138,8 @@ static inline int selecting(void)
 	return view->selection;
 }
 
+unsigned int count_nl(const char *buf, unsigned int size);
+
 void init_selection(struct selection_info *info);
 void fill_selection_info(struct selection_info *info);
 
