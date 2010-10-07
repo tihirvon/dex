@@ -261,8 +261,15 @@ char *do_delete(unsigned int len)
 		BUG_ON(pos < len && next == &buffer->blocks);
 	}
 
-	if (saved_prev_node)
-		view->cursor.blk = BLOCK(saved_prev_node->next);
+	if (saved_prev_node) {
+		// cursor was in beginning of a block which was deleted
+		if (saved_prev_node->next == &buffer->blocks) {
+			view->cursor.blk = BLOCK(saved_prev_node);
+			view->cursor.offset = view->cursor.blk->size;
+		} else {
+			view->cursor.blk = BLOCK(saved_prev_node->next);
+		}
+	}
 
 	blk = view->cursor.blk;
 	if (blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks) {
