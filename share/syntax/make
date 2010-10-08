@@ -1,0 +1,91 @@
+state start text
+	char "\n" start
+	char "\t" tab-indent
+	char " " space-indent
+	noeat not-recipe
+
+# "^\t[ \t]*"
+state tab-indent text
+	char " \t" tab-indent
+	char "\n" start
+	char -b a-zA-Z_- not-target
+	noeat make
+
+# "^ [ \t]*"
+state space-indent text
+	char " \t" space-indent
+	noeat not-recipe
+
+# can't be target but can be recipe, variable or keyword
+state not-target text
+	char -b a-zA-Z_- not-target
+	listed keyword make
+	noeat make
+
+# can't be recipe but can be target, variable or keyword
+state not-recipe text
+	char -b . special-target
+	char -b a-zA-Z_- not-recipe
+	listed keyword make
+	noeat make
+
+state special-target text
+	char -b A-Z_ special-target
+	# FIXME: ".PHONY := ..." is valid
+	listed special-target make constant
+	noeat make
+
+state make text
+	char # comment
+	char \$ dollar
+	char "\n" start
+	char \\ esc
+	# this is a hack
+	char ) make variable
+	eat make
+
+state comment
+	char "\n" start
+	char \\ comment-esc
+	eat comment
+
+state comment-esc comment
+	char "\\\n" comment
+	noeat comment
+
+state dollar variable
+	char ( lp
+	char a-zA-Z make variable
+	char '@%<?^+|*' make variable
+	char \$ make variable
+	noeat make
+
+state lp variable
+	char -b a-zA-Z_- variable
+	noeat make
+
+state variable
+	char -b a-zA-Z_- variable
+	char ) make variable
+	listed function make builtin
+	noeat make
+
+state esc special
+	char "\n" make
+	eat make special
+
+list keyword -- \
+	define else endef endif export ifdef ifeq ifndef ifneq -include \
+	include override unexport vpath
+
+list function \
+	abspath addprefix addsuffix and basename bindir call dir error eval \
+	filter filter-out findstring firstword flavor foreach if info join \
+	lastword notdir or origin patsubst realpath shell sort strip subst \
+	suffix value warning wildcard word wordlist words
+
+list special-target \
+	.DEFAULT .DEFAULT_GOAL .DELETE_ON_ERROR .EXPORT_ALL_VARIABLES \
+	.FEATURES .IGNORE .INCLUDE_DIRS .INTERMEDIATE .LIBPATTERNS \
+	.LOW_RESOLUTION_TIME .NOT_PARALLEL .PHONY .POSIX .PRECIOUS \
+	.SECONDARY .SECONDEXPANSION .VARIABLES

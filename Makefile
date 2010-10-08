@@ -117,6 +117,7 @@ syntax	:=			\
 	syntax/gitcommit	\
 	syntax/gitrebase	\
 	syntax/go		\
+	syntax/make		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
