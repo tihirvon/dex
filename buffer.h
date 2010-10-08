@@ -47,7 +47,8 @@ struct buffer {
 	struct local_options options;
 
 	const struct syntax *syn;
-	struct ptr_array line_states;
+	// index 0 is always syn->states.ptrs[0]
+	struct ptr_array line_start_states;
 };
 
 enum selection {
@@ -185,9 +186,12 @@ char *get_word_under_cursor(void);
 
 int guess_filetype(void);
 struct syntax *load_syntax(const char *filetype, const char *filename);
-void update_hl_insert(unsigned int lines, int count);
-void highlight_buffer(struct buffer *b);
 void syntax_changed(void);
 void filetype_changed(void);
+
+struct hl_color **hl_line(const char *line, int len, int line_nr);
+void hl_fill_start_states(int line_nr);
+void hl_insert(int lines);
+void hl_delete(int lines);
 
 #endif

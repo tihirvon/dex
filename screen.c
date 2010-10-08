@@ -5,7 +5,6 @@
 #include "cmdline.h"
 #include "search.h"
 #include "color.h"
-#include "hl.h"
 
 struct line_info {
 	// struct lineref
@@ -476,13 +475,8 @@ static void init_line_info(struct line_info *info, struct block_iter *bi, int li
 
 	fill_line_nl_ref(bi, (struct lineref *)info);
 	info->pos = 0;
+	info->colors = hl_line(info->line, info->size, line_nr);
 
-	if (line_nr < buffer->line_states.count) {
-		struct state *st = buffer->line_states.ptrs[line_nr];
-		info->colors = highlight_line(st, info->line, info->size, NULL);
-	} else {
-		info->colors = NULL;
-	}
 	if (info->size && info->line[info->size - 1] == '\n') {
 		// highlighter needs \n but other code does not want it
 		info->size--;
@@ -552,6 +546,7 @@ void update_range(int y1, int y2)
 	selection_init();
 
 	got_line = !block_iter_is_eof(&bi);
+	hl_fill_start_states(current_line);
 	for (i = y1; got_line && i < y2; i++) {
 		struct line_info info;
 

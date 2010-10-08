@@ -235,7 +235,7 @@ void do_insert(const char *buf, unsigned int len)
 		update_flags |= UPDATE_FULL;
 
 	sanity_check();
-	update_hl_insert(nl, len);
+	hl_insert(nl);
 }
 
 static int only_block(struct block *blk)
@@ -250,6 +250,7 @@ char *do_delete(unsigned int len)
 	unsigned int buffer_nl = buffer->nl;
 	unsigned int offset = view->cursor.offset;
 	unsigned int pos = 0;
+	unsigned int deleted_nl = 0;
 	char *buf;
 
 	if (!len)
@@ -273,6 +274,7 @@ char *do_delete(unsigned int len)
 		if (count < avail)
 			memmove(blk->data + offset, blk->data + offset + count, avail - count);
 
+		deleted_nl += nl;
 		buffer->nl -= nl;
 		blk->nl -= nl;
 		blk->size -= count;
@@ -316,6 +318,6 @@ char *do_delete(unsigned int len)
 		update_flags |= UPDATE_FULL;
 
 	sanity_check();
-	update_hl_insert(0, -len);
+	hl_delete(deleted_nl);
 	return buf;
 }

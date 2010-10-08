@@ -256,7 +256,7 @@ void free_buffer(struct buffer *b)
 		item = next;
 	}
 	free_changes(&b->change_head);
-	free(b->line_states.ptrs);
+	free(b->line_start_states.ptrs);
 
 	free(b->filename);
 	free(b->abs_filename);
@@ -561,7 +561,16 @@ void syntax_changed(void)
 		return;
 
 	buffer->syn = syn;
-	highlight_buffer(buffer);
+	if (syn) {
+		// start state of first line is constant
+		struct ptr_array *s = &buffer->line_start_states;
+		if (!s->alloc) {
+			s->alloc = 64;
+			s->ptrs = xnew(void *, s->alloc);
+		}
+		s->ptrs[0] = syn->states.ptrs[0];
+		s->count = 1;
+	}
 
 	update_flags |= UPDATE_FULL;
 }
