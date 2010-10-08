@@ -181,6 +181,25 @@ void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
 	}
 }
 
+void block_iter_goto_line(struct block_iter *bi, unsigned int line)
+{
+	struct block *blk = BLOCK(bi->head->next);
+	unsigned int nl = 0;
+
+	while (blk->node.next != bi->head && nl + blk->nl < line) {
+		nl += blk->nl;
+		blk = BLOCK(blk->node.next);
+	}
+
+	bi->blk = blk;
+	bi->offset = 0;
+	while (nl < line) {
+		if (!block_iter_next_line(bi))
+			break;
+		nl++;
+	}
+}
+
 unsigned int block_iter_get_offset(const struct block_iter *bi)
 {
 	struct block *blk;

@@ -156,22 +156,7 @@ void move_eof(void)
 
 void move_to_line(int line)
 {
-	struct block *blk = BLOCK(buffer->blocks.next);
-	unsigned int nl = 0;
-
-	line--;
-	while (blk->node.next != &buffer->blocks && nl + blk->nl < line) {
-		nl += blk->nl;
-		blk = BLOCK(blk->node.next);
-	}
-
-	view->cursor.blk = blk;
-	view->cursor.offset = 0;
-	while (nl < line) {
-		if (!block_iter_next_line(&view->cursor))
-			break;
-		nl++;
-	}
+	block_iter_goto_line(&view->cursor, line - 1);
 	view->center_on_scroll = 1;
 }
 

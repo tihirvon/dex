@@ -38,6 +38,7 @@ unsigned int block_iter_eol(struct block_iter *bi);
 unsigned int block_iter_count_to_next_line(const struct block_iter *bi);
 void block_iter_skip_bytes(struct block_iter *bi, unsigned int count);
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset);
+void block_iter_goto_line(struct block_iter *bi, unsigned int line);
 unsigned int block_iter_get_offset(const struct block_iter *bi);
 
 int block_iter_is_bol(const struct block_iter *bi);
