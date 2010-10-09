@@ -959,6 +959,7 @@ static void cmd_scroll_up(const char *pf, char **args)
 
 static void cmd_search(const char *pf, char **args)
 {
+	int history = 1;
 	int cmd = 0;
 	enum search_direction dir = SEARCH_FWD;
 	char *word = NULL;
@@ -966,6 +967,9 @@ static void cmd_search(const char *pf, char **args)
 
 	while (*pf) {
 		switch (*pf) {
+		case 'H':
+			history = 0;
+			break;
 		case 'n':
 		case 'p':
 			cmd = *pf;
@@ -997,7 +1001,8 @@ static void cmd_search(const char *pf, char **args)
 	if (pattern) {
 		search_init(dir);
 		search(pattern);
-		history_add(&search_history, pattern);
+		if (history)
+			history_add(&search_history, pattern);
 
 		if (pattern != args[0])
 			free(pattern);
@@ -1280,7 +1285,7 @@ const struct command commands[] = {
 	{ "scroll-pgdown",	"",	0,  0, cmd_scroll_pgdown },
 	{ "scroll-pgup",	"",	0,  0, cmd_scroll_pgup },
 	{ "scroll-up",		"",	0,  0, cmd_scroll_up },
-	{ "search",		"nprw",	0,  1, cmd_search },
+	{ "search",		"Hnprw",0,  1, cmd_search },
 	{ "select",		"l",	0,  0, cmd_select },
 	{ "set",		"gl",	1,  2, cmd_set },
 	{ "shift",		"",	0,  1, cmd_shift },
