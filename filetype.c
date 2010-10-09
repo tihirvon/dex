@@ -3,12 +3,6 @@
 #include "regexp.h"
 #include "ptr-array.h"
 
-enum detect_type {
-	FT_EXTENSION,
-	FT_FILENAME,
-	FT_CONTENT,
-};
-
 struct filetype {
 	char *name;
 	char *str;
@@ -17,7 +11,7 @@ struct filetype {
 
 static PTR_ARRAY(filetypes);
 
-static void add_filetype(const char *name, const char *str, enum detect_type type)
+void add_filetype(const char *name, const char *str, enum detect_type type)
 {
 	struct filetype *ft;
 
@@ -26,23 +20,6 @@ static void add_filetype(const char *name, const char *str, enum detect_type typ
 	ft->str = xstrdup(str);
 	ft->type = type;
 	ptr_array_add(&filetypes, ft);
-}
-
-void add_ft_extensions(const char *name, char * const *extensions)
-{
-	int i;
-	for (i = 0; extensions[i]; i++)
-		add_filetype(name, extensions[i], FT_EXTENSION);
-}
-
-void add_ft_match(const char *name, const char *pattern)
-{
-	add_filetype(name, pattern, FT_FILENAME);
-}
-
-void add_ft_content(const char *name, const char *pattern)
-{
-	add_filetype(name, pattern, FT_CONTENT);
 }
 
 static char *detect(const char *pattern, const char *buf, unsigned int len, const char *name)

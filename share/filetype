@@ -1,27 +1,27 @@
-ft content '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)[0-9.]*(\s|$)'
-ft content xml '^<\?xml(\s|$)'
+ft -c '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)[0-9.]*(\s|$)'
+ft -c xml '^<\?xml(\s|$)'
 
-ft match '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql|xml)$'
-ft match bash '/\.bash(rc|_profile|_logout)$'
-ft match bash '.*/PKGBUILD'
-ft match editor '/\.editor/(rc|filetype|syntax/.*)$'
-ft match editor $DATADIR'/.*'
-ft match gitcommit '/COMMIT_EDITMSG$'
-ft match gitrebase '/git-rebase-todo$'
-ft match indent '/\.indent\.pro$'
-ft match make '[mM]akefile(\.[^/]*)?$'
-ft match make '/Make\.[^/]*$'
+ft -f '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql|xml)$'
+ft -f bash '/\.bash(rc|_profile|_logout)$'
+ft -f bash '.*/PKGBUILD'
+ft -f editor '/\.editor/(rc|filetype|syntax/.*)$'
+ft -f editor $DATADIR'/.*'
+ft -f gitcommit '/COMMIT_EDITMSG$'
+ft -f gitrebase '/git-rebase-todo$'
+ft -f indent '/\.indent\.pro$'
+ft -f make '[mM]akefile(\.[^/]*)?$'
+ft -f make '/Make\.[^/]*$'
 
 # other extensions
-ft extension c h
-ft extension cpp hpp cc hh C H cxx hxx c++ moc inl pro
-ft extension diff patch
-ft extension html htm xhtml
-ft extension make mk mak
-ft extension perl pl
-ft extension php php3 php4
-ft extension python py
-ft extension smarty tpl
+ft c h
+ft cpp hpp cc hh C H cxx hxx c++ moc inl pro
+ft diff patch
+ft html htm xhtml
+ft make mk mak
+ft perl pl
+ft php php3 php4
+ft python py
+ft smarty tpl
 
 # should be last
-ft match config '/etc/.*'
+ft -f config '/etc/.*'

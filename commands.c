@@ -268,31 +268,24 @@ static void cmd_errorfmt(const char *pf, char **args)
 	add_error_fmt(args[0], importance, args[1], args + 2);
 }
 
-static void cmd_ft_content(const char *pf, char **args)
-{
-	add_ft_content(args[0], args[1]);
-}
-
-static void cmd_ft_extension(const char *pf, char **args)
-{
-	add_ft_extensions(args[0], args + 1);
-}
-
-static void cmd_ft_match(const char *pf, char **args)
-{
-	add_ft_match(args[0], args[1]);
-}
-
-static const struct command ft_commands[] = {
-	{ "content",	"",	2,  2, cmd_ft_content },
-	{ "extension",	"",	2, -1, cmd_ft_extension },
-	{ "match",	"",	2,  2, cmd_ft_match },
-	{ NULL,		NULL,	0,  0, NULL }
-};
-
 static void cmd_ft(const char *pf, char **args)
 {
-	run_command(ft_commands, args);
+	enum detect_type dt = FT_EXTENSION;
+	int i;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'c':
+			dt = FT_CONTENT;
+			break;
+		case 'f':
+			dt = FT_FILENAME;
+			break;
+		}
+		pf++;
+	}
+	for (i = 1; args[i]; i++)
+		add_filetype(args[0], args[i], dt);
 }
 
 static void cmd_filter(const char *pf, char **args)
@@ -1255,7 +1248,7 @@ const struct command commands[] = {
 	{ "errorfmt",		"ir",	2, -1, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
-	{ "ft",			"-",	0, -1, cmd_ft },
+	{ "ft",			"-cf",	2, -1, cmd_ft },
 	{ "hi",			"",	1, -1, cmd_hi },
 	{ "include",		"",	1,  1, cmd_include },
 	{ "insert",		"km",	1,  1, cmd_insert },
