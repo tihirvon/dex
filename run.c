@@ -45,44 +45,17 @@ const struct command *find_command(const struct command *cmds, const char *name)
 	return NULL;
 }
 
-void run_commands(const struct command *cmds, const struct ptr_array *array)
+static void run_command(const struct command *cmds, char **av)
 {
-	int s, e;
-
-	s = 0;
-	while (s < array->count) {
-		e = s;
-		while (e < array->count && array->ptrs[e])
-			e++;
-
-		if (e > s)
-			run_command(cmds, (char **)array->ptrs + s);
-
-		s = e + 1;
-	}
-}
-
-void run_command(const struct command *cmds, char **av)
-{
-	const struct command *cmd;
+	const struct command *cmd = find_command(cmds, av[0]);
 	const char *pf;
 	char **args;
 
-	if (!av[0]) {
-		error_msg("Subcommand required");
-		return;
-	}
-	cmd = find_command(cmds, av[0]);
 	if (!cmd) {
 		PTR_ARRAY(array);
-		const char *alias;
+		const char *alias = find_alias(av[0]);
 		int i;
 
-		if (cmds != commands) {
-			error_msg("No such command: %s", av[0]);
-			return;
-		}
-		alias = find_alias(av[0]);
 		if (!alias) {
 			error_msg("No such command or alias: %s", av[0]);
 			return;
@@ -119,6 +92,23 @@ void run_command(const struct command *cmds, char **av)
 	current_command = NULL;
 
 	end_change();
+}
+
+void run_commands(const struct command *cmds, const struct ptr_array *array)
+{
+	int s, e;
+
+	s = 0;
+	while (s < array->count) {
+		e = s;
+		while (e < array->count && array->ptrs[e])
+			e++;
+
+		if (e > s)
+			run_command(cmds, (char **)array->ptrs + s);
+
+		s = e + 1;
+	}
 }
 
 void handle_command(const struct command *cmds, const char *cmd)
