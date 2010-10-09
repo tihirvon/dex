@@ -14,9 +14,9 @@ alias man "run -p man"
 alias make "run -dij -f gcc make"
 alias read "pass-through cat"
 
-option filetype gitcommit,gitrebase file-history false
-option filetype diff ws-error 0
-option filetype make indent-width 8 expand-tab false emulate-tab false
+option gitcommit,gitrebase file-history false
+option diff ws-error 0
+option make indent-width 8 expand-tab false emulate-tab false
 
 # gray background for current line
 #hi currentline keep gray keep

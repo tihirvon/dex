@@ -485,19 +485,7 @@ static char **copy_string_array(char **src, int count)
 	return dst;
 }
 
-static void cmd_option_filename(const char *pf, char **args)
-{
-	int argc = count_strings(args);
-
-	if (argc % 2 == 0) {
-		error_msg("Missing option value");
-		return;
-	}
-
-	add_file_options(FILE_OPTIONS_FILENAME, xstrdup(args[0]), copy_string_array(args + 1, argc - 1));
-}
-
-static void cmd_option_filetype(const char *pf, char **args)
+static void cmd_option(const char *pf, char **args)
 {
 	int argc = count_strings(args);
 	char *list, *comma;
@@ -511,6 +499,11 @@ static void cmd_option_filetype(const char *pf, char **args)
 	// NOTE: options and values are shared
 	strs = copy_string_array(args + 1, argc - 1);
 
+	if (*pf) {
+		add_file_options(FILE_OPTIONS_FILENAME, xstrdup(args[0]), strs);
+		return;
+	}
+
 	list = args[0];
 	do {
 		int len;
@@ -520,17 +513,6 @@ static void cmd_option_filetype(const char *pf, char **args)
 		add_file_options(FILE_OPTIONS_FILETYPE, xstrndup(list, len), strs);
 		list = comma + 1;
 	} while (comma);
-}
-
-static const struct command option_commands[] = {
-	{ "filename",	"",	3, -1, cmd_option_filename },
-	{ "filetype",	"",	3, -1, cmd_option_filetype },
-	{ NULL,		NULL,	0,  0, NULL }
-};
-
-static void cmd_option(const char *pf, char **args)
-{
-	run_command(option_commands, args);
 }
 
 static void cmd_pass_through(const char *pf, char **args)
@@ -1261,7 +1243,7 @@ const struct command commands[] = {
 	{ "new-line",		"",	0,  0, cmd_new_line },
 	{ "next",		"",	0,  0, cmd_next },
 	{ "open",		"",	0, -1, cmd_open },
-	{ "option",		"-",	0, -1, cmd_option },
+	{ "option",		"-r",	0, -1, cmd_option },
 	{ "pass-through",	"-ms",	1, -1, cmd_pass_through },
 	{ "paste",		"",	0,  0, cmd_paste },
 	{ "pgdown",		"",	0,  0, cmd_pgdown },
