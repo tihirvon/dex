@@ -26,10 +26,13 @@ prefix = /usr/local
 bindir = $(prefix)/bin
 datadir = $(prefix)/share
 
+# 0: Disable debugging.
+# 1: Enable BUG_ON() and light-weight sanity checks.
+# 2: Enable logging to /tmp/editor.log and expensive sanity checks.
 DEBUG = 1
 DEBUG_SYNTAX = 0
 
-# these should be fatal errors in all C compilers ever made
+# enabled if CC supports them
 WARNINGS = \
 	-Wcast-align \
 	-Wdeclaration-after-statement \
@@ -37,10 +40,7 @@ WARNINGS = \
 	-Wmissing-prototypes \
 	-Wold-style-definition \
 	-Wredundant-decls \
-	-Wwrite-strings
-
-# additional warnings
-WARNINGS += \
+	-Wwrite-strings \
 	-Wundef \
 	-Wshadow
 
