@@ -85,6 +85,10 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	len = strlen(str);
 	fprintf(stderr, "%s\n", str);
 
+	for (i = 0; str[i]; i++) {
+		if (str[i] == '\t')
+			str[i] = ' ';
+	}
 	for (i = 0; ; i++) {
 		if (i == cf->nr_formats) {
 			e = xnew(struct compile_error, 1);
