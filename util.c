@@ -185,53 +185,63 @@ char *path_absolute(const char *filename)
 
 		if (S_ISLNK(st.st_mode)) {
 			char target[PATH_MAX];
-			ssize_t len, clen;
+			char tmp[PATH_MAX];
+			int target_len;
+			int total_len = 0;
+			int buf_len = sp - 1 - buf;
+			int rest_len = 0;
+			int pos = 0;
+			const char *rest = NULL;
 
+			if (!last) {
+				rest = ep + 1;
+				rest_len = strlen(rest);
+			}
 			if (++depth > 8) {
 				errno = ELOOP;
 				return NULL;
 			}
-			len = readlink(buf, target, sizeof(target));
-			if (len < 0) {
+			target_len = readlink(buf, target, sizeof(target));
+			if (target_len < 0) {
 				d_print("readlink failed for '%s'\n", buf);
 				return NULL;
 			}
-			if (len == sizeof(target)) {
+			if (target_len == sizeof(target)) {
 				errno = ENAMETOOLONG;
 				return NULL;
 			}
-			target[len] = 0;
-			len = remove_double_slashes(target);
+			target[target_len] = 0;
 
-			if (target[0] == '/')
-				sp = buf;
-
-			if (last) {
-				if (sp - buf + len + 1 > sizeof(buf)) {
-					errno = ENAMETOOLONG;
-					return NULL;
-				}
-				memcpy(sp, target, len + 1);
-				d_print("'%s' '%s' (last)\n", buf, sp);
-				continue;
+			// calculate length
+			if (target[0] != '/')
+				total_len = buf_len + 1;
+			total_len += target_len;
+			if (rest)
+				total_len += 1 + rest_len;
+			if (total_len >= PATH_MAX) {
+				errno = ENAMETOOLONG;
+				return NULL;
 			}
 
-			// remove trailing slash
-			if (target[len - 1] == '/')
-				target[--len] = 0;
-
-			// replace sp - ep with target
-			*ep = '/';
-			clen = ep - sp;
-			if (clen != len) {
-				if (len > clen && strlen(buf) + len - clen + 1 > sizeof(buf)) {
-					errno = ENAMETOOLONG;
-					return NULL;
-				}
-				memmove(sp + len, ep, strlen(ep) + 1);
+			// build new path
+			if (target[0] != '/') {
+				memcpy(tmp, buf, buf_len);
+				pos += buf_len;
+				tmp[pos++] = '/';
 			}
-			memcpy(sp, target, len);
-			d_print("'%s' '%s'\n", buf, sp);
+			memcpy(tmp + pos, target, target_len);
+			pos += target_len;
+			if (rest) {
+				tmp[pos++] = '/';
+				memcpy(tmp + pos, rest, rest_len);
+				pos += rest_len;
+			}
+			tmp[pos] = 0;
+			pos = remove_double_slashes(tmp);
+
+			// restart
+			memcpy(buf, tmp, pos + 1);
+			sp = buf + 1;
 			continue;
 		}
 
