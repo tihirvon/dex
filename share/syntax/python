@@ -1,0 +1,133 @@
+state start text
+	char # comment
+	char '"' dq
+	char "'" sq
+	# FIXME: [uU][rR]" [uU]" [rR]" [bB]" [bB][rR]"
+	char -b a-zA-Z_ ident
+	char 0 zero
+	char 1-9 dec
+	eat start
+
+state comment
+	char "\n" start
+	eat comment
+
+state dq string
+	char "\"" start string
+	# avoid highlighting rest of the file again
+	char "\n" start
+	char -b "\\" dq-esc
+	eat dq
+
+state dq-esc special
+	char "abfnrtv'\\\"" dq special
+	char 0-3 dq-oct1
+	char 4-7 dq-oct2
+	char x dq-hex0
+	char "\n" start
+	eat dq error
+
+state dq-oct1 special
+	char 0-7 dq-oct2
+	noeat dq
+
+state dq-oct2 special
+	char 0-7 dq special
+	noeat dq
+
+state dq-hex0 special
+	char 0-9a-fA-F dq-hex1
+	noeat dq
+
+state dq-hex1 special
+	char 0-9a-fA-F dq-hex2
+	noeat dq
+
+# "\xaff" is an error but "\xafg" is not!
+state dq-hex2 special
+	char 0-9a-fA-F dq error
+	noeat dq
+
+state sq string
+	char "'" start string
+	# avoid highlighting rest of the file again
+	char "\n" start
+	char -b "\\" sq-esc
+	eat sq
+
+state sq-esc special
+	char "abfnrtv'\\\"" sq special
+	char 0-3 sq-oct1
+	char 4-7 sq-oct2
+	char x sq-hex0
+	char "\n" start
+	eat sq error
+
+state sq-oct1 special
+	char 0-7 sq-oct2
+	noeat sq
+
+state sq-oct2 special
+	char 0-7 sq special
+	noeat sq
+
+state sq-hex0 special
+	char 0-9a-fA-F sq-hex1
+	noeat sq
+
+state sq-hex1 special
+	char 0-9a-fA-F sq-hex2
+	noeat sq
+
+# "\xaff" is an error but "\xafg" is not!
+state sq-hex2 special
+	char 0-9a-fA-F sq error
+	noeat sq
+
+state ident
+	char -b a-zA-Z_0-9 ident
+	listed keyword start
+	listed constant start
+	noeat start
+
+state zero numeric
+	char bB bin
+	char oO0-7 oct
+	char xX hex
+	char . float
+	noeat int-suffix
+
+state bin numeric
+	char 01 bin
+	noeat int-suffix
+
+state oct numeric
+	char 0-7 oct
+	noeat int-suffix
+
+state dec numeric
+	char 0-9 dec
+	noeat int-suffix
+
+state hex numeric
+	char 0-9a-fA-F hex
+	noeat int-suffix
+
+state int-suffix text
+	char lL int-end numeric
+	noeat int-end
+
+state int-end error
+	char a-zA-Z0-9_ int-end
+	noeat start
+
+state float
+	noeat start
+
+list keyword \
+	and as assert break class continue def del elif else except exec \
+	finally for from global if import in is lambda not or pass print \
+	raise return try while with yield
+
+list constant \
+	None False True

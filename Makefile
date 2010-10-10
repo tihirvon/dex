@@ -118,6 +118,7 @@ syntax	:=			\
 	syntax/gitrebase	\
 	syntax/go		\
 	syntax/make		\
+	syntax/python		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
