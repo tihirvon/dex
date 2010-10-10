@@ -84,6 +84,25 @@ void debug_print(const char *function, const char *fmt, ...)
 	xwrite(fd, buf, strlen(buf));
 }
 
+static int make_absolute(char *dst, const char *src)
+{
+	int len = strlen(src);
+	int pos = 0;
+
+	if (src[0] != '/') {
+		if (!getcwd(dst, PATH_MAX - 1))
+			return 0;
+		pos = strlen(dst);
+		dst[pos++] = '/';
+	}
+	if (pos + len + 1 > PATH_MAX) {
+		errno = ENAMETOOLONG;
+		return 0;
+	}
+	memcpy(dst + pos, src, len + 1);
+	return 1;
+}
+
 static int remove_double_slashes(char *str)
 {
 	int s, d = 0;
@@ -110,27 +129,12 @@ char *path_absolute(const char *filename)
 {
 	int depth = 0;
 	char buf[PATH_MAX];
-	char prev = 0;
 	char *sp;
-	int s, d;
 
-	d = 0;
-	if (filename[0] != '/') {
-		if (!getcwd(buf, sizeof(buf)))
-			return NULL;
-		d = strlen(buf);
-		buf[d++] = '/';
-		prev = '/';
-	}
-	for (s = 0; filename[s]; s++) {
-		char ch = filename[s];
+	if (!make_absolute(buf, filename))
+		return NULL;
 
-		if (prev == '/' && ch == '/')
-			continue;
-		buf[d++] = ch;
-		prev = ch;
-	}
-	buf[d] = 0;
+	remove_double_slashes(buf);
 
 	// for each component:
 	//     remove "."
