@@ -160,26 +160,18 @@ char *path_absolute(const char *filename)
 			continue;
 		}
 		if (!strcmp(sp, "..")) {
-			if (sp == buf + 1) {
-				// first component is "..". remove it
-				if (last) {
-					*sp = 0;
-					break;
-				}
-				memmove(sp, ep + 1, strlen(ep + 1) + 1);
-			} else {
-				// remove previous component
-				sp -= 2;
-				while (*sp != '/')
+			if (sp != buf + 1) {
+				// not first component, remove previous component
+				sp--;
+				while (sp[-1] != '/')
 					sp--;
-				sp++;
-
-				if (last) {
-					*sp = 0;
-					break;
-				}
-				memmove(sp, ep + 1, strlen(ep + 1) + 1);
 			}
+
+			if (last) {
+				*sp = 0;
+				break;
+			}
+			memmove(sp, ep + 1, strlen(ep + 1) + 1);
 			d_print("'%s' '%s' (..)\n", buf, sp);
 			continue;
 		}
