@@ -1,0 +1,158 @@
+# commands can be at beginning of line or after any of && || ; & | { ` $(
+# also beginning of line can contain ( after which command is allowed
+state start text
+	char -b a-zA-Z0-9_/.- command
+	char "\t " start
+	char ({ start special
+	noeat args
+
+state command text
+	# eat all garbage to distinguish test/run.sh from builtin test
+	char -b a-zA-Z0-9_/.- command
+	listed keyword1 start keyword
+	listed keyword2 args keyword
+	listed builtin args
+	bufis for for
+	noeat args
+
+state for keyword
+	char " \t" for
+	char a-zA-Z_ forvar
+	noeat forerror
+
+state forvar ident
+	char a-zA-Z_0-9 forvar
+	char " \t" forspace
+	noeat forerror
+
+state forspace text
+	char " \t" forspace
+	str in in
+	noeat forerror
+
+state in keyword
+	char " \t" args
+	noeat forerror
+
+state forerror text
+	char a-zA-Z_0-9 args error
+	noeat args
+
+state args text
+	char # comment
+	char "'" sq
+	char '"' dq
+	char \\ esc
+	# FIXME: after second ` should go to args
+	char ` command special
+	str "$((" args special
+	str "$(" command special
+	char \$ variable
+	char "\n" start
+	# && is same as two &, same for |. does not matter
+	char ";&|" start special
+	# this might be error
+	char ()} args special
+	char < lt
+	eat args
+
+state comment
+	char "\n" start
+	eat comment
+
+state sq string
+	char "'" args string
+	eat sq
+
+state dq string
+	char '"' args string
+	str '\\' dq special
+	str '\"' dq special
+	char \$ dqvariable
+	eat dq
+
+state dqvariable variable
+	char '*@#?$!0-9-' dq variable
+	char a-zA-Z_ dqvarname
+	char '{' dqvarbrace
+	noeat dq
+
+state dqvarname variable
+	char a-zA-Z_0-9 dqvarname
+	noeat dq
+
+state dqvarbrace variable
+	char '*@#?$!0-9-' dqvarbraceend
+	char a-zA-Z_ dqvarbracename
+	noeat dq
+
+state dqvarbracename variable
+	char a-zA-Z_0-9 dqvarbracename
+	noeat dqvarbraceend
+
+state dqvarbraceend text
+	char '}' dq variable
+	noeat dq
+
+state esc special
+	eat args special
+
+state variable
+	char '*@#?$!0-9-' args variable
+	char a-zA-Z_ varname
+	char '{' varbrace
+	noeat args
+
+state varname variable
+	char a-zA-Z_0-9 varname
+	noeat args
+
+state varbrace variable
+	char '*@#?$!0-9-' varbraceend
+	char a-zA-Z_ varbracename
+	noeat args
+
+state varbracename variable
+	char a-zA-Z_0-9 varbracename
+	noeat varbraceend
+
+state varbraceend variable
+	char '}' args variable
+	noeat args
+
+state lt special
+	char < lt2
+	noeat args
+
+state lt2 special
+	# FIXME: should make dynamic
+	str "EOF\n" heredoc special
+	char -- - dash
+	noeat args
+
+state dash special
+	str "EOF\n" heredoc special
+	noeat args
+
+state heredoc string
+	# FIXME: should eat possible "; command"
+	char "\n" heredocline
+	eat heredoc
+
+state heredocline text
+	str "EOF\n" start special
+	noeat heredoc
+
+# command allowed after these
+list keyword1 \
+	do else elif exec if then until while
+
+# command not allowed after these
+list keyword2 \
+	break case continue done esac exit export fi function in return shift
+
+list builtin \
+	alias bg bind cd caller command compgen complete test kill source \
+	time declare typeset dirs disown echo enable eval fc fg getopts hash \
+	help history jobs let local logout popd printf pushd pwd read \
+	readonly shopt set trap type ulimit umask unalias unset wait "."

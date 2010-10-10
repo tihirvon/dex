@@ -119,6 +119,7 @@ syntax	:=			\
 	syntax/go		\
 	syntax/make		\
 	syntax/python		\
+	syntax/sh		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
