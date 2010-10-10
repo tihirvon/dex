@@ -276,3 +276,14 @@ int parse_commands(struct ptr_array *array, const char *cmd)
 	ptr_array_add(array, NULL);
 	return 0;
 }
+
+char **copy_string_array(char **src, int count)
+{
+	char **dst = xnew(char *, count + 1);
+	int i;
+
+	for (i = 0; i < count; i++)
+		dst[i] = xstrdup(src[i]);
+	dst[i] = NULL;
+	return dst;
+}

@@ -15,6 +15,7 @@ struct command {
 char *parse_command_arg(const char *cmd, int tilde);
 int find_end(const char *cmd, int *posp);
 int parse_commands(struct ptr_array *array, const char *cmd);
+char **copy_string_array(char **src, int count);
 
 /* run.c */
 extern const struct command *current_command;
