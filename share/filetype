@@ -1,7 +1,6 @@
 # interpreters
 ft -i tcl wish
-ft -i sh sh
-ft -i bash bash
+ft -i sh sh bash
 ft -i python python
 ft -i perl perl
 ft -i php php
@@ -10,8 +9,8 @@ ft -i php php
 ft -c xml '^<\?xml(\s|$)'
 
 # regular expressions
-ft -f bash '/\.bash(rc|_profile|_logout)$'
-ft -f bash '.*/PKGBUILD'
+ft -f sh '/\.bash(rc|_profile|_logout)$'
+ft -f sh '.*/PKGBUILD'
 ft -f editor '/\.editor/(rc|filetype|syntax/.*)$'
 ft -f editor $DATADIR'/.*'
 ft -f gitcommit '/COMMIT_EDITMSG$'
@@ -21,7 +20,6 @@ ft -f make '[mM]akefile(\.[^/]*)?$'
 ft -f make '/Make\.[^/]*$'
 
 # extensions
-ft bash bash
 ft c c h
 ft cpp cpp hpp cc hh C H cxx hxx c++ moc inl pro
 ft css css
@@ -32,7 +30,7 @@ ft make mk mak
 ft perl perl pl
 ft php php php3 php4
 ft python py
-ft sh sh
+ft sh sh bash
 ft smarty tpl
 ft sql sql
 ft tcl tcl
