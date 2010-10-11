@@ -363,7 +363,7 @@ static char *get_interpreter(void)
 int guess_filetype(void)
 {
 	char *interpreter = get_interpreter();
-	char *ft = NULL;
+	const char *ft = NULL;
 
 	if (BLOCK(buffer->blocks.next)->size) {
 		struct lineref lr;
@@ -379,10 +379,9 @@ int guess_filetype(void)
 
 	if (ft && strcmp(ft, buffer->options.filetype)) {
 		free(buffer->options.filetype);
-		buffer->options.filetype = ft;
+		buffer->options.filetype = xstrdup(ft);
 		return 1;
 	}
-	free(ft);
 	return 0;
 }
 

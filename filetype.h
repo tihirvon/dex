@@ -9,7 +9,7 @@ enum detect_type {
 };
 
 void add_filetype(const char *name, const char *str, enum detect_type type);
-char *find_ft(const char *filename, const char *interpreter,
+const char *find_ft(const char *filename, const char *interpreter,
 	const char *first_line, unsigned int line_len);
 int is_ft(const char *name);
 

@@ -22,34 +22,7 @@ void add_filetype(const char *name, const char *str, enum detect_type type)
 	ptr_array_add(&filetypes, ft);
 }
 
-static char *detect(const char *pattern, const char *buf, unsigned int len, const char *name)
-{
-	if (!buf)
-		return NULL;
-
-	if (name[0] == '\\') {
-		char *end, *ret;
-		long n, idx = strtol(name + 1, &end, 10);
-
-		if (name[1] && !*end) {
-			n = regexp_match(pattern, buf, len);
-			if (idx < 1 || (n && idx > n)) {
-				free_regexp_matches();
-				return NULL;
-			}
-			ret = regexp_matches[idx];
-			regexp_matches[idx] = NULL;
-			free_regexp_matches();
-			return ret;
-		}
-	}
-
-	if (!regexp_match_nosub(pattern, buf, len))
-		return NULL;
-	return xstrdup(name);
-}
-
-char *find_ft(const char *filename, const char *interpreter,
+const char *find_ft(const char *filename, const char *interpreter,
 	const char *first_line, unsigned int line_len)
 {
 	unsigned int filename_len = strlen(filename);
@@ -62,26 +35,26 @@ char *find_ft(const char *filename, const char *interpreter,
 		ext++;
 	for (i = 0; i < filetypes.count; i++) {
 		const struct filetype *ft = filetypes.ptrs[i];
-		char *name = NULL;
 
 		switch (ft->type) {
 		case FT_EXTENSION:
-			if (ext && !strcmp(ext, ft->str))
-				name = xstrdup(ft->name);
+			if (!ext || strcmp(ext, ft->str))
+				continue;
 			break;
 		case FT_FILENAME:
-			name = detect(ft->str, filename, filename_len, ft->name);
+			if (!filename || !regexp_match_nosub(ft->str, filename, filename_len))
+				continue;
 			break;
 		case FT_CONTENT:
-			name = detect(ft->str, first_line, line_len, ft->name);
+			if (!first_line || !regexp_match_nosub(ft->str, first_line, line_len))
+				continue;
 			break;
 		case FT_INTERPRETER:
-			if (interpreter && !strcmp(interpreter, ft->str))
-				name = xstrdup(ft->name);
+			if (!interpreter || strcmp(interpreter, ft->str))
+				continue;
 			break;
 		}
-		if (name)
-			return name;
+		return ft->name;
 	}
 	return NULL;
 }
