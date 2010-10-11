@@ -1,7 +1,6 @@
 ft -c '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)[0-9.]*(\s|$)'
 ft -c xml '^<\?xml(\s|$)'
 
-ft -f '\1' '\.(bash|c|cpp|css|diff|go|html|perl|php|sh|sql|xml)$'
 ft -f bash '/\.bash(rc|_profile|_logout)$'
 ft -f bash '.*/PKGBUILD'
 ft -f editor '/\.editor/(rc|filetype|syntax/.*)$'
@@ -12,16 +11,22 @@ ft -f indent '/\.indent\.pro$'
 ft -f make '[mM]akefile(\.[^/]*)?$'
 ft -f make '/Make\.[^/]*$'
 
-# other extensions
-ft c h
-ft cpp hpp cc hh C H cxx hxx c++ moc inl pro
-ft diff patch
-ft html htm xhtml
+# extensions
+ft bash bash
+ft c c h
+ft cpp cpp hpp cc hh C H cxx hxx c++ moc inl pro
+ft css css
+ft diff diff patch
+ft go go
+ft html html htm xhtml
 ft make mk mak
-ft perl pl
-ft php php3 php4
+ft perl perl pl
+ft php php php3 php4
 ft python py
+ft sh sh
 ft smarty tpl
+ft sql sql
+ft xml xml
 
 # should be last
 ft -f config '/etc/.*'
