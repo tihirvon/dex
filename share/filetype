@@ -1,6 +1,15 @@
-ft -c '\2' '^#! */.*(/env +|/)(bash|perl|php|python|sh)[0-9.]*(\s|$)'
+# interpreters
+ft -i tcl wish
+ft -i sh sh
+ft -i bash bash
+ft -i python python
+ft -i perl perl
+ft -i php php
+
+# first line
 ft -c xml '^<\?xml(\s|$)'
 
+# regular expressions
 ft -f bash '/\.bash(rc|_profile|_logout)$'
 ft -f bash '.*/PKGBUILD'
 ft -f editor '/\.editor/(rc|filetype|syntax/.*)$'
@@ -26,6 +35,7 @@ ft python py
 ft sh sh
 ft smarty tpl
 ft sql sql
+ft tcl tcl
 ft xml xml
 
 # should be last
