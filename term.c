@@ -227,7 +227,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 
 static int read_simple(unsigned int *key, enum term_key_type *type)
 {
-	unsigned char ch;
+	unsigned char ch = 0;
 
 	/* > 0 bytes in buf */
 	input_get_byte(&ch);
