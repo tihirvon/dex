@@ -280,6 +280,9 @@ static void cmd_ft(const char *pf, char **args)
 		case 'f':
 			dt = FT_FILENAME;
 			break;
+		case 'i':
+			dt = FT_INTERPRETER;
+			break;
 		}
 		pf++;
 	}
@@ -1213,7 +1216,7 @@ const struct command commands[] = {
 	{ "errorfmt",		"ir",	2, -1, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
-	{ "ft",			"-cf",	2, -1, cmd_ft },
+	{ "ft",			"-cfi",	2, -1, cmd_ft },
 	{ "hi",			"",	1, -1, cmd_hi },
 	{ "include",		"",	1,  1, cmd_include },
 	{ "insert",		"km",	1,  1, cmd_insert },

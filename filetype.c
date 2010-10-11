@@ -49,7 +49,8 @@ static char *detect(const char *pattern, const char *buf, unsigned int len, cons
 	return xstrdup(name);
 }
 
-char *find_ft(const char *filename, const char *first_line, unsigned int line_len)
+char *find_ft(const char *filename, const char *interpreter,
+	const char *first_line, unsigned int line_len)
 {
 	unsigned int filename_len = strlen(filename);
 	const char *ext = NULL;
@@ -73,6 +74,10 @@ char *find_ft(const char *filename, const char *first_line, unsigned int line_le
 			break;
 		case FT_CONTENT:
 			name = detect(ft->str, first_line, line_len, ft->name);
+			break;
+		case FT_INTERPRETER:
+			if (interpreter && !strcmp(interpreter, ft->str))
+				name = xstrdup(ft->name);
 			break;
 		}
 		if (name)

@@ -13,6 +13,7 @@
 #include "file-option.h"
 #include "lock.h"
 #include "config.h"
+#include "regexp.h"
 
 struct view *view;
 struct buffer *buffer;
@@ -311,8 +312,57 @@ struct view *find_view_by_buffer_id(unsigned int buffer_id)
 	return v;
 }
 
+static int next_line(struct block_iter *bi, struct lineref *lr)
+{
+	if (!block_iter_next_line(bi))
+		return 0;
+	fill_line_ref(bi, lr);
+	return 1;
+}
+
+/*
+ * Parse #! line and return interpreter name without vesion number.
+ * For example if file's first line is "#!/usr/bin/env python2" then
+ * "python" is returned.
+ */
+static char *get_interpreter(void)
+{
+	struct block_iter bi;
+	struct lineref lr;
+	char *ret;
+	int n;
+
+	buffer_bof(&bi);
+	fill_line_ref(&bi, &lr);
+	n = regexp_match("^#!\\s*/.*(/env\\s+|/)([a-zA-Z_-]+)[0-9.]*(\\s|$)",
+		lr.line, lr.size);
+	if (!n)
+		return NULL;
+
+	ret = xstrdup(regexp_matches[2]);
+	free_regexp_matches();
+
+	if (strcmp(ret, "sh"))
+		return ret;
+
+	/*
+	 * #!/bin/sh
+	 * # the next line restarts using wish \
+	 * exec wish "$0" "$@"
+	 */
+	if (!next_line(&bi, &lr) || !regexp_match_nosub("^#.*\\\\$", lr.line, lr.size))
+		return ret;
+
+	if (!next_line(&bi, &lr) || !regexp_match_nosub("^exec\\s+wish\\s+", lr.line, lr.size))
+		return ret;
+
+	free(ret);
+	return xstrdup("wish");
+}
+
 int guess_filetype(void)
 {
+	char *interpreter = get_interpreter();
 	char *ft = NULL;
 
 	if (BLOCK(buffer->blocks.next)->size) {
@@ -321,10 +371,12 @@ int guess_filetype(void)
 
 		buffer_bof(&bi);
 		fill_line_ref(&bi, &lr);
-		ft = find_ft(buffer->abs_filename, lr.line, lr.size);
+		ft = find_ft(buffer->abs_filename, interpreter, lr.line, lr.size);
 	} else if (buffer->abs_filename) {
-		ft = find_ft(buffer->abs_filename, NULL, 0);
+		ft = find_ft(buffer->abs_filename, interpreter, NULL, 0);
 	}
+	free(interpreter);
+
 	if (ft && strcmp(ft, buffer->options.filetype)) {
 		free(buffer->options.filetype);
 		buffer->options.filetype = ft;
