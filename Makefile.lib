@@ -15,13 +15,17 @@ endif
 LC_ALL := C
 export LC_ALL
 
+# CFLAGS and LDFLAGS can be set from the command line
+BASIC_CFLAGS =
+BASIC_LDFLAGS =
+
 # following macros have been taken from Kbuild and simplified
 
 quiet_cmd_cc = CC     $@
-      cmd_cc = $(CC) $(CFLAGS) -c -o $@ $<
+      cmd_cc = $(CC) $(CFLAGS) $(BASIC_CFLAGS) -c -o $@ $<
 
 quiet_cmd_ld = LD     $@
-      cmd_ld = $(LD) $(LDFLAGS) -o $@ $^ $(1)
+      cmd_ld = $(LD) $(LDFLAGS) $(BASIC_LDFLAGS) -o $@ $^ $(1)
 
 cmd = @$(if $($(quiet)cmd_$(1)),echo '   $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
 
@@ -41,7 +45,7 @@ ifndef NO_DEPS
 dep_files := $(foreach f,$(OBJECTS),$(dir $f).depend/$(notdir $f).d)
 dep_dirs := $(addsuffix .depend,$(sort $(dir $(OBJECTS))))
 missing_dep_dirs := $(filter-out $(wildcard $(dep_dirs)),$(dep_dirs))
-CFLAGS += -MF $(dir $@).depend/$(notdir $@).d -MMD -MP
+BASIC_CFLAGS += -MF $(dir $@).depend/$(notdir $@).d -MMD -MP
 dep_files_present := $(wildcard $(dep_files))
 
 ifneq ($(dep_files_present),)

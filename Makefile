@@ -17,6 +17,7 @@
 
 all: editor
 
+# these can be set from the command line
 CC = gcc
 LD = $(CC)
 CFLAGS = -g -O2 -Wall
@@ -131,14 +132,14 @@ syntax	:= $(addprefix share/,$(syntax))
 -include Config.mk
 include Makefile.lib
 
-CFLAGS += $(call cc-option,$(WARNINGS))
+BASIC_CFLAGS += $(call cc-option,$(WARNINGS))
 
 ifndef NO_WERROR
-CFLAGS += $(call cc-option,-Werror -Wno-error=shadow -Wno-error=unused-variable)
+BASIC_CFLAGS += $(call cc-option,-Werror -Wno-error=shadow -Wno-error=unused-variable)
 endif
 
-CFLAGS += -DDATADIR=\"$(datadir)\"
-CFLAGS += -DDEBUG=$(DEBUG)
+BASIC_CFLAGS += -DDATADIR=\"$(datadir)\"
+BASIC_CFLAGS += -DDEBUG=$(DEBUG)
 
 editor: $(OBJECTS)
 	$(call cmd,ld,)
