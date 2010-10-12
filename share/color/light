@@ -39,12 +39,15 @@ hi gitcommit.added bold
 hi gitcommit.modified bold red
 hi gitcommit.untracked bold red
 
+# go
+hi go.builtin blue
+
+# make
+hi make.builtin bold
+
 # sh
 hi sh.builtin bold
 hi sh.operator bold
-
-# go
-hi go.builtin blue
 
 # smarty
 hi smarty blue
