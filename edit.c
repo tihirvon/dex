@@ -601,7 +601,6 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 {
 	unsigned int i = 0;
 	int word_width = 0;
-	int sentence_end = 0;
 	int bol = !pf->cur_width;
 
 	while (i < len) {
@@ -614,13 +613,7 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 		}
 	}
 
-	if (!bol) {
-		char ch = pf->buf.buffer[pf->buf.len - 1];
-		if (ch == '.' || ch == '?' || ch == '!')
-			sentence_end = 1;
-	}
-
-	if (pf->cur_width + sentence_end + 1 + word_width > pf->text_width) {
+	if (pf->cur_width + 1 + word_width > pf->text_width) {
 		gbuf_add_ch(&pf->buf, '\n');
 		pf->cur_width = 0;
 		bol = 1;
@@ -630,10 +623,6 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 		gbuf_add_buf(&pf->buf, pf->indent, pf->indent_len);
 		pf->cur_width = pf->indent_width;
 	} else {
-		if (sentence_end) {
-			gbuf_add_ch(&pf->buf, ' ');
-			pf->cur_width++;
-		}
 		gbuf_add_ch(&pf->buf, ' ');
 		pf->cur_width++;
 	}
