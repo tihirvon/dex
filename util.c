@@ -158,7 +158,6 @@ char *path_absolute(const char *filename)
 				break;
 			}
 			memmove(sp, ep + 1, strlen(ep + 1) + 1);
-			d_print("'%s' '%s' (.)\n", buf, sp);
 			continue;
 		}
 		if (!strcmp(sp, "..")) {
@@ -174,7 +173,6 @@ char *path_absolute(const char *filename)
 				break;
 			}
 			memmove(sp, ep + 1, strlen(ep + 1) + 1);
-			d_print("'%s' '%s' (..)\n", buf, sp);
 			continue;
 		}
 
@@ -204,10 +202,8 @@ char *path_absolute(const char *filename)
 				return NULL;
 			}
 			target_len = readlink(buf, target, sizeof(target));
-			if (target_len < 0) {
-				d_print("readlink failed for '%s'\n", buf);
+			if (target_len < 0)
 				return NULL;
-			}
 			if (target_len == sizeof(target)) {
 				errno = ENAMETOOLONG;
 				return NULL;
