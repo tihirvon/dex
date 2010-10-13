@@ -268,12 +268,32 @@ static int read_simple(unsigned int *key, enum term_key_type *type)
 	return 1;
 }
 
+static int is_text(const char *str, int len)
+{
+	int i;
+
+	for (i = 0; i < len; i++) {
+		char ch = str[i];
+
+		switch (ch) {
+		case '\t':
+		case '\n':
+		case '\r':
+			break;
+		default:
+			if (ch < 0x20 || ch == 0x7f)
+				return 0;
+		}
+	}
+	return 1;
+}
+
 int term_read_key(unsigned int *key, enum term_key_type *type)
 {
 	if (!input_buf_fill && !fill_buffer())
 		return 0;
 
-	if (input_buf_fill > 4 && !memchr(input_buf, '\033', input_buf_fill)) {
+	if (input_buf_fill > 4 && is_text(input_buf, input_buf_fill)) {
 		*key = 0;
 		*type = KEY_PASTE;
 		return 1;
