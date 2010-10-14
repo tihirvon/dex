@@ -7,7 +7,6 @@
 #include "color.h"
 
 struct line_info {
-	// struct lineref
 	const char *line;
 	unsigned int size;
 
@@ -469,18 +468,14 @@ static uchar screen_next_char(struct line_info *info)
 	return u;
 }
 
-static void init_line_info(struct line_info *info, struct block_iter *bi, int line_nr)
+static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
 {
 	int i;
 
-	fill_line_nl_ref(bi, (struct lineref *)info);
+	info->line = lr->line;
+	info->size = lr->size;
 	info->pos = 0;
-	info->colors = hl_line(info->line, info->size, line_nr);
-
-	if (info->size && info->line[info->size - 1] == '\n') {
-		// highlighter needs \n but other code does not want it
-		info->size--;
-	}
+	info->colors = colors;
 
 	for (i = 0; i < info->size; i++) {
 		char ch = info->line[i];
@@ -549,11 +544,19 @@ void update_range(int y1, int y2)
 	hl_fill_start_states(current_line);
 	for (i = y1; got_line && i < y2; i++) {
 		struct line_info info;
+		struct lineref lr;
+		struct hl_color **colors;
 
 		obuf.x = 0;
 		buf_move_cursor(window->x, window->y + i);
 
-		init_line_info(&info, &bi, current_line);
+		fill_line_nl_ref(&bi, &lr);
+		colors = hl_line(lr.line, lr.size, current_line);
+		if (lr.size && lr.line[lr.size - 1] == '\n') {
+			// highlighter needs \n but other code does not want it
+			lr.size--;
+		}
+		init_line_info(&info, &lr, colors);
 		print_line(&info);
 
 		got_line = block_iter_next_line(&bi);
