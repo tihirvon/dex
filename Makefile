@@ -29,7 +29,8 @@ datadir = $(prefix)/share
 
 # 0: Disable debugging.
 # 1: Enable BUG_ON() and light-weight sanity checks.
-# 2: Enable logging to /tmp/editor.log and expensive sanity checks.
+# 2: Enable logging to /tmp/editor-$UID.log.
+# 3: Enable expensive sanity checks.
 DEBUG = 1
 
 # enabled if CC supports them
