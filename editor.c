@@ -404,8 +404,6 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			input_mode = INPUT_NORMAL;
 			// clear possible parse error
 			error_buf[0] = 0;
-			// "misc status" needs to be updated
-			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case CTRL('D'):
 			cmdline_delete();
@@ -416,8 +414,6 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 				cmdline_backspace();
 			} else {
 				input_mode = INPUT_NORMAL;
-				// "misc status" needs to be updated
-				update_flags |= UPDATE_STATUS_LINE;
 			}
 			break;
 		case CTRL('U'):
@@ -425,8 +421,6 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 			break;
 		case CTRL('V'):
 			input_special = INPUT_SPECIAL_UNKNOWN;
-			// "misc status" needs to be updated
-			update_flags |= UPDATE_STATUS_LINE;
 			break;
 
 		case CTRL('A'):
@@ -566,8 +560,6 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		switch (key) {
 		case 'c':
 			options.search_case = (options.search_case + 1) % 3;
-			// "misc status" needs to be updated
-			update_flags |= UPDATE_STATUS_LINE;
 			break;
 		case 'r':
 			search_init(current_search_direction() ^ 1);
@@ -632,7 +624,6 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int show_tab_bar = options.show_tab_bar;
 	int is_modified = buffer_modified(buffer);
 	int id = buffer->id;
-	int cx = view->cx_display;
 	int cy = view->cy;
 	int vx = view->vx;
 	int vy = view->vy;
@@ -647,16 +638,20 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		if (vx != view->vx || vy != view->vy) {
 			update_flags |= UPDATE_FULL;
 		} else if (cy != view->cy) {
-			update_flags |= UPDATE_RANGE;
-		} else if (cx != view->cx_display) {
-			// Current line must be updated if selecting text
-			// or the line has trailing whitespace (trailing
-			// whitespace isn't shown if cursor is positioned
-			// at or after the whitespace).
-			update_flags |= UPDATE_CURSOR_LINE;
+			// Because of trailing whitespace highlighting,
+			// highlighting current line in different color and
+			// selection all lines from old cursor y to new
+			// cursor y need to be updated.
+			lines_changed(cy, view->cy);
+		} else {
+			// Cursor may have moved left or right, selection might
+			// have been started and so on.  Too many things to track
+			// for such a little gain.  Always update at least current
+			// line.
+			lines_changed(cy, cy);
 		}
 		if (is_modified != buffer_modified(buffer))
-			update_flags |= UPDATE_STATUS_LINE | UPDATE_TAB_BAR;
+			update_flags |= UPDATE_TAB_BAR;
 	} else {
 		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 	}
@@ -666,43 +661,32 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 	}
 
-	if (update_flags & (UPDATE_CURSOR_LINE | UPDATE_RANGE | UPDATE_FULL))
-		update_flags |= UPDATE_STATUS_LINE;
-
-	if (!update_flags)
-		return;
-
 	buf_hide_cursor();
-
-	if (update_flags & UPDATE_STATUS_LINE)
+	if (update_flags & UPDATE_TAB_BAR)
 		update_term_title();
-
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tab_bar();
 	if (update_flags & UPDATE_FULL) {
 		update_range(view->vy, view->vy + window->h);
-	} else if (update_flags & UPDATE_RANGE) {
-		int y1 = cy;
-		int y2 = view->cy;
-		if (y1 > y2) {
-			int tmp = y1;
-			y1 = y2;
-			y2 = tmp;
-		}
+	} else  {
+		int y1 = changed_line_min;
+		int y2 = changed_line_max;
+		if (y1 < view->vy)
+			y1 = view->vy;
+		if (y2 > view->vy + window->h - 1)
+			y2 = view->vy + window->h - 1;
 		update_range(y1, y2 + 1);
-	} else if (update_flags & UPDATE_CURSOR_LINE) {
-		update_range(view->cy, view->cy + 1);
 	}
-	if (update_flags & UPDATE_STATUS_LINE)
-		update_status_line(format_misc_status());
+	update_status_line(format_misc_status());
 	if (update_flags & UPDATE_COMMAND_LINE)
 		update_command_line();
 	restore_cursor();
 	buf_show_cursor();
+	buf_flush();
 
 	update_flags = 0;
-
-	buf_flush();
+	changed_line_min = INT_MAX;
+	changed_line_max = -1;
 }
 
 static void insert_special(const char *buf, int size)

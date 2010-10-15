@@ -19,6 +19,24 @@ struct view *view;
 struct buffer *buffer;
 struct view *prev_view;
 
+unsigned int update_flags;
+int changed_line_min = INT_MAX;
+int changed_line_max = -1;
+
+void lines_changed(int min, int max)
+{
+	if (min > max) {
+		int tmp = min;
+		min = max;
+		max = tmp;
+	}
+
+	if (min < changed_line_min)
+		changed_line_min = min;
+	if (max > changed_line_max)
+		changed_line_max = max;
+}
+
 unsigned int count_nl(const char *buf, unsigned int size)
 {
 	const char *end = buf + size;

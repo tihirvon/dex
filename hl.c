@@ -225,14 +225,15 @@ void hl_insert(int lines)
 	struct block_iter bi;
 	int first, last;
 
-	if (!buffer->syn)
-		return;
-
 	update_cursor_y();
 
 	// modified lines
 	first = view->cy;
 	last = first + lines;
+	lines_changed(first, first == last ? first : INT_MAX);
+
+	if (!buffer->syn)
+		return;
 
 	if (first >= s->count) {
 		// nothing to rehighlight
@@ -279,17 +280,18 @@ void hl_delete(int deleted_nl)
 	struct block_iter bi;
 	int first, last, changed;
 
-	if (!buffer->syn)
-		return;
-
-	if (s->count == 1)
-		return;
-
 	update_cursor_y();
 
 	// modified lines
 	first = view->cy;
 	last = first + deleted_nl;
+	lines_changed(first, first == last ? first : INT_MAX);
+
+	if (!buffer->syn)
+		return;
+
+	if (s->count == 1)
+		return;
 
 	if (first >= s->count) {
 		// nothing to highlight

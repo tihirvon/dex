@@ -230,10 +230,6 @@ void do_insert(const char *buf, unsigned int len)
 	unsigned int nl = insert_bytes(buf, len);
 
 	buffer->nl += nl;
-	update_flags |= UPDATE_CURSOR_LINE;
-	if (nl)
-		update_flags |= UPDATE_FULL;
-
 	sanity_check();
 	hl_insert(nl);
 }
@@ -247,7 +243,6 @@ char *do_delete(unsigned int len)
 {
 	struct list_head *saved_prev_node = NULL;
 	struct block *blk = view->cursor.blk;
-	unsigned int buffer_nl = buffer->nl;
 	unsigned int offset = view->cursor.offset;
 	unsigned int pos = 0;
 	unsigned int deleted_nl = 0;
@@ -312,10 +307,6 @@ char *do_delete(unsigned int len)
 		blk->nl += next->nl;
 		delete_block(next);
 	}
-
-	update_flags |= UPDATE_CURSOR_LINE;
-	if (buffer_nl != buffer->nl)
-		update_flags |= UPDATE_FULL;
 
 	sanity_check();
 	hl_delete(deleted_nl);

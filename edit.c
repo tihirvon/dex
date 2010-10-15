@@ -15,8 +15,6 @@ struct paragraph_formatter {
 	int text_width;
 };
 
-unsigned int update_flags;
-
 static char *copy_buf;
 static unsigned int copy_len;
 static int copy_is_lines;

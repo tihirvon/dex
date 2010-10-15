@@ -110,12 +110,9 @@ struct selection_info {
 	int nr_chars;
 };
 
-#define UPDATE_STATUS_LINE	(1 << 0)
-#define UPDATE_CURSOR_LINE	(1 << 1)
-#define UPDATE_RANGE		(1 << 2)
-#define UPDATE_FULL		(1 << 3)
-#define UPDATE_TAB_BAR		(1 << 4)
-#define UPDATE_COMMAND_LINE	(1 << 5)
+#define UPDATE_TAB_BAR		(1 << 0)
+#define UPDATE_FULL		(1 << 1)
+#define UPDATE_COMMAND_LINE	(1 << 2)
 
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
@@ -123,6 +120,8 @@ extern struct buffer *buffer;
 extern struct view *prev_view;
 
 extern unsigned int update_flags;
+extern int changed_line_min;
+extern int changed_line_max;
 
 static inline struct view *VIEW(struct list_head *item)
 {
@@ -139,6 +138,7 @@ static inline int selecting(void)
 	return view->selection;
 }
 
+void lines_changed(int min, int max);
 unsigned int count_nl(const char *buf, unsigned int size);
 
 void init_selection(struct selection_info *info);

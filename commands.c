@@ -90,7 +90,7 @@ static void cmd_cd(const char *pf, char **args)
 		}
 	}
 
-	update_flags |= UPDATE_TAB_BAR | UPDATE_STATUS_LINE;
+	update_flags |= UPDATE_TAB_BAR;
 }
 
 static void cmd_center_view(const char *pf, char **args)
@@ -380,7 +380,6 @@ static void cmd_insert(const char *pf, char **args)
 static void cmd_insert_special(const char *pf, char **args)
 {
 	input_special = INPUT_SPECIAL_UNKNOWN;
-	update_flags |= UPDATE_STATUS_LINE;
 }
 
 static void cmd_join(const char *pf, char **args)
@@ -867,7 +866,7 @@ static void cmd_save(const char *pf, char **args)
 		update_short_filename(buffer);
 
 		// filename change is not detected (only buffer_modified() change)
-		update_flags |= UPDATE_STATUS_LINE | UPDATE_TAB_BAR;
+		update_flags |= UPDATE_TAB_BAR;
 	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
@@ -981,7 +980,7 @@ static void cmd_search(const char *pf, char **args)
 	} else {
 		input_mode = INPUT_SEARCH;
 		search_init(dir);
-		update_flags |= UPDATE_STATUS_LINE | UPDATE_COMMAND_LINE;
+		update_flags |= UPDATE_COMMAND_LINE;
 	}
 }
 
@@ -1005,7 +1004,6 @@ static void cmd_select(const char *pf, char **args)
 	view->sel_so = block_iter_get_offset(&view->cursor);
 	view->sel_eo = UINT_MAX;
 	view->selection = sel;
-	update_flags |= UPDATE_CURSOR_LINE;
 }
 
 static void cmd_set(const char *pf, char **args)
