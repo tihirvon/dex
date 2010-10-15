@@ -546,12 +546,13 @@ void update_range(int y1, int y2)
 		struct line_info info;
 		struct lineref lr;
 		struct hl_color **colors;
+		int next_changed;
 
 		obuf.x = 0;
 		buf_move_cursor(window->x, window->y + i);
 
 		fill_line_nl_ref(&bi, &lr);
-		colors = hl_line(lr.line, lr.size, current_line);
+		colors = hl_line(lr.line, lr.size, current_line, &next_changed);
 		if (lr.size && lr.line[lr.size - 1] == '\n') {
 			// highlighter needs \n but other code does not want it
 			lr.size--;
@@ -561,6 +562,13 @@ void update_range(int y1, int y2)
 
 		got_line = block_iter_next_line(&bi);
 		current_line++;
+
+		if (next_changed && i + 1 == y2 && y2 < window->h) {
+			// more lines need to be updated not because their
+			// contents have changed but because their highlight
+			// state has
+			y2++;
+		}
 	}
 
 	if (i < y2 && current_line == view->cy) {

@@ -154,65 +154,123 @@ static void move_line_states(struct ptr_array *s, int to, int from, int count)
 	memmove(s->ptrs + to, s->ptrs + from, count * sizeof(*s->ptrs));
 }
 
-// lo should always be > 0 because start state of line 0 is constant.
-// If bi points to line 0 then lo should be 1.
-static void fill_start_states(struct block_iter *bi, int lo, int hi)
+static void new_hole(int idx)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	struct state *state = s->ptrs[lo - 1];
-	int i;
 
-	BUG_ON(lo < 1);
-	for (i = lo; i <= hi; i++) {
-		struct lineref lr;
+	if (idx >= buffer->first_hole)
+		return;
 
-		fill_line_nl_ref(bi, &lr);
-		highlight_line(state, lr.line, lr.size, &state);
+	/*
+	 * hl_line() can fill hole with states and leave buffer->first_hole
+	 * point to non-NULL value.
+	 */
+	if (buffer->first_hole < s->count)
+		s->ptrs[buffer->first_hole] = NULL;
+
+	buffer->first_hole = idx;
+}
+
+static void find_hole(int pos)
+{
+	struct ptr_array *s = &buffer->line_start_states;
+	while (pos < s->count && s->ptrs[pos])
+		pos++;
+	buffer->first_hole = pos;
+}
+
+static void block_iter_move_down(struct block_iter *bi, int count)
+{
+	while (count--)
 		block_iter_next_line(bi);
-		s->ptrs[i] = state;
-	}
 }
 
 void hl_fill_start_states(int line_nr)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	struct block_iter bi = view->cursor;
-	int lo, hi;
+	struct block_iter bi;
+	int current_line = 0;
 
 	if (!buffer->syn)
 		return;
 
-	if (line_nr < s->count) {
-		// already filled
-		return;
+	buffer_bof(&bi);
+	resize_line_states(s, line_nr + 1);
+	while (1) {
+		struct lineref lr;
+		struct state *st;
+		int idx;
+
+		// always true: buffer->first_hole <= s->count
+		if (buffer->first_hole > line_nr)
+			break;
+
+		// go to line before first hole
+		block_iter_move_down(&bi, buffer->first_hole - 1 - current_line);
+		current_line = buffer->first_hole - 1;
+		idx = current_line;
+
+		fill_line_nl_ref(&bi, &lr);
+		highlight_line(s->ptrs[idx++], lr.line, lr.size, &st);
+
+		BUG_ON(idx > s->count);
+		if (idx == s->count) {
+			// new
+			s->ptrs[idx] = st;
+			s->count++;
+			buffer->first_hole = s->count;
+		} else if (!s->ptrs[idx]) {
+			s->ptrs[idx] = st;
+			buffer->first_hole++;
+		} else {
+			if (s->ptrs[idx] == st) {
+				// hole successfully closed. find next
+				find_hole(idx + 1);
+			} else {
+				// hole filled but state changed
+				s->ptrs[idx] = st;
+				buffer->first_hole = idx + 1;
+			}
+		}
 	}
-
-	// fill from s->count to line_nr
-	lo = s->count;
-	hi = line_nr;
-
-	block_iter_goto_line(&bi, lo - 1);
-	resize_line_states(s, hi + 1);
-	s->count = hi + 1;
-	fill_start_states(&bi, lo, hi);
 }
 
-struct hl_color **hl_line(const char *line, int len, int line_nr)
+struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_changed)
 {
 	struct ptr_array *s = &buffer->line_start_states;
 	struct hl_color **colors;
 	struct state *next;
 
+	*next_changed = 0;
 	if (!buffer->syn)
 		return NULL;
 
 	BUG_ON(line_nr >= s->count);
-	colors = highlight_line(s->ptrs[line_nr], line, len, &next);
-	if (line_nr + 1 == s->count) {
+	colors = highlight_line(s->ptrs[line_nr++], line, len, &next);
+
+	if (line_nr == s->count) {
 		resize_line_states(s, s->count + 1);
 		s->ptrs[s->count++] = next;
+		buffer->first_hole = s->count;
+		*next_changed = 1;
+	} else if (!s->ptrs[line_nr]) {
+		s->ptrs[line_nr] = next;
+		// NOTE: this can leave first_hole point to non-NULL state
+		buffer->first_hole = line_nr + 1;
+		*next_changed = 1;
 	} else {
-		BUG_ON(s->ptrs[line_nr + 1] != next);
+		if (line_nr == buffer->first_hole) {
+			if (s->ptrs[line_nr] == next) {
+				// hole successfully closed
+				find_hole(line_nr + 1);
+			} else {
+				// hole filled but state changed
+				s->ptrs[buffer->first_hole++] = next;
+				*next_changed = 1;
+			}
+		} else {
+			BUG_ON(s->ptrs[line_nr] != next);
+		}
 	}
 	return colors;
 }
@@ -221,9 +279,7 @@ struct hl_color **hl_line(const char *line, int len, int line_nr)
 void hl_insert(int lines)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	struct state *saved_state;
-	struct block_iter bi;
-	int first, last;
+	int first, last, i;
 
 	update_cursor_y();
 
@@ -256,29 +312,17 @@ void hl_insert(int lines)
 		s->count += lines;
 	}
 
-	// highlight modified and new lines
-	bi = view->cursor;
-	block_iter_bol(&bi);
-
-	saved_state = s->ptrs[last + 1];
-	fill_start_states(&bi, first + 1, last + 1);
-	if (saved_state == s->ptrs[last + 1]) {
-		// state of first unmodified line did not change
-		return;
-	}
-
-	// rest of the lines are rehighlighted on demand
-	s->count = last + 2;
-	update_flags |= UPDATE_FULL;
+	// invalidate start states of lines right after any changed lines
+	for (i = first + 1; i <= last + 1; i++)
+		s->ptrs[i] = NULL;
+	new_hole(first + 1);
 }
 
 // called after text have been deleted to rehighlight changed lines
 void hl_delete(int deleted_nl)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	struct state *saved_state;
-	struct block_iter bi;
-	int first, last, changed;
+	int first, last;
 
 	update_cursor_y();
 
@@ -316,23 +360,7 @@ void hl_delete(int deleted_nl)
 		s->count -= deleted_nl;
 	}
 
-	// with some luck we only need to highlight the only changed line
-	changed = first;
-	first = -1;
-	last = -1;
-
-	bi = view->cursor;
-	block_iter_bol(&bi);
-	saved_state = s->ptrs[changed + 1];
-	fill_start_states(&bi, changed + 1, changed + 1);
-
-	if (saved_state == s->ptrs[changed + 1]) {
-		// start state of first unmodified line did not change
-		return;
-	}
-
-	// rest of the lines are rehighlighted on demand
-	s->count = changed + 2;
-
-	update_flags |= UPDATE_FULL;
+	// invalidate line state after the changed line
+	s->ptrs[first + 1] = NULL;
+	new_hole(first + 1);
 }

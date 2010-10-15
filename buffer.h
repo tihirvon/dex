@@ -49,6 +49,8 @@ struct buffer {
 	const struct syntax *syn;
 	// index 0 is always syn->states.ptrs[0]
 	struct ptr_array line_start_states;
+	// index of first invalid line start state
+	unsigned int first_hole;
 };
 
 enum selection {
@@ -189,7 +191,7 @@ struct syntax *load_syntax(const char *filetype, const char *filename);
 void syntax_changed(void);
 void filetype_changed(void);
 
-struct hl_color **hl_line(const char *line, int len, int line_nr);
+struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_changed);
 void hl_fill_start_states(int line_nr);
 void hl_insert(int lines);
 void hl_delete(int lines);
