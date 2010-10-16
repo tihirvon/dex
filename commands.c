@@ -433,8 +433,10 @@ static void cmd_move_tab(const char *pf, char **args)
 		return;
 	}
 	num = strtol(str, &end, 10);
-	if (!*str || *end || num < 1)
-		return error_msg("Invalid tab position %s", str);
+	if (!*str || *end || num < 1) {
+		error_msg("Invalid tab position %s", str);
+		return;
+	}
 
 	list_del(&view->node);
 	item = &window->views;
