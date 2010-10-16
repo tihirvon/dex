@@ -75,7 +75,7 @@ static int parse_color(const char *str, int *val)
 		return 1;
 	}
 	for (i = 0; i < ARRAY_COUNT(color_names); i++) {
-		if (!strcasecmp(str, color_names[i])) {
+		if (!strcmp(str, color_names[i])) {
 			*val = i - 2;
 			return 1;
 		}
@@ -88,7 +88,7 @@ static int parse_attr(const char *str, unsigned short *attr)
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(attr_names); i++) {
-		if (!strcasecmp(str, attr_names[i])) {
+		if (!strcmp(str, attr_names[i])) {
 			*attr |= 1 << i;
 			return 1;
 		}
