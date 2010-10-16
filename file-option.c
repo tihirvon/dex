@@ -6,10 +6,7 @@
 
 struct file_option {
 	enum file_options_type type;
-	union {
-		char *filename_pattern;
-		char *filetype;
-	};
+	char *type_or_pattern;
 	char **strs;
 };
 
@@ -31,10 +28,10 @@ void set_file_options(void)
 		const struct file_option *opt = file_options.ptrs[i];
 
 		if (opt->type == FILE_OPTIONS_FILETYPE) {
-			if (!strcmp(opt->filetype, buffer->options.filetype))
+			if (!strcmp(opt->type_or_pattern, buffer->options.filetype))
 				set_options(opt->strs);
 		} else if (buffer->abs_filename && regexp_match_nosub(
-							opt->filename_pattern,
+							opt->type_or_pattern,
 							buffer->abs_filename,
 							strlen(buffer->abs_filename))) {
 			set_options(opt->strs);
@@ -47,7 +44,7 @@ void add_file_options(enum file_options_type type, char *to, char **strs)
 	struct file_option *opt = xnew(struct file_option, 1);
 
 	opt->type = type;
-	opt->filetype = to; // or opt->filename_pattern depending on type
+	opt->type_or_pattern = to;
 	opt->strs = strs;
 	ptr_array_add(&file_options, opt);
 }
