@@ -302,7 +302,7 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 		int i;
 
 		for (i = 0; desc->u.enum_opt.values[i]; i++) {
-			if (!strcasecmp(desc->u.enum_opt.values[i], value)) {
+			if (!strcmp(desc->u.enum_opt.values[i], value)) {
 				val = i;
 				goto set;
 			}
@@ -348,7 +348,7 @@ static void set_flag_opt(const struct option_description *desc, const char *valu
 		ptr = end;
 
 		for (i = 0; values[i]; i++) {
-			if (!strcasecmp(buf, values[i])) {
+			if (!strcmp(buf, values[i])) {
 				flags |= 1 << i;
 				break;
 			}
