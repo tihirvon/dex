@@ -417,7 +417,6 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	regfree(&re);
 
 	if (nr_substitutions) {
-		update_flags |= UPDATE_FULL;
 		info_msg("%d substitutions on %d lines", nr_substitutions, nr_lines);
 	} else if (!(flags & REPLACE_CANCEL)) {
 		info_msg("Pattern '%s' not found.", pattern);

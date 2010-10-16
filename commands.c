@@ -901,7 +901,6 @@ static void cmd_scroll_pgdown(const char *pf, char **args)
 			count = max - view->vy;
 		view->vy += count;
 		move_down(count);
-		update_flags |= UPDATE_FULL;
 	}
 }
 
@@ -914,7 +913,6 @@ static void cmd_scroll_pgup(const char *pf, char **args)
 			count = view->vy;
 		view->vy -= count;
 		move_up(count);
-		update_flags |= UPDATE_FULL;
 	}
 }
 

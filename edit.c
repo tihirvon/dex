@@ -526,10 +526,6 @@ void shift_lines(int count)
 		shift_left(nr_lines, -count);
 	end_change_chain();
 
-	// only the cursor line is automatically updated
-	if (nr_lines > 1)
-		update_flags |= UPDATE_FULL;
-
 	if (selecting()) {
 		if (info.swapped) {
 			// cursor should be at beginning of selection
@@ -736,7 +732,6 @@ void format_paragraph(int text_width)
 	gbuf_free(&pf.buf);
 	free(pf.indent);
 
-	update_flags |= UPDATE_FULL;
 	select_end();
 }
 

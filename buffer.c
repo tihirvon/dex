@@ -641,8 +641,6 @@ void syntax_changed(void)
 		s->count = 1;
 		buffer->first_hole = 1;
 	}
-
-	update_flags |= UPDATE_FULL;
 }
 
 static void restore_cursor_from_history(void)

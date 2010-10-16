@@ -222,10 +222,8 @@ int undo(void)
 			reverse_change(change);
 			count++;
 		}
-		if (count > 1) {
+		if (count > 1)
 			info_msg("Undid %d changes.", count);
-			update_flags |= UPDATE_FULL;
-		}
 	} else {
 		reverse_change(change);
 	}
@@ -270,10 +268,8 @@ int redo(unsigned int change_id)
 			reverse_change(change);
 			count++;
 		}
-		if (count > 1) {
+		if (count > 1)
 			info_msg("Redid %d changes.", count);
-			update_flags |= UPDATE_FULL;
-		}
 	} else {
 		reverse_change(change);
 	}
