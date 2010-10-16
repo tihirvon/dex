@@ -5,7 +5,7 @@
 
 struct history_entry {
 	struct list_head node;
-	char text[0];
+	char text[1];
 };
 
 struct history search_history = {
@@ -49,7 +49,7 @@ void history_add(struct history *history, const char *text)
 		history->nr_entries--;
 	}
 
-	item = xmalloc(sizeof(struct history_entry) + len + 1);
+	item = xmalloc(sizeof(struct history_entry) + len);
 	memcpy(item->text, text, len + 1);
 	list_add_after(&item->node, &history->head);
 	history->nr_entries++;
