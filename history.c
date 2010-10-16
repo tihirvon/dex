@@ -26,19 +26,15 @@ static char *search_text;
 void history_add(struct history *history, const char *text)
 {
 	struct history_entry *item;
-	int i, len = strlen(text);
+	int len = strlen(text);
 
-	for (i = 0; i < len; i++) {
-		if (text[i] != ' ')
-			break;
-	}
-	if (i == len)
+	if (!len)
 		return;
 
 	// don't add identical entries
 	list_for_each_entry(item, &history->head, node) {
 		if (!strcmp(item->text, text)) {
-			// move indentical entry to first
+			// move identical entry to first
 			list_del(&item->node);
 			list_add_after(&item->node, &history->head);
 			return;
@@ -83,7 +79,7 @@ const char *history_search_forward(struct history *history, const char *text)
 	search_len = strlen(search_text);
 	while (item != &history->head) {
 		struct history_entry *hentry;
-		
+
 		hentry = container_of(item, struct history_entry, node);
 		if (!strncmp(search_text, hentry->text, search_len)) {
 			search_pos = item;
@@ -105,7 +101,7 @@ const char *history_search_backward(struct history *history)
 	search_len = strlen(search_text);
 	while (item != &history->head) {
 		struct history_entry *hentry;
-		
+
 		hentry = container_of(item, struct history_entry, node);
 		if (!strncmp(search_text, hentry->text, search_len)) {
 			search_pos = item;
@@ -157,7 +153,7 @@ void history_save(struct history *history, const char *filename)
 {
 	struct history_entry *item;
 	WBUF(buf);
-	
+
 	buf.fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	if (buf.fd < 0)
 		return;
