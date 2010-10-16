@@ -112,7 +112,7 @@ static void filetype_set(char **local, char **global, const char *value)
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
-	{ .int_opt = {						\
+	.u = { .int_opt = {					\
 		.set = _set,					\
 		.min = _min,					\
 		.max = _max,					\
@@ -125,7 +125,7 @@ static void filetype_set(char **local, char **global, const char *value)
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
-	{ .enum_opt = {						\
+	.u = { .enum_opt = {					\
 		.set = _set,					\
 		.values = _values,				\
 	} },							\
@@ -137,7 +137,7 @@ static void filetype_set(char **local, char **global, const char *value)
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
-	{ .flag_opt = {						\
+	.u = { .flag_opt = {					\
 		.set = _set,					\
 		.values = _values,				\
 	} },							\
@@ -149,7 +149,7 @@ static void filetype_set(char **local, char **global, const char *value)
 	.local = _local,					\
 	.global = _global,					\
 	.offset = _offset,					\
-	{ .str_opt = {						\
+	.u = { .str_opt = {					\
 		.set = _set,					\
 	} },							\
 }
@@ -202,7 +202,7 @@ struct option_description {
 		struct {
 			void (*set)(char **local, char **global, const char *value);
 		} str_opt;
-	};
+	} u;
 };
 
 static const char *bool_enum[] = { "false", "true", NULL };
@@ -271,12 +271,12 @@ static void set_int_opt(const struct option_description *desc, const char *value
 		error_msg("Integer value for %s expected.", desc->name);
 		return;
 	}
-	if (val < desc->int_opt.min || val > desc->int_opt.max) {
+	if (val < desc->u.int_opt.min || val > desc->u.int_opt.max) {
 		error_msg("Value for %s must be in %d-%d range.", desc->name,
-			desc->int_opt.min, desc->int_opt.max);
+			desc->u.int_opt.min, desc->u.int_opt.max);
 		return;
 	}
-	desc->int_opt.set(local, global, val);
+	desc->u.int_opt.set(local, global, val);
 }
 
 static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
@@ -285,7 +285,7 @@ static void set_str_opt(const struct option_description *desc, const char *value
 		error_msg("String value for %s expected.", desc->name);
 		return;
 	}
-	desc->str_opt.set(local, global, value);
+	desc->u.str_opt.set(local, global, value);
 }
 
 static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
@@ -293,7 +293,7 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 	int val;
 
 	if (!value) {
-		if (desc->enum_opt.values != bool_enum) {
+		if (desc->u.enum_opt.values != bool_enum) {
 			error_msg("Option %s is not boolean.", desc->name);
 			return;
 		}
@@ -301,8 +301,8 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 	} else {
 		int i;
 
-		for (i = 0; desc->enum_opt.values[i]; i++) {
-			if (!strcasecmp(desc->enum_opt.values[i], value)) {
+		for (i = 0; desc->u.enum_opt.values[i]; i++) {
+			if (!strcasecmp(desc->u.enum_opt.values[i], value)) {
 				val = i;
 				goto set;
 			}
@@ -313,12 +313,12 @@ static void set_enum_opt(const struct option_description *desc, const char *valu
 		}
 	}
 set:
-	desc->enum_opt.set(local, global, val);
+	desc->u.enum_opt.set(local, global, val);
 }
 
 static void set_flag_opt(const struct option_description *desc, const char *value, int *local, int *global)
 {
-	const char **values = desc->flag_opt.values;
+	const char **values = desc->u.flag_opt.values;
 	const char *ptr = value;
 	int flags = 0;
 
@@ -363,7 +363,7 @@ static void set_flag_opt(const struct option_description *desc, const char *valu
 			flags |= val;
 		}
 	}
-	desc->flag_opt.set(local, global, flags);
+	desc->u.flag_opt.set(local, global, flags);
 }
 
 static char *flags_to_string(const char **values, int flags)
@@ -398,9 +398,9 @@ static char *option_to_string(const struct option_description *desc, const char 
 	case OPT_STR:
 		return xstrdup(*(const char **)ptr);
 	case OPT_ENUM:
-		return xstrdup(desc->enum_opt.values[*(int *)ptr]);
+		return xstrdup(desc->u.enum_opt.values[*(int *)ptr]);
 	case OPT_FLAG:
-		return flags_to_string(desc->flag_opt.values, *(int *)ptr);
+		return flags_to_string(desc->u.flag_opt.values, *(int *)ptr);
 	}
 	BUG("unreachable\n");
 	return NULL;
@@ -504,11 +504,11 @@ void toggle_option(const char *name, unsigned int flags, int verbose)
 
 	if (flags & OPT_LOCAL) {
 		ptr = local_ptr(desc, &buffer->options);
-		desc->enum_opt.set((int *)ptr, NULL, toggle(*(int *)ptr, desc->enum_opt.values));
+		desc->u.enum_opt.set((int *)ptr, NULL, toggle(*(int *)ptr, desc->u.enum_opt.values));
 	}
 	if (flags & OPT_GLOBAL) {
 		ptr = global_ptr(desc);
-		desc->enum_opt.set(NULL, (int *)ptr, toggle(*(int *)ptr, desc->enum_opt.values));
+		desc->u.enum_opt.set(NULL, (int *)ptr, toggle(*(int *)ptr, desc->u.enum_opt.values));
 	}
 
 	if (verbose) {
@@ -566,9 +566,9 @@ void collect_option_values(const char *name, const char *prefix)
 			/* complete possible values */
 			int j, len = strlen(prefix);
 
-			for (j = 0; desc->enum_opt.values[j]; j++) {
-				if (!strncmp(prefix, desc->enum_opt.values[j], len))
-					add_completion(xstrdup(desc->enum_opt.values[j]));
+			for (j = 0; desc->u.enum_opt.values[j]; j++) {
+				if (!strncmp(prefix, desc->u.enum_opt.values[j], len))
+					add_completion(xstrdup(desc->u.enum_opt.values[j]));
 			}
 		} else if (desc->type == OPT_FLAG) {
 			/* complete possible values */
@@ -578,8 +578,8 @@ void collect_option_values(const char *name, const char *prefix)
 			if (comma)
 				prefix_len = ++comma - prefix;
 			len = strlen(prefix + prefix_len);
-			for (j = 0; desc->flag_opt.values[j]; j++) {
-				const char *str = desc->flag_opt.values[j];
+			for (j = 0; desc->u.flag_opt.values[j]; j++) {
+				const char *str = desc->u.flag_opt.values[j];
 
 				if (!strncmp(prefix + prefix_len, str, len)) {
 					int str_len = strlen(str);
