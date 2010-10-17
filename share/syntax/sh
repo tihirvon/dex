@@ -1,5 +1,7 @@
 # commands can be at beginning of line or after any of && || ; & | { ` $(
 # also beginning of line can contain ( after which command is allowed
+syntax sh
+
 state start text
 	char -b a-zA-Z0-9_/.- command
 	char "\t " start

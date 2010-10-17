@@ -1,3 +1,5 @@
+syntax diff
+
 state headers
 	str "diff " header
 	str "index " header

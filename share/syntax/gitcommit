@@ -1,3 +1,5 @@
+syntax gitcommit
+
 state start text
 	char # comment-start
 	noeat text

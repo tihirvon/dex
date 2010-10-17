@@ -1,3 +1,5 @@
+syntax make
+
 state start text
 	char "\n" start
 	char "\t" tab-indent

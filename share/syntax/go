@@ -1,3 +1,5 @@
+syntax go
+
 state go text
 	char -b A-Z exported
 	char -b a-z_ ident

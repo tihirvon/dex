@@ -1,3 +1,5 @@
+syntax config
+
 state text
 	char # comment
 	eat text

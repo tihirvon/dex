@@ -1,3 +1,5 @@
+syntax python
+
 state start text
 	char # comment
 	char '"' dq

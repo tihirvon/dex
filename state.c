@@ -69,9 +69,20 @@ static LIST_HEAD(syntaxes);
 static struct syntax *current_syntax;
 static struct state *current_state;
 
+static int no_syntax(void)
+{
+	if (current_syntax)
+		return 0;
+	error_msg("No syntax started");
+	return 1;
+}
+
 static struct condition *add_condition(enum condition_type type, const char *dest, const char *emit)
 {
 	struct condition *c;
+
+	if (no_syntax())
+		return NULL;
 
 	if (!current_state) {
 		error_msg("No state started");
@@ -127,6 +138,9 @@ static void cmd_list(const char *pf, char **args)
 	int argc = count_strings(args);
 	struct string_list *list;
 
+	if (no_syntax())
+		return;
+
 	if (find_string_list(current_syntax, name)) {
 		error_msg("List %s already exists.", name);
 		return;
@@ -161,6 +175,9 @@ static void cmd_state(const char *pf, char **args)
 	const char *emit = args[1] ? args[1] : args[0];
 	struct state *s;
 
+	if (no_syntax())
+		return;
+
 	if (find_state(current_syntax, name)) {
 		error_msg("State %s already exists.", name);
 		return;
@@ -186,6 +203,18 @@ static void cmd_str(const char *pf, char **args)
 	}
 }
 
+static void finish_syntax(void);
+
+static void cmd_syntax(const char *pf, char **args)
+{
+	if (current_syntax)
+		finish_syntax();
+
+	current_syntax = xnew0(struct syntax, 1);
+	current_syntax->name = xstrdup(args[0]);
+	current_state = NULL;
+}
+
 static const struct command syntax_commands[] = {
 	{ "buffer",	"",	1,  1, cmd_buffer },
 	{ "bufis",	"i",	2,  3, cmd_bufis },
@@ -196,6 +225,7 @@ static const struct command syntax_commands[] = {
 	{ "noeat",	"",	1,  1, cmd_noeat },
 	{ "state",	"",	1,  2, cmd_state },
 	{ "str",	"i",	2,  3, cmd_str },
+	{ "syntax",	"",	1,  1, cmd_syntax },
 	{ NULL,		NULL,	0,  0, NULL }
 };
 
@@ -322,16 +352,17 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 {
 	const char *slash = strrchr(filename, '/');
 	const char *name = slash ? slash + 1 : filename;
-	int i, errors = 0;
 
-	current_syntax = xnew0(struct syntax, 1);
-	current_syntax->name = xstrdup(name);
-	current_state = NULL;
-
-	if (read_config(syntax_commands, filename, must_exist)) {
-		free_syntax(current_syntax);
+	if (read_config(syntax_commands, filename, must_exist))
 		return NULL;
-	}
+	if (current_syntax)
+		finish_syntax();
+	return find_syntax(name);
+}
+
+static void finish_syntax(void)
+{
+	int i, errors = 0;
 
 	if (current_syntax->states.count == 0) {
 		error_msg("Empty syntax");
@@ -342,7 +373,8 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 		errors += finish_state(current_syntax, current_syntax->states.ptrs[i]);
 	if (errors) {
 		free_syntax(current_syntax);
-		return NULL;
+		current_syntax = NULL;
+		return;
 	}
 
 	// unreachable states cause warning only
@@ -354,7 +386,7 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 	}
 
 	list_add_before(&current_syntax->node, &syntaxes);
-	return current_syntax;
+	current_syntax = NULL;
 }
 
 struct syntax *find_syntax(const char *name)

@@ -1,3 +1,5 @@
+syntax editor
+
 state start text
 	char " \t" start
 	char # comment

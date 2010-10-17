@@ -1,3 +1,5 @@
+syntax c
+
 state start text
 	char " \t" start
 	char # preproc

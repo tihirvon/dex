@@ -1,3 +1,5 @@
+syntax gitrebase
+
 state start text
 	char "\n" start
 	char # comment
