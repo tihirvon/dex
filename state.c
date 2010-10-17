@@ -53,6 +53,18 @@ static struct state *find_state(struct syntax *syn, const char *name)
 	return NULL;
 }
 
+static int is_terminator(enum condition_type type)
+{
+	switch (type) {
+	case COND_BUFFER:
+	case COND_EAT:
+	case COND_NOEAT:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
 static LIST_HEAD(syntaxes);
 static struct syntax *current_syntax;
 static struct state *current_state;
@@ -72,6 +84,9 @@ static struct condition *add_condition(enum condition_type type, const char *des
 	c->destination.name = xstrdup(dest);
 	c->emit_name = emit ? xstrdup(emit) : NULL;
 	c->type = type;
+
+	if (is_terminator(type))
+		current_state = NULL;
 	return c;
 }
 
@@ -218,16 +233,9 @@ static int finish_state(struct syntax *syn, struct state *s)
 	if (!s->nr_conditions) {
 		error_msg("Empty state %s", s->name);
 		errors++;
-	} else {
-		switch (s->conditions[s->nr_conditions - 1].type) {
-		case COND_BUFFER:
-		case COND_EAT:
-		case COND_NOEAT:
-			break;
-		default:
-			error_msg("No default condition in state %s", s->name);
-			errors++;
-		}
+	} else if (!is_terminator(s->conditions[s->nr_conditions - 1].type)) {
+		error_msg("No default condition in state %s", s->name);
+		errors++;
 	}
 	return errors;
 }
