@@ -63,8 +63,6 @@ state exp numeric
 	char +- exp-digit
 	char 0-9 exp-digit
 	noeat check-imag
-	char a-zA-Z0-9_ error-ident
-	noeat go
 
 state exp-digit numeric
 	char 0-9 exp-digit
@@ -141,10 +139,6 @@ state char-end char
 state raw-string string
 	char ` go string
 	eat raw-string
-
-state error-ident error
-	char a-zA-Z0-9_ error-ident
-	noeat go
 
 state cpp-comment comment
 	char "\n" go
