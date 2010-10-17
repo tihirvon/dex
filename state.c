@@ -318,15 +318,17 @@ static void free_syntax(struct syntax *syn)
 	free(syn);
 }
 
-struct syntax *load_syntax_file(const char *filename, const char *name)
+struct syntax *load_syntax_file(const char *filename, int must_exist)
 {
+	const char *slash = strrchr(filename, '/');
+	const char *name = slash ? slash + 1 : filename;
 	int i, errors = 0;
 
 	current_syntax = xnew0(struct syntax, 1);
 	current_syntax->name = xstrdup(name);
 	current_state = NULL;
 
-	if (read_config(syntax_commands, filename, 0)) {
+	if (read_config(syntax_commands, filename, must_exist)) {
 		free_syntax(current_syntax);
 		return NULL;
 	}

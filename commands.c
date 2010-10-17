@@ -405,11 +405,20 @@ static void cmd_line(const char *pf, char **args)
 
 static void cmd_load_syntax(const char *pf, char **args)
 {
-	const char *name = args[0];
-	const char *filename = args[1];
+	const char *slash = strrchr(args[0], '/');
+	const char *filename = slash ? args[0] : NULL;
+	const char *filetype = slash ? slash + 1 : args[0];
 
-	if (!find_syntax(name))
-		load_syntax(name, filename);
+	if (filename) {
+		if (find_syntax(filetype)) {
+			error_msg("Syntax for filetype %s already loaded", filetype);
+		} else {
+			load_syntax_by_filename(filename);
+		}
+	} else {
+		if (!find_syntax(filetype))
+			load_syntax_by_filetype(filetype);
+	}
 }
 
 static void cmd_move_tab(const char *pf, char **args)
@@ -1224,7 +1233,7 @@ const struct command commands[] = {
 	{ "join",		"",	0,  0, cmd_join },
 	{ "left",		"",	0,  0, cmd_left },
 	{ "line",		"",	1,  1, cmd_line },
-	{ "load-syntax",	"",	1,  2, cmd_load_syntax },
+	{ "load-syntax",	"",	1,  1, cmd_load_syntax },
 	{ "move-tab",		"",	1,  1, cmd_move_tab },
 	{ "new-line",		"",	0,  0, cmd_new_line },
 	{ "next",		"",	0,  0, cmd_next },

@@ -72,7 +72,7 @@ struct syntax {
 	struct ptr_array string_lists;
 };
 
-struct syntax *load_syntax_file(const char *filename, const char *name);
+struct syntax *load_syntax_file(const char *filename, int must_exist);
 struct syntax *find_syntax(const char *name);
 void update_syntax_colors(struct syntax *syn);
 void update_all_syntax_colors(void);
