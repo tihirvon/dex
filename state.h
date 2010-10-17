@@ -70,6 +70,7 @@ struct syntax {
 	char *name;
 	struct ptr_array states;
 	struct ptr_array string_lists;
+	int subsyntax;
 };
 
 struct syntax *load_syntax_file(const char *filename, int must_exist);

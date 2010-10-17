@@ -69,6 +69,17 @@ static LIST_HEAD(syntaxes);
 static struct syntax *current_syntax;
 static struct state *current_state;
 
+static struct syntax *find_any_syntax(const char *name)
+{
+	struct syntax *syn;
+
+	list_for_each_entry(syn, &syntaxes, node) {
+		if (!strcmp(syn->name, name))
+			return syn;
+	}
+	return NULL;
+}
+
 static int no_syntax(void)
 {
 	if (current_syntax)
@@ -178,6 +189,11 @@ static void cmd_state(const char *pf, char **args)
 	if (no_syntax())
 		return;
 
+	if (!strcmp(name, "END")) {
+		error_msg("%s is reserved state name", name);
+		return;
+	}
+
 	if (find_state(current_syntax, name)) {
 		error_msg("State %s already exists.", name);
 		return;
@@ -229,10 +245,72 @@ static const struct command syntax_commands[] = {
 	{ NULL,		NULL,	0,  0, NULL }
 };
 
+static const char *fix_name(const char *name, const char *prefix)
+{
+	static char buf[64];
+	snprintf(buf, sizeof(buf), "%s%s", prefix, name);
+	return buf;
+}
+
+static void fix_conditions(struct syntax *syn, struct state *s, struct state *rets, const char *prefix)
+{
+	int i;
+
+	for (i = 0; i < s->nr_conditions; i++) {
+		struct condition *c = &s->conditions[i];
+		if (c->destination.state) {
+			const char *name = fix_name(c->destination.state->name, prefix);
+			c->destination.state = find_state(syn, name);
+		} else {
+			c->destination.state = rets;
+		}
+		switch (c->type) {
+		case COND_BUFIS:
+			c->u.cond_bufis.str = xstrdup(c->u.cond_bufis.str);
+			break;
+		case COND_STR:
+			c->u.cond_str.str = xstrdup(c->u.cond_str.str);
+			break;
+		default:
+			break;
+		}
+		if (c->emit_name)
+			c->emit_name = xstrdup(c->emit_name);
+	}
+}
+
+static struct state *merge(struct syntax *subsyn, struct state *rets, const char *prefix)
+{
+	// NOTE: string_lists is owned by struct syntax so there's no need to
+	// copy it.  Freeing struct condition does not free any string lists.
+	struct ptr_array *states = &current_syntax->states;
+	int i, old_count = states->count;
+
+	states->count += subsyn->states.count;
+	if (states->count > states->alloc) {
+		states->alloc = states->count;
+		xrenew(states->ptrs, states->alloc);
+	}
+	memcpy(states->ptrs + old_count, subsyn->states.ptrs, sizeof(*states->ptrs) * subsyn->states.count);
+
+	for (i = old_count; i < states->count; i++) {
+		struct state *s = xmemdup(states->ptrs[i], sizeof(struct state));
+		states->ptrs[i] = s;
+		s->name = xstrdup(fix_name(s->name, prefix));
+		s->emit_name = xstrdup(s->emit_name);
+		s->conditions = xmemdup(s->conditions, sizeof(struct condition) * s->nr_conditions);
+	}
+
+	for (i = old_count; i < states->count; i++)
+		fix_conditions(current_syntax, states->ptrs[i], rets, prefix);
+
+	return states->ptrs[old_count];
+}
+
 static int finish_condition(struct syntax *syn, struct condition *cond)
 {
 	int errors = 0;
-	char *name;
+	char *name, *sep;
 
 	if (cond->type == COND_LISTED) {
 		name = cond->u.cond_listed.list_name;
@@ -245,10 +323,50 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 	}
 
 	name = cond->destination.name;
-	cond->destination.state = find_state(syn, name);
-	if (cond->destination.state == NULL) {
-		error_msg("No such state %s", name);
-		errors++;
+	if (!strcmp(name, "END")) {
+		// this makes syntax subsyntax
+		cond->destination.state = NULL;
+		free(name);
+		syn->subsyntax = 1;
+		return errors;
+	}
+
+	sep = strchr(name, ':');
+	if (sep) {
+		// subsyntax:returnstate
+		const char *sub = name;
+		const char *ret = sep + 1;
+		struct syntax *subsyn;
+		struct state *rs;
+
+		*sep = 0;
+		subsyn = find_any_syntax(sub);
+		rs = find_state(syn, ret);
+		if (!subsyn) {
+			error_msg("No such syntax %s", sub);
+			errors++;
+		} else if (!subsyn->subsyntax) {
+			error_msg("Syntax %s is not subsyntax", sub);
+			errors++;
+			subsyn = NULL;
+		}
+		if (!rs) {
+			error_msg("No such state %s", ret);
+			errors++;
+		}
+
+		if (subsyn && rs) {
+			static int counter;
+			char prefix[32];
+			snprintf(prefix, sizeof(prefix), "%d-", counter++);
+			cond->destination.state = merge(subsyn, rs, prefix);
+		}
+	} else {
+		cond->destination.state = find_state(syn, name);
+		if (cond->destination.state == NULL) {
+			error_msg("No such state %s", name);
+			errors++;
+		}
 	}
 	free(name);
 	return errors;
@@ -280,7 +398,8 @@ static void visit(struct state *s)
 	s->visited = 1;
 	for (i = 0; i < s->nr_conditions; i++) {
 		struct condition *cond = &s->conditions[i];
-		visit(cond->destination.state);
+		if (cond->destination.state)
+			visit(cond->destination.state);
 	}
 }
 
@@ -362,15 +481,32 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 
 static void finish_syntax(void)
 {
-	int i, errors = 0;
+	int i, count, errors = 0;
 
 	if (current_syntax->states.count == 0) {
 		error_msg("Empty syntax");
 		errors++;
 	}
 
-	for (i = 0; i < current_syntax->states.count; i++)
+	/*
+	 * NOTE: merge() changes current_syntax->states
+	 */
+	count = current_syntax->states.count;
+	for (i = 0; i < count; i++)
 		errors += finish_state(current_syntax, current_syntax->states.ptrs[i]);
+
+	if (current_syntax->subsyntax) {
+		if (current_syntax->name[0] != '.') {
+			error_msg("Subsyntax name must begin with '.'");
+			errors++;
+		}
+	} else {
+		if (current_syntax->name[0] == '.') {
+			error_msg("Only subsyntax name can begin with '.'");
+			errors++;
+		}
+	}
+
 	if (errors) {
 		free_syntax(current_syntax);
 		current_syntax = NULL;
@@ -391,19 +527,20 @@ static void finish_syntax(void)
 
 struct syntax *find_syntax(const char *name)
 {
-	struct syntax *syn;
-
-	list_for_each_entry(syn, &syntaxes, node) {
-		if (!strcmp(syn->name, name))
-			return syn;
-	}
-	return NULL;
+	struct syntax *syn = find_any_syntax(name);
+	if (syn && syn->subsyntax)
+		return NULL;
+	return syn;
 }
 
 void update_syntax_colors(struct syntax *syn)
 {
 	int i, j;
 
+	if (syn->subsyntax) {
+		// no point to update colors of a sub-syntax
+		return;
+	}
 	for (i = 0; i < syn->states.count; i++) {
 		struct state *s = syn->states.ptrs[i];
 
