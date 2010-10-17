@@ -1,3 +1,37 @@
+# sub-syntax
+syntax .c-esc
+
+state start special
+	char "abfnrtv'\\\"" END special
+	char 0-3 oct1
+	char 4-7 oct2
+	char x hex0
+	char "\n" start
+	eat END error
+
+state oct1 special
+	char 0-7 oct2
+	noeat END
+
+state oct2 special
+	char 0-7 END special
+	noeat END
+
+state hex0 special
+	char 0-9a-fA-F hex1
+	noeat END
+
+state hex1 special
+	char 0-9a-fA-F hex2
+	noeat END
+
+# in strings "\xaff" is an error but "\xafg" is not
+# in chars both are errors
+state hex2 special
+	char 0-9a-fA-F END error
+	noeat END
+
+# main syntax
 syntax c
 
 state start text
@@ -128,67 +162,14 @@ state string
 	char "\"" c string
 	# avoid highlighting rest of the file again
 	char "\n" start
-	char -b "\\" string-esc
+	char -b "\\" .c-esc:string
 	eat string
-
-state string-esc special
-	char "abfnrtv'\\\"" string special
-	char 0-3 string-oct1
-	char 4-7 string-oct2
-	char x string-hex0
-	char "\n" start
-	eat string error
-
-state string-oct1 special
-	char 0-7 string-oct2
-	noeat string
-
-state string-oct2 special
-	char 0-7 string special
-	noeat string
-
-state string-hex0 special
-	char 0-9a-fA-F string-hex1
-	noeat string
-
-state string-hex1 special
-	char 0-9a-fA-F string-hex2
-	noeat string
-
-# "\xaff" is an error but "\xafg" is not!
-state string-hex2 special
-	char 0-9a-fA-F string error
-	noeat string
 
 state char
 	char "'" c error
-	char "\\" char-esc
+	char "\\" .c-esc:char-end
 	char "\n" start
 	eat char-end
-
-state char-esc special
-	char "abfnrtv'\\\"" char-end special
-	char 0-3 char-oct1
-	char 4-7 char-oct2
-	char x char-hex0
-	char "\n" start
-	eat c error
-
-state char-oct1 special
-	char 0-7 char-oct2
-	noeat char-end
-
-state char-oct2 special
-	char 0-7 char-end special
-	noeat char-end
-
-state char-hex0 special
-	char 0-9a-fA-F char-hex1
-	noeat char-end
-
-state char-hex1 special
-	char 0-9a-fA-F char-end special
-	noeat char-end
 
 state char-end char
 	char "'" c char
