@@ -154,6 +154,16 @@ static void move_line_states(struct ptr_array *s, int to, int from, int count)
 	memmove(s->ptrs + to, s->ptrs + from, count * sizeof(*s->ptrs));
 }
 
+static void truncate_line_states(int count)
+{
+	struct ptr_array *s = &buffer->line_start_states;
+
+	BUG_ON(buffer->first_hole > s->count);
+	s->count = count;
+	if (buffer->first_hole > s->count)
+		buffer->first_hole = s->count;
+}
+
 static void new_hole(int idx)
 {
 	struct ptr_array *s = &buffer->line_start_states;
@@ -202,6 +212,7 @@ void hl_fill_start_states(int line_nr)
 		int idx;
 
 		// always true: buffer->first_hole <= s->count
+		BUG_ON(buffer->first_hole > s->count);
 		if (buffer->first_hole > line_nr)
 			break;
 
@@ -299,7 +310,7 @@ void hl_insert(int lines)
 	if (last + 1 >= s->count) {
 		// last already highlighted lines changed
 		// there's nothing to gain, throw them away
-		s->count = first + 1;
+		truncate_line_states(first + 1);
 		return;
 	}
 
@@ -345,7 +356,7 @@ void hl_delete(int deleted_nl)
 	if (last + 1 >= s->count) {
 		// last already highlighted lines changed
 		// there's nothing to gain, throw them away
-		s->count -= deleted_nl;
+		truncate_line_states(s->count - deleted_nl);
 		return;
 	}
 
