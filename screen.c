@@ -127,7 +127,7 @@ void print_tab_bar(void)
 			/* make sure current tab is visible */
 			if (left_idx > count)
 				left_idx = count;
-			/* title of current tab changes ofter */
+			/* title of current tab changes often */
 			update_tab_title_width(v, count);
 		}
 		if (!v->tt_width)
