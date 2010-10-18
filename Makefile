@@ -35,7 +35,6 @@ DEBUG = 1
 
 # enabled if CC supports them
 WARNINGS = \
-	-Wcast-align \
 	-Wdeclaration-after-statement \
 	-Wformat-security \
 	-Wmissing-prototypes \
@@ -132,6 +131,11 @@ syntax	:= $(addprefix share/,$(syntax))
 
 -include Config.mk
 include Makefile.lib
+
+# clang does not like container_of()
+ifneq ($(CC),clang)
+WARNINGS += -Wcast-align
+endif
 
 BASIC_CFLAGS += $(call cc-option,$(WARNINGS))
 
