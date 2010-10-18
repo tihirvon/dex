@@ -17,13 +17,12 @@ static int buffer_pos;
 static void buffer_num(unsigned int num)
 {
 	char stack[32];
-	int ret, pos = 0;
+	int pos = 0;
 
 	do {
 		stack[pos++] = (num % 10) + '0';
 		num /= 10;
 	} while (num);
-	ret = pos;
 	do {
 		buffer[buffer_pos++] = stack[--pos];
 	} while (pos);

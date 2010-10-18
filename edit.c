@@ -293,7 +293,7 @@ void insert_ch(unsigned int ch)
 static void join_selection(void)
 {
 	unsigned int count = prepare_selection();
-	unsigned int len = 0, join = 0, del = 0;
+	unsigned int len = 0, join = 0;
 	struct block_iter bi;
 	uchar ch = 0;
 
@@ -314,7 +314,6 @@ static void join_selection(void)
 		} else {
 			if (join) {
 				replace(len, " ", 1);
-				del += len - 1;
 				/* skip the space we inserted and the char we read last */
 				block_iter_next_byte(&view->cursor, &ch);
 				block_iter_next_byte(&view->cursor, &ch);
@@ -336,10 +335,8 @@ static void join_selection(void)
 		if (ch == '\n') {
 			/* don't add space to end of line */
 			delete(len, 0);
-			del += len;
 		} else {
 			replace(len, " ", 1);
-			del += len - 1;
 		}
 	}
 	end_change_chain();
