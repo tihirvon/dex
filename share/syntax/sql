@@ -1,0 +1,113 @@
+syntax .sql-esc
+
+state esc special
+	char "'\"bnrtZ\\%_" END special
+	noeat END
+
+syntax sql
+
+state start text
+	char -b a-zA-Z_ word
+	char "'" sq
+	char '"' dq
+	char 0 zero
+	char 1-9 int
+	char . float
+#	char xX hexstr
+	char ` backtick
+	str -- -- comment
+	str "/*" c-comment
+	eat start
+
+state zero numeric
+	char 0-9 int
+	char . float
+	char xX hex
+	char a-zA-Z_ error-ident
+	noeat start
+
+state int numeric
+	char 0-9 int
+	char . float
+	char a-zA-Z_ error-ident
+	noeat start
+
+state float numeric
+	char 0-9 float
+	char a-zA-Z_ error-ident
+	noeat start
+
+state hex numeric
+	char 0-9a-fA-F hex
+	char -b g-zG-Z_ error-ident
+	noeat start
+
+state error-ident error
+	char -b a-zA-Z0-9_ error-ident
+	noeat start
+
+state word text
+	char -b a-zA-Z0-9_ word
+	listed keyword start
+	listed identifier start
+	eat start
+
+state sq string
+	char "\n'" start string
+	char \\ .sql-esc:sq
+	eat sq
+
+state dq string
+	char "\n"\" start string
+	char \\ .sql-esc:dq
+	eat dq
+
+state backtick constant
+	char "\n`" start
+	eat backtick
+
+state comment
+	char "\n" start
+	eat comment
+
+state c-comment comment
+	char "*" star
+	eat c-comment
+
+state star comment
+	char / start comment
+	noeat c-comment
+
+list keyword \
+	ADD ALL ALTER ANALYZE AND AS ASC ASENSITIVE BEFORE BETWEEN \
+	BIGINT BINARY BLOB BOTH BY CALL CASCADE CASE CHANGE CHAR \
+	CHARACTER CHECK COLLATE COLUMN CONDITION CONSTRAINT CONTINUE \
+	CONVERT CREATE CROSS CURRENT_DATE CURRENT_TIME \
+	CURRENT_TIMESTAMP CURRENT_USER CURSOR DATABASE DATABASES \
+	DAY_HOUR DAY_MICROSECOND DAY_MINUTE DAY_SECOND DEC DECIMAL \
+	DECLARE DEFAULT DELAYED DELETE DESC DESCRIBE DETERMINISTIC \
+	DISTINCT DISTINCTROW DIV DOUBLE DROP DUAL EACH ELSE ELSEIF \
+	ENCLOSED ESCAPED EXISTS EXIT EXPLAIN FALSE FETCH FLOAT FLOAT4 \
+	FLOAT8 FOR FORCE FOREIGN FROM FULLTEXT GRANT GROUP HAVING \
+	HIGH_PRIORITY HOUR_MICROSECOND HOUR_MINUTE HOUR_SECOND IF \
+	IGNORE IN INDEX INFILE INNER INOUT INSENSITIVE INSERT INT INT1 \
+	INT2 INT3 INT4 INT8 INTEGER INTERVAL INTO IS ITERATE JOIN KEY \
+	KEYS KILL LEADING LEAVE LEFT LIKE LIMIT LINES LOAD LOCALTIME \
+	LOCALTIMESTAMP LOCK LONG LONGBLOB LONGTEXT LOOP LOW_PRIORITY \
+	MATCH MEDIUMBLOB MEDIUMINT MEDIUMTEXT MIDDLEINT \
+	MINUTE_MICROSECOND MINUTE_SECOND MOD MODIFIES NATURAL NOT \
+	NO_WRITE_TO_BINLOG NULL NUMERIC ON OPTIMIZE OPTION OPTIONALLY \
+	OR ORDER OUT OUTER OUTFILE PRECISION PRIMARY PROCEDURE PURGE \
+	READ READS REAL REFERENCES REGEXP RELEASE RENAME REPEAT \
+	REPLACE REQUIRE RESTRICT RETURN REVOKE RIGHT RLIKE SCHEMA \
+	SCHEMAS SECOND_MICROSECOND SELECT SENSITIVE SEPARATOR SET \
+	SHOW SMALLINT SONAME SPATIAL SPECIFIC SQL SQLEXCEPTION \
+	SQLSTATE SQLWARNING SQL_BIG_RESULT SQL_CALC_FOUND_ROWS \
+	SQL_SMALL_RESULT SSL STARTING STRAIGHT_JOIN TABLE TERMINATED \
+	THEN TINYBLOB TINYINT TINYTEXT TO TRAILING TRIGGER TRUE UNDO \
+	UNION UNIQUE UNLOCK UNSIGNED UPDATE USAGE USE USING UTC_DATE \
+	UTC_TIME UTC_TIMESTAMP VALUES VARBINARY VARCHAR VARCHARACTER \
+	VARYING WHEN WHERE WHILE WITH WRITE XOR YEAR_MONTH ZEROFILL
+
+list identifier \
+	ACTION BIT DATE ENUM NO TEXT TIME TIMESTAMP
