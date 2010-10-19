@@ -6,8 +6,10 @@ state start special
 	char 0-3 oct1
 	char 4-7 oct2
 	char x hex0
-	char "\n" start
-	eat END error
+	# almost anything but \n
+	char "-\t\v-~" END error
+	# 0x00, \n, 0x7f-0xff
+	noeat END
 
 state oct1 special
 	char 0-7 oct2
