@@ -1,4 +1,4 @@
-# sub-syntax
+# sub-syntaxes first
 syntax .c-esc
 
 state start special
@@ -30,6 +30,32 @@ state hex1 special
 state hex2 special
 	char 0-9a-fA-F END error
 	noeat END
+
+syntax .c-comment-word
+
+state comment
+	char -b a-zA-Z0-9_ comment
+	listed notice END
+	noeat END
+
+list notice \
+	TODO FIXME XXX
+
+syntax .c-comment
+
+state comment
+	str "*/" END comment
+	char -b a-zA-Z0-9_ .c-comment-word:comment
+	eat comment
+
+syntax .cpp-comment
+
+state comment
+	char "\n" END
+	# multiline comment?
+	str "\\\n" comment
+	char -b a-zA-Z0-9_ .c-comment-word:comment
+	eat comment
 
 # main syntax
 syntax c
@@ -80,8 +106,8 @@ state system-include string
 state end-include preproc
 	char "\n" start
 	char " \t" end-include
-	str "//" cpp-comment
-	str "/*" c-comment
+	str "/*" .c-comment:preproc-error
+	str "//" .cpp-comment:preproc-error
 	eat preproc-error
 
 state preproc-error error
@@ -96,8 +122,8 @@ state c text
 	char "\"" string
 	char "'" char
 	char "\n" start
-	str "//" cpp-comment
-	str "/*" c-comment
+	str "/*" .c-comment:c
+	str "//" .cpp-comment:c
 	eat c
 
 state ident
@@ -179,31 +205,6 @@ state char-end char
 state error-ident error
 	char a-zA-Z0-9_ error-ident
 	noeat c
-
-state cpp-comment comment
-	char "\n" start
-	# multiline comment?
-	str "\\\n" cpp-comment
-	char -b a-zA-Z0-9_ cpp-comment-word
-	eat cpp-comment
-
-state cpp-comment-word comment
-	char -b a-zA-Z0-9_ cpp-comment-word
-	listed notice cpp-comment
-	noeat cpp-comment
-
-state c-comment comment
-	str "*/" c comment
-	char -b a-zA-Z0-9_ c-comment-word
-	eat c-comment
-
-state c-comment-word comment
-	char -b a-zA-Z0-9_ c-comment-word
-	listed notice c-comment
-	noeat c-comment
-
-list notice \
-	TODO FIXME XXX
 
 list keyword \
 	if else for while do continue switch case break default return goto \
