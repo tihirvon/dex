@@ -106,8 +106,8 @@ state system-include string
 state end-include preproc
 	char "\n" start
 	char " \t" end-include
-	str "/*" .c-comment:preproc-error
-	str "//" .cpp-comment:preproc-error
+	str "/*" .c-comment:end-include
+	str "//" .cpp-comment:start
 	eat preproc-error
 
 state preproc-error error
