@@ -1,3 +1,36 @@
+syntax .python-esc
+
+state esc special
+	char "abfnrtv'\\\"" END special
+	char 0-3 oct1
+	char 4-7 oct2
+	char x hex0
+	# almost anything but \n
+	char "-\t\v-~" END error
+	# 0x00, \n, 0x7f-0xff
+	noeat END
+
+state oct1 special
+	char 0-7 oct2
+	noeat END
+
+state oct2 special
+	char 0-7 END special
+	noeat END
+
+state hex0 special
+	char 0-9a-fA-F hex1
+	noeat END
+
+state hex1 special
+	char 0-9a-fA-F hex2
+	noeat END
+
+# "\xaff" is an error but "\xafg" is not!
+state hex2 special
+	char 0-9a-fA-F END error
+	noeat END
+
 syntax python
 
 state start text
@@ -18,73 +51,15 @@ state dq string
 	char "\"" start string
 	# avoid highlighting rest of the file again
 	char "\n" start
-	char -b "\\" dq-esc
+	char -b "\\" .python-esc:dq
 	eat dq
-
-state dq-esc special
-	char "abfnrtv'\\\"" dq special
-	char 0-3 dq-oct1
-	char 4-7 dq-oct2
-	char x dq-hex0
-	char "\n" start
-	eat dq error
-
-state dq-oct1 special
-	char 0-7 dq-oct2
-	noeat dq
-
-state dq-oct2 special
-	char 0-7 dq special
-	noeat dq
-
-state dq-hex0 special
-	char 0-9a-fA-F dq-hex1
-	noeat dq
-
-state dq-hex1 special
-	char 0-9a-fA-F dq-hex2
-	noeat dq
-
-# "\xaff" is an error but "\xafg" is not!
-state dq-hex2 special
-	char 0-9a-fA-F dq error
-	noeat dq
 
 state sq string
 	char "'" start string
 	# avoid highlighting rest of the file again
 	char "\n" start
-	char -b "\\" sq-esc
+	char -b "\\" .python-esc:sq
 	eat sq
-
-state sq-esc special
-	char "abfnrtv'\\\"" sq special
-	char 0-3 sq-oct1
-	char 4-7 sq-oct2
-	char x sq-hex0
-	char "\n" start
-	eat sq error
-
-state sq-oct1 special
-	char 0-7 sq-oct2
-	noeat sq
-
-state sq-oct2 special
-	char 0-7 sq special
-	noeat sq
-
-state sq-hex0 special
-	char 0-9a-fA-F sq-hex1
-	noeat sq
-
-state sq-hex1 special
-	char 0-9a-fA-F sq-hex2
-	noeat sq
-
-# "\xaff" is an error but "\xafg" is not!
-state sq-hex2 special
-	char 0-9a-fA-F sq error
-	noeat sq
 
 state ident
 	char -b a-zA-Z_0-9 ident
