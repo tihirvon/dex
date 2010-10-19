@@ -118,6 +118,7 @@ syntax	:=			\
 	syntax/gitcommit	\
 	syntax/gitrebase	\
 	syntax/go		\
+	syntax/html		\
 	syntax/make		\
 	syntax/python		\
 	syntax/sh		\
