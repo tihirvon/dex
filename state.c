@@ -99,6 +99,10 @@ static struct condition *add_condition(enum condition_type type, const char *des
 		error_msg("No state started");
 		return NULL;
 	}
+	if (type == COND_NOEAT && !strcmp(dest, current_state->name)) {
+		error_msg("Using noeat to to jump to parent state causes infinite loop");
+		return NULL;
+	}
 
 	xrenew(current_state->conditions, current_state->nr_conditions + 1);
 	c = &current_state->conditions[current_state->nr_conditions++];
