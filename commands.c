@@ -995,7 +995,7 @@ static void cmd_search(const char *pf, char **args)
 
 static void cmd_select(const char *pf, char **args)
 {
-	int sel = SELECT_CHARS;
+	enum selection sel = SELECT_CHARS;
 
 	if (*pf)
 		sel = SELECT_LINES;
