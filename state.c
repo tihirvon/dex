@@ -29,6 +29,17 @@ static void set_bits(unsigned char *bitmap, const char *pattern)
 	}
 }
 
+unsigned int buf_hash(const char *str, unsigned int size)
+{
+	unsigned int i, hash = 0;
+
+	for (i = 0; i < size; i++) {
+		unsigned int ch = tolower(str[i]);
+		hash = (hash << 5) - hash + ch;
+	}
+	return hash;
+}
+
 static struct string_list *find_string_list(struct syntax *syn, const char *name)
 {
 	int i;
@@ -150,7 +161,7 @@ static void cmd_eat(const char *pf, char **args)
 static void cmd_list(const char *pf, char **args)
 {
 	const char *name = args[0];
-	int argc = count_strings(args);
+	int argc = count_strings(++args);
 	struct string_list *list;
 
 	if (no_syntax())
@@ -161,10 +172,36 @@ static void cmd_list(const char *pf, char **args)
 		return;
 	}
 
-	list = xnew(struct string_list, 1);
+	list = xnew0(struct string_list, 1);
 	list->name = xstrdup(name);
-	list->strings = copy_string_array(args + 1, argc - 1);
-	list->icase = !!*pf;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'h':
+			list->hash = 1;
+			break;
+		case 'i':
+			list->icase = 1;
+			break;
+		}
+		pf++;
+	}
+
+	if (list->hash) {
+		int i;
+		for (i = 0; i < argc; i++) {
+			const char *str = args[i];
+			int len = strlen(str);
+			unsigned int idx = buf_hash(str, len) % ARRAY_COUNT(list->u.hash);
+			struct hash_str *h = xmalloc(sizeof(struct hash_str *) + sizeof(int) + len);
+			h->next = list->u.hash[idx];
+			h->len = len;
+			memcpy(h->str, str, len);
+			list->u.hash[idx] = h;
+		}
+	} else {
+		list->u.strings = copy_string_array(args, argc);
+	}
 	ptr_array_add(&current_syntax->string_lists, list);
 
 	current_state = NULL;
@@ -240,7 +277,7 @@ static const struct command syntax_commands[] = {
 	{ "bufis",	"i",	2,  3, cmd_bufis },
 	{ "char",	"b",	2,  3, cmd_char },
 	{ "eat",	"",	1,  2, cmd_eat },
-	{ "list",	"i",	2, -1, cmd_list },
+	{ "list",	"hi",	2, -1, cmd_list },
 	{ "listed",	"",	2,  3, cmd_listed },
 	{ "noeat",	"",	1,  1, cmd_noeat },
 	{ "state",	"",	1,  2, cmd_state },
@@ -322,6 +359,8 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 		if (cond->u.cond_listed.list == NULL) {
 			error_msg("No such list %s", name);
 			errors++;
+		} else if (cond->u.cond_listed.list->hash) {
+			cond->type = COND_LISTED_HASH;
 		}
 		free(name);
 	}
@@ -423,6 +462,8 @@ static void free_condition(struct condition *cond)
 		break;
 	case COND_LISTED:
 		break;
+	case COND_LISTED_HASH:
+		break;
 	case COND_NOEAT:
 		break;
 	case COND_STR:
@@ -448,9 +489,20 @@ static void free_string_list(struct string_list *list)
 {
 	int i;
 
-	for (i = 0; list->strings[i]; i++)
-		free(list->strings[i]);
-	free(list->strings);
+	if (list->hash) {
+		for (i = 0; i < ARRAY_COUNT(list->u.hash); i++) {
+			struct hash_str *h = list->u.hash[i];
+			while (h) {
+				struct hash_str *next = h->next;
+				free(h);
+				h = next;
+			}
+		}
+	} else {
+		for (i = 0; list->u.strings[i]; i++)
+			free(list->u.strings[i]);
+		free(list->u.strings);
+	}
 	free(list->name);
 	free(list);
 }

@@ -12,6 +12,7 @@ enum condition_type {
 	COND_CHAR_BUFFER,
 	COND_EAT,
 	COND_LISTED,
+	COND_LISTED_HASH,
 	COND_NOEAT,
 	COND_STR,
 };
@@ -59,10 +60,20 @@ struct state {
 	int visited;
 };
 
+struct hash_str {
+	struct hash_str *next;
+	int len;
+	char str[1];
+};
+
 struct string_list {
 	char *name;
-	char **strings;
+	union {
+		char **strings;
+		struct hash_str *hash[62];
+	} u;
 	int icase;
+	int hash;
 };
 
 struct syntax {
@@ -73,6 +84,7 @@ struct syntax {
 	int subsyntax;
 };
 
+unsigned int buf_hash(const char *str, unsigned int size);
 struct syntax *load_syntax_file(const char *filename, int must_exist);
 struct syntax *find_syntax(const char *name);
 void update_syntax_colors(struct syntax *syn);

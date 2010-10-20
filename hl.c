@@ -34,7 +34,7 @@ static int list_search(const char *str, int len, char **strings)
 
 static int in_list(struct string_list *list, const char *str, int len)
 {
-	char **strings = list->strings;
+	char **strings = list->u.strings;
 	int i;
 
 	if (list->icase) {
@@ -44,6 +44,27 @@ static int in_list(struct string_list *list, const char *str, int len)
 		}
 	} else {
 		return list_search(str, len, strings);
+	}
+	return 0;
+}
+
+static int in_hash(struct string_list *list, const char *str, int len)
+{
+	unsigned int hash = buf_hash(str, len);
+	struct hash_str *h = list->u.hash[hash % ARRAY_COUNT(list->u.hash)];
+
+	if (list->icase) {
+		while (h) {
+			if (len == h->len && !strncasecmp(str, h->str, len))
+				return 1;
+			h = h->next;
+		}
+	} else {
+		while (h) {
+			if (len == h->len && !memcmp(str, h->str, len))
+				return 1;
+			h = h->next;
+		}
 	}
 	return 0;
 }
@@ -114,6 +135,16 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				goto top;
 			case COND_LISTED:
 				if (sidx >= 0 && in_list(cond->u.cond_listed.list, line + sidx, i - sidx)) {
+					int idx;
+					for (idx = sidx; idx < i; idx++)
+						colors[idx] = cond->emit_color;
+					sidx = -1;
+					state = cond->destination.state;
+					goto top;
+				}
+				break;
+			case COND_LISTED_HASH:
+				if (sidx >= 0 && in_hash(cond->u.cond_listed.list, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)
 						colors[idx] = cond->emit_color;
