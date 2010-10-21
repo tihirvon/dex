@@ -113,6 +113,7 @@ config	:=			\
 syntax	:=			\
 	syntax/c		\
 	syntax/config		\
+	syntax/css		\
 	syntax/diff		\
 	syntax/editor		\
 	syntax/gitcommit	\

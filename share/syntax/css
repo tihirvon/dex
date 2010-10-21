@@ -1,0 +1,161 @@
+syntax .css-comment
+
+state comment
+	char "*" star
+	eat comment
+
+state star comment
+	char / END comment
+	noeat comment
+
+syntax css
+
+state start text
+	char " \t\n" start
+	char -b a-zA-Z tag
+	char . class
+	char # id
+	char { block
+	char 0-9_- start-error
+	str "/*" .css-comment:start
+	eat start
+
+state tag
+	char -b a-zA-Z0-9 tag
+	char _- start-error
+	noeat start
+
+state class
+	char a-zA-Z0-9_- class
+	noeat start
+
+state id
+	char a-zA-Z0-9_- id
+	noeat start
+
+state block text
+	char " \t\n;" block
+	char -b a-zA-Z property
+	char 0-9_- property-error
+	char } start
+	str "/*" .css-comment:block
+	eat block
+
+state property text
+	char -b a-zA-Z- property
+	char 0-9_ property-error
+	listed property property-end
+	# could be unknown property
+	noeat property-end
+
+state property-end text
+	char : values text
+	char " \t\n" property-end
+	char ";" block
+	char } start
+	eat property-error
+
+state values
+	char " \t\n" values
+	char 0-9 int
+	char -- - minus
+	char -b a-zA-Z_ value
+	char # hexcolor
+	char ";" block
+	char } start
+	eat values
+
+state minus numeric
+	char 0-9 int
+	char . float
+	noeat values
+
+state int numeric
+	char 0-9 int
+	char . float
+	char -b a-zA-Z% unit
+	noeat values
+
+state float numeric
+	char 0-9 float
+	char -b a-zA-Z% unit
+	noeat values
+
+state unit error
+	char -b a-zA-Z% unit
+	listed unit values numeric
+	char ";" block
+	char } start
+	eat value-error
+
+state value text
+	char -b a-zA-Z0-9_- value
+	listed value values
+	listed colorname values
+	bufis rgb rgb
+	noeat values
+
+# FIXME: length must be 3 or 6
+state hexcolor numeric
+	char 0-9a-fA-F hexcolor
+	char g-zG-Z_- value-error
+	noeat values
+
+state rgb
+	eat rgb
+
+state start-error error
+	char a-zA-Z0-9_- start-error
+	noeat start
+
+state property-error
+	char a-zA-Z0-9_- property-error
+	noeat property
+
+state value-error
+	char a-zA-Z0-9_- value-error
+	noeat values
+
+#syn addr -i color '#[0-9a-z]{3}([0-9a-z]{3})?'
+#syn addr rgb 'rgb\([0-9]+,[0-9]+,[0-9]+\)'
+#syn addr rgbp 'rgb\([0-9]+%,[0-9]+%,[0-9]+%\)'
+
+list -hi property \
+	background background-attachment background-color \
+	background-image background-position background-repeat \
+	border border-bottom border-bottom-width border-color \
+	border-left border-left-width border-right border-right-width \
+	border-style border-top border-top-width border-width \
+	clear color display float \
+	font font-family font-size font-style font-variant font-weight \
+	height letter-spacing line-height \
+	list-style list-style-image list-style-position list-style-type \
+	margin margin-bottom margin-left margin-right margin-top \
+	padding padding-bottom padding-left padding-right padding-top \
+	text-align text-decoration text-indent text-transform \
+	vertical-align white-space width word-spacing \
+	border-bottom-color border-bottom-style border-collapse \
+	border-left-color border-left-style border-right-color \
+	border-right-style border-spacing border-top-color \
+	border-top-style bottom caption-side clip content \
+	counter-increment counter-reset cursor direction empty-cells \
+	left max-height max-width min-height min-width \
+	orphans outline outline-color outline-style outline-width \
+	overflow page-break-after page-break-before page-break-inside \
+	position quotes right table-layout text-shadow top \
+	unicode-bidi visibility widows z-index
+
+list -i value \
+	bold italic oblique normal middle none pointer block inline \
+	left right collapse solid underline nowrap center absolute relative
+
+list -i colorname \
+	aqua black blue fuchsia gray green lime maroon navy olive \
+	purple red silver teal white yellow
+
+list -i pseudo \
+	active first-letter first-line hover link visited \
+	after before first-child focus lang
+
+list -i unit \
+	% cm em ex in mm pc pt px
