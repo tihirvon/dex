@@ -49,7 +49,7 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 	}
 }
 
-void select_end(void)
+void unselect(void)
 {
 	if (selecting()) {
 		view->selection = SELECT_NONE;
@@ -113,7 +113,7 @@ void paste(void)
 
 	if (selecting()) {
 		del_count = prepare_selection();
-		select_end();
+		unselect();
 	}
 
 	if (copy_is_lines) {
@@ -159,7 +159,7 @@ void delete_ch(void)
 
 		len = prepare_selection();
 		delete(len, 0);
-		select_end();
+		unselect();
 	} else {
 		begin_change(CHANGE_MERGE_DELETE);
 
@@ -182,7 +182,7 @@ void erase(void)
 
 		len = prepare_selection();
 		delete(len, 1);
-		select_end();
+		unselect();
 	} else {
 		uchar u;
 
@@ -297,7 +297,7 @@ static void join_selection(void)
 	struct block_iter bi;
 	uchar ch = 0;
 
-	select_end();
+	unselect();
 	bi = view->cursor;
 
 	begin_change_chain();
@@ -549,7 +549,7 @@ void clear_lines(void)
 	if (selecting()) {
 		view->selection = SELECT_LINES;
 		del_count = prepare_selection();
-		select_end();
+		unselect();
 
 		// don't delete last newline
 		if (del_count)
@@ -729,7 +729,7 @@ void format_paragraph(int text_width)
 	gbuf_free(&pf.buf);
 	free(pf.indent);
 
-	select_end();
+	unselect();
 }
 
 void change_case(int mode, int move_after)
@@ -739,7 +739,7 @@ void change_case(int mode, int move_after)
 
 	if (selecting()) {
 		text_len = prepare_selection();
-		select_end();
+		unselect();
 	} else {
 		uchar u;
 

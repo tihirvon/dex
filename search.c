@@ -421,5 +421,5 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	} else if (!(flags & REPLACE_CANCEL)) {
 		info_msg("Pattern '%s' not found.", pattern);
 	}
-	select_end();
+	unselect();
 }

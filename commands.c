@@ -44,7 +44,7 @@ static void cmd_bol(const char *pf, char **args)
 
 static void cmd_cancel(const char *pf, char **args)
 {
-	select_end();
+	unselect();
 }
 
 static void cmd_case(const char *pf, char **args)
@@ -127,7 +127,7 @@ static void cmd_copy(const char *pf, char **args)
 
 	if (selecting()) {
 		copy(prepare_selection(), view->selection == SELECT_LINES);
-		select_end();
+		unselect();
 	} else {
 		block_iter_bol(&view->cursor);
 		copy(block_iter_count_to_next_line(&view->cursor), 1);
@@ -141,7 +141,7 @@ static void cmd_cut(const char *pf, char **args)
 		cut(prepare_selection(), view->selection == SELECT_LINES);
 		if (view->selection == SELECT_LINES)
 			move_to_preferred_x();
-		select_end();
+		unselect();
 	} else {
 		block_iter_bol(&view->cursor);
 		cut(block_iter_count_to_next_line(&view->cursor), 1);
@@ -317,7 +317,7 @@ static void cmd_filter(const char *pf, char **args)
 	replace(data.in_len, data.out, data.out_len);
 	free(data.out);
 
-	select_end();
+	unselect();
 }
 
 static void cmd_format_paragraph(const char *pf, char **args)
@@ -368,7 +368,7 @@ static void cmd_insert(const char *pf, char **args)
 
 		if (selecting()) {
 			del_len = prepare_selection();
-			select_end();
+			unselect();
 		}
 
 		replace(del_len, str, ins_len);
@@ -543,7 +543,7 @@ static void cmd_pass_through(const char *pf, char **args)
 
 	if (selecting()) {
 		del_len = prepare_selection();
-		select_end();
+		unselect();
 	}
 	if (strip_nl && data.out_len > 0 && data.out[data.out_len - 1] == '\n') {
 		if (--data.out_len > 0 && data.out[data.out_len - 1] == '\r')
@@ -609,7 +609,7 @@ static void cmd_redo(const char *pf, char **args)
 		}
 	}
 	if (redo(change_id))
-		select_end();
+		unselect();
 }
 
 static void cmd_repeat(const char *pf, char **args)
@@ -1002,7 +1002,7 @@ static void cmd_select(const char *pf, char **args)
 
 	if (selecting()) {
 		if (view->selection == sel) {
-			select_end();
+			unselect();
 			return;
 		}
 		view->selection = sel;
@@ -1155,7 +1155,7 @@ static void cmd_toggle(const char *pf, char **args)
 static void cmd_undo(const char *pf, char **args)
 {
 	if (undo())
-		select_end();
+		unselect();
 }
 
 static void cmd_up(const char *pf, char **args)
