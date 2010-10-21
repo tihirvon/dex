@@ -340,29 +340,11 @@ out:
 	return nr;
 }
 
-static unsigned int get_range(struct block_iter *bi)
-{
-	struct block_iter eof;
-
-	if (selecting()) {
-		struct selection_info info;
-		init_selection(&info);
-		view->cursor = info.si;
-		view->sel_so = info.so;
-		view->sel_eo = info.eo;
-		*bi = view->cursor;
-		return info.eo - info.so;
-	}
-
-	buffer_bof(bi);
-	buffer_eof(&eof);
-	return block_iter_get_offset(&eof);
-}
-
 void reg_replace(const char *pattern, const char *format, unsigned int flags)
 {
 	struct block_iter bi;
 	unsigned int nr_bytes;
+	int swapped = 0;
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
 	int nr_substitutions = 0;
 	int nr_lines = 0;
@@ -378,7 +360,21 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		return;
 	}
 
-	nr_bytes = get_range(&bi);
+	if (selecting()) {
+		struct selection_info info;
+		init_selection(&info);
+		view->cursor = info.si;
+		view->sel_so = info.so;
+		view->sel_eo = info.eo;
+		swapped = info.swapped;
+		bi = view->cursor;
+		nr_bytes = info.eo - info.so;
+	} else {
+		struct block_iter eof;
+		buffer_bof(&bi);
+		buffer_eof(&eof);
+		nr_bytes = block_iter_get_offset(&eof);
+	}
 
 	/* record multiple changes as one chain only when replacing all */
 	if (!(flags & REPLACE_CONFIRM))
@@ -421,5 +417,17 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	} else if (!(flags & REPLACE_CANCEL)) {
 		info_msg("Pattern '%s' not found.", pattern);
 	}
-	unselect();
+
+	if (selecting()) {
+		// undo what init_selection() did
+		if (view->sel_eo)
+			view->sel_eo--;
+		if (swapped) {
+			unsigned int tmp = view->sel_so;
+			view->sel_so = view->sel_eo;
+			view->sel_eo = tmp;
+		}
+		block_iter_goto_offset(&view->cursor, view->sel_eo);
+		view->sel_eo = UINT_MAX;
+	}
 }
