@@ -42,11 +42,6 @@ static void cmd_bol(const char *pf, char **args)
 	move_bol();
 }
 
-static void cmd_cancel(const char *pf, char **args)
-{
-	unselect();
-}
-
 static void cmd_case(const char *pf, char **args)
 {
 	int mode = 't';
@@ -1158,6 +1153,11 @@ static void cmd_undo(const char *pf, char **args)
 		unselect();
 }
 
+static void cmd_unselect(const char *pf, char **args)
+{
+	unselect();
+}
+
 static void cmd_up(const char *pf, char **args)
 {
 	move_up(1);
@@ -1203,7 +1203,6 @@ const struct command commands[] = {
 	{ "bind",		"",	2,  2, cmd_bind },
 	{ "bof",		"",	0,  0, cmd_bof },
 	{ "bol",		"",	0,  0, cmd_bol },
-	{ "cancel",		"",	0,  0, cmd_cancel },
 	{ "case",		"lmu",	0,  0, cmd_case },
 	{ "cd",			"",	1,  1, cmd_cd },
 	{ "center-view",	"",	0,  0, cmd_center_view },
@@ -1263,6 +1262,7 @@ const struct command commands[] = {
 	{ "tag",		"npr",	0,  1, cmd_tag },
 	{ "toggle",		"glv",	1,  1, cmd_toggle },
 	{ "undo",		"",	0,  0, cmd_undo },
+	{ "unselect",		"",	0,  0, cmd_unselect },
 	{ "up",			"",	0,  0, cmd_up },
 	{ "view",		"",	1,  1, cmd_view },
 	{ "word-bwd",		"s",	0,  0, cmd_word_bwd },
