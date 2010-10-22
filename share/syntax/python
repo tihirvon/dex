@@ -2,12 +2,8 @@ syntax .python-esc
 
 state esc special
 	char "abfnrtv'\\\"" END special
-	char 0-3 oct1
-	char 4-7 oct2
+	char 0-7 oct1
 	char x hex0
-	# almost anything but \n
-	char "-\t\v-~" END error
-	# 0x00, \n, 0x7f-0xff
 	noeat END
 
 state oct1 special
@@ -23,18 +19,15 @@ state hex0 special
 	noeat END
 
 state hex1 special
-	char 0-9a-fA-F hex2
-	noeat END
-
-# "\xaff" is an error but "\xafg" is not!
-state hex2 special
-	char 0-9a-fA-F END error
+	char 0-9a-fA-F END special
 	noeat END
 
 syntax python
 
 state start text
 	char # comment
+	str '"""' longdq
+	str "'''" longsq
 	char '"' dq
 	char "'" sq
 	# FIXME: [uU][rR]" [uU]" [rR]" [bB]" [bB][rR]"
@@ -47,16 +40,24 @@ state comment
 	char "\n" start
 	eat comment
 
+state longdq string
+	str '"""' start string
+	char -b "\\" .python-esc:longdq
+	eat longdq
+
+state longsq string
+	str "'''" start string
+	char -b "\\" .python-esc:longsq
+	eat longsq
+
 state dq string
 	char "\"" start string
-	# avoid highlighting rest of the file again
 	char "\n" start
 	char -b "\\" .python-esc:dq
 	eat dq
 
 state sq string
 	char "'" start string
-	# avoid highlighting rest of the file again
 	char "\n" start
 	char -b "\\" .python-esc:sq
 	eat sq
