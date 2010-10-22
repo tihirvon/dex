@@ -46,18 +46,26 @@ list notice \
 syntax .c-comment
 
 state comment
-	str "*/" END comment
 	char -b a-zA-Z0-9_ .c-comment-word:comment
+	char "*" star
 	eat comment
+
+state star comment
+	char / END comment
+	noeat comment
 
 syntax .cpp-comment
 
 state comment
 	char "\n" END
-	# multiline comment?
-	str "\\\n" comment
 	char -b a-zA-Z0-9_ .c-comment-word:comment
+	char \\ backslash
 	eat comment
+
+state backslash comment
+	# multiline comment?
+	char "\n" comment
+	noeat comment
 
 # main syntax
 syntax c
