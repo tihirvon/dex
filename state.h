@@ -16,6 +16,7 @@ enum condition_type {
 	COND_NOEAT,
 	COND_RECOLOR,
 	COND_STR,
+	COND_STR2,
 	COND_STR_ICASE,
 };
 
