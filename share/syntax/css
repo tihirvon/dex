@@ -1,5 +1,10 @@
 syntax .css-comment
 
+state start comment
+	char "*" comment
+	recolor text 1
+	noeat END
+
 state comment
 	char "*" star
 	eat comment
@@ -17,7 +22,7 @@ state start text
 	char # id
 	char { block
 	char 0-9_- start-error
-	str "/*" .css-comment:start
+	char / .css-comment:start
 	eat start
 
 state tag
@@ -38,7 +43,7 @@ state block text
 	char -b a-zA-Z property
 	char 0-9_- property-error
 	char } start
-	str "/*" .css-comment:block
+	char / .css-comment:block
 	eat block
 
 state property text
