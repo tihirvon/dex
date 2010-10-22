@@ -118,7 +118,7 @@ static struct condition *add_condition(enum condition_type type, const char *des
 	xrenew(current_state->conditions, current_state->nr_conditions + 1);
 	c = &current_state->conditions[current_state->nr_conditions++];
 	clear(c);
-	c->destination.name = xstrdup(dest);
+	c->destination.name = dest ? xstrdup(dest) : NULL;
 	c->emit_name = emit ? xstrdup(emit) : NULL;
 	c->type = type;
 
@@ -221,6 +221,20 @@ static void cmd_noeat(const char *pf, char **args)
 	add_condition(COND_NOEAT, args[0], NULL);
 }
 
+static void cmd_recolor(const char *pf, char **args)
+{
+	struct condition *c;
+	int len = atoi(args[1]);
+
+	if (len <= 0) {
+		error_msg("number of bytes must be larger than 0");
+		return;
+	}
+	c = add_condition(COND_RECOLOR, NULL, args[0]);
+	if (c)
+		c->u.cond_recolor.len = len;
+}
+
 static void cmd_state(const char *pf, char **args)
 {
 	const char *name = args[0];
@@ -280,6 +294,7 @@ static const struct command syntax_commands[] = {
 	{ "list",	"hi",	2, -1, cmd_list },
 	{ "listed",	"",	2,  3, cmd_listed },
 	{ "noeat",	"",	1,  1, cmd_noeat },
+	{ "recolor",	"",	2,  2, cmd_recolor },
 	{ "state",	"",	1,  2, cmd_state },
 	{ "str",	"i",	2,  3, cmd_str },
 	{ "syntax",	"",	1,  1, cmd_syntax },
@@ -302,7 +317,7 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 		if (c->destination.state) {
 			const char *name = fix_name(c->destination.state->name, prefix);
 			c->destination.state = find_state(syn, name);
-		} else {
+		} else if (c->type != COND_RECOLOR) {
 			c->destination.state = rets;
 		}
 		switch (c->type) {
@@ -366,6 +381,9 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 	}
 
 	name = cond->destination.name;
+	if (!name)
+		return errors;
+
 	if (!strcmp(name, "END")) {
 		// this makes syntax subsyntax
 		cond->destination.state = NULL;
@@ -465,6 +483,8 @@ static void free_condition(struct condition *cond)
 	case COND_LISTED_HASH:
 		break;
 	case COND_NOEAT:
+		break;
+	case COND_RECOLOR:
 		break;
 	case COND_STR:
 		free(cond->u.cond_str.str);

@@ -14,6 +14,7 @@ enum condition_type {
 	COND_LISTED,
 	COND_LISTED_HASH,
 	COND_NOEAT,
+	COND_RECOLOR,
 	COND_STR,
 };
 
@@ -31,6 +32,9 @@ struct condition {
 			char *list_name;		// set while parsing syntax file
 			struct string_list *list;	// set after parsed syntax file
 		} cond_listed;
+		struct {
+			int len;
+		} cond_recolor;
 		struct {
 			char *str;
 			int len;

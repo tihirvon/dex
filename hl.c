@@ -153,6 +153,13 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					goto top;
 				}
 				break;
+			case COND_RECOLOR: {
+				int idx = i - cond->u.cond_recolor.len;
+				if (idx < 0)
+					idx = 0;
+				while (idx < i)
+					colors[idx++] = cond->emit_color;
+				} break;
 			case COND_STR:
 				end = i + cond->u.cond_str.len;
 				if (len >= end && is_str(cond, line + i)) {
