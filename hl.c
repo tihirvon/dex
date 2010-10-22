@@ -95,8 +95,6 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 			case COND_CHAR_BUFFER:
 				if (!bitmap_get(cond->u.cond_char.bitmap, ch))
 					break;
-				// fall throught
-			case COND_BUFFER:
 				if (sidx < 0)
 					sidx = i;
 				colors[i++] = cond->emit_color;

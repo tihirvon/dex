@@ -6,7 +6,6 @@
 #include "command.h"
 
 enum condition_type {
-	COND_BUFFER,
 	COND_BUFIS,
 	COND_CHAR,
 	COND_CHAR_BUFFER,

@@ -67,7 +67,6 @@ static struct state *find_state(struct syntax *syn, const char *name)
 static int is_terminator(enum condition_type type)
 {
 	switch (type) {
-	case COND_BUFFER:
 	case COND_EAT:
 	case COND_NOEAT:
 		return 1;
@@ -125,11 +124,6 @@ static struct condition *add_condition(enum condition_type type, const char *des
 	if (is_terminator(type))
 		current_state = NULL;
 	return c;
-}
-
-static void cmd_buffer(const char *pf, char **args)
-{
-	add_condition(COND_BUFFER, args[0], NULL);
 }
 
 static void cmd_bufis(const char *pf, char **args)
@@ -292,7 +286,6 @@ static void cmd_syntax(const char *pf, char **args)
 }
 
 static const struct command syntax_commands[] = {
-	{ "buffer",	"",	1,  1, cmd_buffer },
 	{ "bufis",	"i",	2,  3, cmd_bufis },
 	{ "char",	"b",	2,  3, cmd_char },
 	{ "eat",	"",	1,  2, cmd_eat },
@@ -334,7 +327,6 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 		case COND_STR_ICASE:
 			c->u.cond_str.str = xstrdup(c->u.cond_str.str);
 			break;
-		case COND_BUFFER:
 		case COND_CHAR:
 		case COND_CHAR_BUFFER:
 		case COND_EAT:
@@ -481,8 +473,6 @@ static void visit(struct state *s)
 static void free_condition(struct condition *cond)
 {
 	switch (cond->type) {
-	case COND_BUFFER:
-		break;
 	case COND_BUFIS:
 		free(cond->u.cond_bufis.str);
 		break;
