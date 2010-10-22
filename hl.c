@@ -83,6 +83,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 
 	while (1) {
 		const struct condition *cond;
+		const struct action *a;
 		unsigned char ch;
 		int ci;
 	top:
@@ -91,43 +92,40 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 		ch = line[i];
 		for (ci = 0; ci < state->nr_conditions; ci++) {
 			cond = &state->conditions[ci];
+			a = &cond->a;
 			switch (cond->type) {
 			case COND_CHAR_BUFFER:
 				if (!bitmap_get(cond->u.cond_char.bitmap, ch))
 					break;
 				if (sidx < 0)
 					sidx = i;
-				colors[i++] = cond->emit_color;
-				state = cond->destination.state;
+				colors[i++] = a->emit_color;
+				state = a->destination.state;
 				goto top;
 			case COND_BUFIS:
 				if (sidx >= 0 && is_buffered(cond, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)
-						colors[idx] = cond->emit_color;
+						colors[idx] = a->emit_color;
 					sidx = -1;
-					state = cond->destination.state;
+					state = a->destination.state;
 					goto top;
 				}
 				break;
 			case COND_CHAR:
 				if (!bitmap_get(cond->u.cond_char.bitmap, ch))
 					break;
-				// fall through
-			case COND_EAT:
-				colors[i++] = cond->emit_color;
-				// fall through
-			case COND_NOEAT:
+				colors[i++] = a->emit_color;
 				sidx = -1;
-				state = cond->destination.state;
+				state = a->destination.state;
 				goto top;
 			case COND_LISTED:
 				if (sidx >= 0 && in_list(cond->u.cond_listed.list, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)
-						colors[idx] = cond->emit_color;
+						colors[idx] = a->emit_color;
 					sidx = -1;
-					state = cond->destination.state;
+					state = a->destination.state;
 					goto top;
 				}
 				break;
@@ -135,9 +133,9 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				if (sidx >= 0 && in_hash(cond->u.cond_listed.list, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)
-						colors[idx] = cond->emit_color;
+						colors[idx] = a->emit_color;
 					sidx = -1;
-					state = cond->destination.state;
+					state = a->destination.state;
 					goto top;
 				}
 				break;
@@ -146,16 +144,16 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				if (idx < 0)
 					idx = 0;
 				while (idx < i)
-					colors[idx++] = cond->emit_color;
+					colors[idx++] = a->emit_color;
 				} break;
 			case COND_STR: {
 				int slen = cond->u.cond_str.len;
 				int end = i + slen;
 				if (len >= end && !memcmp(cond->u.cond_str.str, line + i, slen)) {
 					while (i < end)
-						colors[i++] = cond->emit_color;
+						colors[i++] = a->emit_color;
 					sidx = -1;
-					state = cond->destination.state;
+					state = a->destination.state;
 					goto top;
 				}
 				} break;
@@ -164,9 +162,9 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				int end = i + slen;
 				if (len >= end && !strncasecmp(cond->u.cond_str.str, line + i, slen)) {
 					while (i < end)
-						colors[i++] = cond->emit_color;
+						colors[i++] = a->emit_color;
 					sidx = -1;
-					state = cond->destination.state;
+					state = a->destination.state;
 					goto top;
 				}
 				} break;
@@ -174,15 +172,21 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				// optimized COND_STR (length 2, case sensitive)
 				if (ch == cond->u.cond_str.str[0] && len - i > 1 &&
 						line[i + 1] == cond->u.cond_str.str[1]) {
-					colors[i++] = cond->emit_color;
-					colors[i++] = cond->emit_color;
+					colors[i++] = a->emit_color;
+					colors[i++] = a->emit_color;
 					sidx = -1;
-					state = cond->destination.state;
+					state = a->destination.state;
 					goto top;
 				}
 				break;
 			}
 		}
+
+		a = &state->a;
+		if (!state->noeat)
+			colors[i++] = a->emit_color;
+		sidx = -1;
+		state = a->destination.state;
 	}
 
 	if (ret)

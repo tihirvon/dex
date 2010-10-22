@@ -9,14 +9,26 @@ enum condition_type {
 	COND_BUFIS,
 	COND_CHAR,
 	COND_CHAR_BUFFER,
-	COND_EAT,
 	COND_LISTED,
 	COND_LISTED_HASH,
-	COND_NOEAT,
 	COND_RECOLOR,
 	COND_STR,
 	COND_STR2,
 	COND_STR_ICASE,
+};
+
+struct action {
+	union {
+		char *name;			// set while parsing syntax file
+		struct state *state;		// set after parsed syntax file
+	} destination;
+
+	// If condition has no emit name this is set to destination state's
+	// emit name or list name (COND_LIST).
+	char *emit_name;
+
+	// Set after all colors have been added (config loaded).
+	struct hl_color *emit_color;
 };
 
 struct condition {
@@ -41,18 +53,7 @@ struct condition {
 			char str[256 / 8 - sizeof(int)];
 		} cond_str;
 	} u;
-	union {
-		char *name;			// set while parsing syntax file
-		struct state *state;		// set after parsed syntax file
-	} destination;
-
-	// If condition has no emit name this is set to destination state's
-	// emit name or list name (COND_LIST).
-	char *emit_name;
-
-	// Set after all colors have been added (config loaded).
-	struct hl_color *emit_color;
-
+	struct action a;
 	enum condition_type type;
 };
 
@@ -62,6 +63,9 @@ struct state {
 	struct condition *conditions;
 	int nr_conditions;
 	int visited;
+
+	struct action a;
+	int noeat;
 };
 
 struct hash_str {

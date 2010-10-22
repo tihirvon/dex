@@ -64,17 +64,6 @@ static struct state *find_state(struct syntax *syn, const char *name)
 	return NULL;
 }
 
-static int is_terminator(enum condition_type type)
-{
-	switch (type) {
-	case COND_EAT:
-	case COND_NOEAT:
-		return 1;
-	default:
-		return 0;
-	}
-}
-
 static LIST_HEAD(syntaxes);
 static struct syntax *current_syntax;
 static struct state *current_state;
@@ -98,31 +87,29 @@ static int no_syntax(void)
 	return 1;
 }
 
+static int no_state(void)
+{
+	if (no_syntax())
+		return 1;
+	if (current_state)
+		return 0;
+	error_msg("No state started");
+	return 1;
+}
+
 static struct condition *add_condition(enum condition_type type, const char *dest, const char *emit)
 {
 	struct condition *c;
 
-	if (no_syntax())
+	if (no_state())
 		return NULL;
-
-	if (!current_state) {
-		error_msg("No state started");
-		return NULL;
-	}
-	if (type == COND_NOEAT && !strcmp(dest, current_state->name)) {
-		error_msg("Using noeat to to jump to parent state causes infinite loop");
-		return NULL;
-	}
 
 	xrenew(current_state->conditions, current_state->nr_conditions + 1);
 	c = &current_state->conditions[current_state->nr_conditions++];
 	clear(c);
-	c->destination.name = dest ? xstrdup(dest) : NULL;
-	c->emit_name = emit ? xstrdup(emit) : NULL;
+	c->a.destination.name = dest ? xstrdup(dest) : NULL;
+	c->a.emit_name = emit ? xstrdup(emit) : NULL;
 	c->type = type;
-
-	if (is_terminator(type))
-		current_state = NULL;
 	return c;
 }
 
@@ -156,7 +143,12 @@ static void cmd_char(const char *pf, char **args)
 
 static void cmd_eat(const char *pf, char **args)
 {
-	add_condition(COND_EAT, args[0], args[1]);
+	if (no_state())
+		return;
+
+	current_state->a.destination.name = xstrdup(args[0]);
+	current_state->a.emit_name = args[1] ? xstrdup(args[1]) : NULL;
+	current_state = NULL;
 }
 
 static void cmd_list(const char *pf, char **args)
@@ -219,7 +211,18 @@ static void cmd_listed(const char *pf, char **args)
 
 static void cmd_noeat(const char *pf, char **args)
 {
-	add_condition(COND_NOEAT, args[0], NULL);
+	if (no_state())
+		return;
+
+	if (!strcmp(args[0], current_state->name)) {
+		error_msg("Using noeat to to jump to parent state causes infinite loop");
+		return;
+	}
+
+	current_state->a.destination.name = xstrdup(args[0]);
+	current_state->a.emit_name = args[1] ? xstrdup(args[1]) : NULL;
+	current_state->noeat = 1;
+	current_state = NULL;
 }
 
 static void cmd_recolor(const char *pf, char **args)
@@ -319,21 +322,30 @@ static const char *fix_name(const char *name, const char *prefix)
 	return buf;
 }
 
+static void fix_action(struct syntax *syn, struct action *a, const char *prefix)
+{
+	if (a->destination.state) {
+		const char *name = fix_name(a->destination.state->name, prefix);
+		a->destination.state = find_state(syn, name);
+	}
+	if (a->emit_name)
+		a->emit_name = xstrdup(a->emit_name);
+}
+
 static void fix_conditions(struct syntax *syn, struct state *s, struct state *rets, const char *prefix)
 {
 	int i;
 
 	for (i = 0; i < s->nr_conditions; i++) {
 		struct condition *c = &s->conditions[i];
-		if (c->destination.state) {
-			const char *name = fix_name(c->destination.state->name, prefix);
-			c->destination.state = find_state(syn, name);
-		} else if (c->type != COND_RECOLOR) {
-			c->destination.state = rets;
-		}
-		if (c->emit_name)
-			c->emit_name = xstrdup(c->emit_name);
+		fix_action(syn, &c->a, prefix);
+		if (!c->a.destination.state && c->type != COND_RECOLOR)
+			c->a.destination.state = rets;
 	}
+
+	fix_action(syn, &s->a, prefix);
+	if (!s->a.destination.state)
+		s->a.destination.state = rets;
 }
 
 static struct state *merge(struct syntax *subsyn, struct state *rets, const char *prefix)
@@ -364,30 +376,14 @@ static struct state *merge(struct syntax *subsyn, struct state *rets, const char
 	return states->ptrs[old_count];
 }
 
-static int finish_condition(struct syntax *syn, struct condition *cond)
+static int finish_action(struct syntax *syn, struct action *a)
 {
+	char *sep, *name = a->destination.name;
 	int errors = 0;
-	char *name, *sep;
-
-	if (cond->type == COND_LISTED) {
-		name = cond->u.cond_listed.list_name;
-		cond->u.cond_listed.list = find_string_list(syn, name);
-		if (cond->u.cond_listed.list == NULL) {
-			error_msg("No such list %s", name);
-			errors++;
-		} else if (cond->u.cond_listed.list->hash) {
-			cond->type = COND_LISTED_HASH;
-		}
-		free(name);
-	}
-
-	name = cond->destination.name;
-	if (!name)
-		return errors;
 
 	if (!strcmp(name, "END")) {
 		// this makes syntax subsyntax
-		cond->destination.state = NULL;
+		a->destination.state = NULL;
 		free(name);
 		syn->subsyntax = 1;
 		return errors;
@@ -421,16 +417,36 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 			static int counter;
 			char prefix[32];
 			snprintf(prefix, sizeof(prefix), "%d-", counter++);
-			cond->destination.state = merge(subsyn, rs, prefix);
+			a->destination.state = merge(subsyn, rs, prefix);
 		}
 	} else {
-		cond->destination.state = find_state(syn, name);
-		if (cond->destination.state == NULL) {
+		a->destination.state = find_state(syn, name);
+		if (a->destination.state == NULL) {
 			error_msg("No such state %s", name);
 			errors++;
 		}
 	}
 	free(name);
+	return errors;
+}
+
+static int finish_condition(struct syntax *syn, struct condition *cond)
+{
+	int errors = 0;
+
+	if (cond->type == COND_LISTED) {
+		char *name = cond->u.cond_listed.list_name;
+		cond->u.cond_listed.list = find_string_list(syn, name);
+		if (cond->u.cond_listed.list == NULL) {
+			error_msg("No such list %s", name);
+			errors++;
+		} else if (cond->u.cond_listed.list->hash) {
+			cond->type = COND_LISTED_HASH;
+		}
+		free(name);
+	}
+	if (cond->type != COND_RECOLOR)
+		errors += finish_action(syn, &cond->a);
 	return errors;
 }
 
@@ -440,14 +456,11 @@ static int finish_state(struct syntax *syn, struct state *s)
 
 	for (i = 0; i < s->nr_conditions; i++)
 		errors += finish_condition(syn, &s->conditions[i]);
-	if (!s->nr_conditions) {
-		error_msg("Empty state %s", s->name);
-		errors++;
-	} else if (!is_terminator(s->conditions[s->nr_conditions - 1].type)) {
-		error_msg("No default condition in state %s", s->name);
-		errors++;
+	if (!s->a.destination.name) {
+		error_msg("No default action in state %s", s->name);
+		return ++errors;
 	}
-	return errors;
+	return errors + finish_action(syn, &s->a);
 }
 
 static void visit(struct state *s)
@@ -460,14 +473,16 @@ static void visit(struct state *s)
 	s->visited = 1;
 	for (i = 0; i < s->nr_conditions; i++) {
 		struct condition *cond = &s->conditions[i];
-		if (cond->destination.state)
-			visit(cond->destination.state);
+		if (cond->a.destination.state)
+			visit(cond->a.destination.state);
 	}
+	if (s->a.destination.state)
+		visit(s->a.destination.state);
 }
 
 static void free_condition(struct condition *cond)
 {
-	free(cond->emit_name);
+	free(cond->a.emit_name);
 }
 
 static void free_state(struct state *s)
@@ -479,6 +494,7 @@ static void free_state(struct state *s)
 	for (i = 0; i < s->nr_conditions; i++)
 		free_condition(&s->conditions[i]);
 	free(s->conditions);
+	free(s->a.emit_name);
 	free(s);
 }
 
@@ -586,6 +602,21 @@ struct syntax *find_syntax(const char *name)
 	return syn;
 }
 
+static void update_action_color(struct syntax *syn, struct action *a)
+{
+	const char *name = a->emit_name;
+
+	if (!name)
+		name = a->destination.state->emit_name;
+	if (strchr(name, '.')) {
+		a->emit_color = find_color(name);
+	} else {
+		char buf[64];
+		snprintf(buf, sizeof(buf), "%s.%s", syn->name, name);
+		a->emit_color = find_color(buf);
+	}
+}
+
 void update_syntax_colors(struct syntax *syn)
 {
 	int i, j;
@@ -597,20 +628,9 @@ void update_syntax_colors(struct syntax *syn)
 	for (i = 0; i < syn->states.count; i++) {
 		struct state *s = syn->states.ptrs[i];
 
-		for (j = 0; j < s->nr_conditions; j++) {
-			struct condition *cond = &s->conditions[j];
-			const char *name = cond->emit_name;
-
-			if (!name)
-				name = cond->destination.state->emit_name;
-			if (strchr(name, '.')) {
-				cond->emit_color = find_color(name);
-			} else {
-				char buf[64];
-				snprintf(buf, sizeof(buf), "%s.%s", syn->name, name);
-				cond->emit_color = find_color(buf);
-			}
-		}
+		for (j = 0; j < s->nr_conditions; j++)
+			update_action_color(syn, &s->conditions[j].a);
+		update_action_color(syn, &s->a);
 	}
 }
 
