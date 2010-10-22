@@ -33,7 +33,7 @@ state tab comment
 state newfile
 	char "\n" start
 	char : file label
-	buffer newfile
+	eat newfile
 
 state file
 	char "\n" start
