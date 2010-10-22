@@ -16,6 +16,7 @@ enum condition_type {
 	COND_NOEAT,
 	COND_RECOLOR,
 	COND_STR,
+	COND_STR_ICASE,
 };
 
 struct condition {
@@ -38,7 +39,6 @@ struct condition {
 		struct {
 			char *str;
 			int len;
-			int icase;
 		} cond_str;
 	} u;
 	union {

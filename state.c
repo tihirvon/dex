@@ -265,12 +265,12 @@ static void cmd_state(const char *pf, char **args)
 static void cmd_str(const char *pf, char **args)
 {
 	int icase = !!*pf;
-	struct condition *c = add_condition(COND_STR, args[1], args[2]);
+	enum condition_type type = icase ? COND_STR_ICASE : COND_STR;
+	struct condition *c = add_condition(type, args[1], args[2]);
 
 	if (c) {
 		c->u.cond_str.str = xstrdup(args[0]);
 		c->u.cond_str.len = strlen(args[0]);
-		c->u.cond_str.icase = icase;
 	}
 }
 
@@ -325,6 +325,7 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 			c->u.cond_bufis.str = xstrdup(c->u.cond_bufis.str);
 			break;
 		case COND_STR:
+		case COND_STR_ICASE:
 			c->u.cond_str.str = xstrdup(c->u.cond_str.str);
 			break;
 		case COND_BUFFER:
@@ -494,6 +495,7 @@ static void free_condition(struct condition *cond)
 	case COND_RECOLOR:
 		break;
 	case COND_STR:
+	case COND_STR_ICASE:
 		free(cond->u.cond_str.str);
 		break;
 	}

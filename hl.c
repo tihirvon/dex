@@ -69,14 +69,6 @@ static int in_hash(struct string_list *list, const char *str, int len)
 	return 0;
 }
 
-static int is_str(const struct condition *cond, const char *str)
-{
-	int len = cond->u.cond_str.len;
-	if (cond->u.cond_str.icase)
-		return !strncasecmp(cond->u.cond_str.str, str, len);
-	return !memcmp(cond->u.cond_str.str, str, len);
-}
-
 // line should be terminated with \n unless it's the last line
 static struct hl_color **highlight_line(struct state *state, const char *line, int len, struct state **ret)
 {
@@ -98,8 +90,6 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 			break;
 		ch = line[i];
 		for (ci = 0; ci < state->nr_conditions; ci++) {
-			int end;
-
 			cond = &state->conditions[ci];
 			switch (cond->type) {
 			case COND_CHAR_BUFFER:
@@ -160,16 +150,28 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				while (idx < i)
 					colors[idx++] = cond->emit_color;
 				} break;
-			case COND_STR:
-				end = i + cond->u.cond_str.len;
-				if (len >= end && is_str(cond, line + i)) {
+			case COND_STR: {
+				int slen = cond->u.cond_str.len;
+				int end = i + slen;
+				if (len >= end && !memcmp(cond->u.cond_str.str, line + i, slen)) {
 					while (i < end)
 						colors[i++] = cond->emit_color;
 					sidx = -1;
 					state = cond->destination.state;
 					goto top;
 				}
-				break;
+				} break;
+			case COND_STR_ICASE: {
+				int slen = cond->u.cond_str.len;
+				int end = i + slen;
+				if (len >= end && !strncasecmp(cond->u.cond_str.str, line + i, slen)) {
+					while (i < end)
+						colors[i++] = cond->emit_color;
+					sidx = -1;
+					state = cond->destination.state;
+					goto top;
+				}
+				} break;
 			}
 		}
 	}
