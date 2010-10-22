@@ -15,8 +15,8 @@ state start text
 	char . float
 #	char xX hexstr
 	char ` backtick
-	str -- -- comment
-	str "/*" c-comment
+	char -- - dash
+	char / slash
 	eat start
 
 state zero numeric
@@ -66,9 +66,19 @@ state backtick constant
 	char "\n`" start
 	eat backtick
 
+state dash comment
+	char -- - comment
+	recolor text 1
+	noeat start
+
 state comment
 	char "\n" start
 	eat comment
+
+state slash comment
+	char "*" c-comment
+	recolor text 1
+	noeat start
 
 state c-comment comment
 	char "*" star
