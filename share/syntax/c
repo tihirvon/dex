@@ -79,6 +79,8 @@ state preproc-ident preproc
 state preproc-misc preproc
 	char "\n" start
 	char "\\" preproc-cont
+	str "/*" .c-comment:preproc-misc
+	str "//" .cpp-comment:start
 	eat preproc-misc
 
 # Only '#include\s*<header>' or '#include\s*"header"' are recognized although
@@ -125,7 +127,7 @@ state c text
 	char "'" char
 	char "\n" start
 	str "/*" .c-comment:c
-	str "//" .cpp-comment:c
+	str "//" .cpp-comment:start
 	eat c
 
 state ident
