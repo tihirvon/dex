@@ -327,7 +327,14 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 		case COND_STR:
 			c->u.cond_str.str = xstrdup(c->u.cond_str.str);
 			break;
-		default:
+		case COND_BUFFER:
+		case COND_CHAR:
+		case COND_CHAR_BUFFER:
+		case COND_EAT:
+		case COND_LISTED:
+		case COND_LISTED_HASH:
+		case COND_NOEAT:
+		case COND_RECOLOR:
 			break;
 		}
 		if (c->emit_name)
