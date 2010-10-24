@@ -218,16 +218,16 @@ state error-ident error
 	char a-zA-Z0-9_ error-ident
 	noeat c
 
-list keyword \
+list -h keyword \
 	if else for while do continue switch case break default return goto \
 	asm const static inline register extern volatile auto restrict sizeof \
 	typedef
 
-list type \
+list -h type \
 	struct union enum void char short int long float double signed \
 	unsigned size_t ssize_t off_t ptrdiff_t time_t va_list FILE DIR
 
-list constant \
+list -h constant \
 	NULL stdin stdout stderr \
 	EPERM ENOENT ESRCH EINTR EIO ENXIO E2BIG ENOEXEC EBADF ECHILD EAGAIN \
 	ENOMEM EACCES EFAULT ENOTBLK EBUSY EEXIST EXDEV ENODEV ENOTDIR EISDIR \
