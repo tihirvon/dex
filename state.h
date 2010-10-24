@@ -22,9 +22,9 @@ enum condition_type {
 struct condition {
 	union {
 		struct {
-			char *str;
 			int len;
 			int icase;
+			char str[256 / 8 - 2 * sizeof(int)];
 		} cond_bufis;
 		struct {
 			unsigned char bitmap[256 / 8];
@@ -37,8 +37,8 @@ struct condition {
 			int len;
 		} cond_recolor;
 		struct {
-			char *str;
 			int len;
+			char str[256 / 8 - sizeof(int)];
 		} cond_str;
 	} u;
 	union {

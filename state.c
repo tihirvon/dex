@@ -129,11 +129,18 @@ static struct condition *add_condition(enum condition_type type, const char *des
 static void cmd_bufis(const char *pf, char **args)
 {
 	int icase = !!*pf;
-	struct condition *c = add_condition(COND_BUFIS, args[1], args[2]);
+	struct condition *c;
+	const char *str = args[0];
+	int len = strlen(str);
 
+	if (len > ARRAY_COUNT(c->u.cond_bufis.str)) {
+		error_msg("Maximum length of string is %lu bytes", ARRAY_COUNT(c->u.cond_bufis.str));
+		return;
+	}
+	c = add_condition(COND_BUFIS, args[1], args[2]);
 	if (c) {
-		c->u.cond_bufis.str = xstrdup(args[0]);
-		c->u.cond_bufis.len = strlen(args[0]);
+		memcpy(c->u.cond_bufis.str, str, len);
+		c->u.cond_bufis.len = len;
 		c->u.cond_bufis.icase = icase;
 	}
 }
@@ -262,14 +269,20 @@ static void cmd_str(const char *pf, char **args)
 	enum condition_type type = icase ? COND_STR_ICASE : COND_STR;
 	const char *str = args[0];
 	struct condition *c;
+	int len = strlen(str);
+
+	if (len > ARRAY_COUNT(c->u.cond_str.str)) {
+		error_msg("Maximum length of string is %lu bytes", ARRAY_COUNT(c->u.cond_str.str));
+		return;
+	}
 
 	// strings of length 2 are very common
-	if (!icase && strlen(str) == 2)
+	if (!icase && len == 2)
 		type = COND_STR2;
 	c = add_condition(type, args[1], args[2]);
 	if (c) {
-		c->u.cond_str.str = xstrdup(str);
-		c->u.cond_str.len = strlen(str);
+		memcpy(c->u.cond_str.str, str, len);
+		c->u.cond_str.len = len;
 	}
 }
 
@@ -317,24 +330,6 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 			c->destination.state = find_state(syn, name);
 		} else if (c->type != COND_RECOLOR) {
 			c->destination.state = rets;
-		}
-		switch (c->type) {
-		case COND_BUFIS:
-			c->u.cond_bufis.str = xstrdup(c->u.cond_bufis.str);
-			break;
-		case COND_STR:
-		case COND_STR2:
-		case COND_STR_ICASE:
-			c->u.cond_str.str = xstrdup(c->u.cond_str.str);
-			break;
-		case COND_CHAR:
-		case COND_CHAR_BUFFER:
-		case COND_EAT:
-		case COND_LISTED:
-		case COND_LISTED_HASH:
-		case COND_NOEAT:
-		case COND_RECOLOR:
-			break;
 		}
 		if (c->emit_name)
 			c->emit_name = xstrdup(c->emit_name);
@@ -472,30 +467,6 @@ static void visit(struct state *s)
 
 static void free_condition(struct condition *cond)
 {
-	switch (cond->type) {
-	case COND_BUFIS:
-		free(cond->u.cond_bufis.str);
-		break;
-	case COND_CHAR:
-		break;
-	case COND_CHAR_BUFFER:
-		break;
-	case COND_EAT:
-		break;
-	case COND_LISTED:
-		break;
-	case COND_LISTED_HASH:
-		break;
-	case COND_NOEAT:
-		break;
-	case COND_RECOLOR:
-		break;
-	case COND_STR:
-	case COND_STR2:
-	case COND_STR_ICASE:
-		free(cond->u.cond_str.str);
-		break;
-	}
 	free(cond->emit_name);
 }
 
