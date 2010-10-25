@@ -540,11 +540,18 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 {
 	const char *slash = strrchr(filename, '/');
 	const char *name = slash ? slash + 1 : filename;
+	const char *saved_config_file = config_file;
+	int saved_config_line = config_line;
 
-	if (read_config(syntax_commands, filename, must_exist))
+	if (do_read_config(syntax_commands, filename, must_exist)) {
+		config_file = saved_config_file;
+		config_line = saved_config_line;
 		return NULL;
+	}
 	if (current_syntax)
 		finish_syntax();
+	config_file = saved_config_file;
+	config_line = saved_config_line;
 	return find_syntax(name);
 }
 

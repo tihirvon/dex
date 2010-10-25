@@ -19,12 +19,8 @@ static int is_command(const char *str, int len)
 	return 0;
 }
 
-int read_config(const struct command *cmds, const char *filename, int must_exist)
+int do_read_config(const struct command *cmds, const char *filename, int must_exist)
 {
-	/* recursive */
-	const char *saved_config_file = config_file;
-	int saved_config_line = config_line;
-
 	struct stat st;
 	size_t size;
 	GBUF(line);
@@ -73,7 +69,16 @@ int read_config(const struct command *cmds, const char *filename, int must_exist
 		handle_command(cmds, line.buffer);
 	gbuf_free(&line);
 	xmunmap(buf, st.st_size);
+	return 0;
+}
+
+int read_config(const struct command *cmds, const char *filename, int must_exist)
+{
+	/* recursive */
+	const char *saved_config_file = config_file;
+	int saved_config_line = config_line;
+	int ret = do_read_config(cmds, filename, must_exist);
 	config_file = saved_config_file;
 	config_line = saved_config_line;
-	return 0;
+	return ret;
 }
