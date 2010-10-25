@@ -88,6 +88,7 @@ state star comment
 	char / start comment
 	noeat c-comment
 
+# FIXME: types should probably go to separate list
 list -h keyword \
 	ADD ALL ALTER ANALYZE AND AS ASC ASENSITIVE BEFORE BETWEEN \
 	BIGINT BINARY BLOB BOTH BY CALL CASCADE CASE CHANGE CHAR \
@@ -121,3 +122,5 @@ list -h keyword \
 
 list identifier \
 	ACTION BIT DATE ENUM NO TEXT TIME TIMESTAMP
+
+default keyword identifier

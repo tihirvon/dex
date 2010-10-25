@@ -54,13 +54,13 @@ state property text
 	noeat property-end
 
 state property-end text
-	char : values text
+	char : values
 	char " \t\n" property-end
 	char ";" block
 	char } start
 	eat property-error
 
-state values
+state values text
 	char " \t\n" values
 	char 0-9 int
 	char -- - minus
@@ -113,11 +113,11 @@ state start-error error
 	char a-zA-Z0-9_- start-error
 	noeat start
 
-state property-error
+state property-error error
 	char a-zA-Z0-9_- property-error
 	noeat property
 
-state value-error
+state value-error error
 	char a-zA-Z0-9_- value-error
 	noeat values
 

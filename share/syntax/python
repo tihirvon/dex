@@ -99,7 +99,7 @@ state int-end error
 	char a-zA-Z0-9_ int-end
 	noeat start
 
-state float
+state float numeric
 	noeat start
 
 list keyword \

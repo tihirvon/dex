@@ -77,7 +77,7 @@ state tag-start special
 	char / close-tag
 	char -b a-zA-Z0-9 tag-name
 	char " \t\n" tag-start
-	char > text tag-end
+	char > text special
 	eat tag-start error
 
 state close-tag special
@@ -106,7 +106,7 @@ state close-tag-end special
 	char > text special
 	eat text error
 
-state attrs
+state attrs text
 	char " \t\n" attrs
 	char -b a-zA-Z attr-name
 	char > text special
@@ -155,3 +155,6 @@ list -i tag-transitional \
 # blink and marquee are non-standard
 list -i tag-deprecated \
 	applet basefont blink center dir font isindex marquee menu s strike u
+
+default text tag-unknown
+default tag tag-frameset tag-transitional tag-deprecated

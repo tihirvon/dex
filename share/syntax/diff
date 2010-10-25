@@ -18,7 +18,7 @@ state chunk
 	char "\n" diff chunk
 	eat chunk
 
-state diff
+state diff text
 	char " " context
 	char + added
 	char -- - removed
