@@ -106,6 +106,11 @@ static void parse_dq(const char *cmd, int *posp)
 	*posp = pos;
 }
 
+static int var_is(const char *buf, int len, const char *name)
+{
+	return len == strlen(name) && !memcmp(buf, name, len);
+}
+
 /*
  * $FILE	current filename
  * $DATADIR	set at compile time
@@ -139,16 +144,16 @@ static void parse_var(const char *cmd, int *posp)
 	if (!len)
 		return;
 
-	if (len == 4 && !memcmp(var, "FILE", len)) {
+	if (var_is(var, len, "FILE")) {
 		if (buffer->abs_filename)
 			gbuf_add_str(&arg, buffer->abs_filename);
 		return;
 	}
-	if (len == 7 && !memcmp(var, "DATADIR", len)) {
+	if (var_is(var, len, "DATADIR")) {
 		gbuf_add_str(&arg, DATADIR);
 		return;
 	}
-	if (len == 4 && !memcmp(var, "WORD", len)) {
+	if (var_is(var, len, "WORD")) {
 		char *word = get_word_under_cursor();
 
 		if (word) {
