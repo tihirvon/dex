@@ -141,6 +141,14 @@ static void cmd_char(const char *pf, char **args)
 		set_bits(c->u.cond_char.bitmap, args[0]);
 }
 
+static void cmd_default(const char *pf, char **args)
+{
+	if (no_syntax())
+		return;
+
+	ptr_array_add(&current_syntax->default_colors, copy_string_array(args, count_strings(args)));
+}
+
 static void cmd_eat(const char *pf, char **args)
 {
 	if (no_state())
@@ -304,6 +312,7 @@ static void cmd_syntax(const char *pf, char **args)
 static const struct command syntax_commands[] = {
 	{ "bufis",	"i",	2,  3, cmd_bufis },
 	{ "char",	"b",	2,  3, cmd_char },
+	{ "default",	"",	2, -1, cmd_default },
 	{ "eat",	"",	1,  2, cmd_eat },
 	{ "list",	"hi",	2, -1, cmd_list },
 	{ "listed",	"",	2,  3, cmd_listed },
@@ -520,6 +529,14 @@ static void free_string_list(struct string_list *list)
 	free(list);
 }
 
+static void free_default_colors(char **strs)
+{
+	int i;
+	for (i = 0; strs[i]; i++)
+		free(strs[i]);
+	free(strs);
+}
+
 static void free_syntax(struct syntax *syn)
 {
 	int i;
@@ -531,6 +548,10 @@ static void free_syntax(struct syntax *syn)
 	for (i = 0; i < syn->string_lists.count; i++)
 		free_string_list(syn->string_lists.ptrs[i]);
 	free(syn->string_lists.ptrs);
+
+	for (i = 0; i < syn->default_colors.count; i++)
+		free_default_colors(syn->default_colors.ptrs[i]);
+	free(syn->default_colors.ptrs);
 
 	free(syn->name);
 	free(syn);
@@ -609,19 +630,40 @@ struct syntax *find_syntax(const char *name)
 	return syn;
 }
 
+static const char *find_default_color(struct syntax *syn, const char *name)
+{
+	int i, j;
+
+	for (i = 0; i < syn->default_colors.count; i++) {
+		char **strs = syn->default_colors.ptrs[i];
+		for (j = 1; strs[j]; j++) {
+			if (!strcmp(strs[j], name))
+				return strs[0];
+		}
+	}
+	return NULL;
+}
+
 static void update_action_color(struct syntax *syn, struct action *a)
 {
 	const char *name = a->emit_name;
+	const char *def;
+	char full[64];
 
 	if (!name)
 		name = a->destination.state->emit_name;
-	if (strchr(name, '.')) {
-		a->emit_color = find_color(name);
-	} else {
-		char buf[64];
-		snprintf(buf, sizeof(buf), "%s.%s", syn->name, name);
-		a->emit_color = find_color(buf);
-	}
+
+	snprintf(full, sizeof(full), "%s.%s", syn->name, name);
+	a->emit_color = find_color(full);
+	if (a->emit_color)
+		return;
+
+	def = find_default_color(syn, name);
+	if (!def)
+		return;
+
+	snprintf(full, sizeof(full), "%s.%s", syn->name, def);
+	a->emit_color = find_color(full);
 }
 
 void update_syntax_colors(struct syntax *syn)

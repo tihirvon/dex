@@ -89,6 +89,7 @@ struct syntax {
 	char *name;
 	struct ptr_array states;
 	struct ptr_array string_lists;
+	struct ptr_array default_colors;
 	int subsyntax;
 };
 
