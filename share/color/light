@@ -1,4 +1,14 @@
-# builtin highlight colors
+# default - not highlighted
+# text    - "highlighted" as text, usually same color as default
+# code	  - usually same as text
+# ident	  - variable, function or unknown type. usually same as code
+#
+# The colors text and code are usually same but spell checking
+# (not implemented, sorry) is only enabled for text (and comments).
+#
+# For unknown highlight colors "default" is used.
+
+# builtin colors
 hi default
 hi commandline
 hi errormsg bold red
@@ -11,7 +21,10 @@ hi statusline black gray
 hi wserror default yellow
 hi nontext blue keep
 
-# common to many languages
+# common to many syntax files
+hi text
+hi code
+hi ident
 hi keyword bold
 hi type bold
 hi label bold
@@ -25,6 +38,11 @@ hi comment bold blue
 hi preproc blue
 hi error black yellow
 hi variable blue
+
+# css
+hi css.id blue
+hi css.class blue
+hi css.pseudoclass blue
 
 # diff
 hi diff.header bold
@@ -42,12 +60,13 @@ hi gitcommit.untracked bold red
 # go
 hi go.builtin blue
 
+# html
+hi html.tag bold
+hi html.attr blue
+
 # make
 hi make.builtin bold
 
 # sh
 hi sh.builtin bold
 hi sh.operator bold
-
-# smarty
-hi smarty blue
