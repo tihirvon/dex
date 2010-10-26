@@ -1,3 +1,66 @@
+syntax .go-esc
+
+state special
+	char 0-3 oct1
+	# >255 byte value
+	char 4-7 END error
+	char x 2left
+	char u 4left
+	char U 8left
+	noeat short
+
+state oct1 special
+	char 0-7 oct2
+	noeat short
+
+state oct2 special
+	char 0-7 END special
+	noeat short
+
+state 8left special
+	char 0-9a-fA-F 7left
+	noeat short
+
+state 7left special
+	char 0-9a-fA-F 6left
+	noeat short
+
+state 6left special
+	char 0-9a-fA-F 5left
+	noeat short
+
+state 5left special
+	char 0-9a-fA-F 4left
+	noeat short
+
+state 4left special
+	char 0-9a-fA-F 3left
+	noeat short
+
+state 3left special
+	char 0-9a-fA-F 2left
+	noeat short
+
+state 2left special
+	char 0-9a-fA-F 1left
+	noeat short
+
+state 1left special
+	char 0-9a-fA-F END special
+	noeat short
+
+state short special
+	# 128-255
+	char "€-ÿ" not-ascii
+	# any ASCII character but 0x00 or \n
+	char "-\t\v-" END error
+	# 0x00, \n
+	noeat END
+
+state not-ascii error
+	char "€-ÿ" not-ascii
+	noeat END
+
 syntax go
 
 state go code
@@ -72,66 +135,30 @@ state exp-digit numeric
 
 state string
 	char "\"" go string
-	# avoid highlighting rest of the file again
 	char "\n" go
 	char -b "\\" string-esc
 	eat string
 
 state string-esc special
-	char "abfnrtv'\\\"" string special
-	char 0-3 string-oct1
-	char 4-7 string-oct2
-	char x string-hex0
-	eat string error
-
-state string-oct1 special
-	char 0-7 string-oct2
-	noeat string
-
-state string-oct2 special
-	char 0-7 string special
-	noeat string
-
-state string-hex0 special
-	char 0-9a-fA-F string-hex1
-	noeat string
-
-state string-hex1 special
-	char 0-9a-fA-F string-hex2
-	noeat string
-
-# "\xaff" is an error but "\xafg" is not!
-state string-hex2 special
-	char 0-9a-fA-F string error
-	noeat string
+	# \' is illegal inside string literal
+	char "abfnrtv\"\\" string special
+	noeat .go-esc:string
 
 state char
 	char "'" go error
 	char "\\" char-esc
 	char "\n" go
+	# assume multiple non-ASCII bytes are one UTF-8 character
+	char "€-ÿ" not-ascii
 	eat char-end
 
 state char-esc special
-	char "abfnrtv'\\\"" char-end special
-	char 0-3 char-oct1
-	char 4-7 char-oct2
-	char x char-hex0
-	eat go error
+	# \" is illegal inside character literal
+	char "abfnrtv'\\" char-end special
+	noeat .go-esc:char-end
 
-state char-oct1 special
-	char 0-7 char-oct2
-	noeat char-end
-
-state char-oct2 special
-	char 0-7 char special
-	noeat char-end
-
-state char-hex0 special
-	char 0-9a-fA-F char-hex1
-	noeat char-end
-
-state char-hex1 special
-	char 0-9a-fA-F char-end special
+state not-ascii char
+	char "€-ÿ" not-ascii
 	noeat char-end
 
 state char-end char
