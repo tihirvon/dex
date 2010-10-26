@@ -29,7 +29,7 @@ struct global_options options = {
 	.show_tab_bar = 1,
 	.lock_files = 1,
 	.scroll_margin = 0,
-	.search_case = SC_AUTO,
+	.case_sensitive_search = CSS_TRUE,
 };
 
 enum option_type {
@@ -207,7 +207,7 @@ struct option_description {
 
 static const char *bool_enum[] = { "false", "true", NULL };
 static const char *newline_enum[] = { "unix", "dos", NULL };
-const char *search_case_enum[] = { "sensitive", "insensitive", "auto" };
+const char *case_sensitive_search_enum[] = { "false", "true", "auto" };
 static const char *ws_error_values[] = {
 	"trailing",
 	"space-indent",
@@ -220,6 +220,7 @@ static const char *ws_error_values[] = {
 static const struct option_description option_desc[] = {
 	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
+	G_ENUM("case-sensitive-search", case_sensitive_search, case_sensitive_search_enum, default_enum_set),
 	G_BOOL("display-special", display_special, default_bool_set),
 	C_BOOL("emulate-tab", emulate_tab, default_bool_set),
 	G_INT("esc-timeout", esc_timeout, 0, 2000, default_int_set),
@@ -231,7 +232,6 @@ static const struct option_description option_desc[] = {
 	G_BOOL("move-wraps", move_wraps, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_enum_set),
 	G_INT("scroll-margin", scroll_margin, 0, 100, default_int_set),
-	G_ENUM("search-case", search_case, search_case_enum, default_enum_set),
 	G_BOOL("show-tab-bar", show_tab_bar, default_int_set),
 	G_STR("statusline-left", statusline_left, statusline_set),
 	G_STR("statusline-right", statusline_right, statusline_set),

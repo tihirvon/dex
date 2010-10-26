@@ -140,13 +140,13 @@ static int update_regex(void)
 {
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
 
-	switch (options.search_case) {
-	case SC_SENSITIVE:
+	switch (options.case_sensitive_search) {
+	case CSS_TRUE:
 		break;
-	case SC_INSENSITIVE:
+	case CSS_FALSE:
 		re_flags |= REG_ICASE;
 		break;
-	case SC_AUTO:
+	case CSS_AUTO:
 		if (!has_upper(current_search.pattern))
 			re_flags |= REG_ICASE;
 		break;
