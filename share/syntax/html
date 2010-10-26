@@ -1,12 +1,11 @@
-# FIXME: http://www.w3schools.com/tags/ref_symbols.asp
-
 # sub-syntax. used in text and attribute values
 syntax .html-entity
 
 state entity
 	char # number
 	char -b a-zA-Z0-9 name
-	# FIXME: \n should not be error, & should
+	recolor error 1
+	char "\n" END
 	eat END error
 
 state number entity
@@ -16,37 +15,43 @@ state number entity
 
 state name error
 	char -b a-zA-Z0-9 name
-	listed reservedcharentity end entity
-	listed symbolentity end entity
-	listed charentity end entity
+	listed entity end
 	noeat end
 
 state end error
 	char ";" END entity
-	noeat END
+	eat END error
 
-# FIXME: put in one list?
-list reservedcharentity \
-	'quot' 'apos' 'amp' 'lt' 'gt'
-
-list symbolentity \
-	'nbsp' 'iexcl' 'cent' 'pound' 'curren' 'yen' 'brvbar' \
-	'sect' 'uml' 'copy' 'ordf' 'laquo' 'not' 'shy' 'reg' \
-	'macr' 'deg' 'plusmn' 'sup2' 'sup3' 'acute' 'micro' \
-	'para' 'middot' 'cedil' 'sup1' 'ordm' 'raquo' 'frac14' \
-	'frac12' 'frac34' 'iquest' 'times' 'divide'
-
-list charentity \
-	'Agrave' 'Aacute' 'Acirc' 'Atilde' 'Auml' 'Aring' \
-	'AElig' 'Ccedil' 'Egrave' 'Eacute' 'Ecirc' 'Euml' \
-	'Igrave' 'Iacute' 'Icirc' 'Iuml' 'ETH' 'Ntilde' \
-	'Ograve' 'Oacute' 'Ocirc' 'Otilde' 'Ouml' 'Oslash' \
-	'Ugrave' 'Uacute' 'Ucirc' 'Uuml' 'Yacute' 'THORN' \
-	'szlig' 'agrave' 'aacute' 'acirc' 'atilde' 'auml' \
-	'aring' 'aelig' 'ccedil' 'egrave' 'eacute' 'ecirc' \
-	'euml' 'igrave' 'iacute' 'icirc' 'iuml' 'eth' 'ntilde' \
-	'ograve' 'oacute' 'ocirc' 'otilde' 'ouml' 'oslash' \
-	'ugrave' 'uacute' 'ucirc' 'uuml' 'yacute' 'thorn' 'yuml'
+# reserved characters, latin1 symbols, latin1 characters, math, greek, other
+list -h entity \
+	quot apos amp lt gt \
+\
+	nbsp iexcl cent pound curren yen brvbar sect uml copy ordf laquo not \
+	shy reg macr deg plusmn sup2 sup3 acute micro para middot cedil sup1 \
+	ordm raquo frac14 frac12 frac34 iquest times divide \
+\
+	Agrave Aacute Acirc Atilde Auml Aring AElig Ccedil Egrave Eacute \
+	Ecirc Euml Igrave Iacute Icirc Iuml ETH Ntilde Ograve Oacute Ocirc \
+	Otilde Ouml Oslash Ugrave Uacute Ucirc Uuml Yacute THORN szlig \
+	agrave aacute acirc atilde auml aring aelig ccedil egrave eacute \
+	ecirc euml igrave iacute icirc iuml eth ntilde ograve oacute ocirc \
+	otilde ouml oslash ugrave uacute ucirc uuml yacute thorn yuml \
+\
+	forall part exist empty nabla isin notin ni prod sum minus lowast \
+	radic prop infin ang and or cap cup int there4 sim cong asymp ne \
+	equiv le ge sub sup nsub sube supe oplus otimes perp sdot \
+\
+	Alpha Beta Gamma Delta Epsilon Zeta Eta Theta Iota Kappa Lambda Mu \
+	Nu Xi Omicron Pi Rho Sigma Tau Upsilon Phi Chi Psi Omega alpha beta \
+	gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi \
+	omicron pi rho sigmaf sigma tau upsilon phi chi psi omega thetasym \
+	upsih piv \
+\
+	OElig oelig Scaron scaron Yuml fnof circ tilde ensp emsp thinsp zwnj \
+	zwj lrm rlm ndash mdash lsquo rsquo sbquo ldquo rdquo bdquo dagger \
+	Dagger bull hellip permil prime Prime lsaquo rsaquo oline euro trade \
+	larr uarr rarr darr harr crarr lceil rceil lfloor rfloor loz spades \
+	clubs hearts diams
 
 # main syntax
 syntax html
@@ -135,7 +140,7 @@ state sq string
 	eat sq
 
 # strict/transitional/frameset
-list -i tag \
+list -hi tag \
 	a abbr acronym address area b base bdo big blockquote body br \
 	button caption cite code col colgroup dd del dfn div dl dt em \
 	fieldset form h1 h2 h3 h4 h5 h6 head hr html i img input ins kbd \
@@ -153,8 +158,10 @@ list -i tag-transitional \
 
 # deprecated transitional/frameset
 # blink and marquee are non-standard
-list -i tag-deprecated \
+list -hi tag-deprecated \
 	applet basefont blink center dir font isindex marquee menu s strike u
 
 default text tag-unknown
-default tag tag-frameset tag-transitional tag-deprecated
+default tag tag-frameset tag-transitional
+default error tag-deprecated
+default special entity
