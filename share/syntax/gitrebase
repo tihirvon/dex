@@ -9,8 +9,8 @@ state start text
 state word text
 	char -b a-zA-Z0-9_ word
 	listed keyword separator1
-	bufis x exec
-	bufis exec exec
+	bufis x exec keyword
+	bufis exec exec keyword
 	noeat error
 
 # FIXME: can be annoying
@@ -36,7 +36,7 @@ state title text
 	char "\n" start
 	eat title
 
-state exec
+state exec code
 	char "\n" start
 	eat exec
 
