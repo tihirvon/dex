@@ -6,7 +6,7 @@ state esc special
 
 syntax sql
 
-state start text
+state start code
 	char -b a-zA-Z_ word
 	char "'" sq
 	char '"' dq
@@ -46,7 +46,7 @@ state error-ident error
 	char -b a-zA-Z0-9_ error-ident
 	noeat start
 
-state word text
+state word code
 	char -b a-zA-Z0-9_ word
 	listed keyword start
 	listed identifier start
@@ -68,7 +68,7 @@ state backtick constant
 
 state dash comment
 	char -- - comment
-	recolor text 1
+	recolor code 1
 	noeat start
 
 state comment
@@ -77,7 +77,7 @@ state comment
 
 state slash comment
 	char "*" c-comment
-	recolor text 1
+	recolor code 1
 	noeat start
 
 state c-comment comment

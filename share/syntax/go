@@ -1,6 +1,6 @@
 syntax go
 
-state go text
+state go code
 	char -b A-Z exported
 	char -b a-z_ ident
 	char -b 0 zero
@@ -48,11 +48,11 @@ state check-suffix error
 	char -b a-zA-Z0-9_ check-suffix
 	noeat go
 
-state check-imag text
+state check-imag code
 	char i check-suffix numeric
 	noeat check-suffix
 
-state dot text
+state dot code
 	char 0-9 float
 	noeat go
 

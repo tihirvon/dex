@@ -24,7 +24,7 @@ state hex1 special
 
 syntax python
 
-state start text
+state start code
 	char # comment
 	str '"""' longdq
 	str "'''" longsq
@@ -91,7 +91,7 @@ state hex numeric
 	char 0-9a-fA-F hex
 	noeat int-suffix
 
-state int-suffix text
+state int-suffix code
 	char lL int-end numeric
 	noeat int-end
 

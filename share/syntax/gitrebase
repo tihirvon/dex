@@ -18,11 +18,11 @@ state error
 	char "\n" start
 	eat error
 
-state separator1 text
+state separator1 code
 	char " \t" space1
 	noeat error
 
-state space1 text
+state space1 code
 	char " \t" space1
 	noeat sha1
 

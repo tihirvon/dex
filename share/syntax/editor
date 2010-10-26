@@ -1,6 +1,6 @@
 syntax editor
 
-state start text
+state start code
 	char " \t" start
 	char # comment
 	noeat command
@@ -9,7 +9,7 @@ state comment
 	char "\n" start
 	eat comment
 
-state command text
+state command code
 	char "'" sq
 	char '"' dq
 	char "\n" start

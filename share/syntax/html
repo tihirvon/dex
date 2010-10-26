@@ -111,7 +111,7 @@ state close-tag-end special
 	char > text special
 	eat text error
 
-state attrs text
+state attrs code
 	char " \t\n" attrs
 	char -b a-zA-Z attr-name
 	char > text special
@@ -161,7 +161,7 @@ list -i tag-transitional \
 list -hi tag-deprecated \
 	applet basefont blink center dir font isindex marquee menu s strike u
 
-default text tag-unknown
+default code tag-unknown
 default tag tag-frameset tag-transitional
 default error tag-deprecated
 default special entity

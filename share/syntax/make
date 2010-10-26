@@ -1,43 +1,43 @@
 syntax make
 
-state start text
+state start code
 	char "\n" start
 	char "\t" tab-indent
 	char " " space-indent
 	noeat not-recipe
 
 # "^\t[ \t]*"
-state tab-indent text
+state tab-indent code
 	char " \t" tab-indent
 	char "\n" start
 	char -b a-zA-Z_- not-target
 	noeat make
 
 # "^ [ \t]*"
-state space-indent text
+state space-indent code
 	char " \t" space-indent
 	noeat not-recipe
 
 # can't be target but can be recipe, variable or keyword
-state not-target text
+state not-target code
 	char -b a-zA-Z_- not-target
 	listed keyword make
 	noeat make
 
 # can't be recipe but can be target, variable or keyword
-state not-recipe text
+state not-recipe code
 	char -b . special-target
 	char -b a-zA-Z_- not-recipe
 	listed keyword make
 	noeat make
 
-state special-target text
+state special-target code
 	char -b A-Z_ special-target
 	# FIXME: ".PHONY := ..." is valid
 	listed special-target make constant
 	noeat make
 
-state make text
+state make code
 	char # comment
 	char \$ dollar
 	char "\n" start

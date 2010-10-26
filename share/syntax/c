@@ -70,7 +70,7 @@ state backslash comment
 # main syntax
 syntax c
 
-state start text
+state start code
 	char " \t" start
 	char # preproc
 	noeat c
@@ -126,7 +126,7 @@ state preproc-error error
 	char "\n" start
 	eat preproc-error
 
-state c text
+state c code
 	char -b a-zA-Z_ ident
 	char -b 0 zero
 	char -b 1-9 dec
@@ -170,7 +170,7 @@ state check-suffix error
 	listed numeric-suffix c numeric
 	noeat c
 
-state dot text
+state dot code
 	char 0-9 float
 	noeat c
 

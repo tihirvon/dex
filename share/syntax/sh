@@ -2,13 +2,13 @@
 # also beginning of line can contain ( after which command is allowed
 syntax sh
 
-state start text
+state start code
 	char -b a-zA-Z0-9_/.- command
 	char "\t " start
 	char ({ start special
 	noeat args
 
-state command text
+state command code
 	# eat all garbage to distinguish test/run.sh from builtin test
 	char -b a-zA-Z0-9_/.- command
 	listed keyword1 start keyword
@@ -27,7 +27,7 @@ state forvar ident
 	char " \t" forspace
 	noeat forerror
 
-state forspace text
+state forspace code
 	char " \t" forspace
 	str in in
 	noeat forerror
@@ -36,11 +36,11 @@ state in keyword
 	char " \t" args
 	noeat forerror
 
-state forerror text
+state forerror code
 	char a-zA-Z_0-9 args error
 	noeat args
 
-state args text
+state args code
 	char # comment
 	char "'" sq
 	char '"' dq
@@ -92,7 +92,7 @@ state dqvarbracename variable
 	char a-zA-Z_0-9 dqvarbracename
 	noeat dqvarbraceend
 
-state dqvarbraceend text
+state dqvarbraceend code
 	char '}' dq variable
 	noeat dq
 
@@ -141,7 +141,7 @@ state heredoc string
 	char "\n" heredocline
 	eat heredoc
 
-state heredocline text
+state heredocline code
 	str "EOF\n" start special
 	noeat heredoc
 

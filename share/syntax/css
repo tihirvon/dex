@@ -2,7 +2,7 @@ syntax .css-comment
 
 state start comment
 	char "*" comment
-	recolor text 1
+	recolor code 1
 	noeat END
 
 state comment
@@ -15,7 +15,7 @@ state star comment
 
 syntax css
 
-state start text
+state start code
 	char " \t\n" start
 	char -b a-zA-Z tag
 	char . class
@@ -31,11 +31,11 @@ state tag
 	char _- start-error
 	noeat start
 
-state colon text
+state colon code
 	char -b a-zA-Z0-9- pseudo
 	eat start-error
 
-state pseudo text
+state pseudo code
 	char -b a-zA-Z0-9- pseudo
 	listed pseudoclass start
 	noeat start
@@ -48,7 +48,7 @@ state id
 	char a-zA-Z0-9_- id
 	noeat start
 
-state block text
+state block code
 	char " \t\n;" block
 	char -b a-zA-Z- property
 	char 0-9_- property-error
@@ -56,21 +56,21 @@ state block text
 	char / .css-comment:block
 	eat block
 
-state property text
+state property code
 	char -b a-zA-Z- property
 	char 0-9_ property-error
 	listed property property-end
 	# could be unknown property
 	noeat property-end
 
-state property-end text
+state property-end code
 	char : values
 	char " \t\n" property-end
 	char ";" block
 	char } start
 	eat property-error
 
-state values text
+state values code
 	char " \t\n" values
 	char 0-9 int
 	char -- - minus
@@ -103,7 +103,7 @@ state unit error
 	char } start
 	eat value-error
 
-state value text
+state value code
 	char -b a-zA-Z0-9_- value
 	listed value values
 	listed color values
@@ -116,12 +116,12 @@ state hexcolor color
 	char g-zG-Z_- value-error
 	noeat values
 
-state func text
+state func code
 	char " \t" func
 	char ( params
 	eat value-error
 
-state params text
+state params code
 	char ) values
 	char ";" block
 	char } start
