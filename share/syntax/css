@@ -27,7 +27,17 @@ state start text
 
 state tag
 	char -b a-zA-Z0-9 tag
+	char : colon
 	char _- start-error
+	noeat start
+
+state colon text
+	char -b a-zA-Z0-9- pseudo
+	eat start-error
+
+state pseudo text
+	char -b a-zA-Z0-9- pseudo
+	listed pseudoclass start
 	noeat start
 
 state class
@@ -40,7 +50,7 @@ state id
 
 state block text
 	char " \t\n;" block
-	char -b a-zA-Z property
+	char -b a-zA-Z- property
 	char 0-9_- property-error
 	char } start
 	char / .css-comment:block
@@ -96,18 +106,26 @@ state unit error
 state value text
 	char -b a-zA-Z0-9_- value
 	listed value values
-	listed colorname values
-	bufis rgb rgb
+	listed color values
+	listed func func value
 	noeat values
 
 # FIXME: length must be 3 or 6
-state hexcolor numeric
+state hexcolor color
 	char 0-9a-fA-F hexcolor
 	char g-zG-Z_- value-error
 	noeat values
 
-state rgb
-	eat rgb
+state func text
+	char " \t" func
+	char ( params
+	eat value-error
+
+state params text
+	char ) values
+	char ";" block
+	char } start
+	eat params
 
 state start-error error
 	char a-zA-Z0-9_- start-error
@@ -120,10 +138,6 @@ state property-error error
 state value-error error
 	char a-zA-Z0-9_- value-error
 	noeat values
-
-#syn addr -i color '#[0-9a-z]{3}([0-9a-z]{3})?'
-#syn addr rgb 'rgb\([0-9]+,[0-9]+,[0-9]+\)'
-#syn addr rgbp 'rgb\([0-9]+%,[0-9]+%,[0-9]+%\)'
 
 list -hi property \
 	background background-attachment background-color \
@@ -151,16 +165,40 @@ list -hi property \
 	unicode-bidi visibility widows z-index
 
 list -i value \
-	bold italic oblique normal middle none pointer block inline \
-	left right collapse solid underline nowrap center absolute relative
+	absolute always armenian auto avoid baseline bidi-override blink \
+	block bold bolder both bottom capitalize center circle \
+	cjk-ideographic collapse compact condensed crop cross crosshair \
+	dashed decimal decimal-leading-zero default disc dotted double \
+	e-resize embed expanded extra-condensed extra-expanded fixed \
+	georgian groove hebrew help hidden hide hiragana hiragana-iroha \
+	inline inline-table inset inside italic justify katakana \
+	katakana-iroha landscape large larger left lighter line-through \
+	list-item lower-alpha lower-greek lower-latin lower-roman lowercase \
+	ltr marker medium middle move n-resize narrower ne-resize no-repeat \
+	none normal nowrap nw-resize oblique outset outside overline pointer \
+	potrait pre relative repeat repeat-x repeat-y ridge right rtl run-in \
+	s-resize scroll se-resize semi-condensed semi-expanded separate show \
+	small small-caps smaller solid square static sub super sw-resize \
+	table table-caption table-cell table-column table-column-group \
+	table-footer-group table-header-group table-row table-row-group text \
+	text-bottom text-top thick thin top ultra-condensed ultra-expanded \
+	underline upper-alpha upper-latin upper-roman uppercase visible \
+	w-resize wait wider x-large x-small xx-large xx-small
 
-list -i colorname \
+list -i color \
 	aqua black blue fuchsia gray green lime maroon navy olive \
 	purple red silver teal white yellow
 
-list -i pseudo \
+list -i pseudoclass \
 	active first-letter first-line hover link visited \
 	after before first-child focus lang
 
 list -i unit \
 	% cm em ex in mm pc pt px
+
+list -i func \
+	attr clip counter rect rgb url
+
+default keyword property
+default type class id pseudoclass
+default constant value color
