@@ -13,12 +13,13 @@ static void bitmap_set(unsigned char *bitmap, unsigned int idx)
 	bitmap[byte] |= 1 << bit;
 }
 
-static void set_bits(unsigned char *bitmap, const char *pattern)
+static void set_bits(unsigned char *bitmap, const char *_pattern)
 {
+	const unsigned char *pattern = (const unsigned char *)_pattern;
 	int i;
 
 	for (i = 0; pattern[i]; i++) {
-		unsigned char ch = pattern[i];
+		unsigned int ch = pattern[i];
 
 		bitmap_set(bitmap, ch);
 		if (pattern[i + 1] == '-' && pattern[i + 2]) {
