@@ -1,6 +1,6 @@
 syntax diff
 
-state headers
+state headers header
 	str "diff " header
 	str "index " header
 	str "new " header
