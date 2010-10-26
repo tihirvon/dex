@@ -34,7 +34,7 @@ state not-recipe code
 state special-target code
 	char -b A-Z_ special-target
 	# FIXME: ".PHONY := ..." is valid
-	listed special-target make constant
+	listed special-target make
 	noeat make
 
 state make code
@@ -91,3 +91,5 @@ list special-target \
 	.FEATURES .IGNORE .INCLUDE_DIRS .INTERMEDIATE .LIBPATTERNS \
 	.LOW_RESOLUTION_TIME .NOT_PARALLEL .PHONY .POSIX .PRECIOUS \
 	.SECONDARY .SECONDEXPANSION .VARIABLES
+
+default constant special-target
