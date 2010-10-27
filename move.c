@@ -50,22 +50,6 @@ void move_to_preferred_x(void)
 	}
 }
 
-void move_right(int count)
-{
-	while (count > 0) {
-		uchar u;
-
-		if (!buffer_next_char(&view->cursor, &u))
-			break;
-		if (!options.move_wraps && u == '\n') {
-			block_iter_prev_byte(&view->cursor, &u);
-			break;
-		}
-		count--;
-	}
-	update_preferred_x();
-}
-
 void move_cursor_left(void)
 {
 	uchar u;
@@ -90,6 +74,8 @@ void move_cursor_left(void)
 
 void move_cursor_right(void)
 {
+	uchar u;
+
 	if (buffer->options.emulate_tab) {
 		int size = get_indent_level_bytes_right();
 		if (size) {
@@ -98,7 +84,13 @@ void move_cursor_right(void)
 			return;
 		}
 	}
-	move_right(1);
+
+	if (!buffer_next_char(&view->cursor, &u))
+		return;
+
+	if (!options.move_wraps && u == '\n')
+		block_iter_prev_byte(&view->cursor, &u);
+	update_preferred_x();
 }
 
 void move_bol(void)

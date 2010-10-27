@@ -267,20 +267,21 @@ void insert_ch(unsigned int ch)
 		record_replace(deleted, del_count, ins_count);
 		end_change();
 
-		move_right(ins_count);
+		block_iter_skip_bytes(&view->cursor, ins_count);
+		update_preferred_x();
 	} else {
 		char buf[9];
-		unsigned int chars = 1;
-		unsigned int i = 0;
+		unsigned int bytes, i = 0;
 
 		if (ch == '\t' && buffer->options.expand_tab) {
-			i = chars = buffer->options.indent_width;
-			memset(buf, ' ', chars);
+			i = buffer->options.indent_width;
+			memset(buf, ' ', i);
 		} else if (buffer->utf8) {
 			u_set_char_raw(buf, &i, ch);
 		} else {
 			buf[i++] = ch;
 		}
+		bytes = i;
 		if (block_iter_is_eof(&view->cursor))
 			buf[i++] = '\n';
 
@@ -288,7 +289,8 @@ void insert_ch(unsigned int ch)
 		insert(buf, i);
 		end_change();
 
-		move_right(chars);
+		block_iter_skip_bytes(&view->cursor, bytes);
+		update_preferred_x();
 	}
 }
 
@@ -567,7 +569,8 @@ void clear_lines(void)
 	if (indent)
 		ins_count = strlen(indent);
 	replace(del_count, indent, ins_count);
-	move_right(ins_count);
+	block_iter_skip_bytes(&view->cursor, ins_count);
+	update_preferred_x();
 }
 
 void new_line(void)
@@ -587,7 +590,8 @@ void new_line(void)
 	do_insert("\n", 1);
 
 	record_insert(ins_count);
-	move_right(ins_count);
+	block_iter_skip_bytes(&view->cursor, ins_count);
+	update_preferred_x();
 }
 
 static void add_word(struct paragraph_formatter *pf, const char *word, int len)
@@ -727,11 +731,12 @@ void format_paragraph(int text_width)
 		do_insert(pf.buf.buffer, pf.buf.len);
 	}
 	record_replace(sel, len, pf.buf.len);
-	move_right(pf.buf.len);
+	block_iter_skip_bytes(&view->cursor, pf.buf.len);
 	gbuf_free(&pf.buf);
 	free(pf.indent);
 
 	unselect();
+	update_preferred_x();
 }
 
 void change_case(int mode, int move_after)

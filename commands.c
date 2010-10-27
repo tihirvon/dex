@@ -548,8 +548,10 @@ static void cmd_pass_through(const char *pf, char **args)
 	replace(del_len, data.out, data.out_len);
 	free(data.out);
 
-	if (move)
-		move_right(data.out_len);
+	if (move) {
+		block_iter_skip_bytes(&view->cursor, data.out_len);
+		update_preferred_x();
+	}
 }
 
 static void cmd_paste(const char *pf, char **args)

@@ -4,7 +4,6 @@
 struct block_iter;
 
 void move_to_preferred_x(void);
-void move_right(int count);
 void move_cursor_left(void);
 void move_cursor_right(void);
 void move_bol(void);
