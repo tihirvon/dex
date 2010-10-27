@@ -44,9 +44,7 @@ void move_to_preferred_x(void)
 
 	if (buffer->options.emulate_tab && in_space_indent && x % buffer->options.indent_width) {
 		// force cursor to beginning of a indentation level
-		int count = x % buffer->options.indent_width;
-		while (count--)
-			block_iter_prev_byte(&view->cursor, &u);
+		block_iter_back_bytes(&view->cursor, x % buffer->options.indent_width);
 	}
 }
 
@@ -57,8 +55,7 @@ void move_cursor_left(void)
 	if (buffer->options.emulate_tab) {
 		int size = get_indent_level_bytes_left();
 		if (size) {
-			while (size--)
-				block_iter_prev_byte(&view->cursor, &u);
+			block_iter_back_bytes(&view->cursor, size);
 			update_preferred_x();
 			return;
 		}

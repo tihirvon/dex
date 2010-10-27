@@ -148,6 +148,16 @@ unsigned int block_iter_count_to_next_line(const struct block_iter *bi)
 	return blk->size - offset;
 }
 
+void block_iter_back_bytes(struct block_iter *bi, unsigned int count)
+{
+	while (count > bi->offset) {
+		count -= bi->offset;
+		bi->blk = BLOCK(bi->blk->node.prev);
+		bi->offset = bi->blk->size;
+	}
+	bi->offset -= count;
+}
+
 void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
 {
 	unsigned int avail = bi->blk->size - bi->offset;

@@ -36,6 +36,7 @@ unsigned int block_iter_prev_line(struct block_iter *bi);
 unsigned int block_iter_bol(struct block_iter *bi);
 unsigned int block_iter_eol(struct block_iter *bi);
 unsigned int block_iter_count_to_next_line(const struct block_iter *bi);
+void block_iter_back_bytes(struct block_iter *bi, unsigned int count);
 void block_iter_skip_bytes(struct block_iter *bi, unsigned int count);
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset);
 void block_iter_goto_line(struct block_iter *bi, unsigned int line);

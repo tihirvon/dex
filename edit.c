@@ -191,9 +191,7 @@ void erase(void)
 		if (buffer->options.emulate_tab) {
 			int size = get_indent_level_bytes_left();
 			if (size) {
-				int n = size;
-				while (n--)
-					block_iter_prev_byte(&view->cursor, &u);
+				block_iter_back_bytes(&view->cursor, size);
 				delete(size, 1);
 				return;
 			}
