@@ -135,11 +135,32 @@ static void cmd_bufis(const char *pf, char **args)
 
 static void cmd_char(const char *pf, char **args)
 {
-	enum condition_type type = *pf ? COND_CHAR_BUFFER : COND_CHAR;
-	struct condition *c = add_condition(type, args[1], args[2]);
+	enum condition_type type = COND_CHAR;
+	int not = 0;
+	struct condition *c;
 
-	if (c)
-		set_bits(c->u.cond_char.bitmap, args[0]);
+	while (*pf) {
+		switch (*pf) {
+		case 'b':
+			type = COND_CHAR_BUFFER;
+			break;
+		case 'n':
+			not = 1;
+			break;
+		}
+		pf++;
+	}
+
+	c = add_condition(type, args[1], args[2]);
+	if (!c)
+		return;
+
+	set_bits(c->u.cond_char.bitmap, args[0]);
+	if (not) {
+		int i;
+		for (i = 0; i < ARRAY_COUNT(c->u.cond_char.bitmap); i++)
+			c->u.cond_char.bitmap[i] = ~c->u.cond_char.bitmap[i];
+	}
 }
 
 static void cmd_default(const char *pf, char **args)
@@ -312,7 +333,7 @@ static void cmd_syntax(const char *pf, char **args)
 
 static const struct command syntax_commands[] = {
 	{ "bufis",	"i",	2,  3, cmd_bufis },
-	{ "char",	"b",	2,  3, cmd_char },
+	{ "char",	"bn",	2,  3, cmd_char },
 	{ "default",	"",	2, -1, cmd_default },
 	{ "eat",	"",	1,  2, cmd_eat },
 	{ "inlist",	"",	2,  3, cmd_inlist },
