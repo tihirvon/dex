@@ -105,8 +105,16 @@ unsigned int block_iter_bol(struct block_iter *bi)
 	if (!offset)
 		return 0;
 
-	while (offset && bi->blk->data[offset - 1] != '\n')
-		offset--;
+	if (bi->blk->nl > 1) {
+		while (offset && bi->blk->data[offset - 1] != '\n')
+			offset--;
+	} else {
+		// Only one (possibly very long) line in this block. Even
+		// after block_iter_normalize() call iterator can be at end
+		// of the block if it is the last block.
+		if (!offset || bi->blk->data[offset - 1] != '\n')
+			offset = 0;
+	}
 
 	ret = bi->offset - offset;
 	bi->offset = offset;
