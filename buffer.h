@@ -8,8 +8,6 @@
 #include "common.h"
 #include "ptr-array.h"
 
-#define MAX_HL_UPDATES 5
-
 struct change_head {
 	struct change_head *next;
 	struct change_head **prev;
