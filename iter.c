@@ -150,21 +150,15 @@ unsigned int block_iter_count_to_next_line(const struct block_iter *bi)
 
 void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
 {
-	struct block *blk = bi->blk;
-	unsigned int offset = bi->offset;
+	unsigned int avail = bi->blk->size - bi->offset;
 
-	while (1) {
-		unsigned int avail = blk->size - offset;
-
-		if (count <= avail) {
-			bi->blk = blk;
-			bi->offset = offset + count;
-			return;
-		}
-		blk = BLOCK(blk->node.next);
+	while (count > avail) {
 		count -= avail;
-		offset = 0;
+		bi->blk = BLOCK(bi->blk->node.next);
+		bi->offset = 0;
+		avail = bi->blk->size;
 	}
+	bi->offset += count;
 }
 
 void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
