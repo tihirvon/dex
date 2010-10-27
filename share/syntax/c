@@ -6,9 +6,9 @@ state start special
 	char 0-3 oct1
 	char 4-7 oct2
 	char x hex0
-	# anything but 0x00 or \n
-	char "-\t\v-ÿ" END error
-	# 0x00, \n
+	# anything but \n
+	char -n "\n" END error
+	# don't eat \n
 	noeat END
 
 state oct1 special

@@ -52,11 +52,12 @@ state 1left special
 state short special
 	# 128-255
 	char "€-ÿ" not-ascii
-	# any ASCII character but 0x00 or \n
-	char "-\t\v-" END error
-	# 0x00, \n
+	# any ASCII character but \n
+	char -n "\t" END error
+	# don't eat \n
 	noeat END
 
+# eats (at least) one multibyte UTF-8 character
 state not-ascii error
 	char "€-ÿ" not-ascii
 	noeat END
