@@ -80,8 +80,9 @@ struct string_list {
 		char **strings;
 		struct hash_str *hash[62];
 	} u;
-	int icase;
-	int hash;
+	unsigned int icase : 1;
+	unsigned int hash : 1;
+	unsigned int used : 1;
 };
 
 struct syntax {

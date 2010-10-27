@@ -450,8 +450,10 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 		if (cond->u.cond_listed.list == NULL) {
 			error_msg("No such list %s", name);
 			errors++;
-		} else if (cond->u.cond_listed.list->hash) {
-			cond->type = COND_LISTED_HASH;
+		} else {
+			cond->u.cond_listed.list->used = 1;
+			if (cond->u.cond_listed.list->hash)
+				cond->type = COND_LISTED_HASH;
 		}
 		free(name);
 	}
@@ -611,12 +613,17 @@ static void finish_syntax(void)
 		return;
 	}
 
-	// unreachable states cause warning only
+	// unused states and lists cause warning only
 	visit(current_syntax->states.ptrs[0]);
 	for (i = 0; i < current_syntax->states.count; i++) {
 		struct state *s = current_syntax->states.ptrs[i];
 		if (!s->visited)
 			error_msg("State %s is unreachable", s->name);
+	}
+	for (i = 0; i < current_syntax->string_lists.count; i++) {
+		struct string_list *list = current_syntax->string_lists.ptrs[i];
+		if (!list->used)
+			error_msg("List %s never used", list->name);
 	}
 
 	list_add_before(&current_syntax->node, &syntaxes);
