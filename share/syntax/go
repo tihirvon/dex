@@ -85,6 +85,7 @@ state ident
 	listed keyword go
 	listed type go
 	listed constant go
+	listed builtin go
 	noeat go
 
 state zero numeric
