@@ -8,7 +8,7 @@ state start text
 
 state word text
 	char -b a-zA-Z0-9_ word
-	listed keyword separator1
+	inlist keyword separator1
 	bufis x exec keyword
 	bufis exec exec keyword
 	noeat error

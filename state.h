@@ -9,8 +9,8 @@ enum condition_type {
 	COND_BUFIS,
 	COND_CHAR,
 	COND_CHAR_BUFFER,
-	COND_LISTED,
-	COND_LISTED_HASH,
+	COND_INLIST,
+	COND_INLIST_HASH,
 	COND_RECOLOR,
 	COND_STR,
 	COND_STR2,
@@ -44,7 +44,7 @@ struct condition {
 		union {
 			char *list_name;		// set while parsing syntax file
 			struct string_list *list;	// set after parsed syntax file
-		} cond_listed;
+		} cond_inlist;
 		struct {
 			int len;
 		} cond_recolor;

@@ -48,8 +48,8 @@ state error-ident error
 
 state word code
 	char -b a-zA-Z0-9_ word
-	listed keyword start
-	listed identifier start
+	inlist keyword start
+	inlist identifier start
 	eat start
 
 state sq string

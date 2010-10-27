@@ -209,13 +209,13 @@ static void cmd_list(const char *pf, char **args)
 	current_state = NULL;
 }
 
-static void cmd_listed(const char *pf, char **args)
+static void cmd_inlist(const char *pf, char **args)
 {
 	const char *emit = args[2] ? args[2] : args[0];
-	struct condition *c = add_condition(COND_LISTED, args[1], emit);
+	struct condition *c = add_condition(COND_INLIST, args[1], emit);
 
 	if (c)
-		c->u.cond_listed.list_name = xstrdup(args[0]);
+		c->u.cond_inlist.list_name = xstrdup(args[0]);
 }
 
 static void cmd_noeat(const char *pf, char **args)
@@ -315,8 +315,8 @@ static const struct command syntax_commands[] = {
 	{ "char",	"b",	2,  3, cmd_char },
 	{ "default",	"",	2, -1, cmd_default },
 	{ "eat",	"",	1,  2, cmd_eat },
+	{ "inlist",	"",	2,  3, cmd_inlist },
 	{ "list",	"hi",	2, -1, cmd_list },
-	{ "listed",	"",	2,  3, cmd_listed },
 	{ "noeat",	"",	1,  1, cmd_noeat },
 	{ "recolor",	"",	2,  2, cmd_recolor },
 	{ "state",	"",	1,  2, cmd_state },
@@ -444,16 +444,16 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 {
 	int errors = 0;
 
-	if (cond->type == COND_LISTED) {
-		char *name = cond->u.cond_listed.list_name;
-		cond->u.cond_listed.list = find_string_list(syn, name);
-		if (cond->u.cond_listed.list == NULL) {
+	if (cond->type == COND_INLIST) {
+		char *name = cond->u.cond_inlist.list_name;
+		cond->u.cond_inlist.list = find_string_list(syn, name);
+		if (cond->u.cond_inlist.list == NULL) {
 			error_msg("No such list %s", name);
 			errors++;
 		} else {
-			cond->u.cond_listed.list->used = 1;
-			if (cond->u.cond_listed.list->hash)
-				cond->type = COND_LISTED_HASH;
+			cond->u.cond_inlist.list->used = 1;
+			if (cond->u.cond_inlist.list->hash)
+				cond->type = COND_INLIST_HASH;
 		}
 		free(name);
 	}

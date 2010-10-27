@@ -21,20 +21,20 @@ state space-indent code
 # can't be target but can be recipe, variable or keyword
 state not-target code
 	char -b a-zA-Z_- not-target
-	listed keyword make
+	inlist keyword make
 	noeat make
 
 # can't be recipe but can be target, variable or keyword
 state not-recipe code
 	char -b . special-target
 	char -b a-zA-Z_- not-recipe
-	listed keyword make
+	inlist keyword make
 	noeat make
 
 state special-target code
 	char -b A-Z_ special-target
 	# FIXME: ".PHONY := ..." is valid
-	listed special-target make
+	inlist special-target make
 	noeat make
 
 state make code
@@ -69,7 +69,7 @@ state lp variable
 state variable
 	char -b a-zA-Z_- variable
 	char ) make variable
-	listed function make builtin
+	inlist function make builtin
 	noeat make
 
 state esc special

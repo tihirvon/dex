@@ -64,8 +64,8 @@ state sq string
 
 state ident
 	char -b a-zA-Z_0-9 ident
-	listed keyword start
-	listed constant start
+	inlist keyword start
+	inlist constant start
 	noeat start
 
 state zero numeric

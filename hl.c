@@ -119,8 +119,8 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				sidx = -1;
 				state = a->destination.state;
 				goto top;
-			case COND_LISTED:
-				if (sidx >= 0 && in_list(cond->u.cond_listed.list, line + sidx, i - sidx)) {
+			case COND_INLIST:
+				if (sidx >= 0 && in_list(cond->u.cond_inlist.list, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)
 						colors[idx] = a->emit_color;
@@ -129,8 +129,8 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					goto top;
 				}
 				break;
-			case COND_LISTED_HASH:
-				if (sidx >= 0 && in_hash(cond->u.cond_listed.list, line + sidx, i - sidx)) {
+			case COND_INLIST_HASH:
+				if (sidx >= 0 && in_hash(cond->u.cond_inlist.list, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)
 						colors[idx] = a->emit_color;

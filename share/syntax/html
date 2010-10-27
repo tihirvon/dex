@@ -15,7 +15,7 @@ state number entity
 
 state name error
 	char -b a-zA-Z0-9 name
-	listed entity end
+	inlist entity end
 	noeat end
 
 state end error
@@ -92,18 +92,18 @@ state close-tag special
 
 state tag-name tag-unknown
 	char -b a-zA-Z0-9 tag-name
-	listed tag attrs
-	listed tag-frameset attrs
-	listed tag-transitional attrs
-	listed tag-deprecated attrs
+	inlist tag attrs
+	inlist tag-frameset attrs
+	inlist tag-transitional attrs
+	inlist tag-deprecated attrs
 	noeat attrs
 
 state close-tag-name tag-unknown
 	char -b a-zA-Z0-9 close-tag-name
-	listed tag close-tag-end
-	listed tag-frameset close-tag-end
-	listed tag-transitional close-tag-end
-	listed tag-deprecated close-tag-end
+	inlist tag close-tag-end
+	inlist tag-frameset close-tag-end
+	inlist tag-transitional close-tag-end
+	inlist tag-deprecated close-tag-end
 	noeat close-tag-end
 
 state close-tag-end special

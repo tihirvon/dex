@@ -82,10 +82,10 @@ state exported
 
 state ident
 	char -b a-zA-Z0-9_ ident
-	listed keyword go
-	listed type go
-	listed constant go
-	listed builtin go
+	inlist keyword go
+	inlist type go
+	inlist constant go
+	inlist builtin go
 	noeat go
 
 state zero numeric
@@ -177,7 +177,7 @@ state cpp-comment comment
 
 state cpp-comment-word comment
 	char -b a-zA-Z0-9_ cpp-comment-word
-	listed notice cpp-comment
+	inlist notice cpp-comment
 	noeat cpp-comment
 
 state c-comment comment
@@ -187,7 +187,7 @@ state c-comment comment
 
 state c-comment-word comment
 	char -b a-zA-Z0-9_ c-comment-word
-	listed notice c-comment
+	inlist notice c-comment
 	noeat c-comment
 
 list notice \

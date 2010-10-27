@@ -11,9 +11,9 @@ state start code
 state command code
 	# eat all garbage to distinguish test/run.sh from builtin test
 	char -b a-zA-Z0-9_/.- command
-	listed keyword1 start keyword
-	listed keyword2 args keyword
-	listed builtin args
+	inlist keyword1 start keyword
+	inlist keyword2 args keyword
+	inlist builtin args
 	bufis for for
 	noeat args
 

@@ -37,7 +37,7 @@ syntax .c-comment-word
 
 state comment
 	char -b a-zA-Z0-9_ comment
-	listed notice END
+	inlist notice END
 	noeat END
 
 list notice \
@@ -140,9 +140,9 @@ state c code
 
 state ident
 	char -b a-zA-Z0-9_ ident
-	listed keyword c
-	listed type c
-	listed constant c
+	inlist keyword c
+	inlist type c
+	inlist constant c
 	noeat c
 
 state zero numeric
@@ -167,7 +167,7 @@ state hex numeric
 
 state check-suffix error
 	char -b a-zA-Z0-9_ check-suffix
-	listed numeric-suffix c numeric
+	inlist numeric-suffix c numeric
 	noeat c
 
 state dot code

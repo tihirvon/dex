@@ -37,7 +37,7 @@ state colon code
 
 state pseudo code
 	char -b a-zA-Z0-9- pseudo
-	listed pseudoclass start
+	inlist pseudoclass start
 	noeat start
 
 state class
@@ -59,7 +59,7 @@ state block code
 state property code
 	char -b a-zA-Z- property
 	char 0-9_ property-error
-	listed property property-end
+	inlist property property-end
 	# could be unknown property
 	noeat property-end
 
@@ -98,16 +98,16 @@ state float numeric
 
 state unit error
 	char -b a-zA-Z% unit
-	listed unit values numeric
+	inlist unit values numeric
 	char ";" block
 	char } start
 	eat value-error
 
 state value code
 	char -b a-zA-Z0-9_- value
-	listed value values
-	listed color values
-	listed func func value
+	inlist value values
+	inlist color values
+	inlist func func value
 	noeat values
 
 # FIXME: length must be 3 or 6
