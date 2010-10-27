@@ -115,26 +115,32 @@ void update_cursor_y(void)
 void update_cursor_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;
-	struct lineref lr;
 	unsigned int idx = 0;
+	struct lineref lr;
+	int c = 0;
+	int w = 0;
 
 	view->cx = fetch_this_line(&view->cursor, &lr);
-	view->cx_char = 0;
-	view->cx_display = 0;
 	while (idx < view->cx) {
-		uchar u;
+		uchar u = (unsigned char)lr.line[idx];
 
-		if (buffer->utf8)
-			u = u_buf_get_char(lr.line, lr.size, &idx);
-		else
-			u = (unsigned char)lr.line[idx++];
-		view->cx_char++;
-		if (u == '\t') {
-			view->cx_display = (view->cx_display + tw) / tw * tw;
+		c++;
+		if (likely(u < 0x80) || !buffer->utf8) {
+			idx++;
+			if (u == '\t') {
+				w = (w + tw) / tw * tw;
+			} else {
+				w++;
+				if (u < 0x20 || u == 0x7f)
+					w++;
+			}
 		} else {
-			view->cx_display += u_char_width(u);
+			u = u_buf_get_char(lr.line, lr.size, &idx);
+			w += u_char_width(u);
 		}
 	}
+	view->cx_char = c;
+	view->cx_display = w;
 }
 
 static int cursor_outside_view(void)
