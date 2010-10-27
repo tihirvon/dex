@@ -466,6 +466,22 @@ static uchar screen_next_char(struct line_info *info)
 	return u;
 }
 
+static void screen_skip_char(struct line_info *info, int utf8)
+{
+	unsigned int count, pos = info->pos;
+	uchar u = (unsigned char)info->line[pos];
+
+	if (likely(u < 0x80) || !buffer->utf8) {
+		info->pos++;
+		count = 1;
+	} else {
+		u = u_buf_get_char(info->line, info->size, &info->pos);
+		count = info->pos - pos;
+	}
+	cur_offset += count;
+	buf_skip(u, utf8);
+}
+
 static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
 {
 	int i;
@@ -496,10 +512,26 @@ static void print_line(struct line_info *info)
 	int utf8 = term_flags & TERM_UTF8;
 	uchar u;
 
+	/*
+	 * Skip most characters using screen_skip_char() which is much
+	 * faster than screen_next_char() which does color updating etc.
+	 */
+	while (obuf.x + 8 < obuf.scroll_x && info->pos < info->size)
+		screen_skip_char(info, utf8);
+
+	/*
+	 * Skip rest. If a skipped character is wide (tab, control code
+	 * etc.) and we need to display part of it then we must update
+	 * color before calling buf_skip().
+	 */
 	while (obuf.x < obuf.scroll_x && info->pos < info->size) {
 		u = screen_next_char(info);
 		buf_skip(u, utf8);
 	}
+
+	/*
+	 * Fully visible characters (except possibly the last one).
+	 */
 	while (info->pos < info->size) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = screen_next_char(info);
