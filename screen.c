@@ -474,12 +474,22 @@ static void screen_skip_char(struct line_info *info, int utf8)
 	if (likely(u < 0x80) || !buffer->utf8) {
 		info->pos++;
 		count = 1;
+
+		if (u >= 0x20) {
+			obuf.x++;
+		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
+			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
+		} else {
+			// control
+			obuf.x += 2;
+		}
 	} else {
 		u = u_buf_get_char(info->line, info->size, &info->pos);
 		count = info->pos - pos;
+
+		obuf.x += u_char_width(u);
 	}
 	cur_offset += count;
-	buf_skip(u, utf8);
 }
 
 static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
