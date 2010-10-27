@@ -448,20 +448,18 @@ static int whitespace_error(struct line_info *info, uchar u, unsigned int i)
 static uchar screen_next_char(struct line_info *info)
 {
 	unsigned int count, pos = info->pos;
+	uchar u = (unsigned char)info->line[pos];
 	int ws_error = 0;
-	uchar u;
 
-	if (buffer->utf8) {
-		u = u_buf_get_char(info->line, info->size, &info->pos);
-		count = info->pos - pos;
-	} else {
-		u = (unsigned char)info->line[pos];
+	if (likely(u < 0x80) || !buffer->utf8) {
 		info->pos++;
 		count = 1;
+		if (u == '\t' || u == ' ')
+			ws_error = whitespace_error(info, u, pos);
+	} else {
+		u = u_buf_get_char(info->line, info->size, &info->pos);
+		count = info->pos - pos;
 	}
-
-	if (u == '\t' || u == ' ')
-		ws_error = whitespace_error(info, u, pos);
 
 	update_color(info->colors ? info->colors[pos] : NULL, is_non_text(u), ws_error);
 	cur_offset += count;
