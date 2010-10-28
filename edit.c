@@ -83,19 +83,6 @@ void copy(unsigned int len, int is_lines)
 	}
 }
 
-unsigned int count_bytes_eol(struct block_iter *bi)
-{
-	unsigned int count = 0;
-	uchar u;
-
-	do {
-		if (!block_iter_next_byte(bi, &u))
-			break;
-		count++;
-	} while (u != '\n');
-	return count;
-}
-
 unsigned int prepare_selection(void)
 {
 	struct selection_info info;

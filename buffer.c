@@ -87,7 +87,7 @@ void init_selection(struct selection_info *info)
 	}
 	if (view->selection == SELECT_LINES) {
 		info->so -= block_iter_bol(&info->si);
-		info->eo += count_bytes_eol(&ei);
+		info->eo += block_iter_eat_line(&ei);
 	} else {
 		// character under cursor belongs to the selection
 		info->eo += buffer_next_char(&ei, &u);

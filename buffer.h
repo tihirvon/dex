@@ -158,7 +158,6 @@ char *buffer_get_bytes(unsigned int len);
 void update_preferred_x(void);
 void insert(const char *buf, unsigned int len);
 void replace(unsigned int del_count, const char *inserted, int ins_count);
-unsigned int count_bytes_eol(struct block_iter *bi);
 
 void delete_ch(void);
 void erase(void);
