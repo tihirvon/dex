@@ -221,13 +221,18 @@ static void new_hole(int idx)
 {
 	struct ptr_array *s = &buffer->line_start_states;
 
-	if (idx >= buffer->first_hole)
+	if (idx == buffer->first_hole) {
+		// nothing to do
 		return;
+	}
+	if (idx > buffer->first_hole) {
+		// only way to mark this hole is to set it NULL
+		if (idx < s->count)
+			s->ptrs[idx] = NULL;
+		return;
+	}
 
-	/*
-	 * hl_line() can fill hole with states and leave buffer->first_hole
-	 * point to non-NULL value.
-	 */
+	// old first hole may have not been set to NULL
 	if (buffer->first_hole < s->count)
 		s->ptrs[buffer->first_hole] = NULL;
 
@@ -377,8 +382,16 @@ void hl_insert(int lines)
 	}
 
 	// invalidate start states of lines right after any changed lines
-	for (i = first + 1; i <= last + 1; i++)
-		s->ptrs[i] = NULL;
+	// invalid: first+1..last+1 (inclusive)
+	if (first != last) {
+		/*
+		 * NOTE: Because we don't keep track of number of the
+		 * possibly invalid line start states there are we must
+		 * set them all to NULL.
+		 */
+		for (i = first + 1; i <= last + 1; i++)
+			s->ptrs[i] = NULL;
+	}
 	new_hole(first + 1);
 }
 
@@ -424,7 +437,6 @@ void hl_delete(int deleted_nl)
 		s->count -= deleted_nl;
 	}
 
-	// invalidate line state after the changed line
-	s->ptrs[first + 1] = NULL;
+	// invalidate line start state after the changed line
 	new_hole(first + 1);
 }

@@ -46,8 +46,9 @@ struct buffer {
 
 	const struct syntax *syn;
 	// index 0 is always syn->states.ptrs[0]
+	// can contain NULL (invalidated) values
 	struct ptr_array line_start_states;
-	// index of first invalid line start state
+	// index of first possibly invalid line start state
 	unsigned int first_hole;
 };
 
