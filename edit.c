@@ -703,7 +703,8 @@ void format_paragraph(int text_width)
 		do_insert(pf.buf.buffer, pf.buf.len);
 	}
 	record_replace(sel, len, pf.buf.len);
-	block_iter_skip_bytes(&view->cursor, pf.buf.len);
+	if (pf.buf.len)
+		block_iter_skip_bytes(&view->cursor, pf.buf.len - 1);
 	gbuf_free(&pf.buf);
 	free(pf.indent);
 
