@@ -40,6 +40,28 @@ unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte)
 	return 1;
 }
 
+/*
+ * Move after first seen newline (beginning of next line).
+ * If there is no newline move to end of file (after all bytes).
+ * Returns number of bytes offset changes.
+ */
+unsigned int block_iter_eat_line(struct block_iter *bi)
+{
+	unsigned int offset;
+	const char *end;
+
+	block_iter_normalize(bi);
+
+	offset = bi->offset;
+	end = memchr(bi->blk->data + offset, '\n', bi->blk->size - offset);
+	if (end) {
+		bi->offset = end + 1 - bi->blk->data;
+	} else {
+		bi->offset = bi->blk->size;
+	}
+	return bi->offset - offset;
+}
+
 unsigned int block_iter_next_line(struct block_iter *bi)
 {
 	struct block *blk;
