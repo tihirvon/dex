@@ -570,7 +570,7 @@ void update_range(int y1, int y2)
 	for (i = 0; i < view->cy - y1; i++)
 		block_iter_prev_line(&bi);
 	for (i = 0; i < y1 - view->cy; i++)
-		block_iter_next_line(&bi);
+		block_iter_eat_line(&bi);
 	block_iter_bol(&bi);
 
 	current_line = y1;

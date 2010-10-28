@@ -332,7 +332,7 @@ struct view *find_view_by_buffer_id(unsigned int buffer_id)
 
 static int next_line(struct block_iter *bi, struct lineref *lr)
 {
-	if (!block_iter_next_line(bi))
+	if (!block_iter_eat_line(bi))
 		return 0;
 	fill_line_ref(bi, lr);
 	return 1;

@@ -228,7 +228,7 @@ void block_iter_goto_line(struct block_iter *bi, unsigned int line)
 	bi->blk = blk;
 	bi->offset = 0;
 	while (nl < line) {
-		if (!block_iter_next_line(bi))
+		if (!block_iter_eat_line(bi))
 			break;
 		nl++;
 	}

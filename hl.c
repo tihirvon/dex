@@ -245,7 +245,7 @@ static void find_hole(int pos)
 static void block_iter_move_down(struct block_iter *bi, int count)
 {
 	while (count--)
-		block_iter_next_line(bi);
+		block_iter_eat_line(bi);
 }
 
 void hl_fill_start_states(int line_nr)

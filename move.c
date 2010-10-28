@@ -115,7 +115,7 @@ void move_up(int count)
 void move_down(int count)
 {
 	while (count > 0) {
-		if (!block_iter_next_line(&view->cursor))
+		if (!block_iter_eat_line(&view->cursor))
 			break;
 		count--;
 	}

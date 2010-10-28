@@ -120,7 +120,7 @@ void paste(void)
 		int save = view->preferred_x;
 
 		if (!del_count)
-			block_iter_next_line(&view->cursor);
+			block_iter_eat_line(&view->cursor);
 		replace(del_count, copy_buf, copy_len);
 
 		view->preferred_x = save;
@@ -443,7 +443,7 @@ static void shift_right(int nr_lines, int count)
 		}
 		if (++i == nr_lines)
 			break;
-		block_iter_next_line(&view->cursor);
+		block_iter_eat_line(&view->cursor);
 	}
 	free(indent);
 }
@@ -496,7 +496,7 @@ static void shift_left(int nr_lines, int count)
 		}
 		if (++i == nr_lines)
 			break;
-		block_iter_next_line(&view->cursor);
+		block_iter_eat_line(&view->cursor);
 	}
 }
 
