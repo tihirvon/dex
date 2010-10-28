@@ -124,8 +124,10 @@ static void cmd_copy(const char *pf, char **args)
 		copy(prepare_selection(), view->selection == SELECT_LINES);
 		unselect();
 	} else {
+		struct block_iter tmp;
 		block_iter_bol(&view->cursor);
-		copy(block_iter_count_to_next_line(&view->cursor), 1);
+		tmp = view->cursor;
+		copy(block_iter_eat_line(&tmp), 1);
 	}
 	view->cursor = save;
 }
@@ -138,8 +140,10 @@ static void cmd_cut(const char *pf, char **args)
 			move_to_preferred_x();
 		unselect();
 	} else {
+		struct block_iter tmp;
 		block_iter_bol(&view->cursor);
-		cut(block_iter_count_to_next_line(&view->cursor), 1);
+		tmp = view->cursor;
+		cut(block_iter_eat_line(&tmp), 1);
 		move_to_preferred_x();
 	}
 }
