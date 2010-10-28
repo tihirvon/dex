@@ -62,6 +62,11 @@ unsigned int block_iter_eat_line(struct block_iter *bi)
 	return bi->offset - offset;
 }
 
+/*
+ * Move to beginning of next line.
+ * If there is no next line iterator is not advanced.
+ * Returns number of bytes iterator advanced.
+ */
 unsigned int block_iter_next_line(struct block_iter *bi)
 {
 	struct block *blk;
@@ -75,15 +80,12 @@ unsigned int block_iter_next_line(struct block_iter *bi)
 	offset = bi->offset;
 
 	end = memchr(blk->data + offset, '\n', blk->size - offset);
-	if (!end) {
-		bi->offset = blk->size;
+	if (!end)
 		return 0;
-	}
+
 	new_offset = end + 1 - blk->data;
-	if (new_offset == blk->size && blk->node.next == bi->head) {
-		bi->offset = new_offset;
+	if (new_offset == blk->size && blk->node.next == bi->head)
 		return 0;
-	}
 
 	bi->offset = new_offset;
 	return bi->offset - offset;
