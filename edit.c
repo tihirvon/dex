@@ -626,57 +626,47 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 	pf->cur_width += word_width;
 }
 
-static int is_ws_line(const struct block_iter *i)
+static unsigned int paragraph_size(void)
 {
-	struct block_iter bi = *i;
-	uchar ch;
+	struct block_iter bi = view->cursor;
+	struct lineref lr;
+	struct indent_info ii;
+	struct indent_info info;
+	unsigned int size;
 
-	while (block_iter_next_byte(&bi, &ch)) {
-		if (ch == '\n')
-			return 1;
-		if (!isspace(ch))
-			return 0;
+	block_iter_bol(&bi);
+	fill_line_ref(&bi, &lr);
+	get_indent_info(lr.line, lr.size, &info);
+	if (info.wsonly) {
+		// not in paragraph
+		return 0;
 	}
-	return 1;
-}
 
-/*
- * Goto beginning of current paragraph or beginning of next paragraph
- * if not currently on a paragraph.
- */
-static void goto_bop(void)
-{
-	int in_paragraph = 1;
-
-	block_iter_bol(&view->cursor);
-	while (is_ws_line(&view->cursor)) {
-		in_paragraph = 0;
-		if (!block_iter_next_line(&view->cursor))
-			break;
-	}
-	while (in_paragraph && block_iter_prev_line(&view->cursor)) {
-		if (is_ws_line(&view->cursor)) {
-			block_iter_next_line(&view->cursor);
+	// goto beginning of paragraph
+	while (block_iter_prev_line(&bi)) {
+		fill_line_ref(&bi, &lr);
+		get_indent_info(lr.line, lr.size, &ii);
+		if (ii.wsonly || ii.width != info.width) {
+			// empty line or indent changed
+			block_iter_eat_line(&bi);
 			break;
 		}
 	}
-}
+	view->cursor = bi;
 
-static unsigned int goto_eop(struct block_iter *bi)
-{
-	unsigned int count = 0;
+	// get size of paragraph
+	size = 0;
+	do {
+		unsigned int bytes = block_iter_eat_line(&bi);
 
-	while (1) {
-		uchar u;
-
-		if (is_ws_line(bi))
+		if (!bytes)
 			break;
-		count += block_iter_eol(bi);
-		if (!block_iter_next_byte(bi, &u))
-			break;
-		count++;
-	}
-	return count;
+
+		size += bytes;
+		fill_line_ref(&bi, &lr);
+		get_indent_info(lr.line, lr.size, &ii);
+	} while (!ii.wsonly && ii.width == info.width);
+	return size;
 }
 
 void format_paragraph(int text_width)
@@ -690,10 +680,7 @@ void format_paragraph(int text_width)
 		view->selection = SELECT_LINES;
 		len = prepare_selection();
 	} else {
-		struct block_iter bi;
-		goto_bop();
-		bi = view->cursor;
-		len = goto_eop(&bi);
+		len = paragraph_size();
 	}
 	if (!len)
 		return;
