@@ -56,6 +56,7 @@ hi diff.context keep keep
 hi gitcommit.added bold
 hi gitcommit.modified bold red
 hi gitcommit.untracked bold red
+hi gitcommit.newfile bold green
 
 # go
 hi go.builtin blue
