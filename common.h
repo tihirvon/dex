@@ -28,7 +28,7 @@
  * argument at index @first_idx is the first format argument */
 #define __FORMAT(fmt_idx, first_idx) __attribute__((format(printf, (fmt_idx), (first_idx))))
 
-#define ARRAY_COUNT(x) (sizeof(x) / sizeof(x[0]))
+#define ARRAY_COUNT(x) ((unsigned long)sizeof(x) / sizeof(x[0]))
 
 #define clear(ptr) memset((ptr), 0, sizeof(*(ptr)))
 
