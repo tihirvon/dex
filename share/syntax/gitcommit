@@ -10,7 +10,7 @@ state text
 
 state comment-start comment
 	char "\n" start
-	char "\t" tab
+	char "\t" newfile comment
 	str ' On branch ' 		branch comment
 	str ' Changes to be committed:' comment added
 	str ' Changed but not updated:' comment modified
@@ -25,15 +25,15 @@ state branch notice
 	char "\n" start
 	eat branch
 
-state tab comment
-	char "\n" start
-	char -b "a-z " newfile
-	eat comment
-
+# label or new file, not known yet
 state newfile
+	# buffer anything but \n or :
 	char "\n" start
-	char : file label
-	eat newfile
+	# anything else but : (-n inverts bitmap)
+	char -bn : newfile
+	# recolor buffered bytes to label
+	recolor label
+	noeat file
 
 state file
 	char "\n" start
