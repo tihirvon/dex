@@ -20,7 +20,7 @@ state start code
 	char -b a-zA-Z tag
 	char . class
 	char # id
-	char { block
+	char \{ block
 	char 0-9_- start-error
 	char / .css-comment:start
 	eat start

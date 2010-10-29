@@ -8,11 +8,11 @@ bind end eol
 bind pgup pgup
 bind pgdown pgdown
 bind delete delete
-bind ^[ unselect
+bind ^\[ unselect
 bind ^Z suspend
 
 # backspace is either ^? or ^H
-bind ^? erase
+bind ^\? erase
 bind ^H erase
 
 # commonly used
@@ -47,7 +47,7 @@ bind ^F format-paragraph
 bind insert insert-special
 
 bind M-/ "search"
-bind M-? "search -r"
+bind M-\? "search -r"
 bind M-p "search -p"
 bind M-n "search -n"
 bind M-f "search -w"
@@ -59,7 +59,7 @@ bind M-s select
 bind M-t bof
 bind M-e eof
 bind M-m "run -p man $WORD"
-bind M-[ "error -p"
+bind M-\[ "error -p"
 bind M-] "error -n"
 bind M-, "shift -- -1"
 bind M-. "shift 1"

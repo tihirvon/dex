@@ -5,7 +5,7 @@ syntax sh
 state start code
 	char -b a-zA-Z0-9_/.- command
 	char "\t " start
-	char ({ start special
+	char "({" start special
 	noeat args
 
 state command code
