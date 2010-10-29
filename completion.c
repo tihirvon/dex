@@ -300,7 +300,7 @@ static void init_completion(void)
 	ptr_array_free(&array);
 }
 
-static char *shell_escape(const char *str)
+static char *escape(const char *str)
 {
 	GBUF(buf);
 	int i;
@@ -315,10 +315,14 @@ static char *shell_escape(const char *str)
 		char ch = str[i];
 		switch (ch) {
 		case ' ':
-		case '\'':
 		case '"':
-		case ';':
 		case '$':
+		case '\'':
+		case '*':
+		case ';':
+		case '?':
+		case '[':
+		case '{':
 			gbuf_add_ch(&buf, '\\');
 			gbuf_add_ch(&buf, ch);
 			break;
@@ -339,7 +343,7 @@ void complete_command(void)
 	if (!completion.completions.count)
 		return;
 
-	middle = shell_escape(completion.completions.ptrs[completion.idx]);
+	middle = escape(completion.completions.ptrs[completion.idx]);
 	middle_len = strlen(middle);
 	head_len = strlen(completion.head);
 	tail_len = strlen(completion.tail);

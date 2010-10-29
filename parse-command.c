@@ -243,6 +243,23 @@ int find_end(const char *cmd, int *posp)
 			if (!cmd[pos])
 				goto unexpected_eof;
 			pos++;
+		} else {
+			switch (ch) {
+			case '*':
+			case '?':
+			case '[':
+			case '{':
+				// Reserved for glob patterns.  Note that ] and } need not to be
+				// reserved because those can be used alone (without [ or {).
+				//
+				// In shell these characters are not reserved. You can run "echo *"
+				// in an empty directory and it prints "*". If globbing will be
+				// implemented in this program, it would behave differently.
+				// Patterns should always expand to "nothing" if it didn't match.
+				// E.g. "open *" in an empty directory would expand to "open".
+				error_msg("You need to escape %c (characters *?[{ are reserved)", ch);
+				return -1;
+			}
 		}
 	}
 	*posp = pos;
