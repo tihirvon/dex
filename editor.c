@@ -423,6 +423,9 @@ static int common_key(struct history *history, enum term_key_type type, unsigned
 		case CTRL('V'):
 			input_special = INPUT_SPECIAL_UNKNOWN;
 			break;
+		case CTRL('W'):
+			cmdline_erase_word();
+			break;
 
 		case CTRL('A'):
 			cmdline_pos = 0;

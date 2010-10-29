@@ -43,6 +43,31 @@ void cmdline_backspace(void)
 	}
 }
 
+void cmdline_erase_word(void)
+{
+	int i = cmdline_pos;
+
+	if (!cmdline_pos)
+		return;
+
+	// open /path/to/file^W => open /path/to/
+
+	// erase whitespace
+	while (i && isspace(cmdline.buffer[i - 1]))
+		i--;
+
+	// erase non-word bytes
+	while (i && !is_word_byte(cmdline.buffer[i - 1]))
+		i--;
+
+	// erase word bytes
+	while (i && is_word_byte(cmdline.buffer[i - 1]))
+		i--;
+
+	gbuf_remove(&cmdline, i, cmdline_pos - i);
+	cmdline_pos = i;
+}
+
 void cmdline_delete_bol(void)
 {
 	gbuf_remove(&cmdline, 0, cmdline_pos);
