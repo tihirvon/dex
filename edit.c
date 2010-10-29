@@ -103,6 +103,15 @@ void paste(void)
 		unselect();
 	}
 
+	if (copy_buf[copy_len - 1] != '\n') {
+		struct block_iter bi = view->cursor;
+		block_iter_skip_bytes(&bi, del_count);
+		if (block_iter_is_eof(&bi)) {
+			xrenew(copy_buf, copy_len + 1);
+			copy_buf[copy_len++] = '\n';
+		}
+	}
+
 	if (copy_is_lines) {
 		int save = view->preferred_x;
 
