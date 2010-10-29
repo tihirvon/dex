@@ -65,6 +65,17 @@ static struct state *find_state(struct syntax *syn, const char *name)
 	return NULL;
 }
 
+static int has_destination(enum condition_type type)
+{
+	switch (type) {
+	case COND_RECOLOR:
+	case COND_RECOLOR_BUFFER:
+		return 0;
+	default:
+		return 1;
+	}
+}
+
 static LIST_HEAD(syntaxes);
 static struct syntax *current_syntax;
 static struct state *current_state;
@@ -257,15 +268,21 @@ static void cmd_noeat(const char *pf, char **args)
 
 static void cmd_recolor(const char *pf, char **args)
 {
+	// if length is not specified then buffered bytes will be recolored
+	enum condition_type type = COND_RECOLOR_BUFFER;
 	struct condition *c;
-	int len = atoi(args[1]);
+	int len = 0;
 
-	if (len <= 0) {
-		error_msg("number of bytes must be larger than 0");
-		return;
+	if (args[1]) {
+		type = COND_RECOLOR;
+		len = atoi(args[1]);
+		if (len <= 0) {
+			error_msg("number of bytes must be larger than 0");
+			return;
+		}
 	}
-	c = add_condition(COND_RECOLOR, NULL, args[0]);
-	if (c)
+	c = add_condition(type, NULL, args[0]);
+	if (c && type == COND_RECOLOR)
 		c->u.cond_recolor.len = len;
 }
 
@@ -339,7 +356,7 @@ static const struct command syntax_commands[] = {
 	{ "inlist",	"",	2,  3, cmd_inlist },
 	{ "list",	"hi",	2, -1, cmd_list },
 	{ "noeat",	"",	1,  1, cmd_noeat },
-	{ "recolor",	"",	2,  2, cmd_recolor },
+	{ "recolor",	"",	1,  2, cmd_recolor },
 	{ "state",	"",	1,  2, cmd_state },
 	{ "str",	"i",	2,  3, cmd_str },
 	{ "syntax",	"",	1,  1, cmd_syntax },
@@ -370,7 +387,7 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 	for (i = 0; i < s->nr_conditions; i++) {
 		struct condition *c = &s->conditions[i];
 		fix_action(syn, &c->a, prefix);
-		if (!c->a.destination.state && c->type != COND_RECOLOR)
+		if (!c->a.destination.state && has_destination(c->type))
 			c->a.destination.state = rets;
 	}
 
@@ -478,7 +495,7 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 		}
 		free(name);
 	}
-	if (cond->type != COND_RECOLOR)
+	if (has_destination(cond->type))
 		errors += finish_action(syn, &cond->a);
 	return errors;
 }
