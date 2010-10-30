@@ -13,11 +13,16 @@ CC = gcc
 LD = $(CC)
 CFLAGS = -g -O2 -Wall
 LDFLAGS =
+HOST_CC = gcc
+HOST_LD = $(HOST_CC)
+HOST_CFLAGS = -g -O2 -Wall
+HOST_LDFLAGS =
 INSTALL = install
 DESTDIR =
 prefix = /usr/local
 bindir = $(prefix)/bin
 datadir = $(prefix)/share
+mandir = $(datadir)/man
 
 # 0: Disable debugging.
 # 1: Enable BUG_ON() and light-weight sanity checks.
@@ -41,7 +46,7 @@ WARNINGS = \
 # all good names have been taken. make it easy to change
 PROGRAM = dex
 
-all: $(PROGRAM)
+all: $(PROGRAM) man
 
 OBJECTS	:= 			\
 	alias.o			\
@@ -180,18 +185,42 @@ clean += *.o $(PROGRAM)
 $(PROGRAM): $(OBJECTS)
 	$(call cmd,ld,)
 
+man	:=					\
+	Documentation/$(PROGRAM).1		\
+	# end
+
+clean += $(man) Documentation/*.o Documentation/ttman
+man: $(man)
+$(man): Documentation/ttman
+
+%.1: %.txt
+	$(call cmd,ttman)
+
+Documentation/ttman.o: Documentation/ttman.c
+	$(call cmd,host_cc)
+
+Documentation/ttman: Documentation/ttman.o
+	$(call cmd,host_ld,)
+
+quiet_cmd_ttman = MAN    $@
+      cmd_ttman = sed -e s/%MAN%/$(shell echo $@ | sed 's:.*/\([^.]*\)\..*:\1:' | tr a-z A-Z)/g \
+			-e s/%PROGRAM%/$(PROGRAM)/g \
+			< $< | Documentation/ttman > $@
+
 install: all
 	$(INSTALL) -d -m755 $(DESTDIR)$(bindir)
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/binding
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/color
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/compiler
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/syntax
+	$(INSTALL) -d -m755 $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m755 $(PROGRAM)  $(DESTDIR)$(bindir)
 	$(INSTALL) -m644 $(config)   $(DESTDIR)$(PKGDATADIR)
 	$(INSTALL) -m644 $(binding)  $(DESTDIR)$(PKGDATADIR)/binding
 	$(INSTALL) -m644 $(color)    $(DESTDIR)$(PKGDATADIR)/color
 	$(INSTALL) -m644 $(compiler) $(DESTDIR)$(PKGDATADIR)/compiler
 	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(PKGDATADIR)/syntax
+	$(INSTALL) -m644 Documentation/$(PROGRAM).1 $(DESTDIR)$(mandir)/man1
 
 distclean += tags
 tags:
@@ -206,4 +235,4 @@ dist:
 	rmdir -p $(TARNAME)
 	gzip -f -9 $(TARNAME).tar
 
-.PHONY: all install tags dist FORCE
+.PHONY: all man install tags dist FORCE
