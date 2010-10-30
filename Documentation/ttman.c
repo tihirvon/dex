@@ -579,7 +579,9 @@ static void normalize(void)
 
 static void output_buf(const char *buf, int len)
 {
-	fwrite(buf, 1, len, outfile);
+	int ret = fwrite(buf, 1, len, outfile);
+	if (ret != len)
+		die("fwrite failed\n");
 }
 
 static void output_text(struct token *tok)
