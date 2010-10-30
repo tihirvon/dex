@@ -670,15 +670,11 @@ static void cmd_run(const char *pf, char **args)
 			     SPAWN_IGNORE_REDUNDANT;
 	unsigned int flags = 0;
 	int jump_to_error = 0;
-	int quoted = 0;
 
 	while (*pf) {
 		switch (*pf) {
 		case '1':
 			flags |= SPAWN_PIPE_STDOUT;
-			break;
-		case 'c':
-			quoted = 1;
 			break;
 		case 'd':
 			flags |= SPAWN_IGNORE_DUPLICATES;
@@ -716,25 +712,7 @@ static void cmd_run(const char *pf, char **args)
 			return;
 		}
 	}
-
-	if (quoted) {
-		PTR_ARRAY(array);
-
-		if (args[1]) {
-			error_msg("Too many arguments");
-			return;
-		}
-
-		if (parse_commands(&array, args[0])) {
-			ptr_array_free(&array);
-			return;
-		}
-		spawn((char **)array.ptrs, flags, cf);
-		ptr_array_free(&array);
-	} else {
-		spawn(args, flags, cf);
-	}
-
+	spawn(args, flags, cf);
 	if (jump_to_error && cerr.count) {
 		cerr.pos = 0;
 		show_compile_error();
@@ -1254,7 +1232,7 @@ const struct command commands[] = {
 	{ "repeat",		"",	2, -1, cmd_repeat },
 	{ "replace",		"bcgi",	2,  2, cmd_replace },
 	{ "right",		"",	0,  0, cmd_right },
-	{ "run",		"-1cdf=ijps",	1, -1, cmd_run },
+	{ "run",		"-1df=ijps", 1, -1, cmd_run },
 	{ "save",		"dfu",	0,  1, cmd_save },
 	{ "scroll-down",	"",	0,  0, cmd_scroll_down },
 	{ "scroll-pgdown",	"",	0,  0, cmd_scroll_pgdown },
