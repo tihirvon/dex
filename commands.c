@@ -1014,10 +1014,8 @@ static void cmd_set(const char *pf, char **args)
 
 static void cmd_shift(const char *pf, char **args)
 {
-	int count = 1;
+	int count = atoi(args[0]);
 
-	if (args[0])
-		count = atoi(args[0]);
 	if (!count) {
 		error_msg("Count must be non-zero.");
 		return;
@@ -1241,7 +1239,7 @@ const struct command commands[] = {
 	{ "search",		"Hnprw",0,  1, cmd_search },
 	{ "select",		"l",	0,  0, cmd_select },
 	{ "set",		"gl",	1,  2, cmd_set },
-	{ "shift",		"",	0,  1, cmd_shift },
+	{ "shift",		"",	1,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "tag",		"npr",	0,  1, cmd_tag },
 	{ "toggle",		"glv",	1,  1, cmd_toggle },
