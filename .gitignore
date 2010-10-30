@@ -1,9 +1,11 @@
 .*
 *.o
+*.[0-9]
 tags
 callgrind.out.*
 
 /Config.mk
+/Documentation/ttman
 /dex
 
 !.git*
