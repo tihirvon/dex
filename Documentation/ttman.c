@@ -247,10 +247,10 @@ static void tokenize(const char *buf, int size)
 			tok = new_token(TOK_TEXT);
 			tok->text = buf + pos;
 			tok->len = 1;
-			pos++;
-			if (pos == size || buf[pos] == '\n') {
-				// just one '\\'
+			if (pos == size) {
 				tok->text--;
+			} else {
+				pos++;
 			}
 
 			if (tok->text[0] == '\\') {
