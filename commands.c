@@ -1219,7 +1219,7 @@ const struct command commands[] = {
 	{ "new-line",		"",	0,  0, cmd_new_line },
 	{ "next",		"",	0,  0, cmd_next },
 	{ "open",		"",	0, -1, cmd_open },
-	{ "option",		"-r",	0, -1, cmd_option },
+	{ "option",		"-r",	3, -1, cmd_option },
 	{ "pass-through",	"-ms",	1, -1, cmd_pass_through },
 	{ "paste",		"",	0,  0, cmd_paste },
 	{ "pgdown",		"",	0,  0, cmd_pgdown },
