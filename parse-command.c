@@ -77,7 +77,7 @@ static void parse_dq(const char *cmd, int *posp)
 				gbuf_add_ch(&arg, '\a');
 				break;
 			case 'b':
-				gbuf_add_ch(&arg, '\n');
+				gbuf_add_ch(&arg, '\b');
 				break;
 			case 'f':
 				gbuf_add_ch(&arg, '\f');
