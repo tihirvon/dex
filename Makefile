@@ -1,5 +1,5 @@
 # To change build options use either command line or put the variables
-# to Config.mk file.
+# to Config.mk file (optional).
 #
 # Define V=1 for more verbose build.
 #
@@ -8,21 +8,13 @@
 # Define NO_DEPS to disable automatic dependency calculation.
 # Dependency calculation is enabled by default if CC supports
 # the -MMD -MP -MF options.
-#
-# Compiler:
-#   CC, LD, CFLAGS, LDFLAGS
-#
-# Installation:
-#   prefix, bindir, datadir, DESTDIR, INSTALL
 
-all: editor
-
-# these can be set from the command line
 CC = gcc
 LD = $(CC)
 CFLAGS = -g -O2 -Wall
 LDFLAGS =
 INSTALL = install
+DESTDIR =
 prefix = /usr/local
 bindir = $(prefix)/bin
 datadir = $(prefix)/share
@@ -43,6 +35,10 @@ WARNINGS = \
 	-Wwrite-strings \
 	-Wundef \
 	-Wshadow
+
+# End of configuration
+
+all: editor
 
 OBJECTS	:= 			\
 	alias.o			\
