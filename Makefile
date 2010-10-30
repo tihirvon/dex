@@ -3,7 +3,7 @@
 #
 # Define V=1 for more verbose build.
 #
-# Define NO_WERROR if most warnings should not be treated as errors.
+# Define WERROR if most warnings should be treated as errors.
 #
 # Define NO_DEPS to disable automatic dependency calculation.
 # Dependency calculation is enabled by default if CC supports
@@ -142,7 +142,7 @@ endif
 
 BASIC_CFLAGS += $(call cc-option,$(WARNINGS))
 
-ifndef NO_WERROR
+ifdef WERROR
 BASIC_CFLAGS += $(call cc-option,-Werror -Wno-error=shadow -Wno-error=unused-variable)
 endif
 
