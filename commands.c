@@ -698,7 +698,7 @@ static void cmd_run(const char *pf, char **args)
 		pf++;
 	}
 
-	if (flags & cbits && !(flags & SPAWN_PIPE_STDOUT))
+	if ((flags & cbits || compiler) && !(flags & SPAWN_PIPE_STDOUT))
 		flags |= SPAWN_PIPE_STDERR;
 
 	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && !compiler) {

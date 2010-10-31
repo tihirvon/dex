@@ -124,8 +124,13 @@ static void read_stderr(struct compiler_format *cf, int fd, unsigned int flags)
 	FILE *f = fdopen(fd, "r");
 	char line[4096];
 
-	free_errors();
+	if (!f) {
+		// should not happen
+		free_errors();
+		return;
+	}
 
+	free_errors();
 	while (fgets(line, sizeof(line), f))
 		handle_error_msg(cf, line, flags);
 	fclose(f);
