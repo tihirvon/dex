@@ -119,7 +119,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	free_regexp_matches();
 }
 
-static void read_stderr(struct compiler_format *cf, int fd, unsigned int flags)
+static void read_errors(struct compiler_format *cf, int fd, unsigned int flags)
 {
 	FILE *f = fdopen(fd, "r");
 	char line[4096];
@@ -438,7 +438,7 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 	close(dev_null);
 	if (cf) {
 		close(p[1]);
-		read_stderr(cf, p[0], flags);
+		read_errors(cf, p[0], flags);
 		close(p[0]);
 	}
 	while (wait(&status) < 0 && errno == EINTR)
