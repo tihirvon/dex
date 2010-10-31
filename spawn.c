@@ -394,9 +394,13 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 	int p[2] = { -1, -1 };
 	int fd[3] = { 0, 1, 2 };
 
-	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && pipe(p)) {
-		error_msg("pipe: %s", strerror(errno));
-		return;
+	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR)) {
+		if (pipe(p)) {
+			error_msg("pipe: %s", strerror(errno));
+			return;
+		}
+		close_on_exec(p[0]);
+		close_on_exec(p[1]);
 	}
 	if (flags & (SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR)) {
 		dev_null = open("/dev/null", O_WRONLY);
@@ -404,6 +408,7 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 			error_msg("Error opening /dev/null: %s", strerror(errno));
 			goto error;
 		}
+		close_on_exec(dev_null);
 	}
 
 	if (flags & SPAWN_REDIRECT_STDOUT)
