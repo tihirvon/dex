@@ -1,9 +1,11 @@
 #ifndef SPAWN_H
 #define SPAWN_H
 
-/* Mutually exclusive, only one pipe supported. */
-#define SPAWN_PIPE_STDOUT	(1 << 0)
-#define SPAWN_PIPE_STDERR	(1 << 1)
+/* Errors are read from stderr by default. */
+#define SPAWN_READ_STDOUT	(1 << 0)
+
+/* Internal to spawn_compile(). */
+#define SPAWN_PRINT_ERRORS	(1 << 1)
 
 /* Redirect to /dev/null? */
 #define SPAWN_REDIRECT_STDOUT	(1 << 2)
@@ -12,7 +14,7 @@
 /* Press any key to continue */
 #define SPAWN_PROMPT		(1 << 4)
 
-/* Error collection. Use with SPAWN_PIPE_*. */
+/* Error collection options. */
 #define SPAWN_IGNORE_REDUNDANT	(1 << 6)
 #define SPAWN_IGNORE_DUPLICATES	(1 << 7)
 
@@ -62,8 +64,9 @@ extern struct compile_errors cerr;
 
 void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc);
 struct compiler_format *find_compiler_format(const char *name);
-void spawn(char **args, unsigned int flags, struct compiler_format *cf);
 int spawn_filter(char **argv, struct filter_data *data);
+void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf);
+void spawn(char **args, int fd[3], int prompt);
 void show_compile_error(void);
 
 #endif

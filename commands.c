@@ -116,6 +116,50 @@ static void cmd_command(const char *pf, char **args)
 		cmdline_set_text(args[0]);
 }
 
+static void cmd_compile(const char *pf, char **args)
+{
+	struct compiler_format *cf;
+	unsigned int flags = 0;
+	int jump_to_error = 0;
+	const char *compiler;
+
+	while (*pf) {
+		switch (*pf) {
+		case '1':
+			flags |= SPAWN_READ_STDOUT;
+			break;
+		case 'd':
+			flags |= SPAWN_IGNORE_DUPLICATES;
+			break;
+		case 'i':
+			flags |= SPAWN_IGNORE_REDUNDANT;
+			break;
+		case 'j':
+			jump_to_error = 1;
+			break;
+		case 'p':
+			flags |= SPAWN_PROMPT;
+			break;
+		case 's':
+			flags |= SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
+			break;
+		}
+		pf++;
+	}
+
+	compiler = *args++;
+	cf = find_compiler_format(compiler);
+	if (!cf) {
+		error_msg("No such error parser %s", compiler);
+		return;
+	}
+	spawn_compiler(args, flags, cf);
+	if (jump_to_error && cerr.count) {
+		cerr.pos = 0;
+		show_compile_error();
+	}
+}
+
 static void cmd_copy(const char *pf, char **args)
 {
 	struct block_iter save = view->cursor;
@@ -664,59 +708,23 @@ static void cmd_right(const char *pf, char **args)
 
 static void cmd_run(const char *pf, char **args)
 {
-	const char *compiler = NULL;
-	struct compiler_format *cf = NULL;
-	unsigned int cbits = SPAWN_PIPE_STDOUT | SPAWN_IGNORE_DUPLICATES |
-			     SPAWN_IGNORE_REDUNDANT;
-	unsigned int flags = 0;
-	int jump_to_error = 0;
+	int fd[3] = { 0, 1, 2 };
+	int prompt = 0;
 
 	while (*pf) {
 		switch (*pf) {
-		case '1':
-			flags |= SPAWN_PIPE_STDOUT;
-			break;
-		case 'd':
-			flags |= SPAWN_IGNORE_DUPLICATES;
-			break;
-		case 'i':
-			flags |= SPAWN_IGNORE_REDUNDANT;
-			break;
-		case 'j':
-			jump_to_error = 1;
-			break;
 		case 'p':
-			flags |= SPAWN_PROMPT;
+			prompt = 1;
 			break;
 		case 's':
-			flags |= SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
-			break;
-		case 'f':
-			compiler = *args++;
+			fd[0] = -1;
+			fd[1] = -1;
+			fd[2] = -1;
 			break;
 		}
 		pf++;
 	}
-
-	if ((flags & cbits || compiler) && !(flags & SPAWN_PIPE_STDOUT))
-		flags |= SPAWN_PIPE_STDERR;
-
-	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR) && !compiler) {
-		error_msg("Error parser must be specified when collecting error messages.");
-		return;
-	}
-	if (compiler) {
-		cf = find_compiler_format(compiler);
-		if (!cf) {
-			error_msg("No such error parser %s", compiler);
-			return;
-		}
-	}
-	spawn(args, flags, cf);
-	if (jump_to_error && cerr.count) {
-		cerr.pos = 0;
-		show_compile_error();
-	}
+	spawn(args, fd, prompt);
 }
 
 static int stat_changed(const struct stat *a, const struct stat *b)
@@ -1191,6 +1199,7 @@ const struct command commands[] = {
 	{ "clear",		"",	0,  0, cmd_clear },
 	{ "close",		"f",	0,  0, cmd_close },
 	{ "command",		"",	0,  1, cmd_command },
+	{ "compile",	     "-1dijps",	2, -1, cmd_compile },
 	{ "copy",		"",	0,  0, cmd_copy },
 	{ "cut",		"",	0,  0, cmd_cut },
 	{ "delete",		"",	0,  0, cmd_delete },
@@ -1230,7 +1239,7 @@ const struct command commands[] = {
 	{ "repeat",		"",	2, -1, cmd_repeat },
 	{ "replace",		"bcgi",	2,  2, cmd_replace },
 	{ "right",		"",	0,  0, cmd_right },
-	{ "run",		"-1df=ijps", 1, -1, cmd_run },
+	{ "run",		"-ps",	1, -1, cmd_run },
 	{ "save",		"dfu",	0,  1, cmd_save },
 	{ "scroll-down",	"",	0,  0, cmd_scroll_down },
 	{ "scroll-pgdown",	"",	0,  0, cmd_scroll_pgdown },

@@ -83,7 +83,8 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	if (nl)
 		*nl = 0;
 	len = strlen(str);
-	fprintf(stderr, "%s\n", str);
+	if (flags & SPAWN_PRINT_ERRORS)
+		fprintf(stderr, "%s\n", str);
 
 	for (i = 0; str[i]; i++) {
 		if (str[i] == '\t')
@@ -387,40 +388,98 @@ struct compiler_format *find_compiler_format(const char *name)
 	return NULL;
 }
 
-void spawn(char **args, unsigned int flags, struct compiler_format *cf)
+void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf)
 {
+	unsigned int redir = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
 	int pid, status, quiet;
-	int dev_null = -1;
-	int p[2] = { -1, -1 };
-	int fd[3] = { 0, 1, 2 };
+	int dev_null, p[2], fd[3];
 
-	if (flags & (SPAWN_PIPE_STDOUT | SPAWN_PIPE_STDERR)) {
-		if (pipe(p)) {
-			error_msg("pipe: %s", strerror(errno));
-			return;
-		}
-		close_on_exec(p[0]);
-		close_on_exec(p[1]);
+	dev_null = open("/dev/null", O_WRONLY);
+	if (dev_null < 0) {
+		error_msg("Error opening /dev/null: %s", strerror(errno));
+		return;
 	}
-	if (flags & (SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR)) {
-		dev_null = open("/dev/null", O_WRONLY);
-		if (dev_null < 0) {
-			error_msg("Error opening /dev/null: %s", strerror(errno));
-			goto error;
-		}
-		close_on_exec(dev_null);
+	if (pipe(p)) {
+		error_msg("pipe: %s", strerror(errno));
+		close(dev_null);
+		return;
 	}
 
-	if (flags & SPAWN_REDIRECT_STDOUT)
-		fd[1] = dev_null;
-	if (flags & SPAWN_REDIRECT_STDERR)
-		fd[2] = dev_null;
-	if (flags & SPAWN_PIPE_STDOUT)
+	fd[0] = dev_null;
+	if (flags & SPAWN_READ_STDOUT) {
 		fd[1] = p[1];
-	if (flags & SPAWN_PIPE_STDERR)
+		fd[2] = 2;
+	} else {
+		fd[1] = 1;
 		fd[2] = p[1];
+	}
 
-	quiet = fd[1] != 1 && fd[2] != 2 && !cf;
+	flags |= SPAWN_PRINT_ERRORS;
+	if (flags & SPAWN_REDIRECT_STDOUT) {
+		if (fd[1] == p[1])
+			flags &= ~SPAWN_PRINT_ERRORS;
+		else
+			fd[1] = dev_null;
+	}
+	if (flags & SPAWN_REDIRECT_STDERR) {
+		if (fd[2] == p[1])
+			flags &= ~SPAWN_PRINT_ERRORS;
+		else
+			fd[2] = dev_null;
+	}
+
+	quiet = !(flags & SPAWN_PRINT_ERRORS) && (flags & redir) == redir;
+	if (!quiet) {
+		child_controls_terminal = 1;
+		ui_end();
+	}
+
+	close_on_exec(p[0]);
+	close_on_exec(p[1]);
+	close_on_exec(dev_null);
+	pid = fork_exec(args, fd);
+	if (pid < 0) {
+		error_msg("Error: %s", strerror(errno));
+		if (!quiet)
+			ui_start(0);
+		close(p[0]);
+		close(p[1]);
+		close(dev_null);
+	} else {
+		close(dev_null);
+		close(p[1]);
+		read_errors(cf, p[0], flags);
+		close(p[0]);
+		while (wait(&status) < 0 && errno == EINTR)
+			;
+		if (!quiet) {
+			ui_start(flags & SPAWN_PROMPT);
+			child_controls_terminal = 0;
+		}
+	}
+}
+
+void spawn(char **args, int fd[3], int prompt)
+{
+	int i, pid, status, quiet, redir_count = 0;
+	int dev_null = -1;
+
+	for (i = 0; i < 3; i++) {
+		if (fd[i] >= 0)
+			continue;
+
+		if (dev_null < 0) {
+			dev_null = open("/dev/null", O_WRONLY);
+			if (dev_null < 0) {
+				error_msg("Error opening /dev/null: %s", strerror(errno));
+				return;
+			}
+			close_on_exec(dev_null);
+		}
+		fd[i] = dev_null;
+		redir_count++;
+	}
+	quiet = redir_count == 3;
 
 	if (!quiet) {
 		child_controls_terminal = 1;
@@ -432,26 +491,17 @@ void spawn(char **args, unsigned int flags, struct compiler_format *cf)
 		error_msg("Error: %s", strerror(errno));
 		if (!quiet)
 			ui_start(0);
-		goto error;
+		close(dev_null);
+		return;
 	}
 
 	close(dev_null);
-	if (cf) {
-		close(p[1]);
-		read_errors(cf, p[0], flags);
-		close(p[0]);
-	}
 	while (wait(&status) < 0 && errno == EINTR)
 		;
 	if (!quiet) {
-		ui_start(flags & SPAWN_PROMPT);
+		ui_start(prompt);
 		child_controls_terminal = 0;
 	}
-	return;
-error:
-	close(p[0]);
-	close(p[1]);
-	close(dev_null);
 }
 
 static void goto_file_line(const char *filename, int line, int column)
