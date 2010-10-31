@@ -90,7 +90,7 @@ bind M-@ "move-tab right"
 #bind M-o "search -Hr '^[a-zA-Z]'"
 
 # grep word under cursor using GIT
-#bind M-g 'run -f grep -1 -j git grep -nwe $WORD'
+#bind M-g 'compile -1j grep git grep -nwe $WORD'
 #bind M-G 'run -p git grep -nwe $WORD'
 
 # Insert date and time (press first ^X and then t)

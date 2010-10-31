@@ -11,7 +11,7 @@ alias r replace
 alias s save
 alias t tag
 alias man "run -p man"
-alias make "run -dij -f gcc make"
+alias make "compile -dij gcc make"
 alias read "pass-through cat"
 
 option gitcommit,gitrebase file-history false
