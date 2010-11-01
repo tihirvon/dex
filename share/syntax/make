@@ -43,7 +43,7 @@ state make code
 	char "\n" start
 	char \\ esc
 	# this is a hack
-	char ) make variable
+	char ")}" make variable
 	eat make
 
 state comment
@@ -56,7 +56,7 @@ state comment-esc comment
 	noeat comment
 
 state dollar variable
-	char ( lp
+	char "({" lp
 	char a-zA-Z make variable
 	char '@%<?^+|*' make variable
 	char \$ make variable
@@ -68,7 +68,7 @@ state lp variable
 
 state variable
 	char -b a-zA-Z_- variable
-	char ) make variable
+	char ")}" make variable
 	inlist function make builtin
 	noeat make
 
