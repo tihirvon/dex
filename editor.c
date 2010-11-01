@@ -957,9 +957,6 @@ int main(int argc, char *argv[])
 		return !!strcmp(opt, "--help");
 	}
 
-	if (!rc)
-		rc = editor_file("rc");
-
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
 	if (strcmp(charset, "UTF-8") == 0)
@@ -979,7 +976,11 @@ int main(int argc, char *argv[])
 	window = window_new();
 	update_screen_size();
 
-	read_config(commands, rc, 0);
+	if (rc) {
+		read_config(commands, rc, 1);
+	} else if (read_config(commands, editor_file("rc"), 0)) {
+		read_config(commands, DATADIR "/editor/rc", 1);
+	}
 
 	update_all_syntax_colors();
 	sort_aliases();
