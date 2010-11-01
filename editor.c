@@ -44,6 +44,41 @@ static char error_buf[256];
 
 static int cmdline_x;
 
+static const char *builtin_rc =
+// obvious bindings
+"bind left left\n"
+"bind right right\n"
+"bind up up\n"
+"bind down down\n"
+"bind home bol\n"
+"bind end eol\n"
+"bind pgup pgup\n"
+"bind pgdown pgdown\n"
+"bind delete delete\n"
+"bind ^\\[ unselect\n"
+"bind ^Z suspend\n"
+// backspace is either ^? or ^H
+"bind ^\\? erase\n"
+"bind ^H erase\n"
+// there must be a way to get to the command line
+"bind ^C command\n"
+// these colors are assumed to exist
+"hi default\n"
+"hi currentline keep keep keep\n"
+"hi selection keep gray keep\n"
+"hi statusline black gray\n"
+"hi commandline\n"
+"hi errormsg bold red\n"
+"hi infomsg bold blue\n"
+"hi wserror default yellow\n"
+"hi nontext blue keep\n"
+"hi tabbar black gray\n"
+"hi activetab bold\n"
+"hi inactivetab black gray\n"
+// must initialize string options
+"set statusline-left \" %f%s%m%r%s%M\"\n"
+"set statusline-right \" %y,%X   %c %C   %E %n %t   %p \"\n";
+
 static void sanity_check(void)
 {
 	struct block *blk;
@@ -938,7 +973,7 @@ int main(int argc, char *argv[])
 	if (term_init(NULL, flags))
 		error_msg("No terminal entry found.");
 
-	init_options();
+	exec_config(commands, builtin_rc, strlen(builtin_rc));
 	set_basic_colors();
 
 	window = window_new();

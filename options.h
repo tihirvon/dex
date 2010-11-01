@@ -102,7 +102,6 @@ void toggle_option(const char *name, unsigned int flags, int verbose);
 void collect_options(const char *prefix);
 void collect_toggleable_options(const char *prefix);
 void collect_option_values(const char *name, const char *prefix);
-void init_options(void);
 void free_local_options(struct local_options *opt);
 
 #endif

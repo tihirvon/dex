@@ -34,6 +34,22 @@ static int current_line;
 
 static const char *no_name = "(No name)";
 
+void set_basic_colors(void)
+{
+	default_color = find_color("default");
+	currentline_color = find_color("currentline");
+	selection_color = find_color("selection");
+	statusline_color = find_color("statusline");
+	commandline_color = find_color("commandline");
+	errormsg_color = find_color("errormsg");
+	infomsg_color = find_color("infomsg");
+	wserror_color = find_color("wserror");
+	nontext_color = find_color("nontext");
+	tab_bar_color = find_color("tabbar");
+	tab_active_color = find_color("activetab");
+	tab_inactive_color = find_color("inactivetab");
+}
+
 static uchar term_get_char(const char *buf, unsigned int size, unsigned int *idx)
 {
 	unsigned int i = *idx;
@@ -646,53 +662,4 @@ void update_screen_size(void)
 			screen_h = 3;
 		update_window_sizes();
 	}
-}
-
-void set_basic_colors(void)
-{
-	struct term_color c;
-
-	c.fg = -1;
-	c.bg = -1;
-	c.attr = 0;
-	default_color = set_highlight_color("default", &c);
-	commandline_color = set_highlight_color("commandline", &c);
-	nontext_color = set_highlight_color("nontext", &c);
-
-	c.fg = -2;
-	c.bg = -2;
-	c.attr = ATTR_KEEP;
-	currentline_color = set_highlight_color("currentline", &c);
-
-	c.fg = 1;
-	c.bg = -1;
-	c.attr = ATTR_BOLD;
-	errormsg_color = set_highlight_color("errormsg", &c);
-
-	c.fg = 4;
-	c.bg = -1;
-	c.attr = ATTR_BOLD;
-	infomsg_color = set_highlight_color("infomsg", &c);
-
-	c.fg = -2;
-	c.bg = 7;
-	c.attr = ATTR_KEEP;
-	selection_color = set_highlight_color("selection", &c);
-
-	c.fg = -1;
-	c.bg = 3;
-	c.attr = 0;
-	wserror_color = set_highlight_color("wserror", &c);
-
-	c.fg = -1;
-	c.bg = -1;
-	c.attr = ATTR_BOLD;
-	tab_active_color = set_highlight_color("activetab", &c);
-
-	c.fg = 0;
-	c.bg = 7;
-	c.attr = 0;
-	tab_inactive_color = set_highlight_color("inactivetab", &c);
-	tab_bar_color = set_highlight_color("tabbar", &c);
-	statusline_color = set_highlight_color("statusline", &c);
 }

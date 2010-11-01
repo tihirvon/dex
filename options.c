@@ -594,12 +594,6 @@ void collect_option_values(const char *name, const char *prefix)
 	}
 }
 
-void init_options(void)
-{
-	options.statusline_left = xstrdup(" %f%s%m%r%s%M");
-	options.statusline_right = xstrdup(" %y,%X   %c %C   %E %n %t   %p ");
-}
-
 void free_local_options(struct local_options *opt)
 {
 	int i;
