@@ -19,33 +19,11 @@ static int is_command(const char *str, int len)
 	return 0;
 }
 
-int do_read_config(const struct command *cmds, const char *filename, int must_exist)
+void exec_config(const struct command *cmds, const char *buf, size_t size)
 {
-	struct stat st;
-	size_t size;
+	const char *ptr = buf;
 	GBUF(line);
-	char *buf, *ptr;
-	int fd;
 
-	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
-		if (errno != ENOENT || must_exist)
-			error_msg("Error opening %s: %s", filename, strerror(errno));
-		return -1;
-	}
-	fstat(fd, &st);
-	size = st.st_size;
-	buf = xmmap(fd, 0, size);
-	close(fd);
-	if (!buf) {
-		error_msg("mmap failed for %s: %s", filename, strerror(errno));
-		return -1;
-	}
-
-	config_file = filename;
-	config_line = 1;
-
-	ptr = buf;
 	while (ptr < buf + size) {
 		size_t n = buf + size - ptr;
 		char *end = memchr(ptr, '\n', n);
@@ -68,6 +46,34 @@ int do_read_config(const struct command *cmds, const char *filename, int must_ex
 	if (line.len)
 		handle_command(cmds, line.buffer);
 	gbuf_free(&line);
+}
+
+int do_read_config(const struct command *cmds, const char *filename, int must_exist)
+{
+	struct stat st;
+	size_t size;
+	char *buf;
+	int fd;
+
+	fd = open(filename, O_RDONLY);
+	if (fd < 0) {
+		if (errno != ENOENT || must_exist)
+			error_msg("Error opening %s: %s", filename, strerror(errno));
+		return -1;
+	}
+	fstat(fd, &st);
+	size = st.st_size;
+	buf = xmmap(fd, 0, size);
+	close(fd);
+	if (!buf) {
+		error_msg("mmap failed for %s: %s", filename, strerror(errno));
+		return -1;
+	}
+
+	config_file = filename;
+	config_line = 1;
+
+	exec_config(cmds, buf, size);
 	xmunmap(buf, st.st_size);
 	return 0;
 }
