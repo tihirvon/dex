@@ -906,6 +906,7 @@ int main(int argc, char *argv[])
 	const char *rc = NULL;
 	const char *command = NULL;
 	const char *charset;
+	int read_rc = 1;
 
 	if (!home)
 		home = "";
@@ -920,6 +921,10 @@ int main(int argc, char *argv[])
 		}
 		if (strcmp(opt, "-I") == 0) {
 			flags &= ~TERM_USE_TERMINFO;
+			continue;
+		}
+		if (strcmp(opt, "-R") == 0) {
+			read_rc = 0;
 			continue;
 		}
 		if (!strcmp(opt, "-t")) {
@@ -976,10 +981,12 @@ int main(int argc, char *argv[])
 	window = window_new();
 	update_screen_size();
 
-	if (rc) {
-		read_config(commands, rc, 1);
-	} else if (read_config(commands, editor_file("rc"), 0)) {
-		read_config(commands, DATADIR "/editor/rc", 1);
+	if (read_rc) {
+		if (rc) {
+			read_config(commands, rc, 1);
+		} else if (read_config(commands, editor_file("rc"), 0)) {
+			read_config(commands, DATADIR "/editor/rc", 1);
+		}
 	}
 
 	update_all_syntax_colors();
