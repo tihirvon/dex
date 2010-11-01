@@ -922,7 +922,7 @@ int main(int argc, char *argv[])
 			flags &= ~TERM_USE_TERMINFO;
 			continue;
 		}
-		if (!strcmp(opt, "-t") || !strcmp(opt, "--tag")) {
+		if (!strcmp(opt, "-t")) {
 			if (++i == argc) {
 				fprintf(stderr, "missing argument for option %s\n", opt);
 				return 1;
@@ -930,7 +930,7 @@ int main(int argc, char *argv[])
 			tag = argv[i];
 			continue;
 		}
-		if (!strcmp(opt, "-r") || !strcmp(opt, "--rc")) {
+		if (!strcmp(opt, "-r")) {
 			if (++i == argc) {
 				fprintf(stderr, "missing argument for option %s\n", opt);
 				return 1;
@@ -938,7 +938,7 @@ int main(int argc, char *argv[])
 			rc = argv[i];
 			continue;
 		}
-		if (!strcmp(opt, "-c") || !strcmp(opt, "--command")) {
+		if (!strcmp(opt, "-c")) {
 			if (++i == argc) {
 				fprintf(stderr, "missing argument for option %s\n", opt);
 				return 1;
