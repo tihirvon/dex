@@ -187,6 +187,7 @@ $(PROGRAM): $(OBJECTS)
 
 man	:=					\
 	Documentation/$(PROGRAM).1		\
+	Documentation/$(PROGRAM)-syntax.7	\
 	# end
 
 clean += $(man) Documentation/*.o Documentation/ttman
@@ -194,6 +195,9 @@ man: $(man)
 $(man): Documentation/ttman
 
 %.1: %.txt
+	$(call cmd,ttman)
+
+%.7: %.txt
 	$(call cmd,ttman)
 
 Documentation/ttman.o: Documentation/ttman.c
@@ -214,6 +218,7 @@ install: all
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/compiler
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/syntax
 	$(INSTALL) -d -m755 $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -d -m755 $(DESTDIR)$(mandir)/man7
 	$(INSTALL) -m755 $(PROGRAM)  $(DESTDIR)$(bindir)
 	$(INSTALL) -m644 $(config)   $(DESTDIR)$(PKGDATADIR)
 	$(INSTALL) -m644 $(binding)  $(DESTDIR)$(PKGDATADIR)/binding
@@ -221,6 +226,7 @@ install: all
 	$(INSTALL) -m644 $(compiler) $(DESTDIR)$(PKGDATADIR)/compiler
 	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(PKGDATADIR)/syntax
 	$(INSTALL) -m644 Documentation/$(PROGRAM).1 $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -m644 Documentation/$(PROGRAM)-syntax.7 $(DESTDIR)$(mandir)/man7
 
 distclean += tags
 tags:

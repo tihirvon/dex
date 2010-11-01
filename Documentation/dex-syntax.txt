@@ -1,0 +1,155 @@
+@title %MAN% 7 2010
+
+@h1 NAME
+
+Syntax of syntax highlighting files used by %PROGRAM%.
+
+@h1 DESCRIPTION
+
+Syntax file consists of states. A state consists of optional
+conditionals and one default action. The best way understand the syntax
+is to read /usr/share/%PROGRAM%/syntax/%PROGRAM% (a simple example) or
+/usr/share/%PROGRAM%/syntax/c (a more complete example using
+sub-syntaxes).
+
+Basic syntax of the syntax files is the same used in the rc files, but
+the available commands are different.
+
+@h1 COMMANDS
+
+@h2 Main commands
+
+syntax <name>
+	Begin a new syntax. One syntax file can contain multiple syntax
+	definitions, but you should only define one real syntax in one
+	syntax file.
+
+	See also SUB-SYNTAXES.
+
+state <name> [emit-color]
+	Add new state. Conditionals (if any) and one default action must
+	follow. First state is the start state.
+
+default	<color> <name>...
+	Set default color for emitted name.
+
+	Example:
+		default numeric oct dec hex
+
+	If there is no color defined for oct, dec or hex then color
+	numeric is used instead.
+
+list [-hi] <name> <string>...
+	Define a list of strings.
+
+	Example:
+		list keyword if else for while do continue switch case
+
+	Use conditional *inlist* to test if a buffered string is in a
+	list.
+
+	 -h Use hash table to store strings.
+
+	 -i Make list case-insensitive.
+
+@h2 Conditionals
+
+bufis [-i] <string> <destination> [emit-name]
+	Test if buffered bytes are same as `string`. If they are emit
+	`emit-name` and jump to destination state.
+
+char [-bn] <characters> <destination> [emit-name]
+	Test if current byte is in the character list. If it is then
+	emit `emit-color` and jump to destination state. If `emit-name`
+	is not given then destination states emit name is used.
+
+	Characters is a list of strings. Ranges are supported (a-d is
+	same as abcd).
+
+	-b Add byte to buffer.
+
+	-n Invert character bitmap.
+
+inlist <list> <destination> [emit-name]
+	Test if buffered bytes are found in `list`. If found emit
+	`emit-name` and jump to destination state.
+
+recolor	<color> [count]
+	If count is given, recolor count previous bytes, otherwise
+	recolor buffered bytes.
+
+str [-i] <string> <destination> [emit-name]
+	See if following bytes are same as `string`. If they are emit
+	`emit-name` and jump to destination state.
+
+	-i case-insensitive.
+
+	NOTE: This conditional can be slow, especially if string is
+	longer than two bytes.
+
+@h2 Default actions
+
+Last command of every state must be default action. It is an
+unconditional jump.
+
+eat <destination> [emit-name]
+	Consume byte, emit `emit-name` color and continue to destination
+	state.
+
+noeat <destination>
+	Continue to destination state without emitting color or
+	consuming byte.
+
+@h1 SUB-SYNTAXES
+
+Sub-syntaxes are useful when same states are needed in many contexts.
+
+Sub-syntax name must be prefixed with ".". It is recommended to also use
+main syntax's name in the prefix. For example ".c-comment" if "c" is the
+main syntax.
+
+Sub-syntax is a syntax of which some destination state's name is END.
+END is a special state name which is replaced by state given at another
+syntax.
+
+Example:
+
+	# sub-syntax@br
+	syntax .c-comment
+
+	state comment
+		char "\*" star@br
+		eat comment
+
+	state star comment
+		# END is a special state name@br
+		char / END comment@br
+		noeat comment
+
+	# main syntax@br
+	syntax c
+
+	state c code
+		char " \\t\\n" c@br
+		char -b a-zA-Z_ ident@br
+		char "\\"" string@br
+		char "'" char@br
+		# call sub-syntax@br
+		str "/\*" .c-comment:c@br
+		eat c
+
+	# other states removed
+
+In this example the destination state .c-comment:c is special syntax for
+calling a sub-syntax. ".c-comment" is name of the sub-syntax and "c" is
+the return state defined in the main syntax. Whole sub-syntax tree is
+copied into the main syntax and all destination states in the sub-syntax
+whose name is END are replaced with "c".
+
+@h1 AUTHORS
+
+Timo Hirvonen <tihirvon\@gmail.com>
+
+@h1 SEE ALSO
+
+%PROGRAM%(1)
