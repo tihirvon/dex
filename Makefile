@@ -99,6 +99,7 @@ color	:=			\
 
 compiler :=			\
 	compiler/gcc		\
+	compiler/go		\
 	# end
 
 config	:=			\
