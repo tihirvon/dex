@@ -143,8 +143,18 @@ ifdef WERROR
 BASIC_CFLAGS += $(call cc-option,-Werror -Wno-error=shadow -Wno-error=unused-variable)
 endif
 
-BASIC_CFLAGS += -DDATADIR=\"$(datadir)\"
 BASIC_CFLAGS += -DDEBUG=$(DEBUG)
+
+$(OBJECTS): .CFLAGS
+
+buffer.o editor.o parse-command.o: .datadir
+buffer.o editor.o parse-command.o: BASIC_CFLAGS += -DDATADIR=\"$(datadir)\"
+
+.CFLAGS: FORCE
+	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
+
+.datadir: FORCE
+	@./update-option "$(datadir)" $@
 
 editor: $(OBJECTS)
 	$(call cmd,ld,)
@@ -163,7 +173,7 @@ install: all
 	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(datadir)/editor/syntax
 
 clean:
-	rm -f *.o editor
+	rm -f *.o editor .CFLAGS .datadir
 
 distclean: clean
 	rm -f tags
@@ -178,4 +188,4 @@ TARBALL	= $(RELEASE).tar.gz
 dist:
 	git archive --format=tar --prefix=$(RELEASE)/ $(REV) | gzip -c -9 > $(TARBALL)
 
-.PHONY: all clean distclean install tags dist
+.PHONY: all clean distclean install tags dist FORCE
