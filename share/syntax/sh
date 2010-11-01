@@ -128,22 +128,21 @@ state lt special
 
 state lt2 special
 	# FIXME: should make dynamic
-	str "EOF\n" heredoc special
+	str "EOF\n" heredocline special
 	char -- - dash
 	noeat args
 
 state dash special
-	str "EOF\n" heredoc special
+	str "EOF\n" heredocline special
 	noeat args
-
-state heredoc string
-	# FIXME: should eat possible "; command"
-	char "\n" heredocline
-	eat heredoc
 
 state heredocline code
 	str "EOF\n" start special
 	noeat heredoc
+
+state heredoc string
+	char "\n" heredocline
+	eat heredoc
 
 # command allowed after these
 list keyword1 \
