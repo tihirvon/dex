@@ -21,6 +21,8 @@ distclean =
 # CFLAGS and LDFLAGS can be set from the command line
 BASIC_CFLAGS =
 BASIC_LDFLAGS =
+BASIC_HOST_CFLAGS =
+BASIC_HOST_LDFLAGS =
 
 # following macros have been taken from Kbuild and simplified
 
@@ -29,6 +31,12 @@ quiet_cmd_cc = CC     $@
 
 quiet_cmd_ld = LD     $@
       cmd_ld = $(LD) $(LDFLAGS) $(BASIC_LDFLAGS) -o $@ $^ $(1)
+
+quiet_cmd_host_cc = HOSTCC $@
+      cmd_host_cc = $(HOST_CC) $(HOST_CFLAGS) $(BASIC_HOST_CFLAGS) -c -o $@ $<
+
+quiet_cmd_host_ld = HOSTLD $@
+      cmd_host_ld = $(HOST_LD) $(HOST_LDFLAGS) $(BASIC_HOST_LDFLAGS) -o $@ $^ $(1)
 
 cmd = @$(if $($(quiet)cmd_$(1)),echo '   $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
 
