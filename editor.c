@@ -967,11 +967,6 @@ int main(int argc, char *argv[])
 	if (strcmp(charset, "UTF-8") == 0)
 		flags |= TERM_UTF8;
 
-	/* Fast regexec() etc. please.
-	 * This doesn't change environment so subprocesses are not affected.
-	 */
-	setlocale(LC_CTYPE, "C");
-
 	if (term_init(NULL, flags))
 		error_msg("No terminal entry found.");
 

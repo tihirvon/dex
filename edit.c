@@ -724,7 +724,8 @@ void format_paragraph(int text_width)
 void change_case(int mode, int move_after)
 {
 	unsigned int text_len, i;
-	char *src, *dst;
+	char *src;
+	GBUF(dst);
 
 	if (selecting()) {
 		text_len = prepare_selection();
@@ -741,28 +742,46 @@ void change_case(int mode, int move_after)
 	}
 
 	src = do_delete(text_len);
-	dst = xnew(char, text_len);
-	for (i = 0; i < text_len; i++) {
-		char ch = src[i];
+	i = 0;
+	while (i < text_len) {
+		uchar u;
+
+		if (buffer->utf8)
+			u = u_buf_get_char(src, text_len, &i);
+		else
+			u = src[i++];
+
+		// this works with latin1 too
 		switch (mode) {
 		case 't':
-			if (isupper(ch))
-				ch = tolower(ch);
+			if (iswupper(u))
+				u = towlower(u);
 			else
-				ch = toupper(ch);
+				u = towupper(u);
 			break;
 		case 'l':
-			ch = tolower(ch);
+			u = towlower(u);
 			break;
 		case 'u':
-			ch = toupper(ch);
+			u = towupper(u);
 			break;
 		}
-		dst[i] = ch;
+
+		if (buffer->utf8) {
+			char buf[4];
+			unsigned int idx = 0;
+			u_set_char_raw(buf, &idx, u);
+			gbuf_add_buf(&dst, buf, idx);
+		} else {
+			gbuf_add_ch(&dst, u);
+		}
 	}
-	do_insert(dst, text_len);
-	record_replace(src, text_len, text_len);
+
+	do_insert(dst.buffer, dst.len);
+	record_replace(src, text_len, dst.len);
 
 	if (move_after)
-		block_iter_skip_bytes(&view->cursor, text_len);
+		block_iter_skip_bytes(&view->cursor, dst.len);
+
+	gbuf_free(&dst);
 }

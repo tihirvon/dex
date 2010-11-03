@@ -16,6 +16,7 @@
 #include <pwd.h>
 #include <regex.h>
 #include <time.h>
+#include <wctype.h>
 
 #include "ctype.h"
 
