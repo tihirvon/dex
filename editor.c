@@ -951,6 +951,10 @@ int main(int argc, char *argv[])
 			command = argv[i];
 			continue;
 		}
+		if (!strcmp(opt, "-V")) {
+			printf("editor %s\nWritten by Timo Hirvonen\n", VERSION);
+			return 0;
+		}
 		if (strcmp(opt, "--") == 0) {
 			i++;
 			break;

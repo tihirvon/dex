@@ -150,11 +150,28 @@ $(OBJECTS): .CFLAGS
 buffer.o editor.o parse-command.o: .datadir
 buffer.o editor.o parse-command.o: BASIC_CFLAGS += -DDATADIR=\"$(datadir)\"
 
+# VERSION file is included in release tarballs
+VERSION	:= $(shell cat VERSION 2>/dev/null)
+ifeq ($(VERSION),)
+# version is derived from annotated git tag
+VERSION	:= $(shell test -d .git && git describe --match "v[0-9]*" --dirty 2>/dev/null | sed 's/^v//')
+endif
+ifeq ($(VERSION),)
+VERSION	:= no-version
+endif
+TARNAME = editor-$(VERSION)
+
+editor.o: .VERSION
+editor.o: BASIC_CFLAGS += -DVERSION=\"$(VERSION)\"
+
 .CFLAGS: FORCE
 	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
 
 .datadir: FORCE
 	@./update-option "$(datadir)" $@
+
+.VERSION: FORCE
+	@./update-option "$(VERSION)" $@
 
 editor: $(OBJECTS)
 	$(call cmd,ld,)
@@ -181,11 +198,13 @@ distclean: clean
 tags:
 	ctags *.[ch]
 
-REV     = $(shell git rev-parse --short HEAD)
-RELEASE	= editor-$(REV)
-TARBALL	= $(RELEASE).tar.gz
-
 dist:
-	git archive --format=tar --prefix=$(RELEASE)/ $(REV) | gzip -c -9 > $(TARBALL)
+	git archive --format=tar --prefix=$(TARNAME)/ HEAD > $(TARNAME).tar
+	mkdir -p $(TARNAME)
+	echo $(VERSION) > $(TARNAME)/VERSION
+	tar -rf $(TARNAME).tar $(TARNAME)/VERSION
+	rm $(TARNAME)/VERSION
+	rmdir -p $(TARNAME)
+	gzip -f -9 $(TARNAME).tar
 
 .PHONY: all clean distclean install tags dist FORCE
