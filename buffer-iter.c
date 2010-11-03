@@ -2,22 +2,8 @@
 
 unsigned int buffer_get_char(struct block_iter *bi, uchar *up)
 {
-	struct block *blk = bi->blk;
-	unsigned int offset = bi->offset;
-
-	if (offset == blk->size) {
-		if (blk->node.next == bi->head)
-			return 0;
-		bi->blk = blk = BLOCK(blk->node.next);
-		bi->offset = offset = 0;
-	}
-
-	*up = ((unsigned char *)blk->data)[offset];
-	if (*up < 0x80 || !buffer->options.utf8)
-		return 1;
-
-	*up = u_buf_get_char(blk->data, blk->size, &offset);
-	return offset - bi->offset;
+	struct block_iter tmp = *bi;
+	return buffer_next_char(&tmp, up);
 }
 
 unsigned int buffer_next_char(struct block_iter *bi, uchar *up)
