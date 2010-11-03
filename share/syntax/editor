@@ -31,7 +31,7 @@ state dq string
 
 state dq-escape special
 	char "abfnrtv'\\\"" dq special
-	eat dq
+	eat dq error
 
 state escape special
 	char "\n" command
