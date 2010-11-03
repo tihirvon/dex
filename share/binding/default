@@ -75,6 +75,8 @@ bind M-0 "view 10"
 bind M-! "move-tab left"
 bind M-@ "move-tab right"
 
+bind F1 "run -p man dex"
+
 # alternative pageup/pagedown behavior
 #bind pgup scroll-pgup
 #bind pgdown scroll-pgdown
