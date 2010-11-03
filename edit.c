@@ -141,7 +141,7 @@ static void delete_one_ch(void)
 		return;
 	}
 
-	if (buffer->utf8) {
+	if (buffer->options.utf8) {
 		delete(u_char_size(u), 0);
 	} else {
 		delete(1, 0);
@@ -194,7 +194,7 @@ void erase(void)
 		}
 
 		if (buffer_prev_char(&view->cursor, &u)) {
-			if (buffer->utf8) {
+			if (buffer->options.utf8) {
 				delete(u_char_size(u), 1);
 			} else {
 				delete(1, 1);
@@ -270,7 +270,7 @@ void insert_ch(unsigned int ch)
 		if (ch == '\t' && buffer->options.expand_tab) {
 			i = buffer->options.indent_width;
 			memset(buf, ' ', i);
-		} else if (buffer->utf8) {
+		} else if (buffer->options.utf8) {
 			u_set_char_raw(buf, &i, ch);
 		} else {
 			buf[i++] = ch;
@@ -596,7 +596,7 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 
 	while (i < len) {
 		unsigned char ch = word[i];
-		if (ch < 0x80 || !buffer->utf8) {
+		if (ch < 0x80 || !buffer->options.utf8) {
 			word_width++;
 			i++;
 		} else {
@@ -737,7 +737,7 @@ void change_case(int mode, int move_after)
 			return;
 
 		text_len = 1;
-		if (buffer->utf8)
+		if (buffer->options.utf8)
 			text_len = u_char_size(u);
 	}
 
@@ -746,7 +746,7 @@ void change_case(int mode, int move_after)
 	while (i < text_len) {
 		uchar u;
 
-		if (buffer->utf8)
+		if (buffer->options.utf8)
 			u = u_buf_get_char(src, text_len, &i);
 		else
 			u = src[i++];
@@ -767,7 +767,7 @@ void change_case(int mode, int move_after)
 			break;
 		}
 
-		if (buffer->utf8) {
+		if (buffer->options.utf8) {
 			char buf[4];
 			unsigned int idx = 0;
 			u_set_char_raw(buf, &idx, u);

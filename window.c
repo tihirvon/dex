@@ -125,7 +125,7 @@ void update_cursor_x(void)
 		uchar u = (unsigned char)lr.line[idx];
 
 		c++;
-		if (likely(u < 0x80) || !buffer->utf8) {
+		if (likely(u < 0x80) || !buffer->options.utf8) {
 			idx++;
 			if (u == '\t') {
 				w = (w + tw) / tw * tw;

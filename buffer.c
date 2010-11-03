@@ -105,7 +105,7 @@ void fill_selection_info(struct selection_info *info)
 			info->nr_lines++;
 		info->nr_chars++;
 		prev_char = u;
-		if (buffer->utf8)
+		if (buffer->options.utf8)
 			nr_bytes -= u_char_size(u);
 		else
 			nr_bytes--;
@@ -149,7 +149,7 @@ static struct buffer *buffer_new(void)
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
 	b->id = ++id;
-	b->utf8 = !!(term_flags & TERM_UTF8);
+	b->options.utf8 = !!(term_flags & TERM_UTF8);
 
 	memcpy(&b->options, &options, sizeof(struct common_options));
 	b->options.filetype = xstrdup("none");
@@ -249,7 +249,7 @@ static int read_blocks(struct buffer *b, int fd)
 		if ((unsigned char)buf[pos] >= 0x80) {
 			unsigned int idx = pos;
 			uchar u = u_buf_get_char(buf, size, &idx);
-			b->utf8 = !(u & U_INVALID_MASK);
+			b->options.utf8 = !(u & U_INVALID_MASK);
 			break;
 		}
 	}

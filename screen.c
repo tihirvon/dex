@@ -467,7 +467,7 @@ static uchar screen_next_char(struct line_info *info)
 	uchar u = (unsigned char)info->line[pos];
 	int ws_error = 0;
 
-	if (likely(u < 0x80) || !buffer->utf8) {
+	if (likely(u < 0x80) || !buffer->options.utf8) {
 		info->pos++;
 		count = 1;
 		if (u == '\t' || u == ' ')
@@ -487,7 +487,7 @@ static void screen_skip_char(struct line_info *info, int utf8)
 	unsigned int count, pos = info->pos;
 	uchar u = (unsigned char)info->line[pos];
 
-	if (likely(u < 0x80) || !buffer->utf8) {
+	if (likely(u < 0x80) || !buffer->options.utf8) {
 		info->pos++;
 		count = 1;
 

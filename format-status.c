@@ -138,7 +138,7 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 				add_status_pos(&f);
 				break;
 			case 'E':
-				add_status_str(&f, buffer->utf8 ? "UTF-8" : "8-bit");
+				add_status_str(&f, buffer->options.utf8 ? "UTF-8" : "8-bit");
 				break;
 			case 'M':
 				if (misc_status[0])

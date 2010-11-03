@@ -13,7 +13,7 @@ unsigned int buffer_get_char(struct block_iter *bi, uchar *up)
 	}
 
 	*up = ((unsigned char *)blk->data)[offset];
-	if (*up < 0x80 || !buffer->utf8)
+	if (*up < 0x80 || !buffer->options.utf8)
 		return 1;
 
 	*up = u_buf_get_char(blk->data, blk->size, &offset);
@@ -34,7 +34,7 @@ unsigned int buffer_next_char(struct block_iter *bi, uchar *up)
 
 	// Note: this block can't be empty
 	*up = ((unsigned char *)blk->data)[offset];
-	if (*up < 0x80 || !buffer->utf8) {
+	if (*up < 0x80 || !buffer->options.utf8) {
 		bi->offset++;
 		return 1;
 	}
@@ -57,7 +57,7 @@ unsigned int buffer_prev_char(struct block_iter *bi, uchar *up)
 
 	// Note: this block can't be empty
 	*up = ((unsigned char *)blk->data)[offset - 1];
-	if (*up < 0x80 || !buffer->utf8) {
+	if (*up < 0x80 || !buffer->options.utf8) {
 		bi->offset--;
 		return 1;
 	}

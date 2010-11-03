@@ -58,6 +58,7 @@ struct local_options {
 
 	/* only local */
 	char *filetype;
+	int utf8;
 };
 
 struct global_options {

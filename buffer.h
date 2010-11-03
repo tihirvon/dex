@@ -35,7 +35,6 @@ struct buffer {
 	char *filename;
 	char *abs_filename;
 
-	unsigned utf8 : 1;
 	unsigned ro : 1;
 	unsigned locked : 1;
 	unsigned setup : 1;

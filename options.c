@@ -239,6 +239,7 @@ static const struct option_description option_desc[] = {
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
 	C_INT("text-width", text_width, 1, 1000, default_int_set),
 	C_BOOL("trim-whitespace", trim_whitespace, default_bool_set),
+	L_BOOL("utf8", utf8, default_bool_set),
 	C_FLAG("ws-error", ws_error, ws_error_values, default_flag_set),
 };
 
