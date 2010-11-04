@@ -207,7 +207,13 @@ static void cmd_delete_word(const char *pf, char **args)
 {
 	int skip_non_word = *pf == 's';
 	struct block_iter bi = view->cursor;
-	delete(word_fwd(&bi, skip_non_word), 0);
+	unsigned int count = word_fwd(&bi, skip_non_word);
+	uchar u;
+
+	// don't delete last newline
+	if (count && block_iter_is_eof(&bi) && block_iter_prev_byte(&bi, &u) && u == '\n')
+		count--;
+	delete(count, 0);
 }
 
 static void cmd_down(const char *pf, char **args)
