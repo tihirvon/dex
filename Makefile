@@ -132,6 +132,8 @@ syntax	:= $(addprefix share/,$(syntax))
 -include Config.mk
 include Makefile.lib
 
+PKGDATADIR = $(datadir)/editor
+
 # clang does not like container_of()
 ifneq ($(CC),clang)
 WARNINGS += -Wcast-align
@@ -147,8 +149,8 @@ BASIC_CFLAGS += -DDEBUG=$(DEBUG)
 
 $(OBJECTS): .CFLAGS
 
-buffer.o editor.o parse-command.o: .datadir
-buffer.o editor.o parse-command.o: BASIC_CFLAGS += -DDATADIR=\"$(datadir)\"
+buffer.o editor.o parse-command.o: .PKGDATADIR
+buffer.o editor.o parse-command.o: BASIC_CFLAGS += -DPKGDATADIR=\"$(PKGDATADIR)\"
 
 # VERSION file is included in release tarballs
 VERSION	:= $(shell cat VERSION 2>/dev/null)
@@ -167,8 +169,8 @@ editor.o: BASIC_CFLAGS += -DVERSION=\"$(VERSION)\"
 .CFLAGS: FORCE
 	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
 
-.datadir: FORCE
-	@./update-option "$(datadir)" $@
+.PKGDATADIR: FORCE
+	@./update-option "$(PKGDATADIR)" $@
 
 .VERSION: FORCE
 	@./update-option "$(VERSION)" $@
@@ -178,19 +180,19 @@ editor: $(OBJECTS)
 
 install: all
 	$(INSTALL) -d -m755 $(DESTDIR)$(bindir)
-	$(INSTALL) -d -m755 $(DESTDIR)$(datadir)/editor/binding
-	$(INSTALL) -d -m755 $(DESTDIR)$(datadir)/editor/color
-	$(INSTALL) -d -m755 $(DESTDIR)$(datadir)/editor/compiler
-	$(INSTALL) -d -m755 $(DESTDIR)$(datadir)/editor/syntax
+	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/binding
+	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/color
+	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/compiler
+	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/syntax
 	$(INSTALL) -m755 editor      $(DESTDIR)$(bindir)
-	$(INSTALL) -m644 $(config)   $(DESTDIR)$(datadir)/editor
-	$(INSTALL) -m644 $(binding)  $(DESTDIR)$(datadir)/editor/binding
-	$(INSTALL) -m644 $(color)    $(DESTDIR)$(datadir)/editor/color
-	$(INSTALL) -m644 $(compiler) $(DESTDIR)$(datadir)/editor/compiler
-	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(datadir)/editor/syntax
+	$(INSTALL) -m644 $(config)   $(DESTDIR)$(PKGDATADIR)
+	$(INSTALL) -m644 $(binding)  $(DESTDIR)$(PKGDATADIR)/binding
+	$(INSTALL) -m644 $(color)    $(DESTDIR)$(PKGDATADIR)/color
+	$(INSTALL) -m644 $(compiler) $(DESTDIR)$(PKGDATADIR)/compiler
+	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(PKGDATADIR)/syntax
 
 clean:
-	rm -f *.o editor .CFLAGS .datadir
+	rm -f *.o editor .CFLAGS .PKGDATADIR
 
 distclean: clean
 	rm -f tags

@@ -418,7 +418,7 @@ struct syntax *load_syntax_by_filetype(const char *filetype)
 	snprintf(buf, sizeof(buf), "%s/.editor/syntax/%s", home_dir, filetype);
 	syn = load_syntax_file(buf, 0);
 	if (!syn) {
-		snprintf(buf, sizeof(buf), "%s/editor/syntax/%s", DATADIR, filetype);
+		snprintf(buf, sizeof(buf), "%s/syntax/%s", PKGDATADIR, filetype);
 		syn = load_syntax_file(buf, 0);
 	}
 	if (syn && editor_status != EDITOR_INITIALIZING)

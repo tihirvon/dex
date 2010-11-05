@@ -113,7 +113,7 @@ static int var_is(const char *buf, int len, const char *name)
 
 /*
  * $FILE	current filename
- * $DATADIR	set at compile time
+ * $PKGDATADIR	set at compile time
  * $WORD	word under cursor
  *
  * Otherwise the corresponding environment value or "" if not set.
@@ -149,8 +149,8 @@ static void parse_var(const char *cmd, int *posp)
 			gbuf_add_str(&arg, buffer->abs_filename);
 		return;
 	}
-	if (var_is(var, len, "DATADIR")) {
-		gbuf_add_str(&arg, DATADIR);
+	if (var_is(var, len, "PKGDATADIR")) {
+		gbuf_add_str(&arg, PKGDATADIR);
 		return;
 	}
 	if (var_is(var, len, "WORD")) {

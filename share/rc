@@ -1,8 +1,8 @@
-include $DATADIR/editor/binding/default
-include $DATADIR/editor/color/light
-include $DATADIR/editor/compiler/gcc
-include $DATADIR/editor/compiler/go
-include $DATADIR/editor/filetype
+include $PKGDATADIR/binding/default
+include $PKGDATADIR/color/light
+include $PKGDATADIR/compiler/gcc
+include $PKGDATADIR/compiler/go
+include $PKGDATADIR/filetype
 
 alias cl close
 alias o open

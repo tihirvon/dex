@@ -986,7 +986,7 @@ int main(int argc, char *argv[])
 		if (rc) {
 			read_config(commands, rc, 1);
 		} else if (read_config(commands, editor_file("rc"), 0)) {
-			read_config(commands, DATADIR "/editor/rc", 1);
+			read_config(commands, PKGDATADIR "/rc", 1);
 		}
 	}
 
