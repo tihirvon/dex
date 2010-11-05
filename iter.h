@@ -4,6 +4,12 @@
 #include "uchar.h"
 #include "list.h"
 
+/*
+ * struct block always contains whole lines.
+ *
+ * There's one zero-sized block when the file is empty. Otherwise
+ * zero-sized blocks are forbidden.
+ */
 struct block {
 	struct list_head node;
 	char *data;
