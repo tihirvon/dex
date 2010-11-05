@@ -1,33 +1,28 @@
-# obvious bindings
-bind left left
-bind right right
-bind up up
-bind down down
-bind home bol
-bind end eol
-bind pgup pgup
-bind pgdown pgdown
-bind delete delete
-bind ^\[ unselect
-bind ^Z suspend
-
-# backspace is either ^? or ^H
-bind ^\? erase
-bind ^H erase
-
-# commonly used
-bind ^A bol
-#bind ^E eol
-#bind ^F right
-bind ^B left
-bind ^U erase-bol
-bind ^K delete-eol
-bind ^W erase-word
+# builtin bindings. can be overridden
+#bind left left
+#bind right right
+#bind up up
+#bind down down
+#bind home bol
+#bind end eol
+#bind pgup pgup
+#bind pgdown pgdown
+#bind delete delete
+#bind ^\[ unselect
+#bind ^Z suspend
+#bind ^\? erase
+#bind ^H erase
+#bind ^C command
 
 # shift-left, shift-right
 bind sleft word-bwd
 bind sright word-fwd
 
+bind ^A bol
+bind ^B left
+bind ^U erase-bol
+bind ^K delete-eol
+bind ^W erase-word
 bind ^E undo
 bind ^R redo
 bind ^Y copy
@@ -39,7 +34,6 @@ bind ^J join
 bind ^O new-line
 bind ^Q delete-word
 bind ^S clear
-bind ^C command
 bind ^L "command 'line '"
 bind ^T "tag -r"
 bind ^] tag
