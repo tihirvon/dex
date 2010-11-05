@@ -503,7 +503,6 @@ void shift_lines(int count)
 
 	if (selecting()) {
 		view->selection = SELECT_LINES;
-		init_selection(&info);
 		fill_selection_info(&info);
 		view->cursor = info.si;
 		nr_lines = info.nr_lines;

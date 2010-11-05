@@ -192,7 +192,6 @@ static const char *format_misc_status(void)
 	} else if (selecting()) {
 		struct selection_info info;
 
-		init_selection(&info);
 		fill_selection_info(&info);
 		if (view->selection == SELECT_LINES) {
 			snprintf(misc_status, sizeof(misc_status), "[%d lines]", info.nr_lines);

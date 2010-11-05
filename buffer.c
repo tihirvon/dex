@@ -96,19 +96,17 @@ void init_selection(struct selection_info *info)
 
 void fill_selection_info(struct selection_info *info)
 {
-	struct block_iter bi = info->si;
-	unsigned int nr_bytes = info->eo - info->so;
-	uchar u, prev_char = 0;
+	struct block_iter bi;
+	unsigned int pos = 0;
+	uchar u = 0;
 
-	while (nr_bytes && buffer_next_char(&bi, &u)) {
-		if (prev_char == '\n')
+	init_selection(info);
+	bi = info->si;
+	while (pos < info->eo - info->so) {
+		if (u == '\n')
 			info->nr_lines++;
 		info->nr_chars++;
-		prev_char = u;
-		if (buffer->options.utf8)
-			nr_bytes -= u_char_size(u);
-		else
-			nr_bytes--;
+		pos += buffer_next_char(&bi, &u);
 	}
 }
 
