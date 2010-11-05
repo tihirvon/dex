@@ -9,17 +9,17 @@
 # For unknown highlight colors "default" is used.
 
 # builtin colors
-hi default
-hi commandline
-hi errormsg bold red
-hi infomsg bold blue
-hi selection keep gray keep
-hi activetab bold
-hi inactivetab black gray
-hi tabbar black gray
-hi statusline black gray
-hi wserror default yellow
-hi nontext blue keep
+#hi default
+#hi commandline
+#hi errormsg bold red
+#hi infomsg bold blue
+#hi selection keep gray keep
+#hi activetab bold
+#hi inactivetab black gray
+#hi tabbar black gray
+#hi statusline black gray
+#hi wserror default yellow
+#hi nontext blue keep
 
 # common to many syntax files
 hi text
