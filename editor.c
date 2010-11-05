@@ -965,6 +965,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	// create this early. needed if lock-files is true
+	mkdir(editor_file(""), 0755);
+
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
 	if (strcmp(charset, "UTF-8") == 0)
@@ -1057,7 +1060,6 @@ int main(int argc, char *argv[])
 		}
 	}
 	ui_end();
-	mkdir(editor_file(""), 0755);
 	history_save(&command_history, editor_file("command-history"));
 	history_save(&search_history, editor_file("search-history"));
 	close_all_views();
