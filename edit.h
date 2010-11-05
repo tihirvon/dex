@@ -1,8 +1,6 @@
 #ifndef EDIT_H
 #define EDIT_H
 
-struct block_iter;
-
 unsigned int prepare_selection(void);
 
 void delete(unsigned int len, int move_after);
