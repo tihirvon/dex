@@ -21,7 +21,7 @@ datadir = $(prefix)/share
 
 # 0: Disable debugging.
 # 1: Enable BUG_ON() and light-weight sanity checks.
-# 2: Enable logging to /tmp/editor-$UID.log.
+# 2: Enable logging to ~/.editor/debug.log.
 # 3: Enable expensive sanity checks.
 DEBUG = 1
 

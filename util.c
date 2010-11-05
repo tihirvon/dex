@@ -69,9 +69,7 @@ void debug_print(const char *function, const char *fmt, ...)
 	va_list ap;
 
 	if (fd < 0) {
-		char filename[64];
-		snprintf(filename, sizeof(filename), "/tmp/editor-%d.log", getuid());
-		fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0666);
+		fd = open(editor_file("debug.log"), O_WRONLY | O_CREAT | O_APPEND, 0666);
 		BUG_ON(fd < 0);
 
 		// don't leak file descriptor to parent processes
