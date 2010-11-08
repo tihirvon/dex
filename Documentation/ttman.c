@@ -1,7 +1,7 @@
 /*
  * ttman - text to man converter
  *
- * Copyright 2006 Timo Hirvonen <tihirvon@gmail.com>
+ * Copyright 2006-2010 Timo Hirvonen <tihirvon@gmail.com>
  *
  * This file is licensed under the GPLv2.
  */
@@ -10,11 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
 
 struct token {
@@ -47,9 +43,6 @@ struct token {
 };
 
 static const char *program;
-static const char *filename;
-static char tmp_file[1024];
-static FILE *outfile;
 static int cur_line = 1;
 static struct token head = { &head, &head, TOK_TEXT, 0, NULL, 0 };
 
@@ -84,13 +77,6 @@ static const struct {
 #define __NORETURN
 #endif
 
-static __NORETURN void quit(void)
-{
-	if (tmp_file[0])
-		unlink(tmp_file);
-	exit(1);
-}
-
 static __NORETURN void die(const char *format, ...)
 {
 	va_list ap;
@@ -99,18 +85,18 @@ static __NORETURN void die(const char *format, ...)
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
 	va_end(ap);
-	quit();
+	exit(1);
 }
 
 static __NORETURN void syntax(int line, const char *format, ...)
 {
 	va_list ap;
 
-	fprintf(stderr, "%s:%d: error: ", filename, line);
+	fprintf(stderr, "line %d: error: ", line);
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
 	va_end(ap);
-	quit();
+	exit(1);
 }
 
 static inline const char *keyword_name(int type)
@@ -120,12 +106,17 @@ static inline const char *keyword_name(int type)
 	return token_names[type].str;
 }
 
+static void oom(size_t size)
+{
+	die("OOM when allocating %ul bytes\n", size);
+}
+
 static void *xmalloc(size_t size)
 {
 	void *ret = malloc(size);
 
 	if (!ret)
-		die("OOM when allocating %ul bytes\n", size);
+		oom(size);
 	return ret;
 }
 
@@ -575,11 +566,11 @@ static void normalize(void)
 	}
 }
 
-#define output(...) fprintf(outfile, __VA_ARGS__)
+#define output(...) fprintf(stdout, __VA_ARGS__)
 
 static void output_buf(const char *buf, int len)
 {
-	int ret = fwrite(buf, 1, len, outfile);
+	int ret = fwrite(buf, 1, len, stdout);
 	if (ret != len)
 		die("fwrite failed\n");
 }
@@ -837,48 +828,42 @@ static void dump(void)
 
 static void process(void)
 {
-	struct stat s;
-	const char *buf;
-	int fd;
+	char *buf = NULL;
+	int alloc = 0;
+	int size = 0;
 
-	fd = open(filename, O_RDONLY);
-	if (fd == -1)
-		die("opening `%s' for reading: %s\n", filename, strerror(errno));
-	fstat(fd, &s);
-	if (s.st_size) {
-		buf = mmap(NULL, s.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-		if (buf == MAP_FAILED)
-			die("mmap: %s\n", strerror(errno));
+	while (1) {
+		int rc;
 
-		tokenize(buf, s.st_size);
-		normalize();
+		if (alloc - size == 0) {
+			alloc += 8192;
+			buf = realloc(buf, alloc);
+			if (!buf)
+				oom(alloc);
+		}
+		rc = read(0, buf + size, alloc - size);
+		if (rc < 0) {
+			if (errno == EINTR)
+				continue;
+			die("read: %s\n", strerror(errno));
+		}
+		if (!rc)
+			break;
+		size += rc;
 	}
+
+	tokenize(buf, size);
+	normalize();
 	dump();
 }
 
 int main(int argc, char *argv[])
 {
-	const char *dest;
-	int fd;
-
 	program = argv[0];
-	if (argc != 3) {
-		fprintf(stderr, "Usage: %s <in> <out>\n", program);
+	if (argc != 1) {
+		fprintf(stderr, "Usage: %s\n", program);
 		return 1;
 	}
-	filename = argv[1];
-	dest = argv[2];
-
-	snprintf(tmp_file, sizeof(tmp_file), "%s.XXXXXX", dest);
-	fd = mkstemp(tmp_file);
-	if (fd < 0)
-		die("creating %s: %s\n", tmp_file, strerror(errno));
-	outfile = fdopen(fd, "w");
-	if (!outfile)
-		die("opening %s: %s\n", tmp_file, strerror(errno));
-
 	process();
-	if (rename(tmp_file, dest))
-		die("renaming %s to %s: %s\n", tmp_file, dest, strerror(errno));
 	return 0;
 }
