@@ -21,7 +21,7 @@ datadir = $(prefix)/share
 
 # 0: Disable debugging.
 # 1: Enable BUG_ON() and light-weight sanity checks.
-# 2: Enable logging to ~/.editor/debug.log.
+# 2: Enable logging to ~/.$(PROGRAM)/debug.log.
 # 3: Enable expensive sanity checks.
 DEBUG = 1
 
@@ -38,7 +38,10 @@ WARNINGS = \
 
 # End of configuration
 
-all: editor
+# all good names have been taken. make it easy to change
+PROGRAM = editor
+
+all: $(PROGRAM)
 
 OBJECTS	:= 			\
 	alias.o			\
@@ -84,6 +87,7 @@ OBJECTS	:= 			\
 	terminfo.o		\
 	uchar.o			\
 	util.o			\
+	vars.o			\
 	wbuf.o			\
 	window.o		\
 	xmalloc.o		\
@@ -112,7 +116,7 @@ syntax	:=			\
 	syntax/config		\
 	syntax/css		\
 	syntax/diff		\
-	syntax/editor		\
+	syntax/$(PROGRAM)	\
 	syntax/gitcommit	\
 	syntax/gitrebase	\
 	syntax/go		\
@@ -132,7 +136,7 @@ syntax	:= $(addprefix share/,$(syntax))
 -include Config.mk
 include Makefile.lib
 
-PKGDATADIR = $(datadir)/editor
+PKGDATADIR = $(datadir)/$(PROGRAM)
 
 # clang does not like container_of()
 ifneq ($(CC),clang)
@@ -149,9 +153,6 @@ BASIC_CFLAGS += -DDEBUG=$(DEBUG)
 
 $(OBJECTS): .CFLAGS
 
-buffer.o editor.o parse-command.o: .PKGDATADIR
-buffer.o editor.o parse-command.o: BASIC_CFLAGS += -DPKGDATADIR=\"$(PKGDATADIR)\"
-
 # VERSION file is included in release tarballs
 VERSION	:= $(shell cat VERSION 2>/dev/null)
 ifeq ($(VERSION),)
@@ -161,21 +162,18 @@ endif
 ifeq ($(VERSION),)
 VERSION	:= no-version
 endif
-TARNAME = editor-$(VERSION)
+TARNAME = $(PROGRAM)-$(VERSION)
 
-editor.o: .VERSION
-editor.o: BASIC_CFLAGS += -DVERSION=\"$(VERSION)\"
+vars.o: .VARS
+vars.o: BASIC_CFLAGS += -DPROGRAM=\"$(PROGRAM)\" -DVERSION=\"$(VERSION)\" -DPKGDATADIR=\"$(PKGDATADIR)\"
 
 .CFLAGS: FORCE
 	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
 
-.PKGDATADIR: FORCE
-	@./update-option "$(PKGDATADIR)" $@
+.VARS: FORCE
+	@./update-option "PROGRAM=$(PROGRAM) VERSION=$(VERSION) PKGDATADIR=$(PKGDATADIR)" $@
 
-.VERSION: FORCE
-	@./update-option "$(VERSION)" $@
-
-editor: $(OBJECTS)
+$(PROGRAM): $(OBJECTS)
 	$(call cmd,ld,)
 
 install: all
@@ -184,7 +182,7 @@ install: all
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/color
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/compiler
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/syntax
-	$(INSTALL) -m755 editor      $(DESTDIR)$(bindir)
+	$(INSTALL) -m755 $(PROGRAM)  $(DESTDIR)$(bindir)
 	$(INSTALL) -m644 $(config)   $(DESTDIR)$(PKGDATADIR)
 	$(INSTALL) -m644 $(binding)  $(DESTDIR)$(PKGDATADIR)/binding
 	$(INSTALL) -m644 $(color)    $(DESTDIR)$(PKGDATADIR)/color
@@ -192,7 +190,7 @@ install: all
 	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(PKGDATADIR)/syntax
 
 clean:
-	rm -f *.o editor .CFLAGS .PKGDATADIR
+	rm -f *.o $(PROGRAM) .CFLAGS .VARS
 
 distclean: clean
 	rm -f tags

@@ -150,7 +150,7 @@ static void parse_var(const char *cmd, int *posp)
 		return;
 	}
 	if (var_is(var, len, "PKGDATADIR")) {
-		gbuf_add_str(&arg, PKGDATADIR);
+		gbuf_add_str(&arg, pkgdatadir);
 		return;
 	}
 	if (var_is(var, len, "WORD")) {

@@ -226,12 +226,10 @@ static void update_command_line(void)
 
 static void update_term_title(void)
 {
-	char buf[1024];
-
-	snprintf(buf, sizeof(buf), "%s %c editor",
+	print_term_title(ssprintf("%s %c %s",
 		buffer->filename ? buffer->filename : "(No name)",
-		buffer_modified(buffer) ? '+' : '-');
-	print_term_title(buf);
+		buffer_modified(buffer) ? '+' : '-',
+		program));
 }
 
 static void update_full(void)
@@ -320,11 +318,19 @@ void ui_end(void)
 	term_cooked();
 }
 
+const char *ssprintf(const char *format, ...)
+{
+	static char buf[1024];
+	va_list ap;
+	va_start(ap, format);
+	vsnprintf(buf, sizeof(buf), format, ap);
+	va_end(ap);
+	return buf;
+}
+
 const char *editor_file(const char *name)
 {
-	static char filename[1024];
-	snprintf(filename, sizeof(filename), "%s/.editor/%s", home_dir, name);
-	return filename;
+	return ssprintf("%s/.%s/%s", home_dir, program, name);
 }
 
 void error_msg(const char *format, ...)
@@ -951,7 +957,7 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		if (!strcmp(opt, "-V")) {
-			printf("editor %s\nWritten by Timo Hirvonen\n", VERSION);
+			printf("%s %s\nWritten by Timo Hirvonen\n", program, version);
 			return 0;
 		}
 		if (strcmp(opt, "--") == 0) {
@@ -986,7 +992,7 @@ int main(int argc, char *argv[])
 		if (rc) {
 			read_config(commands, rc, 1);
 		} else if (read_config(commands, editor_file("rc"), 0)) {
-			read_config(commands, PKGDATADIR "/rc", 1);
+			read_config(commands, ssprintf("%s/rc", pkgdatadir), 1);
 		}
 	}
 

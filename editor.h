@@ -41,6 +41,11 @@ extern enum input_special input_special;
 extern char *home_dir;
 extern int child_controls_terminal;
 
+extern const char *program;
+extern const char *version;
+extern const char *pkgdatadir;
+
+const char *ssprintf(const char *format, ...);
 const char *editor_file(const char *name);
 void error_msg(const char *format, ...) __FORMAT(1, 2);
 void info_msg(const char *format, ...) __FORMAT(1, 2);

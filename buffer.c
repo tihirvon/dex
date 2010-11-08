@@ -413,14 +413,10 @@ struct syntax *load_syntax_by_filename(const char *filename)
 struct syntax *load_syntax_by_filetype(const char *filetype)
 {
 	struct syntax *syn;
-	char buf[1024];
 
-	snprintf(buf, sizeof(buf), "%s/.editor/syntax/%s", home_dir, filetype);
-	syn = load_syntax_file(buf, 0);
-	if (!syn) {
-		snprintf(buf, sizeof(buf), "%s/syntax/%s", PKGDATADIR, filetype);
-		syn = load_syntax_file(buf, 0);
-	}
+	syn = load_syntax_file(ssprintf("%s/.%s/syntax/%s", home_dir, program, filetype), 0);
+	if (!syn)
+		syn = load_syntax_file(ssprintf("%s/syntax/%s", pkgdatadir, filetype), 0);
 	if (syn && editor_status != EDITOR_INITIALIZING)
 		update_syntax_colors(syn);
 	return syn;
