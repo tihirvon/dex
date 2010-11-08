@@ -4,6 +4,6 @@ tags
 callgrind.out.*
 
 /Config.mk
-/editor
+/dex
 
 !.git*

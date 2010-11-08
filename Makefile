@@ -39,7 +39,7 @@ WARNINGS = \
 # End of configuration
 
 # all good names have been taken. make it easy to change
-PROGRAM = editor
+PROGRAM = dex
 
 all: $(PROGRAM)
 

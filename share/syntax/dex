@@ -1,4 +1,4 @@
-syntax editor
+syntax dex
 
 state start code
 	char " \t" start
