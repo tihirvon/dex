@@ -143,6 +143,9 @@ state ident
 	inlist keyword c
 	inlist type c
 	inlist constant c
+	inlist cpp-keyword c
+	inlist cpp-type c
+	inlist cpp-constant c
 	noeat c
 
 state zero numeric
@@ -236,3 +239,19 @@ list -h constant \
 
 list -i numeric-suffix \
 	ULL UL U LLU LU LL L
+
+list -h cpp-keyword \
+	catch class const_cast delete dynamic_cast explicit friend \
+	mutable namespace new operator private protected public \
+	reinterpret_cast static_cast template this throw try typeid \
+	typeof typename using virtual
+
+list cpp-type \
+	bool wchar_t
+
+list cpp-constant \
+	false true
+
+default keyword cpp-keyword
+default type cpp-type
+default constant cpp-constant
