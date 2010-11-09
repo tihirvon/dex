@@ -21,7 +21,7 @@ ft -f make '/Make\.[^/]*$'
 
 # extensions
 ft c c h
-ft cpp cpp hpp cc hh C H cxx hxx c++ moc inl pro
+ft c cpp hpp cc hh C H cxx hxx c++ moc inl pro
 ft css css
 ft diff diff patch
 ft go go
