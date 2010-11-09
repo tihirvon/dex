@@ -39,6 +39,12 @@ hi preproc blue
 hi error black yellow
 hi variable blue
 
+# Same syntax file is used for C and C++.
+# To disable highlighting of C++ specific things uncomment these.
+#hi c.cpp-keyword
+#hi c.cpp-type
+#hi c.cpp-constant
+
 # css
 hi css.id blue
 hi css.class blue
