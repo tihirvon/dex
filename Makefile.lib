@@ -15,6 +15,9 @@ endif
 LC_ALL := C
 export LC_ALL
 
+clean =
+distclean =
+
 # CFLAGS and LDFLAGS can be set from the command line
 BASIC_CFLAGS =
 BASIC_LDFLAGS =
@@ -54,19 +57,21 @@ endif
 
 $(dep_dirs):
 	@mkdir -p $@
-
-clean: clean-deps
-
-clean-deps:
-	rm -fr $(dep_dirs)
-
-.PHONY: clean-deps
 else
 missing_dep_dirs =
 endif
 
 %.o: %.c $(missing_dep_dirs)
 	$(call cmd,cc)
+
+clean:
+	rm -f $(clean)
+	rm -rf $(dep_dirs)
+
+distclean: clean
+	rm -f $(distclean)
+
+.PHONY: clean distclean
 
 # Treat all targets as secondary (Never delete intermediate targets).
 .SECONDARY:

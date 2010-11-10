@@ -151,7 +151,11 @@ endif
 
 BASIC_CFLAGS += -DDEBUG=$(DEBUG)
 
+clean += .CFLAGS
 $(OBJECTS): .CFLAGS
+
+.CFLAGS: FORCE
+	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
 
 # VERSION file is included in release tarballs
 VERSION	:= $(shell cat VERSION 2>/dev/null)
@@ -164,15 +168,14 @@ VERSION	:= no-version
 endif
 TARNAME = $(PROGRAM)-$(VERSION)
 
+clean += .VARS
 vars.o: .VARS
 vars.o: BASIC_CFLAGS += -DPROGRAM=\"$(PROGRAM)\" -DVERSION=\"$(VERSION)\" -DPKGDATADIR=\"$(PKGDATADIR)\"
-
-.CFLAGS: FORCE
-	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
 
 .VARS: FORCE
 	@./update-option "PROGRAM=$(PROGRAM) VERSION=$(VERSION) PKGDATADIR=$(PKGDATADIR)" $@
 
+clean += *.o $(PROGRAM)
 $(PROGRAM): $(OBJECTS)
 	$(call cmd,ld,)
 
@@ -189,12 +192,7 @@ install: all
 	$(INSTALL) -m644 $(compiler) $(DESTDIR)$(PKGDATADIR)/compiler
 	$(INSTALL) -m644 $(syntax)   $(DESTDIR)$(PKGDATADIR)/syntax
 
-clean:
-	rm -f *.o $(PROGRAM) .CFLAGS .VARS
-
-distclean: clean
-	rm -f tags
-
+distclean += tags
 tags:
 	ctags *.[ch]
 
@@ -207,4 +205,4 @@ dist:
 	rmdir -p $(TARNAME)
 	gzip -f -9 $(TARNAME).tar
 
-.PHONY: all clean distclean install tags dist FORCE
+.PHONY: all install tags dist FORCE
