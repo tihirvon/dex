@@ -38,12 +38,16 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 {
 	char *deleted = NULL;
 
-	if (del_count)
-		deleted = do_delete(del_count);
-	if (ins_count)
+	if (!del_count) {
+		if (!ins_count)
+			return;
 		do_insert(inserted, ins_count);
-	if (del_count || ins_count)
-		record_replace(deleted, del_count, ins_count);
+	} else if (!ins_count) {
+		deleted = do_delete(del_count);
+	} else {
+		deleted = do_replace(del_count, inserted, ins_count);
+	}
+	record_replace(deleted, del_count, ins_count);
 }
 
 void unselect(void)

@@ -319,3 +319,57 @@ char *do_delete(unsigned int len)
 	hl_delete(deleted_nl);
 	return buf;
 }
+
+char *do_replace(unsigned int del, const char *buf, unsigned int ins)
+{
+	struct block *blk;
+	unsigned int offset, avail, new_size;
+	char *ptr, *deleted;
+	unsigned int del_nl, ins_nl;
+
+	block_iter_normalize(&view->cursor);
+	blk = view->cursor.blk;
+	offset = view->cursor.offset;
+
+	avail = blk->size - offset;
+	if (del >= avail)
+		goto slow;
+
+	new_size = blk->size + ins - del;
+	if (new_size > BLOCK_EDIT_SIZE) {
+		// should split
+		if (blk->nl > 1 || memchr(buf, '\n', ins)) {
+			// most likely can be splitted
+			goto slow;
+		}
+	}
+
+	if (new_size > blk->alloc) {
+		blk->alloc = ALLOC_ROUND(new_size);
+		xrenew(blk->data, blk->alloc);
+	}
+
+	// modification is limited to one block
+	ptr = blk->data + offset;
+	deleted = xmalloc(del);
+	del_nl = copy_count_nl(deleted, ptr, del);
+	blk->nl -= del_nl;
+	buffer->nl -= del_nl;
+
+	if (del != ins)
+		memmove(ptr + ins, ptr + del, avail - del);
+
+	ins_nl = copy_count_nl(ptr, buf, ins);
+	blk->nl += ins_nl;
+	buffer->nl += ins_nl;
+	blk->size = new_size;
+
+	sanity_check();
+	hl_delete(del_nl);
+	hl_insert(ins_nl);
+	return deleted;
+slow:
+	deleted = do_delete(del);
+	do_insert(buf, ins);
+	return deleted;
+}
