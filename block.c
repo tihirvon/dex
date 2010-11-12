@@ -213,7 +213,8 @@ static unsigned int insert_bytes(const char *buf, unsigned int len)
 	struct block *blk = view->cursor.blk;
 	unsigned int new_size = blk->size + len;
 
-	// never append in case last character of buf is not newline
+	// blocks must contain whole lines
+	// last char of buf might not be newline
 	if (view->cursor.offset == blk->size && blk->node.next != &buffer->blocks) {
 		blk = BLOCK(blk->node.next);
 		view->cursor.blk = blk;
@@ -222,6 +223,12 @@ static unsigned int insert_bytes(const char *buf, unsigned int len)
 
 	if (new_size <= blk->alloc || new_size <= BLOCK_EDIT_SIZE)
 		return insert_to_current(buf, len);
+
+	if (blk->nl <= 1 && !memchr(buf, '\n', len)) {
+		// can't split this possibly very long line
+		// insert_to_current() is much faster than split_and_insert()
+		return insert_to_current(buf, len);
+	}
 	return split_and_insert(buf, len);
 }
 
