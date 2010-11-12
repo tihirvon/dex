@@ -109,12 +109,15 @@ static void insert_paste(void)
 
 	if (text[size - 1] != '\n' && block_iter_is_eof(&view->cursor)) {
 		xrenew(text, ++size);
-		text[size - 1]= '\n';
+		text[size - 1] = '\n';
 	}
+
 	begin_change(CHANGE_MERGE_NONE);
 	insert(text, size);
 	end_change();
+
 	block_iter_skip_bytes(&view->cursor, skip);
+	update_preferred_x();
 	free(text);
 }
 
@@ -740,6 +743,7 @@ static void insert_special(const char *buf, int size)
 		insert(buf, size);
 		end_change();
 		block_iter_skip_bytes(&view->cursor, size);
+		update_preferred_x();
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:

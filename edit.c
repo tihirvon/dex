@@ -23,7 +23,6 @@ void insert(const char *buf, unsigned int len)
 {
 	record_insert(len);
 	do_insert(buf, len);
-	update_preferred_x();
 }
 
 void delete(unsigned int len, int move_after)
