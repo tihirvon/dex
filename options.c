@@ -264,73 +264,44 @@ static int parse_int(const char *value, int *ret)
 	return 1;
 }
 
-static void set_int_opt(const struct option_description *desc, const char *value, int *local, int *global)
+static int parse_int_opt(const struct option_description *desc, const char *value, int *val)
 {
-	int val;
-
-	if (!value || !parse_int(value, &val)) {
+	if (!value || !parse_int(value, val)) {
 		error_msg("Integer value for %s expected.", desc->name);
-		return;
+		return 0;
 	}
-	if (val < desc->u.int_opt.min || val > desc->u.int_opt.max) {
+	if (*val < desc->u.int_opt.min || *val > desc->u.int_opt.max) {
 		error_msg("Value for %s must be in %d-%d range.", desc->name,
 			desc->u.int_opt.min, desc->u.int_opt.max);
-		return;
+		return 0;
 	}
-	desc->u.int_opt.set(local, global, val);
+	return 1;
 }
 
-static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
+static int parse_enum(const struct option_description *desc, const char *value)
 {
-	if (!value) {
-		error_msg("String value for %s expected.", desc->name);
-		return;
+	int val, i;
+
+	for (i = 0; desc->u.enum_opt.values[i]; i++) {
+		if (!strcmp(desc->u.enum_opt.values[i], value))
+			return i;
 	}
-	desc->u.str_opt.set(local, global, value);
+	if (!parse_int(value, &val) || val < 0 || val >= i) {
+		error_msg("Invalid value for %s.", desc->name);
+		return -1;
+	}
+	return val;
 }
 
-static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
-{
-	int val;
-
-	if (!value) {
-		if (desc->u.enum_opt.values != bool_enum) {
-			error_msg("Option %s is not boolean.", desc->name);
-			return;
-		}
-		val = 1;
-	} else {
-		int i;
-
-		for (i = 0; desc->u.enum_opt.values[i]; i++) {
-			if (!strcmp(desc->u.enum_opt.values[i], value)) {
-				val = i;
-				goto set;
-			}
-		}
-		if (!parse_int(value, &val) || val < 0 || val >= i) {
-			error_msg("Invalid value for %s.", desc->name);
-			return;
-		}
-	}
-set:
-	desc->u.enum_opt.set(local, global, val);
-}
-
-static void set_flag_opt(const struct option_description *desc, const char *value, int *local, int *global)
+static int parse_flags(const struct option_description *desc, const char *value)
 {
 	const char **values = desc->u.flag_opt.values;
 	const char *ptr = value;
 	int flags = 0;
 
-	if (!value) {
-		error_msg("No value given for %s.", desc->name);
-		return;
-	}
-
 	while (*ptr) {
 		const char *end = strchr(ptr, ',');
-		char buf[64];
+		char *buf;
 		int i, len;
 
 		if (end) {
@@ -340,11 +311,7 @@ static void set_flag_opt(const struct option_description *desc, const char *valu
 			len = strlen(ptr);
 			end = ptr + len;
 		}
-		if (len >= sizeof(buf)) {
-			error_msg("Too long flag value for %s.", desc->name);
-			return;
-		}
-		memcpy(buf, ptr, len);
+		buf = xmemdup(ptr, len + 1);
 		buf[len] = 0;
 		ptr = end;
 
@@ -359,12 +326,61 @@ static void set_flag_opt(const struct option_description *desc, const char *valu
 
 			if (!parse_int(buf, &val) || val < 0 || val > max) {
 				error_msg("Invalid value for %s.", desc->name);
-				return;
+				free(buf);
+				return -1;
 			}
 			flags |= val;
 		}
+		free(buf);
 	}
-	desc->u.flag_opt.set(local, global, flags);
+	return flags;
+}
+
+static void set_int_opt(const struct option_description *desc, const char *value, int *local, int *global)
+{
+	int val;
+
+	if (parse_int_opt(desc, value, &val))
+		desc->u.int_opt.set(local, global, val);
+}
+
+static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
+{
+	if (!value) {
+		error_msg("String value for %s expected.", desc->name);
+		return;
+	}
+	desc->u.str_opt.set(local, global, value);
+}
+
+static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
+{
+	int val = 1;
+
+	if (!value) {
+		if (desc->u.enum_opt.values != bool_enum) {
+			error_msg("Option %s is not boolean.", desc->name);
+			return;
+		}
+	} else {
+		val = parse_enum(desc, value);
+	}
+	if (val >= 0)
+		desc->u.enum_opt.set(local, global, val);
+}
+
+static void set_flag_opt(const struct option_description *desc, const char *value, int *local, int *global)
+{
+	int flags;
+
+	if (!value) {
+		error_msg("No value given for %s.", desc->name);
+		return;
+	}
+
+	flags = parse_flags(desc, value);
+	if (flags >= 0)
+		desc->u.flag_opt.set(local, global, flags);
 }
 
 static char *flags_to_string(const char **values, int flags)
