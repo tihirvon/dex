@@ -89,3 +89,6 @@ bind M-@ "move-tab right"
 
 # Insert date and time (press first ^X and then t)
 #bind '^X t' "pass-through -ms date '+%Y-%m-%d %H:%M'"
+
+# Toggle 4 different values of ws-error option (whitespace error highlighting)
+#bind F3 "toggle -v ws-error trailing,space-indent trailing,tab-indent,tab-after-indent trailing 0"
