@@ -43,10 +43,8 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 		deleted = do_delete(del_count);
 	if (ins_count)
 		do_insert(inserted, ins_count);
-	if (del_count || ins_count) {
+	if (del_count || ins_count)
 		record_replace(deleted, del_count, ins_count);
-		update_preferred_x();
-	}
 }
 
 void unselect(void)
@@ -113,14 +111,11 @@ void paste(void)
 	}
 
 	if (copy_is_lines) {
-		int save = view->preferred_x;
-
 		if (!del_count)
 			block_iter_eat_line(&view->cursor);
 		replace(del_count, copy_buf, copy_len);
-
-		view->preferred_x = save;
 		move_to_preferred_x();
+		update_preferred_x();
 	} else {
 		replace(del_count, copy_buf, copy_len);
 	}
@@ -338,6 +333,7 @@ static void join_selection(void)
 		}
 	}
 	end_change_chain();
+	update_preferred_x();
 }
 
 void join_lines(void)

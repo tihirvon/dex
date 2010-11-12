@@ -422,6 +422,7 @@ static void cmd_insert(const char *pf, char **args)
 		replace(del_len, str, ins_len);
 		if (strchr(pf, 'm'))
 			block_iter_skip_bytes(&view->cursor, ins_len);
+		update_preferred_x();
 	}
 }
 

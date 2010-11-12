@@ -428,4 +428,5 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		block_iter_goto_offset(&view->cursor, view->sel_eo);
 		view->sel_eo = UINT_MAX;
 	}
+	update_preferred_x();
 }
