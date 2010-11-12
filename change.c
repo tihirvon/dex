@@ -199,7 +199,6 @@ static void reverse_change(struct change *change)
 		change->del_count = change->ins_count;
 		change->ins_count = 0;
 	}
-	update_preferred_x();
 }
 
 int undo(void)

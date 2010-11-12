@@ -658,8 +658,10 @@ static void cmd_redo(const char *pf, char **args)
 			return;
 		}
 	}
-	if (redo(change_id))
+	if (redo(change_id)) {
 		unselect();
+		update_preferred_x();
+	}
 }
 
 static void cmd_repeat(const char *pf, char **args)
@@ -1147,8 +1149,10 @@ static void cmd_toggle(const char *pf, char **args)
 
 static void cmd_undo(const char *pf, char **args)
 {
-	if (undo())
+	if (undo()) {
 		unselect();
+		update_preferred_x();
+	}
 }
 
 static void cmd_unselect(const char *pf, char **args)
