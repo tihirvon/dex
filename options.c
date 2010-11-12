@@ -535,6 +535,110 @@ void toggle_option(const char *name, unsigned int flags, int verbose)
 	}
 }
 
+void toggle_option_values(const char *name, unsigned int flags, int verbose, char **values)
+{
+	const struct option_description *desc = find_option(name, flags);
+	int count = count_strings(values);
+	char *ptr = NULL;
+	int i;
+
+	if (!desc)
+		return;
+	if (flags & OPT_LOCAL && flags & OPT_GLOBAL) {
+		error_msg("Can't toggle both local and global option value");
+		return;
+	}
+
+	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
+		/* doesn't make sense to toggle both local and global value */
+		if (desc->local)
+			flags |= OPT_LOCAL;
+		else if (desc->global)
+			flags |= OPT_GLOBAL;
+	}
+
+	if (desc->type == OPT_STR) {
+		char *value;
+
+		if (flags & OPT_LOCAL)
+			ptr = local_ptr(desc, &buffer->options);
+		if (flags & OPT_GLOBAL)
+			ptr = global_ptr(desc);
+
+		value = *(char **)ptr;
+		for (i = 0; i < count; i++) {
+			if (!strcmp(values[i], value))
+				break;
+		}
+		if (i < count)
+			i++;
+		i %= count;
+
+		if (flags & OPT_LOCAL)
+			desc->u.str_opt.set((char **)ptr, NULL, values[i]);
+		if (flags & OPT_GLOBAL)
+			desc->u.str_opt.set(NULL, (char **)ptr, values[i]);
+	} else {
+		int *ints = xnew(int, count);
+		int value;
+
+		switch (desc->type) {
+		case OPT_INT:
+			for (i = 0; i < count; i++) {
+				if (!parse_int_opt(desc, values[i], &ints[i])) {
+					free(ints);
+					return;
+				}
+			}
+			break;
+		case OPT_ENUM:
+			for (i = 0; i < count; i++) {
+				ints[i] = parse_enum(desc, values[i]);
+				if (ints[i] < 0) {
+					free(ints);
+					return;
+				}
+			}
+			break;
+		case OPT_FLAG:
+			for (i = 0; i < count; i++) {
+				ints[i] = parse_flags(desc, values[i]);
+				if (ints[i] < 0) {
+					free(ints);
+					return;
+				}
+			}
+			break;
+		}
+
+		if (flags & OPT_LOCAL)
+			ptr = local_ptr(desc, &buffer->options);
+		if (flags & OPT_GLOBAL)
+			ptr = global_ptr(desc);
+
+		value = *(int *)ptr;
+		for (i = 0; i < count; i++) {
+			if (value == ints[i])
+				break;
+		}
+		if (i < count)
+			i++;
+		i %= count;
+
+		if (flags & OPT_LOCAL)
+			desc->u.int_opt.set((int *)ptr, NULL, ints[i]);
+		if (flags & OPT_GLOBAL)
+			desc->u.int_opt.set(NULL, (int *)ptr, ints[i]);
+		free(ints);
+	}
+
+	if (verbose) {
+		char *str = option_to_string(desc, ptr);
+		info_msg("%s = %s", desc->name, str);
+		free(str);
+	}
+}
+
 void collect_options(const char *prefix)
 {
 	int len = strlen(prefix);

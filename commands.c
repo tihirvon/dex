@@ -1139,7 +1139,10 @@ static void cmd_toggle(const char *pf, char **args)
 		}
 		pf++;
 	}
-	toggle_option(args[0], flags, verbose);
+	if (args[1])
+		toggle_option_values(args[0], flags, verbose, args + 1);
+	else
+		toggle_option(args[0], flags, verbose);
 }
 
 static void cmd_undo(const char *pf, char **args)
@@ -1256,7 +1259,7 @@ const struct command commands[] = {
 	{ "shift",		"",	1,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "tag",		"npr",	0,  1, cmd_tag },
-	{ "toggle",		"glv",	1,  1, cmd_toggle },
+	{ "toggle",		"glv",	1, -1, cmd_toggle },
 	{ "undo",		"",	0,  0, cmd_undo },
 	{ "unselect",		"",	0,  0, cmd_unselect },
 	{ "up",			"",	0,  0, cmd_up },
