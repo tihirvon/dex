@@ -1,6 +1,5 @@
 #include "history.h"
 #include "common.h"
-#include "util.h"
 #include "wbuf.h"
 
 struct history_entry {

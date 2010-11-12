@@ -53,6 +53,7 @@ OBJECTS	:= 			\
 	cmdline.o		\
 	color.o			\
 	commands.o		\
+	common.o		\
 	completion.o		\
 	config.o		\
 	ctags.o			\
@@ -86,7 +87,6 @@ OBJECTS	:= 			\
 	termcap.o		\
 	terminfo.o		\
 	uchar.o			\
-	util.o			\
 	vars.o			\
 	wbuf.o			\
 	window.o		\

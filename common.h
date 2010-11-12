@@ -64,8 +64,14 @@ static inline void d_print(const char *fmt, ...)
 			BUG("%s\n", __STR(a)); \
 	} while (0)
 
+ssize_t xread(int fd, void *buf, size_t count);
+ssize_t xwrite(int fd, const void *buf, size_t count);
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
 void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);
+char *path_absolute(const char *filename);
+const char *get_file_type(mode_t mode);
+void *xmmap(int fd, off_t offset, size_t len);
+void xmunmap(void *start, size_t len);
 
 #include "xmalloc.h"
 

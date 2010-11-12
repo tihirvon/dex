@@ -1,6 +1,5 @@
 #include "ctags.h"
 #include "common.h"
-#include "util.h"
 
 struct tag_file *open_tag_file(const char *filename)
 {

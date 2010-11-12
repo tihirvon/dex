@@ -8,7 +8,6 @@
 #include "cmdline.h"
 #include "history.h"
 #include "spawn.h"
-#include "util.h"
 #include "filetype.h"
 #include "color.h"
 #include "state.h"

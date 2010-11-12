@@ -1,5 +1,5 @@
 #include "wbuf.h"
-#include "util.h"
+#include "common.h"
 
 #include <string.h>
 

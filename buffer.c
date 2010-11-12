@@ -4,7 +4,6 @@
 #include "change.h"
 #include "block.h"
 #include "move.h"
-#include "util.h"
 #include "wbuf.h"
 #include "term.h"
 #include "filetype.h"

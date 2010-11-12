@@ -8,7 +8,6 @@
 #include "search.h"
 #include "history.h"
 #include "file-history.h"
-#include "util.h"
 #include "screen.h"
 #include "bind.h"
 #include "alias.h"

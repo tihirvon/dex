@@ -1,4 +1,4 @@
-#include "util.h"
+#include "common.h"
 #include "editor.h"
 
 #include <sys/mman.h>

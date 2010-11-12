@@ -1,5 +1,4 @@
 #include "config.h"
-#include "util.h"
 #include "editor.h"
 #include "command.h"
 #include "gbuf.h"
