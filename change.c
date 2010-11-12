@@ -69,11 +69,6 @@ static unsigned int buffer_offset(void)
 	return block_iter_get_offset(&view->cursor);
 }
 
-static void move_to_offset(unsigned int offset)
-{
-	block_iter_goto_offset(&view->cursor, offset);
-}
-
 void record_insert(unsigned int len)
 {
 	struct change *change = (struct change *)buffer->cur_change_head;
@@ -173,12 +168,12 @@ void end_change_chain(void)
 
 static void reverse_change(struct change *change)
 {
-	move_to_offset(change->offset);
+	block_iter_goto_offset(&view->cursor, change->offset);
 	if (!change->ins_count) {
 		// convert delete to insert
 		do_insert(change->buf, change->del_count);
 		if (change->move_after)
-			move_to_offset(change->offset + change->del_count);
+			block_iter_skip_bytes(&view->cursor, change->del_count);
 		change->ins_count = change->del_count;
 		change->del_count = 0;
 		free(change->buf);
