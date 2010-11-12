@@ -180,14 +180,14 @@ static void reverse_change(struct change *change)
 		change->buf = NULL;
 	} else if (change->del_count) {
 		// reverse replace
-		unsigned int ins_count = change->ins_count;
-		char *buf = do_delete(ins_count);
+		unsigned int del_count = change->ins_count;
+		unsigned int ins_count = change->del_count;
+		char *buf = do_replace(del_count, change->buf, ins_count);
 
-		do_insert(change->buf, change->del_count);
 		free(change->buf);
 		change->buf = buf;
-		change->ins_count = change->del_count;
-		change->del_count = ins_count;
+		change->ins_count = ins_count;
+		change->del_count = del_count;
 	} else {
 		// convert insert to delete
 		change->buf = do_delete(change->ins_count);
