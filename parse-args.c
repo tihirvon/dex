@@ -2,15 +2,6 @@
 #include "common.h"
 #include "editor.h"
 
-int count_strings(char **strings)
-{
-	int count;
-
-	for (count = 0; strings[count]; count++)
-		;
-	return count;
-}
-
 /*
  * Flags and first "--" are removed.
  * Flag arguments are moved to beginning.

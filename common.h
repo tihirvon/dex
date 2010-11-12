@@ -64,6 +64,7 @@ static inline void d_print(const char *fmt, ...)
 			BUG("%s\n", __STR(a)); \
 	} while (0)
 
+int count_strings(char **strings);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;

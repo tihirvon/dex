@@ -3,6 +3,15 @@
 
 #include <sys/mman.h>
 
+int count_strings(char **strings)
+{
+	int count;
+
+	for (count = 0; strings[count]; count++)
+		;
+	return count;
+}
+
 ssize_t xread(int fd, void *buf, size_t count)
 {
 	char *b = buf;
