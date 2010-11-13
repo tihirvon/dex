@@ -684,16 +684,14 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		if (vx != view->vx || vy != view->vy) {
 			update_flags |= UPDATE_FULL;
 		} else if (cy != view->cy) {
-			// Because of trailing whitespace highlighting,
-			// highlighting current line in different color and
-			// selection all lines from old cursor y to new
-			// cursor y need to be updated.
+			// Because of trailing whitespace highlighting and
+			// highlighting current line in different color
+			// the lines cy (old cursor y) and view->cy need
+			// to be updated.
 			lines_changed(cy, view->cy);
 		} else {
-			// Cursor may have moved left or right, selection might
-			// have been started and so on.  Too many things to track
-			// for such a little gain.  Always update at least current
-			// line.
+			// Too many things to track for a little gain.
+			// Always update at least current line.
 			lines_changed(cy, cy);
 		}
 		if (is_modified != buffer_modified(buffer))

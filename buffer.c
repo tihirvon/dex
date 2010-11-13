@@ -22,6 +22,15 @@ unsigned int update_flags;
 int changed_line_min = INT_MAX;
 int changed_line_max = -1;
 
+/*
+ * Mark line range min...max (inclusive) "changed". These lines will be
+ * redrawn when screen is updated. This is called even when content has not
+ * been changed, but selection has or line has been deleted and all lines
+ * after the deleted line move up.
+ *
+ * Syntax highlighter has different logic. It cares about contents of the
+ * lines, not about selection or if the lines have been moved up or down.
+ */
 void lines_changed(int min, int max)
 {
 	if (min > max) {

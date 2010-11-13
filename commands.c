@@ -1008,6 +1008,11 @@ static void cmd_select(const char *pf, char **args)
 	view->sel_so = block_iter_get_offset(&view->cursor);
 	view->sel_eo = UINT_MAX;
 	view->selection = sel;
+
+	// need to mark current line changed because cursor might
+	// move up or down before screen is updated
+	update_cursor_y();
+	lines_changed(view->cy, view->cy);
 }
 
 static void cmd_set(const char *pf, char **args)
