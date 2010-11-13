@@ -238,7 +238,11 @@ void do_insert(const char *buf, unsigned int len)
 
 	buffer->nl += nl;
 	sanity_check();
-	hl_insert(nl);
+
+	update_cursor_y();
+	lines_changed(view->cy, nl ? INT_MAX : view->cy);
+	if (buffer->syn)
+		hl_insert(view->cy, nl);
 }
 
 static int only_block(struct block *blk)
@@ -316,7 +320,11 @@ char *do_delete(unsigned int len)
 	}
 
 	sanity_check();
-	hl_delete(deleted_nl);
+
+	update_cursor_y();
+	lines_changed(view->cy, deleted_nl ? INT_MAX : view->cy);
+	if (buffer->syn)
+		hl_delete(view->cy, deleted_nl);
 	return buf;
 }
 
@@ -365,8 +373,18 @@ char *do_replace(unsigned int del, const char *buf, unsigned int ins)
 	blk->size = new_size;
 
 	sanity_check();
-	hl_delete(del_nl);
-	hl_insert(ins_nl);
+
+	update_cursor_y();
+	if (del_nl == ins_nl) {
+		// some line(s) changed but lines after them did not move up or down
+		lines_changed(view->cy, view->cy + del_nl);
+	} else {
+		lines_changed(view->cy, INT_MAX);
+	}
+	if (buffer->syn) {
+		hl_delete(view->cy, del_nl);
+		hl_insert(view->cy, ins_nl);
+	}
 	return deleted;
 slow:
 	deleted = do_delete(del);

@@ -352,20 +352,10 @@ struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_chan
 }
 
 // called after text have been inserted to rehighlight changed lines
-void hl_insert(int lines)
+void hl_insert(int first, int lines)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	int first, last, i;
-
-	update_cursor_y();
-
-	// modified lines
-	first = view->cy;
-	last = first + lines;
-	lines_changed(first, first == last ? first : INT_MAX);
-
-	if (!buffer->syn)
-		return;
+	int last = first + lines;
 
 	if (first >= s->count) {
 		// nothing to rehighlight
@@ -391,6 +381,7 @@ void hl_insert(int lines)
 	// invalidate start states of lines right after any changed lines
 	// invalid: first+1..last+1 (inclusive)
 	if (first != last) {
+		int i;
 		/*
 		 * NOTE: Because we don't keep track of number of the
 		 * possibly invalid line start states there are we must
@@ -403,20 +394,10 @@ void hl_insert(int lines)
 }
 
 // called after text have been deleted to rehighlight changed lines
-void hl_delete(int deleted_nl)
+void hl_delete(int first, int deleted_nl)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	int first, last;
-
-	update_cursor_y();
-
-	// modified lines
-	first = view->cy;
-	last = first + deleted_nl;
-	lines_changed(first, first == last ? first : INT_MAX);
-
-	if (!buffer->syn)
-		return;
+	int last = first + deleted_nl;
 
 	if (s->count == 1)
 		return;
