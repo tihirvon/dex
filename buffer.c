@@ -230,7 +230,7 @@ static size_t add_block(struct buffer *b, const char *buf, size_t size)
 
 static int read_blocks(struct buffer *b, int fd)
 {
-	size_t pos, size = b->st.st_size;
+	size_t pos, size = b->st_size;
 	char *nl, *buf = xmmap(fd, 0, size);
 
 	if (!buf)
@@ -253,7 +253,7 @@ static int read_blocks(struct buffer *b, int fd)
 		}
 	}
 
-	xmunmap(buf, b->st.st_size);
+	xmunmap(buf, size);
 	return 0;
 }
 
@@ -553,6 +553,17 @@ struct view *open_buffer(const char *filename, int must_exist)
 	return v;
 }
 
+static void update_stat(int fd, struct buffer *b)
+{
+	struct stat st;
+	fstat(fd, &st);
+	b->st_size = st.st_size;
+	b->st_dev = st.st_dev;
+	b->st_ino = st.st_ino;
+	b->_st_mtime = st.st_mtime;
+	b->st_mode = st.st_mode;
+}
+
 static int load_buffer(struct buffer *b, int must_exist)
 {
 	const char *filename = b->abs_filename;
@@ -577,9 +588,9 @@ static int load_buffer(struct buffer *b, int must_exist)
 			return -1;
 		}
 	} else {
-		fstat(fd, &b->st);
-		if (!S_ISREG(b->st.st_mode)) {
-			error_msg("Can't open %s %s", get_file_type(b->st.st_mode), filename);
+		update_stat(fd, b);
+		if (!S_ISREG(b->st_mode)) {
+			error_msg("Can't open %s %s", get_file_type(b->st_mode), filename);
 			close(fd);
 			return -1;
 		}
@@ -703,7 +714,7 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 	WBUF(wbuf);
 	int rc, len;
 	unsigned int size;
-	mode_t mode = buffer->st.st_mode ? buffer->st.st_mode : 0666 & ~get_umask();
+	mode_t mode = buffer->st_mode ? buffer->st_mode : 0666 & ~get_umask();
 
 	if (!strncmp(filename, "/tmp/", 5))
 		ren = 0;
@@ -766,7 +777,7 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 		close(wbuf.fd);
 		return -1;
 	}
-	fstat(wbuf.fd, &buffer->st);
+	update_stat(wbuf.fd, buffer);
 	close(wbuf.fd);
 
 	buffer->save_change_head = buffer->cur_change_head;

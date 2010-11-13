@@ -735,12 +735,12 @@ static void cmd_run(const char *pf, char **args)
 	spawn(args, fd, prompt);
 }
 
-static int stat_changed(const struct stat *a, const struct stat *b)
+static int stat_changed(const struct buffer *b, const struct stat *st)
 {
 	/* don't compare st_mode because we allow chmod 755 etc. */
-	return a->st_mtime != b->st_mtime ||
-		a->st_dev != b->st_dev ||
-		a->st_ino != b->st_ino;
+	return b->_st_mtime != st->st_mtime ||
+		b->st_dev != st->st_dev ||
+		b->st_ino != st->st_ino;
 }
 
 static void cmd_save(const char *pf, char **args)
@@ -748,7 +748,7 @@ static void cmd_save(const char *pf, char **args)
 	char *absolute = buffer->abs_filename;
 	int force = 0;
 	enum newline_sequence newline = buffer->newline;
-	mode_t old_mode = buffer->st.st_mode;
+	mode_t old_mode = buffer->st_mode;
 	struct stat st;
 	int new_locked = 0;
 
@@ -818,7 +818,7 @@ static void cmd_save(const char *pf, char **args)
 			}
 		}
 	} else {
-		if (absolute == buffer->abs_filename && !force && stat_changed(&buffer->st, &st)) {
+		if (absolute == buffer->abs_filename && !force && stat_changed(buffer, &st)) {
 			error_msg("File has been modified by someone else. Use -f to force overwrite.");
 			goto error;
 		}
@@ -855,7 +855,7 @@ static void cmd_save(const char *pf, char **args)
 		}
 
 		/* allow chmod 755 etc. */
-		buffer->st.st_mode = st.st_mode;
+		buffer->st_mode = st.st_mode;
 	}
 	if (save_buffer(absolute, newline))
 		goto error;
