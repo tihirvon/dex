@@ -1,7 +1,6 @@
 #ifndef ITER_H
 #define ITER_H
 
-#include "uchar.h"
 #include "list.h"
 
 /*
@@ -35,8 +34,8 @@ struct lineref {
 };
 
 void block_iter_normalize(struct block_iter *bi);
-unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte);
-unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte);
+unsigned int block_iter_next_byte(struct block_iter *i, unsigned int *byte);
+unsigned int block_iter_prev_byte(struct block_iter *i, unsigned int *byte);
 unsigned int block_iter_eat_line(struct block_iter *bi);
 unsigned int block_iter_next_line(struct block_iter *bi);
 unsigned int block_iter_prev_line(struct block_iter *bi);

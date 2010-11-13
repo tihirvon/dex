@@ -5,6 +5,7 @@
 #include "cmdline.h"
 #include "search.h"
 #include "color.h"
+#include "uchar.h"
 
 struct line_info {
 	const char *line;
@@ -50,10 +51,10 @@ void set_basic_colors(void)
 	tab_inactive_color = find_color("inactivetab");
 }
 
-static uchar term_get_char(const char *buf, unsigned int size, unsigned int *idx)
+static unsigned int term_get_char(const char *buf, unsigned int size, unsigned int *idx)
 {
 	unsigned int i = *idx;
-	uchar u;
+	unsigned int u;
 
 	if (term_flags & TERM_UTF8) {
 		u = u_buf_get_char(buf, size, &i);
@@ -286,7 +287,7 @@ static int get_char_width(unsigned int *idx)
 int print_command(char prefix)
 {
 	unsigned int i, w;
-	uchar u;
+	unsigned int u;
 	int x;
 
 	// width of characters up to and including cursor position
@@ -333,7 +334,7 @@ void print_message(const char *msg, int is_error)
 		color = is_error ? &errormsg_color->color : &infomsg_color->color;
 	buf_set_color(color);
 	while (msg[i]) {
-		uchar u = term_get_char(msg, i + 4, &i);
+		unsigned int u = term_get_char(msg, i + 4, &i);
 		if (!buf_put_char(u, term_flags & TERM_UTF8))
 			break;
 	}
@@ -416,14 +417,14 @@ static void selection_init(void)
 	sel_eo = info.eo;
 }
 
-static int is_non_text(uchar u)
+static int is_non_text(unsigned int u)
 {
 	if (u < 0x20)
 		return u != '\t' || options.display_special;
 	return u == 0x7f || !u_is_unicode(u);
 }
 
-static int whitespace_error(struct line_info *info, uchar u, unsigned int i)
+static int whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
 {
 	const char *line = info->line;
 	int flags = buffer->options.ws_error;
@@ -461,10 +462,10 @@ static int whitespace_error(struct line_info *info, uchar u, unsigned int i)
 	return 0;
 }
 
-static uchar screen_next_char(struct line_info *info)
+static unsigned int screen_next_char(struct line_info *info)
 {
 	unsigned int count, pos = info->pos;
-	uchar u = (unsigned char)info->line[pos];
+	unsigned int u = (unsigned char)info->line[pos];
 	int ws_error = 0;
 
 	if (likely(u < 0x80) || !buffer->options.utf8) {
@@ -485,7 +486,7 @@ static uchar screen_next_char(struct line_info *info)
 static void screen_skip_char(struct line_info *info, int utf8)
 {
 	unsigned int count, pos = info->pos;
-	uchar u = (unsigned char)info->line[pos];
+	unsigned int u = (unsigned char)info->line[pos];
 
 	if (likely(u < 0x80) || !buffer->options.utf8) {
 		info->pos++;
@@ -536,7 +537,7 @@ static void init_line_info(struct line_info *info, struct lineref *lr, struct hl
 static void print_line(struct line_info *info)
 {
 	int utf8 = term_flags & TERM_UTF8;
-	uchar u;
+	unsigned int u;
 
 	/*
 	 * Skip most characters using screen_skip_char() which is much

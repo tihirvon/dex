@@ -3,7 +3,7 @@
 
 const char hex_tab[16] = "0123456789abcdef";
 
-int u_char_width(uchar u)
+int u_char_width(unsigned int u)
 {
 	if (unlikely(u < 0x20 || u == 0x7f))
 		return 2;
@@ -82,12 +82,12 @@ unsigned int u_str_width(const char *str, unsigned int size)
 	return w;
 }
 
-uchar u_prev_char(const char *str, unsigned int *idx)
+unsigned int u_prev_char(const char *str, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)str;
 	unsigned int i = *idx;
 	unsigned int count, shift;
-	uchar u;
+	unsigned int u;
 
 	u = s[--i];
 	if (likely(u < 0x80)) {
@@ -102,7 +102,7 @@ uchar u_prev_char(const char *str, unsigned int *idx)
 	count = 1;
 	shift = 6;
 	while (i) {
-		uchar ch = s[--i];
+		unsigned int ch = s[--i];
 		unsigned int len = u_seq_len(ch);
 
 		count++;
@@ -130,12 +130,12 @@ invalid:
 	return u | U_INVALID_MASK;
 }
 
-uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
+unsigned int u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 {
 	const unsigned char *s = (const unsigned char *)buf;
 	unsigned int i = *idx;
 	int len, c;
-	uchar first, u;
+	unsigned int first, u;
 
 	first = s[i++];
 	if (likely(first < 0x80)) {
@@ -150,7 +150,7 @@ uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
 	u = first & u_get_first_byte_mask(len);
 	c = len - 1;
 	do {
-		uchar ch = s[i++];
+		unsigned int ch = s[i++];
 		if (!u_is_continuation(ch))
 			goto invalid;
 		u = (u << 6) | (ch & 0x3f);
@@ -166,7 +166,7 @@ invalid:
 	return first | U_INVALID_MASK;
 }
 
-void u_set_char_raw(char *str, unsigned int *idx, uchar uch)
+void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch)
 {
 	unsigned int i = *idx;
 
@@ -192,13 +192,13 @@ void u_set_char_raw(char *str, unsigned int *idx, uchar uch)
 		i += 4;
 		*idx = i;
 	} else {
-		/* must be an invalid uchar */
+		/* invalid byte value */
 		str[i++] = uch & 0xff;
 		*idx = i;
 	}
 }
 
-void u_set_char(char *str, unsigned int *idx, uchar uch)
+void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 {
 	unsigned int i = *idx;
 
@@ -260,7 +260,7 @@ unsigned int u_skip_chars(const char *str, int *width)
 	unsigned int idx = 0;
 
 	while (w > 0) {
-		uchar u = u_buf_get_char(str, idx + 4, &idx);
+		unsigned int u = u_buf_get_char(str, idx + 4, &idx);
 		w -= u_char_width(u);
 	}
 	/* add 1..3 if skipped 'too much' (the last char was double width or invalid (<xx>)) */

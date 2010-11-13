@@ -1,18 +1,16 @@
 #ifndef UCHAR_H
 #define UCHAR_H
 
-typedef unsigned int uchar;
-
 extern const char hex_tab[16];
 
 #define U_INVALID_MASK 0x10000000U
 
-static inline int u_is_unicode(uchar uch)
+static inline int u_is_unicode(unsigned int uch)
 {
 	return uch <= 0x10ffffU;
 }
 
-static inline unsigned int u_char_size(uchar uch)
+static inline unsigned int u_char_size(unsigned int uch)
 {
 	if (uch <= 0x7fU)
 		return 1;
@@ -25,7 +23,7 @@ static inline unsigned int u_char_size(uchar uch)
 	return 1;
 }
 
-static inline int u_seq_len(uchar first_byte)
+static inline int u_seq_len(unsigned int first_byte)
 {
 	if (first_byte < 0x80)
 		return 1;
@@ -42,12 +40,12 @@ static inline int u_seq_len(uchar first_byte)
 	return -1;
 }
 
-static inline int u_is_continuation(uchar uch)
+static inline int u_is_continuation(unsigned int uch)
 {
 	return (uch & 0xc0) == 0x80;
 }
 
-static inline int u_seq_len_ok(uchar uch, int len)
+static inline int u_seq_len_ok(unsigned int uch, int len)
 {
 	return u_char_size(uch) == len;
 }
@@ -67,15 +65,15 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 	return (1U << 7U >> len) - 1U;
 }
 
-int u_char_width(uchar uch);
+int u_char_width(unsigned int uch);
 
 unsigned int u_str_width(const char *str, unsigned int size);
 
-uchar u_prev_char(const char *str, unsigned int *idx);
-uchar u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
+unsigned int u_prev_char(const char *str, unsigned int *idx);
+unsigned int u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx);
 
-void u_set_char_raw(char *str, unsigned int *idx, uchar uch);
-void u_set_char(char *str, unsigned int *idx, uchar uch);
+void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch);
+void u_set_char(char *str, unsigned int *idx, unsigned int uch);
 
 /*
  * Total width of skipped characters is stored back to @width.

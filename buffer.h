@@ -3,7 +3,6 @@
 
 #include "iter.h"
 #include "list.h"
-#include "uchar.h"
 #include "options.h"
 #include "common.h"
 #include "ptr-array.h"
@@ -167,9 +166,9 @@ void delete_ch(void);
 void erase(void);
 void insert_ch(unsigned int ch);
 
-unsigned int buffer_get_char(struct block_iter *bi, uchar *up);
-unsigned int buffer_next_char(struct block_iter *bi, uchar *up);
-unsigned int buffer_prev_char(struct block_iter *bi, uchar *up);
+unsigned int buffer_get_char(struct block_iter *bi, unsigned int *up);
+unsigned int buffer_next_char(struct block_iter *bi, unsigned int *up);
+unsigned int buffer_prev_char(struct block_iter *bi, unsigned int *up);
 
 static inline void buffer_bof(struct block_iter *bi)
 {

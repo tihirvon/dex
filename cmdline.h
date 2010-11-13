@@ -1,13 +1,12 @@
 #ifndef CMDLINE_H
 #define CMDLINE_H
 
-#include "uchar.h"
 #include "gbuf.h"
 
 extern struct gbuf cmdline;
 extern unsigned int cmdline_pos;
 
-void cmdline_insert(uchar u);
+void cmdline_insert(unsigned int u);
 void cmdline_delete(void);
 void cmdline_backspace(void);
 void cmdline_erase_word(void);

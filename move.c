@@ -13,7 +13,7 @@ void move_to_preferred_x(void)
 	unsigned int tw = buffer->options.tab_width;
 	int in_space_indent = 1;
 	int x = 0;
-	uchar u;
+	unsigned int u;
 
 	block_iter_bol(&view->cursor);
 	while (x < view->preferred_x) {
@@ -50,7 +50,7 @@ void move_to_preferred_x(void)
 
 void move_cursor_left(void)
 {
-	uchar u;
+	unsigned int u;
 
 	if (buffer->options.emulate_tab) {
 		int size = get_indent_level_bytes_left();
@@ -71,7 +71,7 @@ void move_cursor_left(void)
 
 void move_cursor_right(void)
 {
-	uchar u;
+	unsigned int u;
 
 	if (buffer->options.emulate_tab) {
 		int size = get_indent_level_bytes_right();
@@ -157,7 +157,7 @@ static enum char_type get_char_type(char ch)
 
 static int get_current_char_type(struct block_iter *bi, enum char_type *type)
 {
-	uchar u;
+	unsigned int u;
 
 	if (!buffer_get_char(bi, &u))
 		return 0;
@@ -169,7 +169,7 @@ static int get_current_char_type(struct block_iter *bi, enum char_type *type)
 static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type type)
 {
 	unsigned int count = 0;
-	uchar u;
+	unsigned int u;
 
 	while (block_iter_next_byte(bi, &u)) {
 		if (get_char_type(u) != type) {
@@ -184,7 +184,7 @@ static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type typ
 static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type type)
 {
 	unsigned int count = 0;
-	uchar u;
+	unsigned int u;
 
 	while (block_iter_prev_byte(bi, &u)) {
 		if (get_char_type(u) != type) {
@@ -217,7 +217,7 @@ unsigned int word_bwd(struct block_iter *bi, int skip_non_word)
 {
 	unsigned int count = 0;
 	enum char_type type;
-	uchar u;
+	unsigned int u;
 
 	do {
 		count += skip_bwd_char_type(bi, CT_SPACE);

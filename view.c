@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "uchar.h"
 
 struct view *view;
 
@@ -28,7 +29,7 @@ void update_cursor_x(void)
 
 	view->cx = fetch_this_line(&view->cursor, &lr);
 	while (idx < view->cx) {
-		uchar u = (unsigned char)lr.line[idx];
+		unsigned int u = (unsigned char)lr.line[idx];
 
 		c++;
 		if (likely(u < 0x80) || !buffer->options.utf8) {

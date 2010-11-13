@@ -1,6 +1,7 @@
 #include "obuf.h"
 #include "term.h"
 #include "common.h"
+#include "uchar.h"
 
 struct output_buffer obuf;
 int screen_w = 80;
@@ -126,7 +127,7 @@ void buf_flush(void)
 	}
 }
 
-static void skipped_too_much(uchar u)
+static void skipped_too_much(unsigned int u)
 {
 	int n = obuf.x - obuf.scroll_x;
 
@@ -151,7 +152,7 @@ static void skipped_too_much(uchar u)
 	}
 }
 
-void buf_skip(uchar u, int utf8)
+void buf_skip(unsigned int u, int utf8)
 {
 	if (u < 0x80 || !utf8) {
 		if (u >= 0x20) {
@@ -187,7 +188,7 @@ static void print_tab(unsigned int width)
 	}
 }
 
-int buf_put_char(uchar u, int utf8)
+int buf_put_char(unsigned int u, int utf8)
 {
 	unsigned int space = obuf.scroll_x + obuf.width - obuf.x;
 	unsigned int width;

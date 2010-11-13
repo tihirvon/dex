@@ -13,7 +13,7 @@ void block_iter_normalize(struct block_iter *bi)
 }
 
 // analogous to *ptr++
-unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte)
+unsigned int block_iter_next_byte(struct block_iter *i, unsigned int *byte)
 {
 	if (i->offset == i->blk->size) {
 		if (i->blk->node.next == i->head)
@@ -27,7 +27,7 @@ unsigned int block_iter_next_byte(struct block_iter *i, uchar *byte)
 }
 
 // analogous to *--ptr
-unsigned int block_iter_prev_byte(struct block_iter *i, uchar *byte)
+unsigned int block_iter_prev_byte(struct block_iter *i, unsigned int *byte)
 {
 	if (!i->offset) {
 		if (i->blk->node.prev == i->head)

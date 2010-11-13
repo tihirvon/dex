@@ -1,6 +1,7 @@
 #include "format-status.h"
 #include "term.h"
 #include "window.h"
+#include "uchar.h"
 
 struct formatter {
 	char *buf;
@@ -31,7 +32,7 @@ static void add_status_str(struct formatter *f, const char *str)
 	add_separator(f);
 	if (term_flags & TERM_UTF8) {
 		while (f->pos < f->size && str[idx]) {
-			uchar u = u_buf_get_char(str, idx + 4, &idx);
+			unsigned int u = u_buf_get_char(str, idx + 4, &idx);
 			u_set_char(f->buf, &f->pos, u);
 		}
 	} else {
@@ -86,7 +87,7 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 {
 	struct formatter f;
 	int got_char;
-	uchar u;
+	unsigned int u;
 
 	f.buf = buf;
 	f.size = size - 5; // max length of char and terminating NUL

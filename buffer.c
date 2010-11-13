@@ -13,6 +13,7 @@
 #include "lock.h"
 #include "config.h"
 #include "regexp.h"
+#include "uchar.h"
 
 struct buffer *buffer;
 struct view *prev_view;
@@ -62,7 +63,7 @@ unsigned int count_nl(const char *buf, unsigned int size)
 void init_selection(struct selection_info *info)
 {
 	struct block_iter ei;
-	uchar u;
+	unsigned int u;
 
 	info->so = view->sel_so;
 	info->eo = block_iter_get_offset(&view->cursor);
@@ -99,7 +100,7 @@ void fill_selection_info(struct selection_info *info)
 {
 	struct block_iter bi;
 	unsigned int pos = 0;
-	uchar u = 0;
+	unsigned int u = 0;
 
 	init_selection(info);
 	bi = info->si;
@@ -247,7 +248,7 @@ static int read_blocks(struct buffer *b, int fd)
 	for (pos = 0; pos < size; pos++) {
 		if ((unsigned char)buf[pos] >= 0x80) {
 			unsigned int idx = pos;
-			uchar u = u_buf_get_char(buf, size, &idx);
+			unsigned int u = u_buf_get_char(buf, size, &idx);
 			b->options.utf8 = !(u & U_INVALID_MASK);
 			break;
 		}

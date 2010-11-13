@@ -15,6 +15,7 @@
 #include "command.h"
 #include "change.h"
 #include "state.h"
+#include "uchar.h"
 
 #include <locale.h>
 #include <langinfo.h>

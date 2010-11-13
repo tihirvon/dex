@@ -2,11 +2,12 @@
 #include "gbuf.h"
 #include "term.h"
 #include "common.h"
+#include "uchar.h"
 
 GBUF(cmdline);
 unsigned int cmdline_pos;
 
-void cmdline_insert(uchar u)
+void cmdline_insert(unsigned int u)
 {
 	unsigned int len = 1;
 

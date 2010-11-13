@@ -182,7 +182,7 @@ void search_next(void)
 	if (!update_regex())
 		return;
 	if (current_search.direction == SEARCH_FWD) {
-		uchar tmp;
+		unsigned int tmp;
 
 		// skip character under cursor
 		buffer_next_char(&bi, &tmp);

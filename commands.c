@@ -207,7 +207,7 @@ static void cmd_delete_word(const char *pf, char **args)
 	int skip_non_word = *pf == 's';
 	struct block_iter bi = view->cursor;
 	unsigned int count = word_fwd(&bi, skip_non_word);
-	uchar u;
+	unsigned int u;
 
 	// don't delete last newline
 	if (count && block_iter_is_eof(&bi) && block_iter_prev_byte(&bi, &u) && u == '\n')

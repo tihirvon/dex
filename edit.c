@@ -5,6 +5,7 @@
 #include "block.h"
 #include "gbuf.h"
 #include "indent.h"
+#include "uchar.h"
 
 struct paragraph_formatter {
 	struct gbuf buf;
@@ -127,7 +128,7 @@ void paste(void)
 static void delete_one_ch(void)
 {
 	struct block_iter bi = view->cursor;
-	uchar u;
+	unsigned int u;
 
 	if (!buffer_next_char(&bi, &u))
 		return;
@@ -178,7 +179,7 @@ void erase(void)
 		delete(len, 1);
 		unselect();
 	} else {
-		uchar u;
+		unsigned int u;
 
 		begin_change(CHANGE_MERGE_ERASE);
 
@@ -207,7 +208,7 @@ static int goto_beginning_of_whitespace(void)
 {
 	struct block_iter bi = view->cursor;
 	int count = 0;
-	uchar u;
+	unsigned int u;
 
 	// count spaces and tabs at or after cursor
 	while (block_iter_next_byte(&bi, &u)) {
@@ -291,7 +292,7 @@ static void join_selection(void)
 	unsigned int count = prepare_selection();
 	unsigned int len = 0, join = 0;
 	struct block_iter bi;
-	uchar ch = 0;
+	unsigned int ch = 0;
 
 	unselect();
 	bi = view->cursor;
@@ -343,7 +344,7 @@ void join_lines(void)
 {
 	struct block_iter next, bi = view->cursor;
 	int count;
-	uchar u;
+	unsigned int u;
 	char *buf;
 
 	if (selecting()) {
@@ -729,7 +730,7 @@ void change_case(int mode, int move_after)
 		text_len = prepare_selection();
 		unselect();
 	} else {
-		uchar u;
+		unsigned int u;
 
 		if (!buffer_get_char(&view->cursor, &u))
 			return;
@@ -742,7 +743,7 @@ void change_case(int mode, int move_after)
 	src = do_delete(text_len);
 	i = 0;
 	while (i < text_len) {
-		uchar u;
+		unsigned int u;
 
 		if (buffer->options.utf8)
 			u = u_buf_get_char(src, text_len, &i);

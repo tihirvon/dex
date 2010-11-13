@@ -1,7 +1,6 @@
 #ifndef OBUF_H
 #define OBUF_H
 
-#include "uchar.h"
 #include "term.h"
 
 struct output_buffer {
@@ -44,7 +43,7 @@ void buf_move_cursor(int x, int y);
 void buf_set_color(const struct term_color *color);
 void buf_clear_eol(void);
 void buf_flush(void);
-void buf_skip(uchar u, int utf8);
-int buf_put_char(uchar u, int utf8);
+void buf_skip(unsigned int u, int utf8);
+int buf_put_char(unsigned int u, int utf8);
 
 #endif
