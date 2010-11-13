@@ -88,6 +88,7 @@ OBJECTS	:= 			\
 	terminfo.o		\
 	uchar.o			\
 	vars.o			\
+	view.o			\
 	wbuf.o			\
 	window.o		\
 	xmalloc.o		\

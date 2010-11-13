@@ -32,8 +32,6 @@ void remove_view(void);
 void set_view(struct view *v);
 void next_buffer(void);
 void prev_buffer(void);
-void update_cursor_y(void);
-void update_cursor_x(void);
 void update_view(void);
 
 static inline int get_scroll_margin(void)

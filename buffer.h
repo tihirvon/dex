@@ -155,7 +155,6 @@ void free_buffer(struct buffer *b);
 
 char *buffer_get_bytes(unsigned int len);
 
-void update_preferred_x(void);
 void insert(const char *buf, unsigned int len);
 void replace(unsigned int del_count, const char *inserted, int ins_count);
 
@@ -188,6 +187,10 @@ struct syntax *load_syntax_by_filename(const char *filename);
 struct syntax *load_syntax_by_filetype(const char *filetype);
 void syntax_changed(void);
 void filetype_changed(void);
+
+void update_cursor_y(void);
+void update_cursor_x(void);
+void update_preferred_x(void);
 
 struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_changed);
 void hl_fill_start_states(int line_nr);

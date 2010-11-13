@@ -14,7 +14,6 @@
 #include "config.h"
 #include "regexp.h"
 
-struct view *view;
 struct buffer *buffer;
 struct view *prev_view;
 
@@ -58,12 +57,6 @@ unsigned int count_nl(const char *buf, unsigned int size)
 		nl++;
 	}
 	return nl;
-}
-
-void update_preferred_x(void)
-{
-	update_cursor_x();
-	view->preferred_x = view->cx_display;
 }
 
 void init_selection(struct selection_info *info)
