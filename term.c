@@ -36,6 +36,35 @@ static int load_terminfo_caps(const char *path, const char *term)
 	return terminfo_get_caps(filename);
 }
 
+static int read_terminfo(const char *term)
+{
+	const char *paths[] = {
+		NULL,
+		"/etc/terminfo",
+		"/lib/terminfo",
+		"/usr/share/terminfo",
+		"/usr/share/lib/terminfo",
+		"/usr/lib/terminfo",
+		"/usr/local/share/terminfo",
+		"/usr/local/lib/terminfo",
+	};
+	const char *path = getenv("TERMINFO");
+	char buf[1024];
+	int i, rc;
+
+	if (path && *path)
+		return load_terminfo_caps(path, term);
+
+	snprintf(buf, sizeof(buf), "%s/.terminfo", home_dir);
+	paths[0] = buf;
+	for (i = 0; i < ARRAY_COUNT(paths); i++) {
+		rc = load_terminfo_caps(paths[i], term);
+		if (!rc)
+			return 0;
+	}
+	return rc;
+}
+
 int term_init(const char *term, unsigned int flags)
 {
 	int rc;
@@ -48,23 +77,10 @@ int term_init(const char *term, unsigned int flags)
 		term = "linux";
 
 	rc = -2;
-	if (flags & TERM_USE_TERMINFO) {
-		const char *path = getenv("TERMINFO");
-
-		if (path == NULL || path[0] == 0) {
-			char buf[1024];
-			snprintf(buf, sizeof(buf), "%s/.terminfo", home_dir);
-			rc = load_terminfo_caps(buf, term);
-			if (rc)
-				rc = load_terminfo_caps("/usr/share/terminfo", term);
-		} else {
-			rc = load_terminfo_caps(path, term);
-		}
-	}
-
-	if (rc && flags & TERM_USE_TERMCAP) {
+	if (flags & TERM_USE_TERMINFO)
+		rc = read_terminfo(term);
+	if (rc && flags & TERM_USE_TERMCAP)
 		rc = termcap_get_caps("/etc/termcap", term);
-	}
 	return rc;
 }
 
