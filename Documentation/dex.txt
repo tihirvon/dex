@@ -108,7 +108,7 @@ case [-lmu]
 	-u upper case
 
 cd <directory>
-	Change directory.
+	Change directory. Updates $PWD and $OLDPWD.
 
 center-view
 	Center view to cursor.

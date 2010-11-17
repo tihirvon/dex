@@ -69,12 +69,18 @@ static void cmd_cd(const char *pf, char **args)
 	struct view *v;
 	int got_cwd;
 
+	got_cwd = !!getcwd(cwd, sizeof(cwd));
 	if (chdir(args[0])) {
 		error_msg("cd: %s", strerror(errno));
 		return;
 	}
 
+	if (got_cwd)
+		setenv("OLDPWD", cwd, 1);
 	got_cwd = !!getcwd(cwd, sizeof(cwd));
+	if (got_cwd)
+		setenv("PWD", cwd, 1);
+
 	list_for_each_entry(w, &windows, node) {
 		list_for_each_entry(v, &w->views, node) {
 			if (got_cwd)
