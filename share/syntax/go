@@ -53,7 +53,7 @@ state short special
 	# 128-255
 	char "€-ÿ" not-ascii
 	# any ASCII character but \n
-	char -n "\t" END error
+	char -n "\n" END error
 	# don't eat \n
 	noeat END
 
