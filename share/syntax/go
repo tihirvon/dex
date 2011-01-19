@@ -50,8 +50,7 @@ state 1left special
 	noeat short
 
 state short special
-	# 128-255
-	char "€-ÿ" not-ascii
+	char "\x80-\xff" not-ascii
 	# any ASCII character but \n
 	char -n "\n" END error
 	# don't eat \n
@@ -59,7 +58,7 @@ state short special
 
 # eats (at least) one multibyte UTF-8 character
 state not-ascii error
-	char "€-ÿ" not-ascii
+	char "\x80-\xff" not-ascii
 	noeat END
 
 syntax go
@@ -151,7 +150,7 @@ state char
 	char "\\" char-esc
 	char "\n" go
 	# assume multiple non-ASCII bytes are one UTF-8 character
-	char "€-ÿ" not-ascii
+	char "\x80-\xff" not-ascii
 	eat char-end
 
 state char-esc special
@@ -160,7 +159,7 @@ state char-esc special
 	noeat .go-esc:char-end
 
 state not-ascii char
-	char "€-ÿ" not-ascii
+	char "\x80-\xff" not-ascii
 	noeat char-end
 
 state char-end char
