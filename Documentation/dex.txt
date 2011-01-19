@@ -700,6 +700,9 @@ Form feed
 Carriage return
 @li \\\\
 Literal \\
+@li \\x0a
+Hexadecimal byte value 0x0a. Note that 0x00 is not supported because
+strings are NUL-terminated.
 
 @h1 COMMAND LINE
 

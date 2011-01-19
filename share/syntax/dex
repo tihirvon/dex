@@ -31,6 +31,17 @@ state dq string
 
 state dq-escape special
 	char "abfnrtv'\\\"" dq special
+	char x hex1
+	eat dq error
+
+state hex1 special
+	char 0-9a-fA-F hex2
+	char '"' command error
+	eat dq error
+
+state hex2 special
+	char 0-9a-fA-F dq special
+	char '"' command error
 	eat dq error
 
 state escape special

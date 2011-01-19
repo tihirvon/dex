@@ -94,6 +94,19 @@ static void parse_dq(const char *cmd, int *posp)
 			case 'v':
 				gbuf_add_ch(&arg, '\v');
 				break;
+			case 'x':
+				if (cmd[pos]) {
+					int x1, x2;
+					x1 = hex_decode(cmd[pos]);
+					if (x1 >= 0 && cmd[++pos]) {
+						x2 = hex_decode(cmd[pos]);
+						if (x2 >= 0) {
+							pos++;
+							gbuf_add_ch(&arg, x1 << 4 | x2);
+						}
+					}
+				}
+				break;
 			default:
 				gbuf_add_ch(&arg, '\\');
 				gbuf_add_ch(&arg, ch);
