@@ -796,15 +796,9 @@ static void special_input_keypress(enum term_key_type type, unsigned int key)
 	}
 
 	if (key != '\r') {
-		unsigned int n;
+		int n = hex_decode(key);
 
-		if (isdigit(key)) {
-			n = key - '0';
-		} else if (key >= 'a' && key <= 'f') {
-			n = key - 'a' + 10;
-		} else if (key >= 'A' && key <= 'F') {
-			n = key - 'A' + 10;
-		} else {
+		if (key < 0) {
 			input_special = INPUT_SPECIAL_NONE;
 			return;
 		}
