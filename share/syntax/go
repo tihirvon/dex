@@ -109,15 +109,16 @@ state hex numeric
 	noeat check-suffix
 
 state check-suffix error
-	char -b a-zA-Z0-9_ check-suffix
+	char a-zA-Z0-9_ check-suffix
 	noeat go
 
 state check-imag code
 	char i check-suffix numeric
 	noeat check-suffix
 
-state dot code
+state dot numeric
 	char 0-9 float
+	recolor code 1
 	noeat go
 
 state float numeric

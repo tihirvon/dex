@@ -173,8 +173,9 @@ state check-suffix error
 	inlist numeric-suffix c numeric
 	noeat c
 
-state dot code
+state dot numeric
 	char 0-9 float
+	recolor code 1
 	noeat c
 
 state float numeric
