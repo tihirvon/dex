@@ -50,7 +50,7 @@ static int read_terminfo(const char *term)
 	};
 	const char *path = getenv("TERMINFO");
 	char buf[1024];
-	int i, rc;
+	int i, rc = 0;
 
 	if (path && *path)
 		return load_terminfo_caps(path, term);
