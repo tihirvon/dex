@@ -1,10 +1,10 @@
 #include "xmalloc.h"
 #include "common.h"
 
-static void __NORETURN malloc_fail(void)
+static void __NORETURN malloc_fail(unsigned long size)
 {
-	fprintf(stderr, "out of memory\n");
-	exit(42);
+	fprintf(stderr, "out of memory: %lu\n", size);
+	abort();
 }
 
 void *xmalloc(size_t size)
@@ -12,7 +12,7 @@ void *xmalloc(size_t size)
 	void *ptr = malloc(size);
 
 	if (unlikely(ptr == NULL))
-		malloc_fail();
+		malloc_fail(size);
 	return ptr;
 }
 
@@ -21,7 +21,7 @@ void *xcalloc(size_t size)
 	void *ptr = calloc(1, size);
 
 	if (unlikely(ptr == NULL))
-		malloc_fail();
+		malloc_fail(size);
 	return ptr;
 }
 
@@ -29,7 +29,7 @@ void *xrealloc(void *ptr, size_t size)
 {
 	ptr = realloc(ptr, size);
 	if (unlikely(ptr == NULL))
-		malloc_fail();
+		malloc_fail(size);
 	return ptr;
 }
 
@@ -38,7 +38,7 @@ char *xstrdup(const char *str)
 	char *s = strdup(str);
 
 	if (unlikely(s == NULL))
-		malloc_fail();
+		malloc_fail(strlen(str));
 	return s;
 }
 
