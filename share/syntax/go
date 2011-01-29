@@ -66,9 +66,9 @@ syntax go
 state go code
 	char -b A-Z exported
 	char -b a-z_ ident
-	char -b 0 zero
-	char -b 1-9 dec
-	char -b . dot
+	char 0 zero
+	char 1-9 dec
+	char . dot
 	char "\"" string
 	char "'" char
 	char ` raw-string
@@ -138,7 +138,7 @@ state exp-digit numeric
 state string
 	char "\"" go string
 	char "\n" go
-	char -b "\\" string-esc
+	char "\\" string-esc
 	eat string
 
 state string-esc special

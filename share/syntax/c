@@ -128,9 +128,9 @@ state preproc-error error
 
 state c code
 	char -b a-zA-Z_ ident
-	char -b 0 zero
-	char -b 1-9 dec
-	char -b . dot
+	char 0 zero
+	char 1-9 dec
+	char . dot
 	char "\"" string
 	char "'" char
 	char "\n" start
@@ -204,7 +204,7 @@ state string
 	char "\"" c string
 	# avoid highlighting rest of the file again
 	char "\n" start
-	char -b "\\" .c-esc:string
+	char "\\" .c-esc:string
 	eat string
 
 state char
