@@ -410,7 +410,7 @@ void hl_delete(int first, int deleted_nl)
 	if (last + 1 >= s->count) {
 		// last already highlighted lines changed
 		// there's nothing to gain, throw them away
-		truncate_line_states(s->count - deleted_nl);
+		truncate_line_states(first + 1);
 		return;
 	}
 
