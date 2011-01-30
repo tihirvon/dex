@@ -687,12 +687,10 @@ int terminfo_get_caps(const char *filename)
 	close(fd);
 	if (!buf)
 		return -1;
-	if (size < 12)
-		goto corrupt;
 
 	/* validate header */
-	if (buf[0] != 0x1A || buf[1] != 0x01)
-		return -2;
+	if (size < 12 || buf[0] != 0x1a || buf[1] != 0x01)
+		goto corrupt;
 
 	name_size = get_u16le(buf + 2);
 	nr_bools = get_u16le(buf + 4);
@@ -701,8 +699,7 @@ int terminfo_get_caps(const char *filename)
 	strs_size = get_u16le(buf + 10);
 
 	total_size = 12 + name_size + nr_bools + nr_nums * 2 + nr_strs * 2 + strs_size;
-	if ((name_size + nr_bools) % 2)
-		total_size++;
+	total_size += (name_size + nr_bools) % 2;
 
 	// NOTE: size can be bigger than total_size if the format is extended
 	if (total_size > size)
