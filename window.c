@@ -23,6 +23,7 @@ struct view *window_add_buffer(struct buffer *b)
 	v->buffer = b;
 	v->window = window;
 	list_add_before(&v->node, &window->views);
+	update_flags |= UPDATE_TAB_BAR;
 	return v;
 }
 
@@ -40,6 +41,7 @@ void view_delete(struct view *v)
 	}
 	list_del(&v->node);
 	free(v);
+	update_flags |= UPDATE_TAB_BAR;
 }
 
 void remove_view(void)
