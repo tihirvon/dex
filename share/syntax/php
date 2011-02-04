@@ -1,0 +1,292 @@
+# "simple" variable inside string
+syntax .php-strvar
+
+state start
+	char a-zA-Z_ strvar
+	noeat END
+
+state strvar
+	char a-zA-Z_0-9 strvar
+	noeat END
+
+# curly braces inside string
+syntax .php-strcurly
+
+state strvar
+	char \} END strvar
+	eat strvar
+
+syntax .php-heredoc
+
+state string
+	char "\n" END
+	char \$ .php-strvar:string strvar
+	str '{$' .php-strcurly:string strvar
+	eat string
+
+syntax .php-nowdoc
+
+state string
+	char "\n" END
+	eat string
+
+# inside <? and ?>
+syntax .php
+
+state code
+	char -b a-zA-Z_ word
+	char \$ variable
+	char \" dq
+	char \' sq
+	char 0 zero
+	char 1-9 dec
+	char . dot
+	char \? qm
+	str "//" cpp-comment
+	str "/*" c-comment
+	char # sh-comment
+	str <<< heredoc
+	eat code
+
+state word code
+	char -b a-zA-Z_0-9 word
+	inlist keyword code
+	inlist constant code
+	inlist lang code
+	noeat code
+
+state variable
+	char a-zA-Z_ variable2
+	noeat code
+
+state variable2 variable
+	char a-zA-Z_0-9 variable2
+	noeat code
+
+state dq string
+	char \" code string
+	char \\ dqesc
+	char \$ .php-strvar:dq strvar
+	str '{$' .php-strcurly:dq strvar
+	eat dq
+
+state dqesc special
+	char 'nrtvf\$"' dq special
+	char x dqhex
+	char 0-7 dqoct1
+	recolor string 1
+	eat dq
+
+state dqhex special
+	char 0-9a-fA-F dqhex2
+	recolor string 2
+	noeat dq
+
+state dqhex2 special
+	char 0-9a-fA-F dq special
+	noeat dq
+
+state dqoct1 special
+	char 0-7 dqoct2
+	noeat dq
+
+state dqoct2 special
+	char 0-7 dq special
+	noeat dq
+
+state sq string
+	char \' code string
+	char \\ sqesc
+	eat sq
+
+state sqesc string
+	# not \ or '
+	char -n "\\'" sq
+	recolor special 1
+	eat sq special
+
+state zero numeric
+	char xX hex
+	char 0-7 oct
+	char . float
+	noeat check-suffix
+
+state oct numeric
+	char 0-7 oct
+	noeat check-suffix
+
+state dec numeric
+	char 0-9 dec
+	char eE exp
+	char . float
+	noeat check-suffix
+
+state hex numeric
+	char 0-9a-fA-F hex
+	noeat check-suffix
+
+state check-suffix error
+	char a-zA-Z0-9_ check-suffix
+	noeat code
+
+state dot numeric
+	char 0-9 float
+	recolor code 1
+	noeat code
+
+state float numeric
+	char 0-9 float
+	char eE exp
+	noeat check-suffix
+
+state exp numeric
+	char +- exp-digit
+	char 0-9 exp-digit
+	noeat check-suffix
+
+state exp-digit numeric
+	char 0-9 exp-digit
+	noeat check-suffix
+
+state qm tag
+	char > END tag
+	recolor code 1
+	noeat code
+
+state cpp-comment comment
+	char "\n" code
+	char -b a-zA-Z0-9_ cpp-comment-word
+	eat cpp-comment
+
+state cpp-comment-word comment
+	char -b a-zA-Z0-9_ cpp-comment-word
+	inlist notice cpp-comment
+	noeat cpp-comment
+
+state c-comment comment
+	str "*/" code comment
+	char -b a-zA-Z0-9_ c-comment-word
+	eat c-comment
+
+state c-comment-word comment
+	char -b a-zA-Z0-9_ c-comment-word
+	inlist notice c-comment
+	noeat c-comment
+
+state sh-comment comment
+	char "\n" code
+	char -b a-zA-Z0-9_ sh-comment-word
+	eat sh-comment
+
+state sh-comment-word comment
+	char -b a-zA-Z0-9_ sh-comment-word
+	inlist notice sh-comment
+	noeat sh-comment
+
+# generated -----------------------------------------------------------
+state heredoc special
+	str "END\n" heredocbol-END special
+	str "\"END\"\n" heredocbol-END special
+	str "'END'\n" nowdocbol-END special
+	str "EOF\n" heredocbol-EOF special
+	str "\"EOF\"\n" heredocbol-EOF special
+	str "'EOF'\n" nowdocbol-EOF special
+	str "EOT\n" heredocbol-EOT special
+	str "\"EOT\"\n" heredocbol-EOT special
+	str "'EOT'\n" nowdocbol-EOT special
+	str "SQL\n" heredocbol-SQL special
+	str "\"SQL\"\n" heredocbol-SQL special
+	str "'SQL'\n" nowdocbol-SQL special
+	noeat code
+
+state heredocbol-END string
+	char "\n" heredocbol-END
+	str "END;\n" code special
+	str "END\n" code special
+	eat .php-heredoc:heredocbol-END
+
+state nowdocbol-END string
+	char "\n" nowdocbol-END
+	str "END;\n" code special
+	str "END\n" code special
+	eat .php-nowdoc:nowdocbol-END
+
+state heredocbol-EOF string
+	char "\n" heredocbol-EOF
+	str "EOF;\n" code special
+	str "EOF\n" code special
+	eat .php-heredoc:heredocbol-EOF
+
+state nowdocbol-EOF string
+	char "\n" nowdocbol-EOF
+	str "EOF;\n" code special
+	str "EOF\n" code special
+	eat .php-nowdoc:nowdocbol-EOF
+
+state heredocbol-EOT string
+	char "\n" heredocbol-EOT
+	str "EOT;\n" code special
+	str "EOT\n" code special
+	eat .php-heredoc:heredocbol-EOT
+
+state nowdocbol-EOT string
+	char "\n" nowdocbol-EOT
+	str "EOT;\n" code special
+	str "EOT\n" code special
+	eat .php-nowdoc:nowdocbol-EOT
+
+state heredocbol-SQL string
+	char "\n" heredocbol-SQL
+	str "SQL;\n" code special
+	str "SQL\n" code special
+	eat .php-heredoc:heredocbol-SQL
+
+state nowdocbol-SQL string
+	char "\n" nowdocbol-SQL
+	str "SQL;\n" code special
+	str "SQL\n" code special
+	eat .php-nowdoc:nowdocbol-SQL
+# ---------------------------------------------------------------------
+
+list notice \
+	TODO FIXME XXX
+
+list -h keyword \
+	abstract and array as break case catch cfunction class clone \
+	const continue declare default do else elseif enddeclare \
+	endfor endforeach endif endswitch endwhile extends final for \
+	foreach function global goto if implements interface \
+	instanceof namespace new old_function or private protected \
+	public static switch throw try use var while xor self parent
+
+list -hi constant \
+	__CLASS__ __DIR__ __FILE__ __FUNCTION__ __METHOD__ __NAMESPACE__ \
+	false null true
+
+# language constructs
+list -h lang \
+	die echo empty exit eval include include_once isset list require \
+	require_once return print unset
+
+syntax php
+
+state code
+	char < lab
+	eat code
+
+state lab tag
+	char \? tag-php
+	recolor code 1
+	noeat code
+
+state tag-php tag
+	str "php" tag-ver
+	noeat .php:code
+
+state tag-ver tag
+	char 3-5 .php:code tag
+	noeat .php:code
+
+default special tag
+default keyword lang
+default special strvar
