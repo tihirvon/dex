@@ -182,16 +182,16 @@ void move_to_tag(const struct tag *t, int save_location)
 	}
 }
 
-static int tag_file_changed(struct tag_file *tf)
+static int tag_file_changed(const char *filename, struct tag_file *tf)
 {
 	struct stat st;
-	fstat(tf->fd, &st);
+	stat(filename, &st);
 	return st.st_mtime != tf->mtime;
 }
 
 static int load_tag_file(void)
 {
-	if (tag_file && tag_file_changed(tag_file)) {
+	if (tag_file && tag_file_changed("tags", tag_file)) {
 		close_tag_file(tag_file);
 		tag_file = NULL;
 	}
