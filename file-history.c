@@ -55,50 +55,42 @@ void add_file_history(int x, int y, const char *filename)
 void load_file_history(void)
 {
 	const char *filename = editor_file("file-history");
-	int fd = open(filename, O_RDONLY);
-	struct stat st;
+	ssize_t size, pos = 0;
+	char *buf;
 
-	if (fd < 0)
+	size = read_file(filename, &buf);
+	if (size < 0) {
+		if (errno != ENOENT)
+			error_msg("Error reading %s: %s", filename, strerror(errno));
 		return;
-	fstat(fd, &st);
-	if (st.st_size) {
-		char *buf = xnew(char, st.st_size + 1);
-		int rc = xread(fd, buf, st.st_size);
-		int pos = 0;
-		if (rc < 0) {
-			free(buf);
-			close(fd);
-			return;
-		}
-		while (pos < st.st_size) {
-			int avail = st.st_size - pos;
-			char *line = buf + pos;
-			char *nl = memchr(line, '\n', avail);
-			char *end;
-			long x, y;
-
-			if (nl) {
-				*nl = 0;
-				pos += nl - line + 1;
-			} else {
-				line[avail] = 0;
-				pos += avail;
-			}
-
-			y = strtol(line, &end, 10);
-			line = end;
-			while (isspace(*line))
-				line++;
-			x = strtol(line, &end, 10);
-			line = end;
-			while (isspace(*line))
-				line++;
-			if (x > 0 && y > 0)
-				add_file_history(x - 1, y - 1, line);
-		}
-		free(buf);
 	}
-	close(fd);
+	while (pos < size) {
+		ssize_t avail = size - pos;
+		char *line = buf + pos;
+		char *nl = memchr(line, '\n', avail);
+		char *end;
+		long x, y;
+
+		if (nl) {
+			*nl = 0;
+			pos += nl - line + 1;
+		} else {
+			line[avail] = 0;
+			pos += avail;
+		}
+
+		y = strtol(line, &end, 10);
+		line = end;
+		while (isspace(*line))
+			line++;
+		x = strtol(line, &end, 10);
+		line = end;
+		while (isspace(*line))
+			line++;
+		if (x > 0 && y > 0)
+			add_file_history(x - 1, y - 1, line);
+	}
+	free(buf);
 }
 
 void save_file_history(void)

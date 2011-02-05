@@ -55,6 +55,34 @@ ssize_t xwrite(int fd, const void *buf, size_t count)
 	return count_save;
 }
 
+// Returns size of file or -1 on error.
+// For empty file *bufp is NULL otherwise *bufp is NUL-terminated.
+ssize_t read_file(const char *filename, char **bufp)
+{
+	struct stat st;
+	char *buf;
+	ssize_t r;
+	int fd = open(filename, O_RDONLY);
+
+	*bufp = NULL;
+	if (fd == -1)
+		return -1;
+	if (fstat(fd, &st) == -1) {
+		close(fd);
+		return -1;
+	}
+	buf = xnew(char, st.st_size + 1);
+	r = xread(fd, buf, st.st_size);
+	close(fd);
+	if (r > 0) {
+		buf[r] = 0;
+		*bufp = buf;
+	} else {
+		free(buf);
+	}
+	return r;
+}
+
 void bug(const char *function, const char *fmt, ...)
 {
 	va_list ap;

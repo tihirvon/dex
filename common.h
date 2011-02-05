@@ -67,6 +67,7 @@ static inline void d_print(const char *fmt, ...)
 int count_strings(char **strings);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
+ssize_t read_file(const char *filename, char **bufp);
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
 void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);
 char *path_absolute(const char *filename);

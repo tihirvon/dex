@@ -1,5 +1,6 @@
 #include "history.h"
 #include "common.h"
+#include "editor.h"
 #include "wbuf.h"
 
 struct history_entry {
@@ -115,37 +116,29 @@ const char *history_search_backward(struct history *history)
 
 void history_load(struct history *history, const char *filename)
 {
-	int fd = open(filename, O_RDONLY);
-	struct stat st;
+	char *buf;
+	ssize_t size, pos = 0;
 
-	if (fd < 0)
+	size = read_file(filename, &buf);
+	if (size < 0) {
+		if (errno != ENOENT)
+			error_msg("Error reading %s: %s", filename, strerror(errno));
 		return;
-	fstat(fd, &st);
-	if (st.st_size) {
-		char *buf = xnew(char, st.st_size + 1);
-		int rc = xread(fd, buf, st.st_size);
-		int pos = 0;
-		if (rc < 0) {
-			free(buf);
-			close(fd);
-			return;
-		}
-		while (pos < st.st_size) {
-			int avail = st.st_size - pos;
-			char *line = buf + pos;
-			char *nl = memchr(line, '\n', avail);
-			if (nl) {
-				*nl = 0;
-				pos += nl - line + 1;
-			} else {
-				line[avail] = 0;
-				pos += avail;
-			}
-			history_add(history, line);
-		}
-		free(buf);
 	}
-	close(fd);
+	while (pos < size) {
+		ssize_t avail = size - pos;
+		char *line = buf + pos;
+		char *nl = memchr(line, '\n', avail);
+		if (nl) {
+			*nl = 0;
+			pos += nl - line + 1;
+		} else {
+			line[avail] = 0;
+			pos += avail;
+		}
+		history_add(history, line);
+	}
+	free(buf);
 }
 
 void history_save(struct history *history, const char *filename)
