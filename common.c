@@ -292,27 +292,6 @@ char *path_absolute(const char *filename)
 	return xstrdup(buf);
 }
 
-const char *get_file_type(mode_t mode)
-{
-	if (S_ISREG(mode))
-		return "file";
-	if (S_ISDIR(mode))
-		return "directory";
-	if (S_ISCHR(mode))
-		return "character device";
-	if (S_ISBLK(mode))
-		return "block device";
-	if (S_ISFIFO(mode))
-		return "named pipe";
-	if (S_ISLNK(mode))
-		return "symbolic link";
-#ifdef S_ISSOCK
-	if (S_ISSOCK(mode))
-		return "socket";
-#endif
-	return "unknown";
-}
-
 #define mmap_empty ((void *)8UL)
 
 void *xmmap(int fd, off_t offset, size_t len)

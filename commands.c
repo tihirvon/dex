@@ -856,7 +856,7 @@ static void cmd_save(const char *pf, char **args)
 			}
 		}
 		if (absolute != buffer->abs_filename && !force) {
-			error_msg("Use -f to overwrite %s %s.", get_file_type(st.st_mode), absolute);
+			error_msg("Use -f to overwrite %s.", absolute);
 			goto error;
 		}
 

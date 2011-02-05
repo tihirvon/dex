@@ -591,7 +591,7 @@ static int load_buffer(struct buffer *b, int must_exist)
 	} else {
 		update_stat(fd, b);
 		if (!S_ISREG(b->st_mode)) {
-			error_msg("Can't open %s %s", get_file_type(b->st_mode), filename);
+			error_msg("Not a regular file %s", filename);
 			close(fd);
 			return -1;
 		}

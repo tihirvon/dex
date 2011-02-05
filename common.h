@@ -71,7 +71,6 @@ ssize_t read_file(const char *filename, char **bufp);
 void bug(const char *function, const char *fmt, ...) __FORMAT(2, 3) __NORETURN;
 void debug_print(const char *function, const char *fmt, ...) __FORMAT(2, 3);
 char *path_absolute(const char *filename);
-const char *get_file_type(mode_t mode);
 void *xmmap(int fd, off_t offset, size_t len);
 void xmunmap(void *start, size_t len);
 
