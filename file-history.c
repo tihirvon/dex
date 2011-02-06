@@ -65,19 +65,9 @@ void load_file_history(void)
 		return;
 	}
 	while (pos < size) {
-		ssize_t avail = size - pos;
-		char *line = buf + pos;
-		char *nl = memchr(line, '\n', avail);
+		char *line = buf_next_line(buf, &pos, size);
 		char *end;
 		long x, y;
-
-		if (nl) {
-			*nl = 0;
-			pos += nl - line + 1;
-		} else {
-			line[avail] = 0;
-			pos += avail;
-		}
 
 		y = strtol(line, &end, 10);
 		line = end;

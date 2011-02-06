@@ -125,19 +125,8 @@ void history_load(struct history *history, const char *filename)
 			error_msg("Error reading %s: %s", filename, strerror(errno));
 		return;
 	}
-	while (pos < size) {
-		ssize_t avail = size - pos;
-		char *line = buf + pos;
-		char *nl = memchr(line, '\n', avail);
-		if (nl) {
-			*nl = 0;
-			pos += nl - line + 1;
-		} else {
-			line[avail] = 0;
-			pos += avail;
-		}
-		history_add(history, line);
-	}
+	while (pos < size)
+		history_add(history, buf_next_line(buf, &pos, size));
 	free(buf);
 }
 

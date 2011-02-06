@@ -83,6 +83,22 @@ ssize_t read_file(const char *filename, char **bufp)
 	return r;
 }
 
+char *buf_next_line(char *buf, ssize_t *posp, ssize_t size)
+{
+	ssize_t pos = *posp;
+	ssize_t avail = size - pos;
+	char *line = buf + pos;
+	char *nl = memchr(line, '\n', avail);
+	if (nl) {
+		*nl = 0;
+		*posp += nl - line + 1;
+	} else {
+		line[avail] = 0;
+		*posp += avail;
+	}
+	return line;
+}
+
 void bug(const char *function, const char *fmt, ...)
 {
 	va_list ap;
