@@ -1,0 +1,14 @@
+syntax smarty
+
+state html
+	str "{*" comment
+	char \{ code
+	eat html
+
+state comment
+	str "*}" html comment
+	eat comment
+
+state code
+	char \} html code
+	eat code

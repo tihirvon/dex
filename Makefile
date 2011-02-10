@@ -131,6 +131,7 @@ syntax	:=			\
 	syntax/php		\
 	syntax/python		\
 	syntax/sh		\
+	syntax/smarty		\
 	syntax/sql		\
 	# end
 
