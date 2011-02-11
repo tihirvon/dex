@@ -1,6 +1,23 @@
 #include "window.h"
 #include "state.h"
 
+static int state_is_valid(const struct state *st)
+{
+	return ((unsigned long)st & 1) == 0;
+}
+
+static void mark_state_invalid(void **ptrs, int idx)
+{
+	struct state *st = ptrs[idx];
+	ptrs[idx] = (struct state *)((unsigned long)st | 1);
+}
+
+static int states_equal(void **ptrs, int idx, const struct state *b)
+{
+	struct state *a = (struct state *)((unsigned long)ptrs[idx] & ~1UL);
+	return a == b;
+}
+
 static int bitmap_get(const unsigned char *bitmap, unsigned int idx)
 {
 	unsigned int byte = idx / 8;
@@ -214,100 +231,92 @@ static void move_line_states(struct ptr_array *s, int to, int from, int count)
 	memmove(s->ptrs + to, s->ptrs + from, count * sizeof(*s->ptrs));
 }
 
-static void truncate_line_states(int count)
-{
-	struct ptr_array *s = &buffer->line_start_states;
-
-	BUG_ON(buffer->first_hole > s->count);
-	s->count = count;
-	if (buffer->first_hole > s->count)
-		buffer->first_hole = s->count;
-}
-
-static void new_hole(int idx)
-{
-	struct ptr_array *s = &buffer->line_start_states;
-
-	if (idx == buffer->first_hole) {
-		// nothing to do
-		return;
-	}
-	if (idx > buffer->first_hole) {
-		// only way to mark this hole is to set it NULL
-		if (idx < s->count)
-			s->ptrs[idx] = NULL;
-		return;
-	}
-
-	// old first hole may have not been set to NULL
-	if (buffer->first_hole < s->count)
-		s->ptrs[buffer->first_hole] = NULL;
-
-	buffer->first_hole = idx;
-}
-
-static void find_hole(int pos)
-{
-	struct ptr_array *s = &buffer->line_start_states;
-	while (pos < s->count && s->ptrs[pos])
-		pos++;
-	buffer->first_hole = pos;
-}
-
 static void block_iter_move_down(struct block_iter *bi, int count)
 {
 	while (count--)
 		block_iter_eat_line(bi);
 }
 
+static int fill_hole(struct block_iter *bi, int sidx, int eidx)
+{
+	void **ptrs = buffer->line_start_states.ptrs;
+	int idx = sidx;
+
+	while (idx < eidx) {
+		struct lineref lr;
+		struct state *st;
+
+		fill_line_nl_ref(bi, &lr);
+		block_iter_eat_line(bi);
+		highlight_line(ptrs[idx++], lr.line, lr.size, &st);
+
+		if (ptrs[idx] == st) {
+			// was not invalidated and didn't change
+			break;
+		}
+
+		if (states_equal(ptrs, idx, st)) {
+			// was invalidated and didn't change
+			ptrs[idx] = st;
+		} else {
+			// invalidated or not but changed anyway
+			ptrs[idx] = st;
+			if (idx == eidx)
+				mark_state_invalid(ptrs, idx + 1);
+		}
+	}
+	return idx - sidx;
+}
+
 void hl_fill_start_states(int line_nr)
 {
 	struct ptr_array *s = &buffer->line_start_states;
+	struct state **states;
 	struct block_iter bi;
 	int current_line = 0;
+	int idx = 0;
+	int last;
 
 	if (!buffer->syn)
 		return;
 
 	buffer_bof(&bi);
-	resize_line_states(s, line_nr + 1);
-	while (1) {
-		struct lineref lr;
-		struct state *st;
-		int idx;
+	// NOTE: "+ 2" so that you don't have to worry about overflow in fill_hole()
+	resize_line_states(s, line_nr + 2);
+	states = (struct state **)s->ptrs;
 
-		// always true: buffer->first_hole <= s->count
-		BUG_ON(buffer->first_hole > s->count);
-		if (buffer->first_hole > line_nr)
+	// update invalid
+	last = line_nr;
+	if (last >= s->count)
+		last = s->count - 1;
+	while (1) {
+		int count;
+
+		while (idx <= last && state_is_valid(states[idx]))
+			idx++;
+		if (idx > last)
 			break;
 
 		// go to line before first hole
-		block_iter_move_down(&bi, buffer->first_hole - 1 - current_line);
-		current_line = buffer->first_hole - 1;
-		idx = current_line;
+		idx--;
+		block_iter_move_down(&bi, idx - current_line);
+		current_line = idx;
+
+		// NOTE: might not fill entire hole which is ok
+		count = fill_hole(&bi, idx, last);
+		idx += count;
+		current_line += count;
+	}
+
+	// add new
+	block_iter_move_down(&bi, s->count - 1 - current_line);
+	while (s->count - 1 < line_nr) {
+		struct lineref lr;
 
 		fill_line_nl_ref(&bi, &lr);
-		highlight_line(s->ptrs[idx++], lr.line, lr.size, &st);
-
-		BUG_ON(idx > s->count);
-		if (idx == s->count) {
-			// new
-			s->ptrs[idx] = st;
-			s->count++;
-			buffer->first_hole = s->count;
-		} else if (!s->ptrs[idx]) {
-			s->ptrs[idx] = st;
-			buffer->first_hole++;
-		} else {
-			if (s->ptrs[idx] == st) {
-				// hole successfully closed. find next
-				find_hole(idx + 1);
-			} else {
-				// hole filled but state changed
-				s->ptrs[idx] = st;
-				buffer->first_hole = idx + 1;
-			}
-		}
+		highlight_line(states[s->count - 1], lr.line, lr.size, &states[s->count]);
+		s->count++;
+		block_iter_eat_line(&bi);
 	}
 }
 
@@ -327,26 +336,19 @@ struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_chan
 	if (line_nr == s->count) {
 		resize_line_states(s, s->count + 1);
 		s->ptrs[s->count++] = next;
-		buffer->first_hole = s->count;
 		*next_changed = 1;
-	} else if (!s->ptrs[line_nr]) {
+	} else if (s->ptrs[line_nr] == next) {
+		// was not invalidated and didn't change
+	} else if (states_equal(s->ptrs, line_nr, next)) {
+		// was invalidated and didn't change
 		s->ptrs[line_nr] = next;
-		// NOTE: this can leave first_hole point to non-NULL state
-		buffer->first_hole = line_nr + 1;
-		*next_changed = 1;
+		//*next_changed = 1;
 	} else {
-		if (line_nr == buffer->first_hole) {
-			if (s->ptrs[line_nr] == next) {
-				// hole successfully closed
-				find_hole(line_nr + 1);
-			} else {
-				// hole filled but state changed
-				s->ptrs[buffer->first_hole++] = next;
-				*next_changed = 1;
-			}
-		} else {
-			BUG_ON(s->ptrs[line_nr] != next);
-		}
+		// invalidated or not but changed anyway
+		s->ptrs[line_nr] = next;
+		*next_changed = 1;
+		if (line_nr + 1 < s->count)
+			mark_state_invalid(s->ptrs, line_nr + 1);
 	}
 	return colors;
 }
@@ -355,7 +357,7 @@ struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_chan
 void hl_insert(int first, int lines)
 {
 	struct ptr_array *s = &buffer->line_start_states;
-	int last = first + lines;
+	int i, last = first + lines;
 
 	if (first >= s->count) {
 		// nothing to rehighlight
@@ -365,7 +367,7 @@ void hl_insert(int first, int lines)
 	if (last + 1 >= s->count) {
 		// last already highlighted lines changed
 		// there's nothing to gain, throw them away
-		truncate_line_states(first + 1);
+		s->count = first + 1;
 		return;
 	}
 
@@ -378,19 +380,9 @@ void hl_insert(int first, int lines)
 		s->count += lines;
 	}
 
-	// invalidate start states of lines right after any changed lines
-	// invalid: first+1..last+1 (inclusive)
-	if (first != last) {
-		int i;
-		/*
-		 * NOTE: Because we don't keep track of number of the
-		 * possibly invalid line start states there are we must
-		 * set them all to NULL.
-		 */
-		for (i = first + 1; i <= last + 1; i++)
-			s->ptrs[i] = NULL;
-	}
-	new_hole(first + 1);
+	// invalidate start states of new and changed lines
+	for (i = first + 1; i <= last + 1; i++)
+		mark_state_invalid(s->ptrs, i);
 }
 
 // called after text have been deleted to rehighlight changed lines
@@ -410,7 +402,7 @@ void hl_delete(int first, int deleted_nl)
 	if (last + 1 >= s->count) {
 		// last already highlighted lines changed
 		// there's nothing to gain, throw them away
-		truncate_line_states(first + 1);
+		s->count = first + 1;
 		return;
 	}
 
@@ -426,5 +418,5 @@ void hl_delete(int first, int deleted_nl)
 	}
 
 	// invalidate line start state after the changed line
-	new_hole(first + 1);
+	mark_state_invalid(s->ptrs, first + 1);
 }

@@ -649,7 +649,6 @@ void syntax_changed(void)
 		}
 		s->ptrs[0] = syn->states.ptrs[0];
 		s->count = 1;
-		buffer->first_hole = 1;
 	}
 }
 
