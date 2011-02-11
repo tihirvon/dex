@@ -207,7 +207,7 @@ struct option_description {
 
 static const char *bool_enum[] = { "false", "true", NULL };
 static const char *newline_enum[] = { "unix", "dos", NULL };
-const char *case_sensitive_search_enum[] = { "false", "true", "auto" };
+const char *case_sensitive_search_enum[] = { "false", "true", "auto", NULL };
 static const char *ws_error_values[] = {
 	"trailing",
 	"space-indent",
