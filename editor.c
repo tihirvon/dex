@@ -963,7 +963,7 @@ int main(int argc, char *argv[])
 		if (*opt != '-')
 			break;
 
-		printf("Usage: %s [-c command] [-t tag] [-r rcfile] [file]...\n", argv[0]);
+		printf("Usage: %s [-R] [-V] [-c command] [-t tag] [-r rcfile] [file]...\n", argv[0]);
 		return 1;
 	}
 
