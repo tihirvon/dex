@@ -1,5 +1,5 @@
-errorfmt -i gcc "error: \(Each undeclared identifier is reported only once"
-errorfmt -i gcc "error: for each function it appears in.\)"
+errorfmt -i gcc 'error: \(Each undeclared identifier is reported only once'
+errorfmt -i gcc 'error: for each function it appears in.\)'
 errorfmt -r gcc "^(.+):([0-9]+): note: " file line
 errorfmt -r gcc '^(.+):([0-9]+): error: \(near ' file line
 errorfmt -r gcc '^(.+):([0-9]+): warning: \(near ' file line
@@ -13,5 +13,5 @@ errorfmt -r gcc "^(.+): (In function .*:)$" file message
 errorfmt -r gcc "^In function '.*',$"
 errorfmt -r gcc "^(.+): At top level:$" file
 errorfmt -r gcc "^cc1: warnings being treated as errors$"
-errorfmt -i gcc "^make: \*\*\* \[.*\] Error [0-9]+$"
+errorfmt -i gcc '^make: \*\*\* \[.*\] Error [0-9]+$'
 errorfmt -i gcc "^collect2: ld returned [0-9]+ exit status$"
