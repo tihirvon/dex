@@ -125,13 +125,11 @@ command [text]
 	Enter command line. If text is given then it is written to the
 	command line (see the default binding *^L* why this is useful).
 
-compile [-1dijps] <errorfmt> <command> [parameters]...
+compile [-1ijps] <errorfmt> <command> [parameters]...
 	Run external command and collect error messages. This can be
 	used to run `make` and `grep`.
 
 	-1 read error messages from stdout instead of stderr
-
-	-d ignore duplicate error messages
 
 	-i ignore redundant error messages
 

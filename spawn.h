@@ -16,7 +16,6 @@
 
 /* Error collection options. */
 #define SPAWN_IGNORE_REDUNDANT	(1 << 6)
-#define SPAWN_IGNORE_DUPLICATES	(1 << 7)
 
 struct compile_error {
 	char *file;

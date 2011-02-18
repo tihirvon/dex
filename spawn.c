@@ -52,7 +52,7 @@ static int is_duplicate(const struct compile_error *e)
 
 static void add_error_msg(struct compile_error *e, unsigned int flags)
 {
-	if (flags & SPAWN_IGNORE_DUPLICATES && is_duplicate(e)) {
+	if (is_duplicate(e)) {
 		free_compile_error(e);
 		return;
 	}

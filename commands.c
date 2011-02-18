@@ -133,9 +133,6 @@ static void cmd_compile(const char *pf, char **args)
 		case '1':
 			flags |= SPAWN_READ_STDOUT;
 			break;
-		case 'd':
-			flags |= SPAWN_IGNORE_DUPLICATES;
-			break;
 		case 'i':
 			flags |= SPAWN_IGNORE_REDUNDANT;
 			break;
@@ -1223,7 +1220,7 @@ const struct command commands[] = {
 	{ "clear",		"",	0,  0, cmd_clear },
 	{ "close",		"f",	0,  0, cmd_close },
 	{ "command",		"",	0,  1, cmd_command },
-	{ "compile",	     "-1dijps",	2, -1, cmd_compile },
+	{ "compile",	     "-1ijps",	2, -1, cmd_compile },
 	{ "copy",		"",	0,  0, cmd_copy },
 	{ "cut",		"",	0,  0, cmd_cut },
 	{ "delete",		"",	0,  0, cmd_delete },
