@@ -898,16 +898,24 @@ static void close_all_views(void)
 	}
 }
 
+static const char *opt_arg(const char *opt, const char *arg)
+{
+	if (arg == NULL) {
+		fprintf(stderr, "missing argument for option %s\n", opt);
+		exit(1);
+	}
+	return arg;
+}
+
 int main(int argc, char *argv[])
 {
-	int i;
 	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
 	const char *home = getenv("HOME");
 	const char *tag = NULL;
 	const char *rc = NULL;
 	const char *command = NULL;
 	const char *charset;
-	int read_rc = 1;
+	int i, read_rc = 1;
 
 	if (!home)
 		home = "";
@@ -916,53 +924,37 @@ int main(int argc, char *argv[])
 	for (i = 1; i < argc; i++) {
 		const char *opt = argv[i];
 
-		if (strcmp(opt, "-C") == 0) {
-			flags &= ~TERM_USE_TERMCAP;
-			continue;
-		}
-		if (strcmp(opt, "-I") == 0) {
-			flags &= ~TERM_USE_TERMINFO;
-			continue;
-		}
-		if (strcmp(opt, "-R") == 0) {
-			read_rc = 0;
-			continue;
-		}
-		if (!strcmp(opt, "-t")) {
-			if (++i == argc) {
-				fprintf(stderr, "missing argument for option %s\n", opt);
-				return 1;
-			}
-			tag = argv[i];
-			continue;
-		}
-		if (!strcmp(opt, "-r")) {
-			if (++i == argc) {
-				fprintf(stderr, "missing argument for option %s\n", opt);
-				return 1;
-			}
-			rc = argv[i];
-			continue;
-		}
-		if (!strcmp(opt, "-c")) {
-			if (++i == argc) {
-				fprintf(stderr, "missing argument for option %s\n", opt);
-				return 1;
-			}
-			command = argv[i];
-			continue;
-		}
-		if (!strcmp(opt, "-V")) {
-			printf("%s %s\nWritten by Timo Hirvonen\n", program, version);
-			return 0;
-		}
-		if (strcmp(opt, "--") == 0) {
-			i++;
+		if (opt[0] != '-' || !opt[1])
 			break;
+		if (!opt[2]) {
+			switch (opt[1]) {
+			case 'C':
+				flags &= ~TERM_USE_TERMCAP;
+				continue;
+			case 'I':
+				flags &= ~TERM_USE_TERMINFO;
+				continue;
+			case 'R':
+				read_rc = 0;
+				continue;
+			case 't':
+				tag = opt_arg(opt, argv[++i]);
+				continue;
+			case 'r':
+				rc = opt_arg(opt, argv[++i]);
+				continue;
+			case 'c':
+				command = opt_arg(opt, argv[++i]);
+				continue;
+			case 'V':
+				printf("%s %s\nWritten by Timo Hirvonen\n", program, version);
+				return 0;
+			}
+			if (opt[1] == '-') {
+				i++;
+				break;
+			}
 		}
-		if (*opt != '-')
-			break;
-
 		printf("Usage: %s [-R] [-V] [-c command] [-t tag] [-r rcfile] [file]...\n", argv[0]);
 		return 1;
 	}
