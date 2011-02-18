@@ -68,6 +68,7 @@ OBJECTS	:= 			\
 	file-history.o		\
 	file-option.o		\
 	filetype.o		\
+	format-status.o		\
 	gbuf.o			\
 	history.o		\
 	hl.o			\
@@ -75,6 +76,7 @@ OBJECTS	:= 			\
 	iter.o			\
 	lock.o			\
 	move.o			\
+	msg.o			\
 	obuf.o			\
 	options.o		\
 	parse-args.o		\
@@ -85,7 +87,6 @@ OBJECTS	:= 			\
 	screen.o		\
 	search.o		\
 	spawn.o			\
-	format-status.o		\
 	state.o			\
 	tag.o			\
 	term.o			\

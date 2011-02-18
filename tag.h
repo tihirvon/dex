@@ -4,11 +4,8 @@
 #include "ctags.h"
 #include "ptr-array.h"
 
-extern struct ptr_array current_tags;
-
-int find_tags(const char *name);
-void move_to_tag(const struct tag *t, int save_location);
-void tag_pop(void);
+void free_tags(struct ptr_array *tags);
+int find_tags(const char *name, struct ptr_array *tags);
 void collect_tags(const char *prefix);
 
 #endif

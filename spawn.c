@@ -5,63 +5,10 @@
 #include "move.h"
 #include "regexp.h"
 #include "gbuf.h"
+#include "msg.h"
 
 static struct compiler_format **compiler_formats;
 static int nr_compiler_formats;
-
-struct compile_errors cerr;
-
-static void free_compile_error(struct compile_error *e)
-{
-	free(e->msg);
-	free(e->file);
-	free(e);
-}
-
-static void free_errors(void)
-{
-	int i;
-
-	for (i = 0; i < cerr.count; i++)
-		free_compile_error(cerr.errors[i]);
-	free(cerr.errors);
-	cerr.errors = NULL;
-	cerr.alloc = 0;
-	cerr.count = 0;
-	cerr.pos = -1;
-}
-
-static int is_duplicate(const struct compile_error *e)
-{
-	int i;
-
-	for (i = 0; i < cerr.count; i++) {
-		struct compile_error *x = cerr.errors[i];
-		if (e->line != x->line)
-			continue;
-		if (!e->file != !x->file)
-			continue;
-		if (e->file && strcmp(e->file, x->file))
-			continue;
-		if (strcmp(e->msg, x->msg))
-			continue;
-		return 1;
-	}
-	return 0;
-}
-
-static void add_error_msg(struct compile_error *e, unsigned int flags)
-{
-	if (is_duplicate(e)) {
-		free_compile_error(e);
-		return;
-	}
-	if (cerr.count == cerr.alloc) {
-		cerr.alloc = ROUND_UP(cerr.alloc * 3 / 2 + 1, 16);
-		xrenew(cerr.errors, cerr.alloc);
-	}
-	cerr.errors[cerr.count++] = e;
-}
 
 static char *format_msg(const char *msg)
 {
@@ -76,7 +23,6 @@ static char *format_msg(const char *msg)
 static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int flags)
 {
 	const struct error_format *p;
-	struct compile_error *e;
 	char *nl = strchr(str, '\n');
 	int min_level, i, len;
 
@@ -92,12 +38,9 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	}
 	for (i = 0; ; i++) {
 		if (i == cf->nr_formats) {
-			e = xnew(struct compile_error, 1);
-			e->msg = format_msg(str);
-			e->file = NULL;
-			e->line = -1;
-			e->column = -1;
-			add_error_msg(e, flags);
+			char *s = format_msg(str);
+			add_message(new_message(s));
+			free(s);
 			return;
 		}
 		p = &cf->formats[i];
@@ -110,12 +53,11 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 		min_level = 2;
 
 	if (p->importance >= min_level) {
-		e = xnew(struct compile_error, 1);
-		e->msg = xstrdup(regexp_matches[p->msg_idx]);
-		e->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
-		e->line = p->line_idx < 0 ? -1 : atoi(regexp_matches[p->line_idx]);
-		e->column = p->column_idx < 0 ? -1 : atoi(regexp_matches[p->column_idx]);
-		add_error_msg(e, flags);
+		struct message *m = new_message(regexp_matches[p->msg_idx]);
+		m->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
+		m->u.location.line = p->line_idx < 0 ? 0 : atoi(regexp_matches[p->line_idx]);
+		m->u.location.column= p->column_idx < 0 ? 0 : atoi(regexp_matches[p->column_idx]);
+		add_message(m);
 	}
 	free_regexp_matches();
 }
@@ -127,11 +69,9 @@ static void read_errors(struct compiler_format *cf, int fd, unsigned int flags)
 
 	if (!f) {
 		// should not happen
-		free_errors();
 		return;
 	}
 
-	free_errors();
 	while (fgets(line, sizeof(line), f))
 		handle_error_msg(cf, line, flags);
 	fclose(f);
@@ -502,33 +442,6 @@ void spawn(char **args, int fd[3], int prompt)
 		ui_start(prompt);
 		child_controls_terminal = 0;
 	}
-}
-
-static void goto_file_line(const char *filename, int line, int column)
-{
-	struct view *v = open_buffer(filename, 0);
-
-	if (!v) {
-		return;
-	}
-	set_view(v);
-	move_to_line(line);
-	if (column > 0)
-		move_to_column(column);
-}
-
-void show_compile_error(void)
-{
-	struct compile_error *e = cerr.errors[cerr.pos];
-
-	if (e->file && e->line > 0) {
-		goto_file_line(e->file, e->line, e->column);
-	} else if (e->file && cerr.pos + 1 < cerr.count) {
-		struct compile_error *next = cerr.errors[cerr.pos + 1];
-		if (next->file && next->line > 0)
-			goto_file_line(next->file, next->line, next->column);
-	}
-	info_msg("[%d/%d] %s", cerr.pos + 1, cerr.count, e->msg);
 }
 
 static struct compiler_format *add_compiler_format(const char *name)

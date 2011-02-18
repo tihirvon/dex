@@ -24,13 +24,6 @@ struct compile_error {
 	int column;
 };
 
-struct compile_errors {
-	struct compile_error **errors;
-	int alloc;
-	int count;
-	int pos;
-};
-
 enum msg_importance {
 	USELESS,
 	REDUNDANT,
@@ -59,13 +52,10 @@ struct filter_data {
 	unsigned int out_len;
 };
 
-extern struct compile_errors cerr;
-
 void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc);
 struct compiler_format *find_compiler_format(const char *name);
 int spawn_filter(char **argv, struct filter_data *data);
 void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf);
 void spawn(char **args, int fd[3], int prompt);
-void show_compile_error(void);
 
 #endif

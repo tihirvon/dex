@@ -1,25 +1,12 @@
 #include "tag.h"
 #include "ctags.h"
-#include "editor.h"
-#include "window.h"
-#include "move.h"
-#include "search.h"
+#include "buffer.h"
 #include "list.h"
 #include "ptr-array.h"
 #include "completion.h"
 
-struct file_location {
-	struct list_head node;
-	char *filename;
-	unsigned int buffer_id;
-	int x, y;
-};
-
-struct ptr_array current_tags;
-
 static struct tag_file *tag_file;
 static const char *current_filename; // for sorting tags
-static LIST_HEAD(location_head);
 
 static int visibility_cmp(const struct tag *a, const struct tag *b)
 {
@@ -108,80 +95,6 @@ static void sort_tags(struct ptr_array *tags)
 	qsort(tags->ptrs, tags->count, sizeof(tags->ptrs[0]), tag_cmp);
 }
 
-static struct file_location *create_location(void)
-{
-	struct file_location *loc;
-
-	loc = xnew(struct file_location, 1);
-	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
-	loc->buffer_id = buffer->id;
-	loc->x = view->cx_display;
-	loc->y = view->cy;
-	return loc;
-}
-
-void tag_pop(void)
-{
-	struct file_location *loc;
-	struct view *v;
-
-	if (list_empty(&location_head))
-		return;
-	loc = container_of(location_head.next, struct file_location, node);
-	list_del(&loc->node);
-	v = find_view_by_buffer_id(loc->buffer_id);
-	if (!v) {
-		if (loc->filename) {
-			v = open_buffer(loc->filename, 1);
-		} else {
-			// Can't restore closed buffer which had no filename.
-			free(loc->filename);
-			free(loc);
-			tag_pop();
-			return;
-		}
-	}
-	if (v) {
-		set_view(v);
-		move_to_line(loc->y + 1);
-		move_to_column(loc->x + 1);
-	}
-	free(loc->filename);
-	free(loc);
-}
-
-void move_to_tag(const struct tag *t, int save_location)
-{
-	struct file_location *loc = NULL;
-	struct view *v;
-
-	if (save_location)
-		loc = create_location();
-
-	v = open_buffer(t->filename, 1);
-	if (!v) {
-		if (loc) {
-			free(loc->filename);
-			free(loc);
-		}
-		return;
-	}
-	if (loc)
-		list_add_after(&loc->node, &location_head);
-
-	if (view != v) {
-		set_view(v);
-		/* force centering view to the cursor because file changed */
-		view->force_center = 1;
-	}
-
-	if (t->pattern) {
-		search_tag(t->pattern);
-	} else {
-		move_to_line(t->line);
-	}
-}
-
 static int tag_file_changed(const char *filename, struct tag_file *tf)
 {
 	struct stat st;
@@ -202,7 +115,7 @@ static int load_tag_file(void)
 	return !!tag_file;
 }
 
-static void free_tags(struct ptr_array *tags)
+void free_tags(struct ptr_array *tags)
 {
 	int i;
 	for (i = 0; i < tags->count; i++) {
@@ -214,7 +127,7 @@ static void free_tags(struct ptr_array *tags)
 	clear(tags);
 }
 
-int find_tags(const char *name)
+int find_tags(const char *name, struct ptr_array *tags)
 {
 	struct tag *t;
 	size_t pos = 0;
@@ -222,14 +135,13 @@ int find_tags(const char *name)
 	if (!load_tag_file())
 		return 0;
 
-	free_tags(&current_tags);
 	t = xnew(struct tag, 1);
 	while (next_tag(tag_file, &pos, name, 1, t)) {
-		ptr_array_add(&current_tags, t);
+		ptr_array_add(tags, t);
 		t = xnew(struct tag, 1);
 	}
 	free(t);
-	sort_tags(&current_tags);
+	sort_tags(tags);
 	return 1;
 }
 

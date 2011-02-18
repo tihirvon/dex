@@ -20,6 +20,7 @@
 #include "command.h"
 #include "parse-args.h"
 #include "file-option.h"
+#include "msg.h"
 
 static void cmd_alias(const char *pf, char **args)
 {
@@ -151,11 +152,10 @@ static void cmd_compile(const char *pf, char **args)
 		error_msg("No such error parser %s", compiler);
 		return;
 	}
+	clear_messages();
 	spawn_compiler(args, flags, cf);
-	if (cerr.count) {
-		cerr.pos = 0;
-		show_compile_error();
-	}
+	if (message_count())
+		current_message(1);
 }
 
 static void cmd_copy(const char *pf, char **args)
@@ -259,41 +259,13 @@ static void cmd_error(const char *pf, char **args)
 		pf++;
 	}
 
-	if (!cerr.count) {
-		info_msg("No errors");
-		return;
-	}
-	if (dir && cerr.count == 1) {
-		// this is much more useful than displaying "No more/previous errors"
-		cerr.pos = 0;
-		show_compile_error();
-		return;
-	}
 	if (dir == 'n') {
-		if (cerr.pos == cerr.count - 1) {
-			info_msg("No more errors");
-			return;
-		}
-		cerr.pos++;
+		next_message();
 	} else if (dir == 'p') {
-		if (cerr.pos <= 0) {
-			info_msg("No previous errors");
-			return;
-		}
-		cerr.pos--;
-	} else if (*args) {
-		int num = atoi(*args);
-		if (num < 1 || num > cerr.count) {
-			info_msg("There are %d errors", cerr.count);
-			return;
-		}
-		cerr.pos = num - 1;
+		prev_message();
 	} else {
-		// default is current error
-		if (cerr.pos < 0)
-			cerr.pos = 0;
+		current_message(0);
 	}
-	show_compile_error();
 }
 
 static void cmd_errorfmt(const char *pf, char **args)
@@ -1057,26 +1029,15 @@ static void cmd_suspend(const char *pf, char **args)
 	kill(0, SIGSTOP);
 }
 
-static void goto_tag(int pos, int save_location)
-{
-	if (current_tags.count > 1)
-		info_msg("[%d/%d]", pos + 1, current_tags.count);
-	move_to_tag(current_tags.ptrs[pos], save_location);
-}
-
 static void cmd_tag(const char *pf, char **args)
 {
+	PTR_ARRAY(tags);
 	const char *name = args[0];
-	static int pos;
-	char dir = 0;
+	char *word = NULL;
 	int pop = 0;
 
 	while (*pf) {
 		switch (*pf) {
-		case 'n':
-		case 'p':
-			dir = *pf;
-			break;
 		case 'r':
 			pop = 1;
 			break;
@@ -1084,55 +1045,48 @@ static void cmd_tag(const char *pf, char **args)
 		pf++;
 	}
 
-	if (dir && name) {
-		error_msg("Tag and direction (-n/-p) are mutually exclusive.");
-		return;
-	}
 	if (pop) {
-		tag_pop();
+		pop_location();
 		return;
 	}
 
-	if (!dir) {
-		char *word = NULL;
-
-		if (!name) {
-			word = get_word_under_cursor();
-			if (!word)
-				return;
-			name = word;
-		}
-
-		pos = 0;
-		if (!find_tags(name)) {
-			error_msg("No tag file.");
-		} else if (!current_tags.count) {
-			error_msg("Tag %s not found.", name);
-		} else {
-			goto_tag(pos, 1);
-		}
-		free(word);
-		return;
-	}
-
-	if (!current_tags.count) {
-		error_msg("No tags.");
-		return;
-	}
-
-	if (dir == 'n') {
-		if (pos + 1 >= current_tags.count) {
-			error_msg("No more tags.");
+	if (!name) {
+		word = get_word_under_cursor();
+		if (!word)
 			return;
-		}
-		goto_tag(++pos, 0);
-	} else if (dir == 'p') {
-		if (!pos) {
-			error_msg("At first tag.");
-			return;
-		}
-		goto_tag(--pos, 0);
+		name = word;
 	}
+
+	clear_messages();
+
+	if (!find_tags(name, &tags)) {
+		error_msg("No tag file.");
+	} else if (!tags.count) {
+		error_msg("Tag %s not found.", name);
+	} else {
+		int i;
+		for (i = 0; i < tags.count; i++) {
+			struct tag *t = tags.ptrs[i];
+			struct message *m;
+			char buf[512];
+
+			snprintf(buf, sizeof(buf), "Tag %s", name);
+			m = new_message(buf);
+			m->file = t->filename;
+			t->filename = NULL;
+			if (t->pattern) {
+				m->u.pattern = t->pattern;
+				m->pattern_is_set = 1;
+				t->pattern = NULL;
+			} else {
+				m->u.location.line = t->line;
+			}
+			add_message(m);
+		}
+		free_tags(&tags);
+		current_message(1);
+	}
+	free(word);
 }
 
 static void cmd_toggle(const char *pf, char **args)
@@ -1236,7 +1190,7 @@ const struct command commands[] = {
 	{ "erase",		"",	0,  0, cmd_erase },
 	{ "erase-bol",		"",	0,  0, cmd_erase_bol },
 	{ "erase-word",		"s",	0,  0, cmd_erase_word },
-	{ "error",		"np",	0,  1, cmd_error },
+	{ "error",		"np",	0,  0, cmd_error },
 	{ "errorfmt",		"ir",	2, -1, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
@@ -1275,7 +1229,7 @@ const struct command commands[] = {
 	{ "set",		"gl",	1,  2, cmd_set },
 	{ "shift",		"",	1,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
-	{ "tag",		"npr",	0,  1, cmd_tag },
+	{ "tag",		"r",	0,  1, cmd_tag },
 	{ "toggle",		"glv",	1, -1, cmd_toggle },
 	{ "undo",		"",	0,  0, cmd_undo },
 	{ "unselect",		"",	0,  0, cmd_unselect },
