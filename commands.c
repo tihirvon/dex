@@ -517,7 +517,11 @@ static void cmd_new_line(const char *pf, char **args)
 
 static void cmd_next(const char *pf, char **args)
 {
-	next_buffer();
+	if (window->view->node.next == &window->views) {
+		set_view(VIEW(window->views.next));
+	} else {
+		set_view(VIEW(window->view->node.next));
+	}
 }
 
 static void cmd_open(const char *pf, char **args)
@@ -628,7 +632,11 @@ static void cmd_pgup(const char *pf, char **args)
 
 static void cmd_prev(const char *pf, char **args)
 {
-	prev_buffer();
+	if (window->view->node.prev == &window->views) {
+		set_view(VIEW(window->views.prev));
+	} else {
+		set_view(VIEW(window->view->node.prev));
+	}
 }
 
 static void cmd_quit(const char *pf, char **args)

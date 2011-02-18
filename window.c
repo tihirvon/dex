@@ -80,24 +80,6 @@ void set_view(struct view *v)
 		setup_buffer();
 }
 
-void next_buffer(void)
-{
-	if (window->view->node.next == &window->views) {
-		set_view(VIEW(window->views.next));
-	} else {
-		set_view(VIEW(window->view->node.next));
-	}
-}
-
-void prev_buffer(void)
-{
-	if (window->view->node.prev == &window->views) {
-		set_view(VIEW(window->views.prev));
-	} else {
-		set_view(VIEW(window->view->node.prev));
-	}
-}
-
 static int cursor_outside_view(void)
 {
 	return view->cy < view->vy || view->cy > view->vy + window->h - 1;
