@@ -125,7 +125,6 @@ static void cmd_compile(const char *pf, char **args)
 {
 	struct compiler_format *cf;
 	unsigned int flags = 0;
-	int jump_to_error = 0;
 	const char *compiler;
 
 	while (*pf) {
@@ -135,9 +134,6 @@ static void cmd_compile(const char *pf, char **args)
 			break;
 		case 'i':
 			flags |= SPAWN_IGNORE_REDUNDANT;
-			break;
-		case 'j':
-			jump_to_error = 1;
 			break;
 		case 'p':
 			flags |= SPAWN_PROMPT;
@@ -156,7 +152,7 @@ static void cmd_compile(const char *pf, char **args)
 		return;
 	}
 	spawn_compiler(args, flags, cf);
-	if (jump_to_error && cerr.count) {
+	if (cerr.count) {
 		cerr.pos = 0;
 		show_compile_error();
 	}
@@ -1228,7 +1224,7 @@ const struct command commands[] = {
 	{ "clear",		"",	0,  0, cmd_clear },
 	{ "close",		"f",	0,  0, cmd_close },
 	{ "command",		"",	0,  1, cmd_command },
-	{ "compile",	     "-1ijps",	2, -1, cmd_compile },
+	{ "compile",		"-1ips",2, -1, cmd_compile },
 	{ "copy",		"",	0,  0, cmd_copy },
 	{ "cut",		"",	0,  0, cmd_cut },
 	{ "delete",		"",	0,  0, cmd_delete },
