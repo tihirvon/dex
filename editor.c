@@ -971,6 +971,7 @@ int main(int argc, char *argv[])
 		error_msg("No terminal entry found.");
 
 	exec_config(commands, builtin_rc, strlen(builtin_rc));
+	config_line = 0;
 	set_basic_colors();
 
 	window = window_new();
