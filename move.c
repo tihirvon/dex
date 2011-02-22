@@ -142,8 +142,18 @@ void move_to_line(int line)
 
 void move_to_column(int column)
 {
-	view->preferred_x = column - 1;
-	move_to_preferred_x();
+	block_iter_bol(&view->cursor);
+	while (column-- > 1) {
+		unsigned int u;
+
+		if (!buffer_next_char(&view->cursor, &u))
+			break;
+		if (u == '\n') {
+			block_iter_prev_byte(&view->cursor, &u);
+			break;
+		}
+	}
+	update_preferred_x();
 }
 
 static enum char_type get_char_type(char ch)

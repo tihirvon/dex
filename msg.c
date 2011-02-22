@@ -24,7 +24,7 @@ static struct file_location *create_location(void)
 	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
 	loc->buffer_id = buffer->id;
 	loc->row = view->cy + 1;
-	loc->col = view->cx_display + 1;
+	loc->col = view->cx_char + 1;
 	return loc;
 }
 
