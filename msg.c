@@ -9,7 +9,7 @@ struct file_location {
 	struct list_head node;
 	char *filename;
 	unsigned int buffer_id;
-	int x, y;
+	int row, col;
 };
 
 static LIST_HEAD(location_head);
@@ -23,8 +23,8 @@ static struct file_location *create_location(void)
 	loc = xnew(struct file_location, 1);
 	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
 	loc->buffer_id = buffer->id;
-	loc->x = view->cx_display;
-	loc->y = view->cy;
+	loc->row = view->cy + 1;
+	loc->col = view->cx_display + 1;
 	return loc;
 }
 
@@ -78,8 +78,8 @@ void pop_location(void)
 	}
 	if (v) {
 		set_view(v);
-		move_to_line(loc->y + 1);
-		move_to_column(loc->x + 1);
+		move_to_line(loc->row);
+		move_to_column(loc->col);
 	}
 	free(loc->filename);
 	free(loc);
