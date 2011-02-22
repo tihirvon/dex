@@ -654,13 +654,13 @@ void syntax_changed(void)
 
 static void restore_cursor_from_history(void)
 {
-	int x, y;
+	int row, col;
 
-	if (!find_file_in_history(buffer->abs_filename, &x, &y))
+	if (!find_file_in_history(buffer->abs_filename, &row, &col))
 		return;
 
-	move_to_line(y + 1);
-	move_to_column(x + 1);
+	move_to_line(row);
+	move_to_column(col);
 }
 
 void setup_buffer(void)
