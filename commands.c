@@ -245,29 +245,6 @@ static void cmd_erase_word(const char *pf, char **args)
 	delete(word_bwd(&view->cursor, skip_non_word), 1);
 }
 
-static void cmd_error(const char *pf, char **args)
-{
-	char dir = 0;
-
-	while (*pf) {
-		switch (*pf) {
-		case 'n':
-		case 'p':
-			dir = *pf;
-			break;
-		}
-		pf++;
-	}
-
-	if (dir == 'n') {
-		next_message();
-	} else if (dir == 'p') {
-		prev_message();
-	} else {
-		current_message(0);
-	}
-}
-
 static void cmd_errorfmt(const char *pf, char **args)
 {
 	enum msg_importance importance = IMPORTANT;
@@ -476,6 +453,29 @@ static void cmd_move_tab(const char *pf, char **args)
 	}
 	list_add_after(&view->node, item);
 	update_flags |= UPDATE_TAB_BAR;
+}
+
+static void cmd_msg(const char *pf, char **args)
+{
+	char dir = 0;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'n':
+		case 'p':
+			dir = *pf;
+			break;
+		}
+		pf++;
+	}
+
+	if (dir == 'n') {
+		next_message();
+	} else if (dir == 'p') {
+		prev_message();
+	} else {
+		current_message(0);
+	}
 }
 
 static void cmd_new_line(const char *pf, char **args)
@@ -1190,7 +1190,6 @@ const struct command commands[] = {
 	{ "erase",		"",	0,  0, cmd_erase },
 	{ "erase-bol",		"",	0,  0, cmd_erase_bol },
 	{ "erase-word",		"s",	0,  0, cmd_erase_word },
-	{ "error",		"np",	0,  0, cmd_error },
 	{ "errorfmt",		"ir",	2, -1, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
@@ -1204,6 +1203,7 @@ const struct command commands[] = {
 	{ "line",		"",	1,  1, cmd_line },
 	{ "load-syntax",	"",	1,  1, cmd_load_syntax },
 	{ "move-tab",		"",	1,  1, cmd_move_tab },
+	{ "msg",		"np",	0,  0, cmd_msg },
 	{ "new-line",		"",	0,  0, cmd_new_line },
 	{ "next",		"",	0,  0, cmd_next },
 	{ "open",		"",	0, -1, cmd_open },

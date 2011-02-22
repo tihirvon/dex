@@ -53,8 +53,8 @@ bind M-s select
 bind M-t bof
 bind M-e eof
 bind M-m "run -p man $WORD"
-bind M-\[ "error -p"
-bind M-] "error -n"
+bind M-\[ "msg -p"
+bind M-] "msg -n"
 bind M-, "shift -- -1"
 bind M-. "shift 1"
 bind M-< "shift -- -1"
