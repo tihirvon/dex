@@ -133,9 +133,6 @@ static void cmd_compile(const char *pf, char **args)
 		case '1':
 			flags |= SPAWN_READ_STDOUT;
 			break;
-		case 'i':
-			flags |= SPAWN_IGNORE_REDUNDANT;
-			break;
 		case 'p':
 			flags |= SPAWN_PROMPT;
 			break;
@@ -247,20 +244,17 @@ static void cmd_erase_word(const char *pf, char **args)
 
 static void cmd_errorfmt(const char *pf, char **args)
 {
-	enum msg_importance importance = IMPORTANT;
+	int ignore = 0;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'i':
-			importance = USELESS;
-			break;
-		case 'r':
-			importance = REDUNDANT;
+			ignore = 1;
 			break;
 		}
 		pf++;
 	}
-	add_error_fmt(args[0], importance, args[1], args + 2);
+	add_error_fmt(args[0], ignore, args[1], args + 2);
 }
 
 static void cmd_ft(const char *pf, char **args)
@@ -1178,7 +1172,7 @@ const struct command commands[] = {
 	{ "clear",		"",	0,  0, cmd_clear },
 	{ "close",		"f",	0,  0, cmd_close },
 	{ "command",		"",	0,  1, cmd_command },
-	{ "compile",		"-1ips",2, -1, cmd_compile },
+	{ "compile",		"-1ps",	2, -1, cmd_compile },
 	{ "copy",		"",	0,  0, cmd_copy },
 	{ "cut",		"",	0,  0, cmd_cut },
 	{ "delete",		"",	0,  0, cmd_delete },
@@ -1190,7 +1184,7 @@ const struct command commands[] = {
 	{ "erase",		"",	0,  0, cmd_erase },
 	{ "erase-bol",		"",	0,  0, cmd_erase_bol },
 	{ "erase-word",		"s",	0,  0, cmd_erase_word },
-	{ "errorfmt",		"ir",	2, -1, cmd_errorfmt },
+	{ "errorfmt",		"i",	2, -1, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
 	{ "ft",			"-cfi",	2, -1, cmd_ft },

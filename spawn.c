@@ -24,7 +24,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 {
 	const struct error_format *p;
 	char *nl = strchr(str, '\n');
-	int min_level, i, len;
+	int i, len;
 
 	if (nl)
 		*nl = 0;
@@ -48,11 +48,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 			break;
 	}
 
-	min_level = 0;
-	if (flags & SPAWN_IGNORE_REDUNDANT)
-		min_level = 2;
-
-	if (p->importance >= min_level) {
+	if (!p->ignore) {
 		struct message *m = new_message(regexp_matches[p->msg_idx]);
 		m->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
 		m->u.location.line = p->line_idx < 0 ? 0 : atoi(regexp_matches[p->line_idx]);
@@ -476,7 +472,7 @@ static struct error_format *add_format(struct compiler_format *cf)
 	return &cf->formats[cf->nr_formats++];
 }
 
-void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc)
+void add_error_fmt(const char *compiler, int ignore, const char *format, char **desc)
 {
 	const char *names[] = { "file", "line", "column", "message" };
 	int idx[ARRAY_COUNT(names)] = { -1, -1, -1, 0 };
@@ -497,7 +493,7 @@ void add_error_fmt(const char *compiler, enum msg_importance importance, const c
 	}
 
 	p = add_format(add_compiler_format(compiler));
-	p->importance = importance;
+	p->ignore = ignore;
 	p->msg_idx = idx[3];
 	p->file_idx = idx[0];
 	p->line_idx = idx[1];

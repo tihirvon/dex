@@ -14,9 +14,6 @@
 /* Press any key to continue */
 #define SPAWN_PROMPT		(1 << 4)
 
-/* Error collection options. */
-#define SPAWN_IGNORE_REDUNDANT	(1 << 6)
-
 struct compile_error {
 	char *file;
 	char *msg;
@@ -24,14 +21,8 @@ struct compile_error {
 	int column;
 };
 
-enum msg_importance {
-	USELESS,
-	REDUNDANT,
-	IMPORTANT,
-};
-
 struct error_format {
-	enum msg_importance importance;
+	int ignore;
 	signed char msg_idx;
 	signed char file_idx;
 	signed char line_idx;
@@ -52,7 +43,7 @@ struct filter_data {
 	unsigned int out_len;
 };
 
-void add_error_fmt(const char *compiler, enum msg_importance importance, const char *format, char **desc);
+void add_error_fmt(const char *compiler, int ignore, const char *format, char **desc);
 struct compiler_format *find_compiler_format(const char *name);
 int spawn_filter(char **argv, struct filter_data *data);
 void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf);
