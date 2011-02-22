@@ -124,9 +124,9 @@ static void cmd_command(const char *pf, char **args)
 
 static void cmd_compile(const char *pf, char **args)
 {
-	struct compiler_format *cf;
+	struct compiler *c;
 	unsigned int flags = 0;
-	const char *compiler;
+	const char *name;
 
 	while (*pf) {
 		switch (*pf) {
@@ -143,14 +143,14 @@ static void cmd_compile(const char *pf, char **args)
 		pf++;
 	}
 
-	compiler = *args++;
-	cf = find_compiler_format(compiler);
-	if (!cf) {
-		error_msg("No such error parser %s", compiler);
+	name= *args++;
+	c = find_compiler(name);
+	if (!c) {
+		error_msg("No such error parser %s", name);
 		return;
 	}
 	clear_messages();
-	spawn_compiler(args, flags, cf);
+	spawn_compiler(args, flags, c);
 	if (message_count())
 		current_message(1);
 }

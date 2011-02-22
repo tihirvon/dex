@@ -1,6 +1,8 @@
 #ifndef SPAWN_H
 #define SPAWN_H
 
+#include "ptr-array.h"
+
 /* Errors are read from stderr by default. */
 #define SPAWN_READ_STDOUT	(1 << 0)
 
@@ -30,10 +32,9 @@ struct error_format {
 	const char *pattern;
 };
 
-struct compiler_format {
-	char *compiler;
-	struct error_format *formats;
-	int nr_formats;
+struct compiler {
+	char *name;
+	struct ptr_array error_formats;
 };
 
 struct filter_data {
@@ -44,9 +45,9 @@ struct filter_data {
 };
 
 void add_error_fmt(const char *compiler, int ignore, const char *format, char **desc);
-struct compiler_format *find_compiler_format(const char *name);
+struct compiler *find_compiler(const char *name);
 int spawn_filter(char **argv, struct filter_data *data);
-void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf);
+void spawn_compiler(char **args, unsigned int flags, struct compiler *c);
 void spawn(char **args, int fd[3], int prompt);
 
 #endif

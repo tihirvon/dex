@@ -7,8 +7,7 @@
 #include "gbuf.h"
 #include "msg.h"
 
-static struct compiler_format **compiler_formats;
-static int nr_compiler_formats;
+static PTR_ARRAY(compilers);
 
 static char *format_msg(const char *msg)
 {
@@ -20,7 +19,7 @@ static char *format_msg(const char *msg)
 	return buf;
 }
 
-static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int flags)
+static void handle_error_msg(struct compiler *c, char *str, unsigned int flags)
 {
 	const struct error_format *p;
 	char *nl = strchr(str, '\n');
@@ -37,13 +36,13 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 			str[i] = ' ';
 	}
 	for (i = 0; ; i++) {
-		if (i == cf->nr_formats) {
+		if (i == c->error_formats.count) {
 			char *s = format_msg(str);
 			add_message(new_message(s));
 			free(s);
 			return;
 		}
-		p = &cf->formats[i];
+		p = c->error_formats.ptrs[i];
 		if (regexp_match(p->pattern, str, len))
 			break;
 	}
@@ -58,7 +57,7 @@ static void handle_error_msg(struct compiler_format *cf, char *str, unsigned int
 	free_regexp_matches();
 }
 
-static void read_errors(struct compiler_format *cf, int fd, unsigned int flags)
+static void read_errors(struct compiler *c, int fd, unsigned int flags)
 {
 	FILE *f = fdopen(fd, "r");
 	char line[4096];
@@ -69,7 +68,7 @@ static void read_errors(struct compiler_format *cf, int fd, unsigned int flags)
 	}
 
 	while (fgets(line, sizeof(line), f))
-		handle_error_msg(cf, line, flags);
+		handle_error_msg(c, line, flags);
 	fclose(f);
 }
 
@@ -313,18 +312,19 @@ error:
 	return -1;
 }
 
-struct compiler_format *find_compiler_format(const char *name)
+struct compiler *find_compiler(const char *name)
 {
 	int i;
 
-	for (i = 0; i < nr_compiler_formats; i++) {
-		if (!strcmp(compiler_formats[i]->compiler, name))
-			return compiler_formats[i];
+	for (i = 0; i < compilers.count; i++) {
+		struct compiler *c = compilers.ptrs[i];
+		if (!strcmp(c->name, name))
+			return c;
 	}
 	return NULL;
 }
 
-void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf)
+void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 {
 	unsigned int redir = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
 	int pid, status, quiet;
@@ -384,7 +384,7 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler_format *cf)
 	} else {
 		close(dev_null);
 		close(p[1]);
-		read_errors(cf, p[0], flags);
+		read_errors(c, p[0], flags);
 		close(p[0]);
 		while (wait(&status) < 0 && errno == EINTR)
 			;
@@ -440,43 +440,24 @@ void spawn(char **args, int fd[3], int prompt)
 	}
 }
 
-static struct compiler_format *add_compiler_format(const char *name)
+static struct compiler *add_compiler(const char *name)
 {
-	struct compiler_format *cf = find_compiler_format(name);
-	size_t cur_alloc, new_alloc;
+	struct compiler *c = find_compiler(name);
 
-	if (cf)
-		return cf;
+	if (c)
+		return c;
 
-	cur_alloc = (nr_compiler_formats + 3) & ~3;
-	new_alloc = (nr_compiler_formats + 4) & ~3;
-	if (cur_alloc < new_alloc)
-		xrenew(compiler_formats, new_alloc);
-
-	cf = xnew(struct compiler_format, 1);
-	cf->compiler = xstrdup(name);
-	cf->formats = NULL;
-	cf->nr_formats = 0;
-	compiler_formats[nr_compiler_formats++] = cf;
-	return cf;
-}
-
-static struct error_format *add_format(struct compiler_format *cf)
-{
-	size_t cur_alloc, new_alloc;
-
-	cur_alloc = (cf->nr_formats + 3) & ~3;
-	new_alloc = (cf->nr_formats + 4) & ~3;
-	if (cur_alloc < new_alloc)
-		xrenew(cf->formats, new_alloc);
-	return &cf->formats[cf->nr_formats++];
+	c = xnew0(struct compiler, 1);
+	c->name = xstrdup(name);
+	ptr_array_add(&compilers, c);
+	return c;
 }
 
 void add_error_fmt(const char *compiler, int ignore, const char *format, char **desc)
 {
 	const char *names[] = { "file", "line", "column", "message" };
 	int idx[ARRAY_COUNT(names)] = { -1, -1, -1, 0 };
-	struct error_format *p;
+	struct error_format *f;
 	int i, j;
 
 	for (i = 0; desc[i]; i++) {
@@ -492,11 +473,13 @@ void add_error_fmt(const char *compiler, int ignore, const char *format, char **
 		}
 	}
 
-	p = add_format(add_compiler_format(compiler));
-	p->ignore = ignore;
-	p->msg_idx = idx[3];
-	p->file_idx = idx[0];
-	p->line_idx = idx[1];
-	p->column_idx = idx[2];
-	p->pattern = xstrdup(format);
+	f = xnew0(struct error_format, 1);
+	f->ignore = ignore;
+	f->msg_idx = idx[3];
+	f->file_idx = idx[0];
+	f->line_idx = idx[1];
+	f->column_idx = idx[2];
+	f->pattern = xstrdup(format);
+
+	ptr_array_add(&add_compiler(compiler)->error_formats, f);
 }
