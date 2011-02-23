@@ -164,7 +164,6 @@ void print_tab_bar(void)
 			int avg = extra / trunc_count;
 			int mod = extra % trunc_count;
 
-			idx = 0;
 			list_for_each_entry(v, &window->views, node) {
 				int w = v->tt_width - trunc_min_w;
 				if (w > 0) {
@@ -176,7 +175,6 @@ void print_tab_bar(void)
 				}
 				if (w > 0)
 					v->tt_truncated_width = v->tt_width - w;
-				idx++;
 			}
 			left_idx = 0;
 		} else {
@@ -184,12 +182,10 @@ void print_tab_bar(void)
 			 * not enough space for all tabs */
 			int min_left_idx, max_left_idx, w;
 
-			idx = 0;
 			list_for_each_entry(v, &window->views, node) {
 				w = v->tt_width - trunc_min_w;
 				if (w > 0)
 					v->tt_truncated_width = v->tt_width - w;
-				idx++;
 			}
 
 			w = 0;
