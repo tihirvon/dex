@@ -32,8 +32,8 @@ static struct hl_color *tab_active_color;
 static struct hl_color *tab_inactive_color;
 
 static int current_line;
-
 static const char *no_name = "(No name)";
+static int leftmost_tab_idx;
 
 void set_basic_colors(void)
 {
@@ -129,21 +129,18 @@ static void print_tab_title(struct view *v, int idx, int skip)
 	buf_ch(' ');
 }
 
-void print_tab_bar(void)
+static void calculate_tab_bar(void)
 {
-	/* index of left-most visible tab */
-	static int left_idx;
 	struct view *v;
 	int trunc_min_w = 20;
 	int count = 0, total_len = 0;
 	int trunc_count = 0, max_trunc_w = 0;
-	int idx;
 
 	list_for_each_entry(v, &window->views, node) {
 		if (v == view) {
 			/* make sure current tab is visible */
-			if (left_idx > count)
-				left_idx = count;
+			if (leftmost_tab_idx > count)
+				leftmost_tab_idx = count;
 		}
 		update_tab_title_width(v, count);
 		if (v->tt_width > trunc_min_w) {
@@ -155,7 +152,7 @@ void print_tab_bar(void)
 	}
 
 	if (total_len <= window->w) {
-		left_idx = 0;
+		leftmost_tab_idx = 0;
 	} else {
 		int extra = total_len - window->w;
 
@@ -176,7 +173,7 @@ void print_tab_bar(void)
 				if (w > 0)
 					v->tt_truncated_width = v->tt_width - w;
 			}
-			left_idx = 0;
+			leftmost_tab_idx = 0;
 		} else {
 			/* Need to truncate all long titles but there's still
 			 * not enough space for all tabs */
@@ -206,20 +203,27 @@ void print_tab_bar(void)
 					break;
 				min_left_idx--;
 			}
-			if (left_idx < min_left_idx)
-				left_idx = min_left_idx;
-			if (left_idx > max_left_idx)
-				left_idx = max_left_idx;
+			if (leftmost_tab_idx < min_left_idx)
+				leftmost_tab_idx = min_left_idx;
+			if (leftmost_tab_idx > max_left_idx)
+				leftmost_tab_idx = max_left_idx;
 		}
 	}
+}
+
+void print_tab_bar(void)
+{
+	struct view *v;
+	int idx = -1;
+
+	calculate_tab_bar();
 
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y - 1);
 	buf_set_color(&tab_inactive_color->color);
 
-	idx = -1;
 	list_for_each_entry(v, &window->views, node) {
-		if (++idx < left_idx)
+		if (++idx < leftmost_tab_idx)
 			continue;
 
 		if (obuf.x + v->tt_truncated_width > window->w)
