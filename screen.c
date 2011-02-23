@@ -144,11 +144,8 @@ void print_tab_bar(void)
 			/* make sure current tab is visible */
 			if (left_idx > count)
 				left_idx = count;
-			/* title of current tab changes often */
-			update_tab_title_width(v, count);
 		}
-		if (!v->tt_width)
-			update_tab_title_width(v, count);
+		update_tab_title_width(v, count);
 		if (v->tt_width > trunc_min_w) {
 			max_trunc_w += v->tt_width - trunc_min_w;
 			trunc_count++;
