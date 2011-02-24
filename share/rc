@@ -22,4 +22,4 @@ option make indent-width 8 expand-tab false emulate-tab false
 # gray background for current line
 #hi currentline keep gray keep
 
-errorfmt grep "^([^:]+):([0-9]+):.*" file line
+errorfmt grep "^([^:]+):([0-9]+):(.*)" file line message
