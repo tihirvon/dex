@@ -37,85 +37,113 @@ static void update_tab_title_width(struct view *v, int idx)
 	v->tt_truncated_width = w;
 }
 
+static void update_leftmost_tab_idx(int count)
+{
+	int min_left_idx, max_left_idx, w;
+	struct view *v;
+
+	w = 0;
+	max_left_idx = count;
+	list_for_each_entry_reverse(v, &window->views, node) {
+		w += v->tt_truncated_width;
+		if (w > window->w)
+			break;
+		max_left_idx--;
+	}
+
+	w = 0;
+	min_left_idx = count;
+	list_for_each_entry_reverse(v, &window->views, node) {
+		if (w || v == view)
+			w += v->tt_truncated_width;
+		if (w > window->w)
+			break;
+		min_left_idx--;
+	}
+
+	if (leftmost_tab_idx < min_left_idx)
+		leftmost_tab_idx = min_left_idx;
+	if (leftmost_tab_idx > max_left_idx)
+		leftmost_tab_idx = max_left_idx;
+}
+
 int calculate_tab_bar(void)
 {
+	int truncated_w = 20;
+	int count = 0, total_w = 0;
+	int truncated_count = 0, total_truncated_w = 0;
+	int extra;
 	struct view *v;
-	int trunc_min_w = 20;
-	int count = 0, total_len = 0;
-	int trunc_count = 0, max_trunc_w = 0;
 
 	list_for_each_entry(v, &window->views, node) {
 		if (v == view) {
-			/* make sure current tab is visible */
+			// make sure current tab is visible
 			if (leftmost_tab_idx > count)
 				leftmost_tab_idx = count;
 		}
 		update_tab_title_width(v, count);
-		if (v->tt_width > trunc_min_w) {
-			max_trunc_w += v->tt_width - trunc_min_w;
-			trunc_count++;
-		}
-		total_len += v->tt_width;
+		total_w += v->tt_width;
 		count++;
-	}
 
-	if (total_len <= window->w) {
-		leftmost_tab_idx = 0;
-	} else {
-		int extra = total_len - window->w;
-
-		if (extra <= max_trunc_w) {
-			/* All tabs fit to screen after truncating some titles */
-			int avg = extra / trunc_count;
-			int mod = extra % trunc_count;
-
-			list_for_each_entry(v, &window->views, node) {
-				int w = v->tt_width - trunc_min_w;
-				if (w > 0) {
-					w = avg;
-					if (mod) {
-						w++;
-						mod--;
-					}
-				}
-				if (w > 0)
-					v->tt_truncated_width = v->tt_width - w;
-			}
-			leftmost_tab_idx = 0;
+		if (v->tt_width > truncated_w) {
+			total_truncated_w += truncated_w;
+			truncated_count++;
 		} else {
-			/* Need to truncate all long titles but there's still
-			 * not enough space for all tabs */
-			int min_left_idx, max_left_idx, w;
-
-			list_for_each_entry(v, &window->views, node) {
-				w = v->tt_width - trunc_min_w;
-				if (w > 0)
-					v->tt_truncated_width = v->tt_width - w;
-			}
-
-			w = 0;
-			max_left_idx = count;
-			list_for_each_entry_reverse(v, &window->views, node) {
-				w += v->tt_truncated_width;
-				if (w > window->w)
-					break;
-				max_left_idx--;
-			}
-
-			w = 0;
-			min_left_idx = count;
-			list_for_each_entry_reverse(v, &window->views, node) {
-				if (w || v == view)
-					w += v->tt_truncated_width;
-				if (w > window->w)
-					break;
-				min_left_idx--;
-			}
-			if (leftmost_tab_idx < min_left_idx)
-				leftmost_tab_idx = min_left_idx;
-			if (leftmost_tab_idx > max_left_idx)
-				leftmost_tab_idx = max_left_idx;
+			total_truncated_w += v->tt_width;
 		}
 	}
+
+	if (total_w <= window->w) {
+		// all tabs fit without truncating
+		leftmost_tab_idx = 0;
+		return leftmost_tab_idx;
+	}
+
+	// truncate all wide tabs
+	list_for_each_entry(v, &window->views, node) {
+		if (v->tt_width > truncated_w)
+			v->tt_truncated_width = truncated_w;
+	}
+
+	if (total_truncated_w > window->w) {
+		// not all tabs fit even after truncating wide tabs
+		update_leftmost_tab_idx(count);
+		return leftmost_tab_idx;
+	}
+
+	// all tabs fit after truncating wide tabs
+	extra = window->w - total_truncated_w;
+
+	// divide extra space between truncated tabs
+	while (extra > 0) {
+		int extra_avg = extra / truncated_count;
+		int extra_mod = extra % truncated_count;
+
+		list_for_each_entry(v, &window->views, node) {
+			int add = v->tt_width - v->tt_truncated_width;
+			int avail;
+
+			if (add == 0)
+				continue;
+
+			avail = extra_avg;
+			if (extra_mod) {
+				// this is needed for equal divide
+				if (extra_avg == 0) {
+					avail++;
+					extra_mod--;
+				}
+			}
+			if (add > avail)
+				add = avail;
+			else
+				truncated_count--;
+
+			v->tt_truncated_width += add;
+			extra -= add;
+		}
+	}
+
+	leftmost_tab_idx = 0;
 	return leftmost_tab_idx;
 }
