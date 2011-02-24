@@ -88,6 +88,7 @@ OBJECTS	:= 			\
 	search.o		\
 	spawn.o			\
 	state.o			\
+	tabbar.o		\
 	tag.o			\
 	term.o			\
 	termcap.o		\
