@@ -203,49 +203,49 @@ state heredocbol-END string
 	char "\n" heredocbol-END
 	str "END;\n" code special
 	str "END\n" code special
-	eat .php-heredoc:heredocbol-END
+	noeat .php-heredoc:heredocbol-END
 
 state nowdocbol-END string
 	char "\n" nowdocbol-END
 	str "END;\n" code special
 	str "END\n" code special
-	eat .php-nowdoc:nowdocbol-END
+	noeat .php-nowdoc:nowdocbol-END
 
 state heredocbol-EOF string
 	char "\n" heredocbol-EOF
 	str "EOF;\n" code special
 	str "EOF\n" code special
-	eat .php-heredoc:heredocbol-EOF
+	noeat .php-heredoc:heredocbol-EOF
 
 state nowdocbol-EOF string
 	char "\n" nowdocbol-EOF
 	str "EOF;\n" code special
 	str "EOF\n" code special
-	eat .php-nowdoc:nowdocbol-EOF
+	noeat .php-nowdoc:nowdocbol-EOF
 
 state heredocbol-EOT string
 	char "\n" heredocbol-EOT
 	str "EOT;\n" code special
 	str "EOT\n" code special
-	eat .php-heredoc:heredocbol-EOT
+	noeat .php-heredoc:heredocbol-EOT
 
 state nowdocbol-EOT string
 	char "\n" nowdocbol-EOT
 	str "EOT;\n" code special
 	str "EOT\n" code special
-	eat .php-nowdoc:nowdocbol-EOT
+	noeat .php-nowdoc:nowdocbol-EOT
 
 state heredocbol-SQL string
 	char "\n" heredocbol-SQL
 	str "SQL;\n" code special
 	str "SQL\n" code special
-	eat .php-heredoc:heredocbol-SQL
+	noeat .php-heredoc:heredocbol-SQL
 
 state nowdocbol-SQL string
 	char "\n" nowdocbol-SQL
 	str "SQL;\n" code special
 	str "SQL\n" code special
-	eat .php-nowdoc:nowdocbol-SQL
+	noeat .php-nowdoc:nowdocbol-SQL
 # ---------------------------------------------------------------------
 
 list notice \
