@@ -6,7 +6,6 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 
-char *term_keycodes[NR_SKEYS];
 struct term_cap term_cap;
 unsigned int term_flags;
 
@@ -199,19 +198,20 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 	int i;
 
 	for (i = 0; i < NR_SKEYS; i++) {
+		const char *keycode = term_cap.strings[NR_STR_CAP_CMDS + i];
 		int len;
 
-		if (!term_keycodes[i])
+		if (!keycode)
 			continue;
 
-		len = strlen(term_keycodes[i]);
+		len = strlen(keycode);
 		if (len > input_buf_fill) {
 			/* this might be a truncated escape sequence */
-			if (!strncmp(term_keycodes[i], input_buf, len))
+			if (!strncmp(keycode, input_buf, len))
 				possibly_truncated = 1;
 			continue;
 		}
-		if (strncmp(term_keycodes[i], input_buf, len))
+		if (strncmp(keycode, input_buf, len))
 			continue;
 		*key = i;
 		*type = KEY_SPECIAL;

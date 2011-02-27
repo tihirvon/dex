@@ -1,24 +1,6 @@
 #ifndef TERM_H
 #define TERM_H
 
-// see termcap(5)
-struct term_cap {
-	/* boolean caps */
-	int ut; // can clear to end of line with bg color set
-
-	/* integer caps */
-	int colors;
-
-	/* string caps */
-	char *ce; // crear to end of line
-	char *ke; // turn keypad off
-	char *ks; // turn keypad on
-	char *te; // end program that uses cursor motion
-	char *ti; // begin program that uses cursor motion
-	char *ve; // show cursor
-	char *vi; // hide cursor
-};
-
 enum term_key_type {
 	/* key is character encoded in the current locale's encoding */
 	KEY_NORMAL,
@@ -33,7 +15,18 @@ enum term_key_type {
 	KEY_PASTE,
 };
 
-/* special keys */
+enum {
+	STR_CAP_CMD_ce, // crear to end of line
+	STR_CAP_CMD_ke, // turn keypad off
+	STR_CAP_CMD_ks, // turn keypad on
+	STR_CAP_CMD_te, // end program that uses cursor motion
+	STR_CAP_CMD_ti, // begin program that uses cursor motion
+	STR_CAP_CMD_ve, // show cursor
+	STR_CAP_CMD_vi, // hide cursor
+
+	NR_STR_CAP_CMDS
+};
+
 enum {
 	SKEY_INSERT,
 	SKEY_DELETE,
@@ -65,6 +58,8 @@ enum {
 	NR_SKEYS
 };
 
+#define NR_STR_CAPS (NR_STR_CAP_CMDS + NR_SKEYS)
+
 enum {
 	COLOR_DEFAULT = -1,
 	COLOR_BLACK,
@@ -87,6 +82,17 @@ enum {
 	ATTR_KEEP		= 0x40,
 };
 
+// see termcap(5)
+struct term_cap {
+	/* boolean caps */
+	int ut; // can clear to end of line with bg color set
+
+	/* integer caps */
+	int colors;
+
+	/* string caps */
+	char *strings[NR_STR_CAPS];
+};
 
 struct term_color {
 	short fg;
@@ -101,7 +107,6 @@ enum {
 };
 
 extern struct term_cap term_cap;
-extern char *term_keycodes[NR_SKEYS];
 extern unsigned int term_flags;
 
 /* initialize terminal

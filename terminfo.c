@@ -516,7 +516,15 @@ enum {
 	nr_tcss /* 414 */
 };
 
-static int keymap[NR_SKEYS] = {
+static unsigned char string_cap_map[NR_STR_CAPS] = {
+	tcs_clr_eol,
+	tcs_keypad_local,
+	tcs_keypad_xmit,
+	tcs_exit_ca_mode,
+	tcs_enter_ca_mode,
+	tcs_cursor_normal,
+	tcs_cursor_invisible,
+
 	tcs_key_ic,
 	tcs_key_dc,
 	tcs_key_home,
@@ -718,15 +726,8 @@ int terminfo_get_caps(const char *filename)
 	/* now get only the interesting caps, ignore other crap */
 	term_cap.ut = get_bool(tcb_back_color_erase);
 	term_cap.colors = get_num(tcn_max_colors);
-	term_cap.ce = get_str(tcs_clr_eol);
-	term_cap.ks = get_str(tcs_keypad_xmit);
-	term_cap.ke = get_str(tcs_keypad_local);
-	term_cap.ti = get_str(tcs_enter_ca_mode);
-	term_cap.te = get_str(tcs_exit_ca_mode);
-	term_cap.vi = get_str(tcs_cursor_invisible);
-	term_cap.ve = get_str(tcs_cursor_normal);
-	for (i = 0; i < NR_SKEYS; i++)
-		term_keycodes[i] = get_str(keymap[i]);
+	for (i = 0; i < NR_STR_CAPS; i++)
+		term_cap.strings[i] = get_str(string_cap_map[i]);
 
 	free(buf);
 	return 0;

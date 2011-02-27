@@ -81,14 +81,14 @@ void buf_ch(char ch)
 
 void buf_hide_cursor(void)
 {
-	if (term_cap.vi)
-		buf_escape(term_cap.vi);
+	if (term_cap.strings[STR_CAP_CMD_vi])
+		buf_escape(term_cap.strings[STR_CAP_CMD_vi]);
 }
 
 void buf_show_cursor(void)
 {
-	if (term_cap.ve)
-		buf_escape(term_cap.ve);
+	if (term_cap.strings[STR_CAP_CMD_ve])
+		buf_escape(term_cap.strings[STR_CAP_CMD_ve]);
 }
 
 void buf_move_cursor(int x, int y)
@@ -110,8 +110,8 @@ void buf_clear_eol(void)
 	if (obuf.x < obuf.scroll_x + obuf.width) {
 		int can_clear = obuf.start_x + obuf.width == screen_w;
 
-		if (can_clear && term_cap.ce && (obuf.color.bg < 0 || term_cap.ut)) {
-			buf_escape(term_cap.ce);
+		if (can_clear && term_cap.strings[STR_CAP_CMD_ce] && (obuf.color.bg < 0 || term_cap.ut)) {
+			buf_escape(term_cap.strings[STR_CAP_CMD_ce]);
 		} else {
 			buf_set_bytes(' ', obuf.scroll_x + obuf.width - obuf.x);
 		}

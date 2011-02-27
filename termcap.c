@@ -1,10 +1,10 @@
 #include "term.h"
 #include "common.h"
 
-static const char *str_cap_names[] = {
+static const char *str_cap_names[NR_STR_CAPS] = {
 	"ce",
-	"ks",
 	"ke",
+	"ks",
 	"te",
 	"ti",
 	"ve",
@@ -38,43 +38,6 @@ static const char *str_cap_names[] = {
 	"F2",
 	"#4",
 	"%i",
-	NULL
-};
-
-static char **str_cap_ptrs[] = {
-	&term_cap.ce,
-	&term_cap.ks,
-	&term_cap.ke,
-	&term_cap.te,
-	&term_cap.ti,
-	&term_cap.ve,
-	&term_cap.vi,
-
-	&term_keycodes[SKEY_INSERT],
-	&term_keycodes[SKEY_DELETE],
-	&term_keycodes[SKEY_HOME],
-	&term_keycodes[SKEY_END],
-	&term_keycodes[SKEY_PAGE_UP],
-	&term_keycodes[SKEY_PAGE_DOWN],
-	&term_keycodes[SKEY_LEFT],
-	&term_keycodes[SKEY_RIGHT],
-	&term_keycodes[SKEY_UP],
-	&term_keycodes[SKEY_DOWN],
-	&term_keycodes[SKEY_F1],
-	&term_keycodes[SKEY_F2],
-	&term_keycodes[SKEY_F3],
-	&term_keycodes[SKEY_F4],
-	&term_keycodes[SKEY_F5],
-	&term_keycodes[SKEY_F6],
-	&term_keycodes[SKEY_F7],
-	&term_keycodes[SKEY_F8],
-	&term_keycodes[SKEY_F9],
-	&term_keycodes[SKEY_F10],
-	&term_keycodes[SKEY_F11],
-	&term_keycodes[SKEY_F12],
-	&term_keycodes[SKEY_SHIFT_LEFT],
-	&term_keycodes[SKEY_SHIFT_RIGHT],
-	NULL
 };
 
 static int next_entry(const char *buf, int size, int pos)
@@ -328,10 +291,10 @@ static char *str_cap(const char *buf, int size, char *cap)
 		return end;
 	}
 
-	for (i = 0; str_cap_names[i]; i++) {
+	for (i = 0; i < NR_STR_CAPS; i++) {
 		if (strncmp(str_cap_names[i], cap, 2) == 0) {
-			if (*str_cap_ptrs[i] == NULL)
-				*str_cap_ptrs[i] = unescape(val, end - val);
+			if (term_cap.strings[i] == NULL)
+				term_cap.strings[i] = unescape(val, end - val);
 			break;
 		}
 	}

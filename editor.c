@@ -269,13 +269,13 @@ static void resize(void)
 	update_screen_size();
 
 	// "dtach -r winch" sends SIGWINCH after program has been attached
-	if (term_cap.ks) {
+	if (term_cap.strings[STR_CAP_CMD_ks]) {
 		// turn keypad on (makes cursor keys work)
-		buf_escape(term_cap.ks);
+		buf_escape(term_cap.strings[STR_CAP_CMD_ks]);
 	}
-	if (term_cap.ti) {
+	if (term_cap.strings[STR_CAP_CMD_ti]) {
 		// use alternate buffer if possible
-		buf_escape(term_cap.ti);
+		buf_escape(term_cap.strings[STR_CAP_CMD_ti]);
 	}
 
 	buf_hide_cursor();
@@ -310,12 +310,12 @@ void ui_end(void)
 	buf_show_cursor();
 
 	// back to main buffer
-	if (term_cap.te)
-		buf_escape(term_cap.te);
+	if (term_cap.strings[STR_CAP_CMD_te])
+		buf_escape(term_cap.strings[STR_CAP_CMD_te]);
 
 	// turn keypad off
-	if (term_cap.ke)
-		buf_escape(term_cap.ke);
+	if (term_cap.strings[STR_CAP_CMD_ke])
+		buf_escape(term_cap.strings[STR_CAP_CMD_ke]);
 
 	buf_flush();
 	term_cooked();
