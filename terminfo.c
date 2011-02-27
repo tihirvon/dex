@@ -553,11 +553,13 @@ static unsigned char string_cap_map[NR_STR_CAPS] = {
 	tcs_key_sright,
 };
 
-static unsigned int nr_bools, nr_nums, nr_strs, strs_size;
-static const char *bools;
-static const char *nums;
-static const char *offsets;
-static const char *strs;
+struct terminfo {
+	unsigned int nr_bools, nr_nums, nr_strs, strs_size;
+	const char *bools;
+	const char *nums;
+	const char *offsets;
+	const char *strs;
+};
 
 static inline int max(int a, int b)
 {
@@ -571,25 +573,25 @@ static unsigned short get_u16le(const char *buffer)
 	return buf[0] + (buf[1] << 8);
 }
 
-static int get_bool(int idx)
+static int get_bool(struct terminfo *ti, int idx)
 {
-	if (idx >= nr_bools)
+	if (idx >= ti->nr_bools)
 		return 0;
 	/*
 	 * 0 absent
 	 * 1 present
 	 * 2 cancelled
 	 */
-	return bools[idx] == 1;
+	return ti->bools[idx] == 1;
 }
 
-static int get_num(int idx)
+static int get_num(struct terminfo *ti, int idx)
 {
 	unsigned short val;
 
-	if (idx >= nr_nums)
+	if (idx >= ti->nr_nums)
 		return -1;
-	val = get_u16le(nums + idx * 2);
+	val = get_u16le(ti->nums + idx * 2);
 	/*
 	 * -1 missing
 	 * -2 cancelled
@@ -599,57 +601,57 @@ static int get_num(int idx)
 	return val;
 }
 
-static char *get_str(int idx)
+static char *get_str(struct terminfo *ti, int idx)
 {
 	unsigned short offset;
 
-	if (idx >= nr_strs)
+	if (idx >= ti->nr_strs)
 		return NULL;
-	offset = get_u16le(offsets + idx * 2);
+	offset = get_u16le(ti->offsets + idx * 2);
 	/*
 	 * -1 missing
 	 * -2 cancelled
 	 */
 	if (offset >= 0xfffe)
 		return NULL;
-	return xstrdup(strs + offset);
+	return xstrdup(ti->strs + offset);
 }
 
-static int validate(void)
+static int validate(struct terminfo *ti)
 {
 	int valid = 1;
 	int i;
 
-	for (i = 0; i < nr_bools; i++) {
-		if ((unsigned char)bools[i] > 2) {
-			d_print("bool %3d: %d\n", i, bools[i]);
+	for (i = 0; i < ti->nr_bools; i++) {
+		if ((unsigned char)ti->bools[i] > 2) {
+			d_print("bool %3d: %d\n", i, ti->bools[i]);
 			valid = 0;
 		}
 	}
 
-	for (i = 0; i < nr_nums; i++) {
-		unsigned short num = get_u16le(nums + i * 2);
+	for (i = 0; i < ti->nr_nums; i++) {
+		unsigned short num = get_u16le(ti->nums + i * 2);
 		if (num > 32767 && num < 0xfffe) {
 			d_print("num %3d: negative\n", i);
 			valid = 0;
 		}
 	}
 
-	for (i = 0; i < nr_strs; i++) {
-		unsigned short offset = get_u16le(offsets + i * 2);
+	for (i = 0; i < ti->nr_strs; i++) {
+		unsigned short offset = get_u16le(ti->offsets + i * 2);
 		if (offset >= 0xfffe)
 			continue;
 		if (offset > 32767) {
 			d_print("str %3d: negative\n", i);
 			valid = 0;
-		} else if (offset + 1 >= strs_size) {
+		} else if (offset + 1 >= ti->strs_size) {
 			d_print("str %3d: invalid\n", i);
 			valid = 0;
 		} else {
 			int len, max_size;
 
-			max_size = strs_size - offset;
-			for (len = 0; len < max_size && strs[offset + len]; len++)
+			max_size = ti->strs_size - offset;
+			for (len = 0; len < max_size && ti->strs[offset + len]; len++)
 				;
 			if (len == max_size) {
 				d_print("str %3d: missing NUL\n", i);
@@ -678,6 +680,7 @@ static int validate(void)
  */
 int terminfo_get_caps(const char *filename)
 {
+	struct terminfo ti;
 	char *buf;
 	ssize_t size, pos;
 	int i, name_size, total_size;
@@ -691,43 +694,43 @@ int terminfo_get_caps(const char *filename)
 		goto corrupt;
 
 	name_size = get_u16le(buf + 2);
-	nr_bools = get_u16le(buf + 4);
-	nr_nums = get_u16le(buf + 6);
-	nr_strs = get_u16le(buf + 8);
-	strs_size = get_u16le(buf + 10);
+	ti.nr_bools = get_u16le(buf + 4);
+	ti.nr_nums = get_u16le(buf + 6);
+	ti.nr_strs = get_u16le(buf + 8);
+	ti.strs_size = get_u16le(buf + 10);
 
-	total_size = 12 + name_size + nr_bools + nr_nums * 2 + nr_strs * 2 + strs_size;
-	total_size += (name_size + nr_bools) % 2;
+	total_size = 12 + name_size + ti.nr_bools + ti.nr_nums * 2 + ti.nr_strs * 2 + ti.strs_size;
+	total_size += (name_size + ti.nr_bools) % 2;
 
 	// NOTE: size can be bigger than total_size if the format is extended
 	if (total_size > size)
 		goto corrupt;
 
 	pos = 12 + name_size;
-	bools = buf + pos;
+	ti.bools = buf + pos;
 
-	pos += nr_bools;
+	pos += ti.nr_bools;
 	if (pos % 2) {
 		if (buf[pos])
 			goto corrupt;
 		pos++;
 	}
-	nums = buf + pos;
+	ti.nums = buf + pos;
 
-	pos += nr_nums * 2;
-	offsets = buf + pos;
+	pos += ti.nr_nums * 2;
+	ti.offsets = buf + pos;
 
-	pos += nr_strs * 2;
-	strs = buf + pos;
+	pos += ti.nr_strs * 2;
+	ti.strs = buf + pos;
 
-	if (!validate())
+	if (!validate(&ti))
 		goto corrupt;
 
 	/* now get only the interesting caps, ignore other crap */
-	term_cap.ut = get_bool(tcb_back_color_erase);
-	term_cap.colors = get_num(tcn_max_colors);
+	term_cap.ut = get_bool(&ti, tcb_back_color_erase);
+	term_cap.colors = get_num(&ti, tcn_max_colors);
 	for (i = 0; i < NR_STR_CAPS; i++)
-		term_cap.strings[i] = get_str(string_cap_map[i]);
+		term_cap.strings[i] = get_str(&ti, string_cap_map[i]);
 
 	free(buf);
 	return 0;
