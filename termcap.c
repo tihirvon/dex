@@ -1,44 +1,41 @@
 #include "term.h"
 #include "common.h"
 
-static const char *str_cap_names[NR_STR_CAPS] = {
-	"ce",
-	"ke",
-	"ks",
-	"te",
-	"ti",
-	"ve",
-	"vi",
+static const char str_cap_names[NR_STR_CAPS * 2] =
+	// commands
+	"ce"
+	"ke"
+	"ks"
+	"te"
+	"ti"
+	"ve"
+	"vi"
 
-	/*
-	 * keys
-	 */
-
-	"kI",
-	"kD",
-	"kh",
-	"@7",
-	"kP",
-	"kN",
-	"kl",
-	"kr",
-	"ku",
-	"kd",
-	"k1",
-	"k2",
-	"k3",
-	"k4",
-	"k5",
-	"k6",
-	"k7",
-	"k8",
-	"k9",
-	"k;",
-	"F1",
-	"F2",
-	"#4",
-	"%i",
-};
+	// keys
+	"kI"
+	"kD"
+	"kh"
+	"@7"
+	"kP"
+	"kN"
+	"kl"
+	"kr"
+	"ku"
+	"kd"
+	"k1"
+	"k2"
+	"k3"
+	"k4"
+	"k5"
+	"k6"
+	"k7"
+	"k8"
+	"k9"
+	"k;"
+	"F1"
+	"F2"
+	"#4"
+	"%i";
 
 static int next_entry(const char *buf, int size, int pos)
 {
@@ -292,7 +289,7 @@ static char *str_cap(const char *buf, int size, char *cap)
 	}
 
 	for (i = 0; i < NR_STR_CAPS; i++) {
-		if (strncmp(str_cap_names[i], cap, 2) == 0) {
+		if (memcmp(str_cap_names + i * 2, cap, 2) == 0) {
 			if (term_cap.strings[i] == NULL)
 				term_cap.strings[i] = unescape(val, end - val);
 			break;
