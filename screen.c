@@ -79,7 +79,8 @@ static void print_tab_title(struct view *v, int idx, int skip)
 			filename += skip;
 	}
 
-	snprintf(buf, sizeof(buf), " %d%s",
+	snprintf(buf, sizeof(buf), "%c%d%s",
+		obuf.x == 0 && idx > 0 ? '<' : ' ',
 		idx + 1,
 		buffer_modified(v->buffer) ? "+" : ":");
 	buf_add_str(buf);
@@ -93,7 +94,10 @@ static void print_tab_title(struct view *v, int idx, int skip)
 		while (filename[si])
 			buf_put_char(filename[si++], 0);
 	}
-	buf_ch(' ');
+	if (obuf.x == obuf.width - 1 && v->node.next != &window->views)
+		buf_ch('>');
+	else
+		buf_ch(' ');
 }
 
 void print_tab_bar(void)
@@ -120,7 +124,14 @@ void print_tab_bar(void)
 			buf_set_color(&tab_inactive_color->color);
 	}
 	buf_set_color(&tab_bar_color->color);
-	buf_clear_eol();
+	if (&v->node != &window->views) {
+		while (obuf.x < obuf.width - 1)
+			buf_ch(' ');
+		if (obuf.x == obuf.width - 1)
+			buf_ch('>');
+	} else {
+		buf_clear_eol();
+	}
 }
 
 void update_status_line(const char *misc_status)
