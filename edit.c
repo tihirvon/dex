@@ -783,4 +783,5 @@ void change_case(int mode, int move_after)
 		block_iter_skip_bytes(&view->cursor, dst.len);
 
 	gbuf_free(&dst);
+	update_preferred_x();
 }
