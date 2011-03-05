@@ -517,6 +517,9 @@ enum {
 };
 
 static unsigned char string_cap_map[NR_STR_CAPS] = {
+	tcs_acs_chars,
+	tcs_exit_alt_charset_mode,
+	tcs_enter_alt_charset_mode,
 	tcs_clr_eol,
 	tcs_keypad_local,
 	tcs_keypad_xmit,

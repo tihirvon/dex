@@ -3,6 +3,9 @@
 
 static const char str_cap_names[NR_STR_CAPS * 2] =
 	// commands
+	"ac"
+	"ae"
+	"as"
 	"ce"
 	"ke"
 	"ks"
