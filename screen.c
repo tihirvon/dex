@@ -83,6 +83,11 @@ static void print_tab_title(struct view *v, int idx, int skip)
 		obuf.x == 0 && idx > 0 ? '<' : ' ',
 		idx + 1,
 		buffer_modified(v->buffer) ? "+" : ":");
+
+	if (v == view)
+		buf_set_color(&tab_active_color->color);
+	else
+		buf_set_color(&tab_inactive_color->color);
 	buf_add_str(buf);
 
 	if (term_flags & TERM_UTF8) {
@@ -108,7 +113,6 @@ void print_tab_bar(void)
 
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y - 1);
-	buf_set_color(&tab_inactive_color->color);
 
 	list_for_each_entry(v, &window->views, node) {
 		if (++idx < first_tab_idx)
@@ -117,11 +121,7 @@ void print_tab_bar(void)
 		if (obuf.x + v->tt_truncated_width > window->w)
 			break;
 
-		if (v == view)
-			buf_set_color(&tab_active_color->color);
 		print_tab_title(v, idx, v->tt_width - v->tt_truncated_width);
-		if (v == view)
-			buf_set_color(&tab_inactive_color->color);
 	}
 	buf_set_color(&tab_bar_color->color);
 	if (&v->node != &window->views) {
