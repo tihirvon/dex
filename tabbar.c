@@ -3,7 +3,7 @@
 #include "term.h"
 #include "uchar.h"
 
-static int leftmost_tab_idx;
+static int first_tab_idx;
 
 static unsigned int number_width(unsigned int n)
 {
@@ -37,34 +37,34 @@ static void update_tab_title_width(struct view *v, int idx)
 	v->tt_truncated_width = w;
 }
 
-static void update_leftmost_tab_idx(int count)
+static void update_first_tab_idx(int count)
 {
-	int min_left_idx, max_left_idx, w;
+	int min_first_idx, max_first_idx, w;
 	struct view *v;
 
 	w = 0;
-	max_left_idx = count;
+	max_first_idx = count;
 	list_for_each_entry_reverse(v, &window->views, node) {
 		w += v->tt_truncated_width;
 		if (w > window->w)
 			break;
-		max_left_idx--;
+		max_first_idx--;
 	}
 
 	w = 0;
-	min_left_idx = count;
+	min_first_idx = count;
 	list_for_each_entry_reverse(v, &window->views, node) {
 		if (w || v == view)
 			w += v->tt_truncated_width;
 		if (w > window->w)
 			break;
-		min_left_idx--;
+		min_first_idx--;
 	}
 
-	if (leftmost_tab_idx < min_left_idx)
-		leftmost_tab_idx = min_left_idx;
-	if (leftmost_tab_idx > max_left_idx)
-		leftmost_tab_idx = max_left_idx;
+	if (first_tab_idx < min_first_idx)
+		first_tab_idx = min_first_idx;
+	if (first_tab_idx > max_first_idx)
+		first_tab_idx = max_first_idx;
 }
 
 int calculate_tab_bar(void)
@@ -78,8 +78,8 @@ int calculate_tab_bar(void)
 	list_for_each_entry(v, &window->views, node) {
 		if (v == view) {
 			// make sure current tab is visible
-			if (leftmost_tab_idx > count)
-				leftmost_tab_idx = count;
+			if (first_tab_idx > count)
+				first_tab_idx = count;
 		}
 		update_tab_title_width(v, count);
 		total_w += v->tt_width;
@@ -95,8 +95,8 @@ int calculate_tab_bar(void)
 
 	if (total_w <= window->w) {
 		// all tabs fit without truncating
-		leftmost_tab_idx = 0;
-		return leftmost_tab_idx;
+		first_tab_idx = 0;
+		return first_tab_idx;
 	}
 
 	// truncate all wide tabs
@@ -107,8 +107,8 @@ int calculate_tab_bar(void)
 
 	if (total_truncated_w > window->w) {
 		// not all tabs fit even after truncating wide tabs
-		update_leftmost_tab_idx(count);
-		return leftmost_tab_idx;
+		update_first_tab_idx(count);
+		return first_tab_idx;
 	}
 
 	// all tabs fit after truncating wide tabs
@@ -144,6 +144,6 @@ int calculate_tab_bar(void)
 		}
 	}
 
-	leftmost_tab_idx = 0;
-	return leftmost_tab_idx;
+	first_tab_idx = 0;
+	return first_tab_idx;
 }

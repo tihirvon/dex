@@ -102,7 +102,7 @@ static void print_tab_title(struct view *v, int idx, int skip)
 
 void print_tab_bar(void)
 {
-	int leftmost_tab_idx = calculate_tab_bar();
+	int first_tab_idx = calculate_tab_bar();
 	int idx = -1;
 	struct view *v;
 
@@ -111,7 +111,7 @@ void print_tab_bar(void)
 	buf_set_color(&tab_inactive_color->color);
 
 	list_for_each_entry(v, &window->views, node) {
-		if (++idx < leftmost_tab_idx)
+		if (++idx < first_tab_idx)
 			continue;
 
 		if (obuf.x + v->tt_truncated_width > window->w)
