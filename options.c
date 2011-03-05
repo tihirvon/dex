@@ -18,18 +18,16 @@ struct global_options options = {
 	.ws_error = 0,
 
 	.allow_incomplete_last_line = 0,
-	.move_wraps = 1,
-	.newline = NEWLINE_UNIX,
-
-	.statusline_left = NULL,
-	.statusline_right = NULL,
-
+	.case_sensitive_search = CSS_TRUE,
 	.display_special = 0,
 	.esc_timeout = 100,
-	.show_tab_bar = 1,
 	.lock_files = 1,
+	.move_wraps = 1,
+	.newline = NEWLINE_UNIX,
 	.scroll_margin = 0,
-	.case_sensitive_search = CSS_TRUE,
+	.show_tab_bar = 1,
+	.statusline_left = NULL,
+	.statusline_right = NULL,
 };
 
 enum option_type {

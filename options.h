@@ -76,20 +76,16 @@ struct global_options {
 
 	/* only global */
 	int allow_incomplete_last_line;
-	int move_wraps;
-
-	// this is just the default for new files
-	enum newline_sequence newline;
-
-	char *statusline_left;
-	char *statusline_right;
-
+	enum case_sensitive_search case_sensitive_search;
 	int display_special;
 	int esc_timeout;
-	int show_tab_bar;
 	int lock_files;
+	int move_wraps;
+	enum newline_sequence newline; // default value for new files
 	int scroll_margin;
-	enum case_sensitive_search case_sensitive_search;
+	int show_tab_bar;
+	char *statusline_left;
+	char *statusline_right;
 };
 
 extern struct global_options options;
