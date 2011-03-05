@@ -668,7 +668,6 @@ static void keypress(enum term_key_type type, unsigned int key)
 
 static void handle_key(enum term_key_type type, unsigned int key)
 {
-	int show_tab_bar = options.show_tab_bar;
 	int is_modified = buffer_modified(buffer);
 	int id = buffer->id;
 	int cy = view->cy;
@@ -701,14 +700,11 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
 	}
 
-	if (show_tab_bar != options.show_tab_bar) {
-		update_window_sizes();
-		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
-	}
-
 	buf_hide_cursor();
-	if (update_flags & UPDATE_TAB_BAR)
+	if (update_flags & UPDATE_TAB_BAR) {
+		update_window_sizes();
 		update_term_title();
+	}
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tab_bar();
 	if (update_flags & UPDATE_FULL) {
