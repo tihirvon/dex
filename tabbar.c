@@ -16,7 +16,7 @@ static unsigned int number_width(unsigned int n)
 	return width;
 }
 
-static void update_tab_title_width(struct view *v, int idx)
+static void update_tab_title_width(struct view *v, int tab_number)
 {
 	const char *filename = v->buffer->filename;
 	unsigned int w;
@@ -24,7 +24,7 @@ static void update_tab_title_width(struct view *v, int idx)
 	if (!filename)
 		filename = "(No name)";
 
-	w = 3 + number_width(idx + 1);
+	w = 3 + number_width(tab_number);
 	if (term_flags & TERM_UTF8) {
 		unsigned int i = 0;
 		while (filename[i])
@@ -81,9 +81,8 @@ int calculate_tab_bar(void)
 			if (first_tab_idx > count)
 				first_tab_idx = count;
 		}
-		update_tab_title_width(v, count);
+		update_tab_title_width(v, ++count);
 		total_w += v->tt_width;
-		count++;
 
 		if (v->tt_width > truncated_w) {
 			total_truncated_w += truncated_w;
