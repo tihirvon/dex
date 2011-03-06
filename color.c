@@ -2,6 +2,7 @@
 #include "ptr-array.h"
 #include "common.h"
 #include "editor.h"
+#include "completion.h"
 
 static const char * const color_names[] = {
 	"keep", "default",
@@ -129,4 +130,30 @@ int parse_term_color(struct term_color *color, char **strs)
 		}
 	}
 	return 1;
+}
+
+void collect_hl_colors(const char *prefix)
+{
+	int i, len = strlen(prefix);
+
+	for (i = 0; i < hl_colors.count; i++) {
+		struct hl_color *c = hl_colors.ptrs[i];
+		if (!strncmp(c->name, prefix, len))
+			add_completion(xstrdup(c->name));
+	}
+}
+
+void collect_colors_and_attributes(const char *prefix)
+{
+	int i, len = strlen(prefix);
+
+	// skip first (keep) because it is in attr_names too
+	for (i = 1; i < ARRAY_COUNT(color_names); i++) {
+		if (!strncmp(color_names[i], prefix, len))
+			add_completion(xstrdup(color_names[i]));
+	}
+	for (i = 0; i < ARRAY_COUNT(attr_names); i++) {
+		if (!strncmp(attr_names[i], prefix, len))
+			add_completion(xstrdup(attr_names[i]));
+	}
 }

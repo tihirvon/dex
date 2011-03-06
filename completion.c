@@ -7,6 +7,7 @@
 #include "ptr-array.h"
 #include "tag.h"
 #include "common.h"
+#include "color.h"
 
 static struct {
 	// part of string which is to be replaced
@@ -206,6 +207,17 @@ static void collect_completions(char **args, int argc)
 	if (!strcmp(cmd->name, "cd")) {
 		directories_only = 1;
 		collect_and_sort_files();
+		return;
+	}
+	if (!strcmp(cmd->name, "hi")) {
+		switch (argc) {
+		case 1:
+			collect_hl_colors(completion.parsed);
+			break;
+		default:
+			collect_colors_and_attributes(completion.parsed);
+			break;
+		}
 		return;
 	}
 	if (!strcmp(cmd->name, "set")) {
