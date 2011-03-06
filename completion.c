@@ -58,7 +58,6 @@ static void collect_commands(const char *prefix)
 	}
 
 	collect_aliases(prefix);
-	sort_completions();
 }
 
 static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix)
@@ -172,7 +171,6 @@ static void collect_files(void)
 static void collect_and_sort_files(void)
 {
 	collect_files();
-	sort_completions();
 	if (completion.completions.count == 1) {
 		// if we have only one match we add space after completed
 		// string for files, not directories
@@ -298,6 +296,7 @@ static void init_completion(void)
 	completion.add_space = 1;
 
 	collect_completions((char **)array.ptrs + semicolon + 1, array.count - semicolon - 1);
+	sort_completions();
 	ptr_array_free(&array);
 }
 
