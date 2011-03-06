@@ -61,11 +61,7 @@ void move_cursor_left(void)
 		}
 	}
 
-	if (!buffer_prev_char(&view->cursor, &u))
-		return;
-
-	if (!options.move_wraps && u == '\n')
-		block_iter_next_byte(&view->cursor, &u);
+	buffer_prev_char(&view->cursor, &u);
 	update_preferred_x();
 }
 
@@ -82,11 +78,7 @@ void move_cursor_right(void)
 		}
 	}
 
-	if (!buffer_next_char(&view->cursor, &u))
-		return;
-
-	if (!options.move_wraps && u == '\n')
-		block_iter_prev_byte(&view->cursor, &u);
+	buffer_next_char(&view->cursor, &u);
 	update_preferred_x();
 }
 

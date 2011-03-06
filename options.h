@@ -80,7 +80,6 @@ struct global_options {
 	int display_special;
 	int esc_timeout;
 	int lock_files;
-	int move_wraps;
 	enum newline_sequence newline; // default value for new files
 	int scroll_margin;
 	int show_tab_bar;
