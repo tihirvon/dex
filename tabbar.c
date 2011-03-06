@@ -67,7 +67,7 @@ static void update_first_tab_idx(int count)
 		first_tab_idx = max_first_idx;
 }
 
-int calculate_tab_bar(void)
+int calculate_tabbar(void)
 {
 	int truncated_w = 20;
 	int count = 0, total_w = 0;

@@ -28,7 +28,7 @@ static struct hl_color *errormsg_color;
 static struct hl_color *infomsg_color;
 static struct hl_color *wserror_color;
 static struct hl_color *nontext_color;
-static struct hl_color *tab_bar_color;
+static struct hl_color *tabbar_color;
 static struct hl_color *tab_active_color;
 static struct hl_color *tab_inactive_color;
 
@@ -45,7 +45,7 @@ void set_basic_colors(void)
 	infomsg_color = find_color("infomsg");
 	wserror_color = find_color("wserror");
 	nontext_color = find_color("nontext");
-	tab_bar_color = find_color("tabbar");
+	tabbar_color = find_color("tabbar");
 	tab_active_color = find_color("activetab");
 	tab_inactive_color = find_color("inactivetab");
 }
@@ -106,9 +106,9 @@ static void print_tab_title(struct view *v, int idx)
 		buf_ch(' ');
 }
 
-void print_tab_bar(void)
+void print_tabbar(void)
 {
-	int first_tab_idx = calculate_tab_bar();
+	int first_tab_idx = calculate_tabbar();
 	int idx = -1;
 	struct view *v;
 
@@ -124,7 +124,7 @@ void print_tab_bar(void)
 
 		print_tab_title(v, idx);
 	}
-	buf_set_color(&tab_bar_color->color);
+	buf_set_color(&tabbar_color->color);
 	if (&v->node != &window->views) {
 		while (obuf.x < obuf.width - 1)
 			buf_ch(' ');

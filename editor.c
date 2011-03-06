@@ -242,7 +242,7 @@ static void update_full(void)
 	update_view();
 	update_term_title();
 	if (options.show_tab_bar)
-		print_tab_bar();
+		print_tabbar();
 	update_range(view->vy, view->vy + window->h);
 	update_status_line(format_misc_status());
 	update_command_line();
@@ -706,7 +706,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_term_title();
 	}
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
-		print_tab_bar();
+		print_tabbar();
 	if (update_flags & UPDATE_FULL) {
 		update_range(view->vy, view->vy + window->h);
 	} else  {

@@ -1,6 +1,6 @@
 #ifndef TABBAR_H
 #define TABBAR_H
 
-int calculate_tab_bar(void);
+int calculate_tabbar(void);
 
 #endif

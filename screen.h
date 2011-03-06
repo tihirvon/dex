@@ -1,7 +1,7 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-void print_tab_bar(void);
+void print_tabbar(void);
 int print_command(char prefix);
 void print_message(const char *msg, int is_error);
 void print_term_title(const char *title);
