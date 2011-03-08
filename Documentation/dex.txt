@@ -443,8 +443,8 @@ unselect
 up
 	Move cursor up.
 
-view <N>
-	Display Nth open file.
+view <N|last>
+	Display Nth or last open file.
 
 word-bwd [-s]
 	Move cursor backward one word.

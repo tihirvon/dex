@@ -1131,6 +1131,10 @@ static void cmd_view(const char *pf, char **args)
 	struct list_head *node;
 	int idx;
 
+	if (strcmp(args[0], "last") == 0) {
+		set_view(VIEW(window->views.prev));
+		return;
+	}
 	idx = atoi(args[0]) - 1;
 	if (idx < 0) {
 		error_msg("View number must be positive.");
