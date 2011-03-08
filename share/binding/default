@@ -69,7 +69,7 @@ bind M-6 "view 6"
 bind M-7 "view 7"
 bind M-8 "view 8"
 bind M-9 "view 9"
-bind M-0 "view 10"
+bind M-0 "view last"
 
 # alt-shift 1 and alt-shift 2
 bind M-! "move-tab left"
