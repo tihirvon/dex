@@ -19,7 +19,7 @@ enum {
 	STR_CAP_CMD_ac, // pairs of block graphic characters to map alternate character set
 	STR_CAP_CMD_ae, // end alternative character set
 	STR_CAP_CMD_as, // start alternative character set for block graphic characters
-	STR_CAP_CMD_ce, // crear to end of line
+	STR_CAP_CMD_ce, // clear to end of line
 	STR_CAP_CMD_ke, // turn keypad off
 	STR_CAP_CMD_ks, // turn keypad on
 	STR_CAP_CMD_te, // end program that uses cursor motion

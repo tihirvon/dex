@@ -24,7 +24,7 @@ enum {
 	WSE_TAB_AFTER_INDENT	= 1 << 4,
 };
 
-enum case_sensitive_search{
+enum case_sensitive_search {
 	CSS_FALSE,
 	CSS_TRUE,
 	CSS_AUTO,
