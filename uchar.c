@@ -8,6 +8,14 @@ int u_char_width(unsigned int u)
 	if (unlikely(u < 0x20 || u == 0x7f))
 		return 2;
 
+	if (likely(u < 0x80))
+		return 1;
+
+	if (unlikely(u <= 0x9f)) {
+		// 0x80 - 0x9f are unprintable, display as "<xx>"
+		return 4;
+	}
+
 	if (likely(u < 0x1100U))
 		return 1;
 
@@ -205,27 +213,37 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 	if (unlikely(uch < 0x20))
 		goto control;
 
-	if (unlikely(uch == 0x7f))
-		goto delete;
-
-	if (uch <= 0x7fU) {
+	if (likely(uch < 0x7f)) {
 		str[i++] = uch;
 		*idx = i;
 		return;
-	} else if (uch <= 0x7ffU) {
+	}
+	if (unlikely(uch <= 0x9f)) {
+		if (uch == 0x7f) {
+			str[i++] = '^';
+			str[i++] = '?';
+			*idx = i;
+			return;
+		}
+		// 0x80 - 0x9f are unprintable. display same way as an invalid byte
+		goto invalid;
+	}
+	if (uch <= 0x7ff) {
 		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
 		str[i + 0] = uch | 0xc0U;
 		i += 2;
 		*idx = i;
 		return;
-	} else if (uch <= 0xffffU) {
+	}
+	if (uch <= 0xffff) {
 		str[i + 2] = (uch & 0x3f) | 0x80; uch >>= 6;
 		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
 		str[i + 0] = uch | 0xe0U;
 		i += 3;
 		*idx = i;
 		return;
-	} else if (uch <= 0x10ffffU) {
+	}
+	if (uch <= 0x10ffff) {
 		str[i + 3] = (uch & 0x3f) | 0x80; uch >>= 6;
 		str[i + 2] = (uch & 0x3f) | 0x80; uch >>= 6;
 		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
@@ -234,8 +252,7 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 		*idx = i;
 		return;
 	}
-
-	/* invalid */
+invalid:
 	str[i++] = '<';
 	str[i++] = hex_tab[(uch >> 4) & 0x0f];
 	str[i++] = hex_tab[uch & 0x0f];
@@ -245,11 +262,6 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 control:
 	str[i++] = '^';
 	str[i++] = uch | 0x40;
-	*idx = i;
-	return;
-delete:
-	str[i++] = '^';
-	str[i++] = '?';
 	*idx = i;
 	return;
 }

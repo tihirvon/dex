@@ -224,7 +224,8 @@ int buf_put_char(unsigned int u, int utf8)
 		if (width <= space) {
 			u_set_char(obuf.buf, &obuf.count, u);
 			obuf.x += width;
-		} else if (u & U_INVALID_MASK) {
+		} else if (u & U_INVALID_MASK || u <= 0x9f) {
+			// invalid or unprintable (0x80 - 0x9f)
 			// <xx> would not fit
 			// there's enough space in the buffer so render all 4 characters
 			// but increment position less

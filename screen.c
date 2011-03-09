@@ -314,7 +314,13 @@ static int is_non_text(unsigned int u)
 {
 	if (u < 0x20)
 		return u != '\t' || options.display_special;
-	return u == 0x7f || !u_is_unicode(u);
+	if (u < 0x7f)
+		return 0;
+	if (u <= 0x9f) {
+		// 0x7f is displayed as ^? and 0x80 - 0x9f as <xx>
+		return 1;
+	}
+	return !u_is_unicode(u);
 }
 
 static int whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
