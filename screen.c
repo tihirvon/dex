@@ -64,8 +64,9 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 	return u;
 }
 
-static void print_tab_title(struct view *v, int idx, int skip)
+static void print_tab_title(struct view *v, int idx)
 {
+	int skip = v->tt_width - v->tt_truncated_width;
 	const char *filename = v->buffer->filename;
 	char buf[16];
 
@@ -121,7 +122,7 @@ void print_tab_bar(void)
 		if (obuf.x + v->tt_truncated_width > window->w)
 			break;
 
-		print_tab_title(v, idx, v->tt_width - v->tt_truncated_width);
+		print_tab_title(v, idx);
 	}
 	buf_set_color(&tab_bar_color->color);
 	if (&v->node != &window->views) {
