@@ -16,6 +16,7 @@ state start code
 #	char xX hexstr
 	char ` backtick
 	char -- - dash
+	char # comment
 	char / slash
 	eat start
 
