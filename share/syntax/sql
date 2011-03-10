@@ -51,7 +51,7 @@ state word code
 	char -b a-zA-Z0-9_ word
 	inlist keyword start
 	inlist identifier start
-	eat start
+	noeat start
 
 state sq string
 	char "\n'" start string
