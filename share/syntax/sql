@@ -67,8 +67,15 @@ state backtick constant
 	eat backtick
 
 state dash comment
-	char -- - comment
+	char -- - maybe-comment
 	recolor code 1
+	noeat start
+
+state maybe-comment comment
+	char "\n" start
+	# control character or space required!
+	char "\x01- " comment
+	recolor code 2
 	noeat start
 
 state comment
