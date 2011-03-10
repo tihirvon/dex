@@ -84,9 +84,25 @@ state comment
 	eat comment
 
 state slash comment
-	char "*" c-comment
+	char "*" maybe-c-comment
 	recolor code 1
 	noeat start
+
+state maybe-c-comment comment
+	char ! begin-special-comment
+	noeat c-comment
+
+state begin-special-comment
+	recolor special 3
+	noeat special-comment
+
+state special-comment special
+	char "*" scstar
+	eat special-comment
+
+state scstar special
+	char / start special
+	noeat special-comment
 
 state c-comment comment
 	char "*" star
