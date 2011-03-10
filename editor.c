@@ -15,7 +15,7 @@
 #include "command.h"
 #include "change.h"
 #include "state.h"
-#include "uchar.h"
+#include "input-special.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -31,12 +31,6 @@ char *home_dir;
 int child_controls_terminal;
 
 static int resized;
-static struct {
-	int base;
-	int max_chars;
-	int value;
-	int nr;
-} raw_input;
 
 static int nr_errors;
 static int msg_is_error;
@@ -95,7 +89,7 @@ static void sanity_check(void)
 	BUG("cursor not seen\n");
 }
 
-static void discard_paste(void)
+void discard_paste(void)
 {
 	unsigned int size;
 	char *text = term_read_paste(&size);
@@ -140,47 +134,6 @@ static void any_key(void)
 		;
 	if (type == KEY_PASTE)
 		discard_paste();
-}
-
-static void format_input_special_misc_status(char *status)
-{
-	int i, value = raw_input.value;
-	const char *str = "";
-	char buf[7];
-
-	if (input_special == INPUT_SPECIAL_UNKNOWN) {
-		strcpy(status, "[Insert special]");
-		return;
-	}
-
-	for (i = 0; i < raw_input.nr; i++) {
-		buf[raw_input.nr - i - 1] = hex_tab[value % raw_input.base];
-		value /= raw_input.base;
-	}
-	while (i < raw_input.max_chars)
-		buf[i++] = ' ';
-	buf[i] = 0;
-
-	switch (input_special) {
-	case INPUT_SPECIAL_NONE:
-		break;
-	case INPUT_SPECIAL_UNKNOWN:
-		break;
-	case INPUT_SPECIAL_OCT:
-		str = "Oct";
-		break;
-	case INPUT_SPECIAL_DEC:
-		str = "Dec";
-		break;
-	case INPUT_SPECIAL_HEX:
-		str = "Hex";
-		break;
-	case INPUT_SPECIAL_UNICODE:
-		str = "Unicode, hex";
-		break;
-	}
-
-	sprintf(status, "[%s <%s>]", str, buf);
 }
 
 static const char *format_misc_status(void)
@@ -620,8 +573,6 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	}
 }
 
-static void special_input_keypress(enum term_key_type type, unsigned int key);
-
 static void keypress(enum term_key_type type, unsigned int key)
 {
 	if (input_special) {
@@ -735,98 +686,6 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	update_flags = 0;
 	changed_line_min = INT_MAX;
 	changed_line_max = -1;
-}
-
-static void insert_special(const char *buf, int size)
-{
-	switch (input_mode) {
-	case INPUT_NORMAL:
-		begin_change(CHANGE_MERGE_NONE);
-		insert(buf, size);
-		end_change();
-		block_iter_skip_bytes(&view->cursor, size);
-		update_preferred_x();
-		break;
-	case INPUT_COMMAND:
-	case INPUT_SEARCH:
-		if (buf[0] != '\n')
-			cmdline_insert_bytes(buf, size);
-		break;
-	}
-}
-
-static void special_input_keypress(enum term_key_type type, unsigned int key)
-{
-	char buf[4];
-
-	update_flags |= UPDATE_COMMAND_LINE;
-
-	if (type != KEY_NORMAL) {
-		if (type == KEY_PASTE)
-			discard_paste();
-		input_special = INPUT_SPECIAL_NONE;
-		return;
-	}
-	if (input_special == INPUT_SPECIAL_UNKNOWN) {
-		raw_input.value = 0;
-		raw_input.nr = 0;
-		if (isdigit(key)) {
-			input_special = INPUT_SPECIAL_DEC;
-			raw_input.base = 10;
-			raw_input.max_chars = 3;
-		} else {
-			switch (tolower(key)) {
-			case 'o':
-				input_special = INPUT_SPECIAL_OCT;
-				raw_input.base = 8;
-				raw_input.max_chars = 3;
-				break;
-			case 'x':
-				input_special = INPUT_SPECIAL_HEX;
-				raw_input.base = 16;
-				raw_input.max_chars = 2;
-				break;
-			case 'u':
-				input_special = INPUT_SPECIAL_UNICODE;
-				raw_input.base = 16;
-				raw_input.max_chars = 6;
-				break;
-			default:
-				buf[0] = key;
-				insert_special(buf, 1);
-				input_special = INPUT_SPECIAL_NONE;
-			}
-			return;
-		}
-	}
-
-	if (key != '\r') {
-		int n = hex_decode(key);
-
-		if (key < 0) {
-			input_special = INPUT_SPECIAL_NONE;
-			return;
-		}
-		if ((raw_input.base == 8 && n > 7) || (raw_input.base == 10 && n > 9)) {
-			input_special = INPUT_SPECIAL_NONE;
-			return;
-		}
-		raw_input.value *= raw_input.base;
-		raw_input.value += n;
-		if (++raw_input.nr < raw_input.max_chars)
-			return;
-	}
-
-	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
-		unsigned int idx = 0;
-		u_set_char_raw(buf, &idx, raw_input.value);
-		insert_special(buf, idx);
-	}
-	if (input_special != INPUT_SPECIAL_UNICODE && raw_input.value <= 255) {
-		buf[0] = raw_input.value;
-		insert_special(buf, 1);
-	}
-	input_special = INPUT_SPECIAL_NONE;
 }
 
 void set_signal_handler(int signum, void (*handler)(int))

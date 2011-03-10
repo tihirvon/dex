@@ -73,6 +73,7 @@ OBJECTS	:= 			\
 	history.o		\
 	hl.o			\
 	indent.o		\
+	input-special.o		\
 	iter.o			\
 	lock.o			\
 	move.o			\
