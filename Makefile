@@ -77,6 +77,7 @@ OBJECTS	:= 			\
 	input.o			\
 	iter.o			\
 	lock.o			\
+	main.o			\
 	move.o			\
 	msg.o			\
 	obuf.o			\

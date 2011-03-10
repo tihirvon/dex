@@ -40,6 +40,8 @@ extern enum input_mode input_mode;
 extern enum input_special input_special;
 extern char *home_dir;
 extern int child_controls_terminal;
+extern int resized;
+extern int nr_errors;
 
 extern const char *program;
 extern const char *version;
@@ -52,8 +54,11 @@ void error_msg(const char *format, ...) __FORMAT(1, 2);
 void info_msg(const char *format, ...) __FORMAT(1, 2);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 void discard_paste(void);
+void any_key(void);
+void resize(void);
 void ui_start(int prompt);
 void ui_end(void);
 void set_signal_handler(int signum, void (*handler)(int));
+void main_loop(void);
 
 #endif
