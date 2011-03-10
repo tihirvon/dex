@@ -620,8 +620,15 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	}
 }
 
+static void special_input_keypress(enum term_key_type type, unsigned int key);
+
 static void keypress(enum term_key_type type, unsigned int key)
 {
+	if (input_special) {
+		special_input_keypress(type, key);
+		return;
+	}
+
 	if (nr_pressed_keys) {
 		handle_binding(type, key);
 		return;
@@ -752,6 +759,8 @@ static void special_input_keypress(enum term_key_type type, unsigned int key)
 {
 	char buf[4];
 
+	update_flags |= UPDATE_COMMAND_LINE;
+
 	if (type != KEY_NORMAL) {
 		if (type == KEY_PASTE)
 			discard_paste();
@@ -818,38 +827,6 @@ static void special_input_keypress(enum term_key_type type, unsigned int key)
 		insert_special(buf, 1);
 	}
 	input_special = INPUT_SPECIAL_NONE;
-}
-
-static void special_input_handle_key(enum term_key_type type, unsigned int key)
-{
-	special_input_keypress(type, key);
-
-	buf_hide_cursor();
-	if (input_special) {
-		update_status_line(format_misc_status());
-	} else {
-		switch (input_mode) {
-		case INPUT_NORMAL:
-			update_full();
-			break;
-		case INPUT_COMMAND:
-		case INPUT_SEARCH:
-			update_status_line(format_misc_status());
-			update_command_line();
-			break;
-		}
-	}
-	restore_cursor();
-	buf_show_cursor();
-	buf_flush();
-}
-
-static void handle_input(enum term_key_type type, unsigned int key)
-{
-	if (input_special)
-		special_input_handle_key(type, key);
-	else
-		handle_key(type, key);
 }
 
 void set_signal_handler(int signum, void (*handler)(int))
@@ -1046,7 +1023,7 @@ int main(int argc, char *argv[])
 					error_buf[0] = 0;
 					update_flags |= UPDATE_COMMAND_LINE;
 				}
-				handle_input(type, key);
+				handle_key(type, key);
 			}
 		}
 	}
