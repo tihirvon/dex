@@ -142,19 +142,19 @@ void add_message(struct message *m)
 void current_message(int save_location)
 {
 	struct message *m;
+	int go = 0;
 
 	if (msg_pos == msgs.count)
 		return;
 
 	m = msgs.ptrs[msg_pos];
-	if (m->file == NULL)
-		return;
-
-	if (!move_to_file(m->file, save_location))
-		return;
+	if (m->file && move_to_file(m->file, save_location))
+		go = 1;
 
 	// search_tag() can print error so do this before it
 	info_msg("[%d/%d] %s", msg_pos + 1, msgs.count, m->msg);
+	if (!go)
+		return;
 
 	if (m->pattern_is_set) {
 		search_tag(m->u.pattern);
