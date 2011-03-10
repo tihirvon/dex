@@ -74,6 +74,7 @@ OBJECTS	:= 			\
 	hl.o			\
 	indent.o		\
 	input-special.o		\
+	input.o			\
 	iter.o			\
 	lock.o			\
 	move.o			\
