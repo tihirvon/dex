@@ -49,6 +49,7 @@ bind M-b "search -rw"
 bind M-c "toggle -v case-sensitive-search"
 bind M-j scroll-down
 bind M-k scroll-up
+bind M-a "select -b"
 bind M-s select
 bind M-t bof
 bind M-e eof

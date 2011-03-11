@@ -964,9 +964,25 @@ static void cmd_search(const char *pf, char **args)
 static void cmd_select(const char *pf, char **args)
 {
 	enum selection sel = SELECT_CHARS;
+	int block = 0;
 
-	if (*pf)
-		sel = SELECT_LINES;
+	while (*pf) {
+		switch (*pf) {
+		case 'b':
+			block = 1;
+			break;
+		case 'l':
+			block = 0;
+			sel = SELECT_LINES;
+			break;
+		}
+		pf++;
+	}
+
+	if (block) {
+		select_block();
+		return;
+	}
 
 	if (selecting()) {
 		if (view->selection == sel) {
@@ -1223,7 +1239,7 @@ const struct command commands[] = {
 	{ "scroll-pgup",	"",	0,  0, cmd_scroll_pgup },
 	{ "scroll-up",		"",	0,  0, cmd_scroll_up },
 	{ "search",		"Hnprw",0,  1, cmd_search },
-	{ "select",		"l",	0,  0, cmd_select },
+	{ "select",		"bl",	0,  0, cmd_select },
 	{ "set",		"gl",	1,  2, cmd_set },
 	{ "shift",		"",	1,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },

@@ -6,6 +6,7 @@
 #include "gbuf.h"
 #include "indent.h"
 #include "uchar.h"
+#include "regexp.h"
 
 struct paragraph_formatter {
 	struct gbuf buf;
@@ -49,6 +50,68 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 		deleted = do_replace(del_count, inserted, ins_count);
 	}
 	record_replace(deleted, del_count, ins_count);
+}
+
+/*
+ * Stupid { ... } block selector.
+ *
+ * Because braces can be inside strings or comments and writing real
+ * parser for many programming languages does not make sense the rules
+ * for selecting a block are made very simple. Line that matches \{\s*$
+ * starts a block and line that matches ^\s*\} ends it.
+ */
+void select_block(void)
+{
+	const char *spattern = "\\{\\s*$";
+	const char *epattern = "^\\s*\\}";
+	struct block_iter sbi, ebi, bi = view->cursor;
+	struct lineref lr;
+	int level = 0;
+
+	// If current line does not match \{\s*$ but matches ^\s*\} then
+	// cursor is likely at end of the block you want to select.
+	fetch_this_line(&bi, &lr);
+	if (!regexp_match_nosub(spattern, lr.line, lr.size) &&
+	     regexp_match_nosub(epattern, lr.line, lr.size))
+		block_iter_prev_line(&bi);
+
+	while (1) {
+		fetch_this_line(&bi, &lr);
+		if (regexp_match_nosub(spattern, lr.line, lr.size)) {
+			if (level++ == 0) {
+				sbi = bi;
+				block_iter_next_line(&bi);
+				break;
+			}
+		}
+		if (regexp_match_nosub(epattern, lr.line, lr.size))
+			level--;
+
+		if (!block_iter_prev_line(&bi))
+			return;
+	}
+
+	while (1) {
+		fetch_this_line(&bi, &lr);
+		if (regexp_match_nosub(epattern, lr.line, lr.size)) {
+			if (--level == 0) {
+				ebi = bi;
+				break;
+			}
+		}
+		if (regexp_match_nosub(spattern, lr.line, lr.size))
+			level++;
+
+		if (!block_iter_next_line(&bi))
+			return;
+	}
+
+	view->cursor = sbi;
+	view->sel_so = block_iter_get_offset(&ebi);
+	view->sel_eo = UINT_MAX;
+	view->selection = SELECT_LINES;
+
+	update_flags |= UPDATE_FULL;
 }
 
 void unselect(void)
