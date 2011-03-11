@@ -78,11 +78,7 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 	if (key != '\r') {
 		int n = hex_decode(key);
 
-		if (key < 0) {
-			input_special = INPUT_SPECIAL_NONE;
-			return;
-		}
-		if ((raw_input.base == 8 && n > 7) || (raw_input.base == 10 && n > 9)) {
+		if (n < 0 || n >= raw_input.base) {
 			input_special = INPUT_SPECIAL_NONE;
 			return;
 		}
