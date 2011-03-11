@@ -51,6 +51,11 @@ state word code
 	char -b a-zA-Z0-9_ word
 	inlist keyword start
 	inlist identifier start
+	char . column code
+	noeat start
+
+state column
+	char -b a-zA-Z0-9_ column
 	noeat start
 
 state sq string
@@ -148,3 +153,4 @@ list identifier \
 	ACTION BIT DATE ENUM NO TEXT TIME TIMESTAMP
 
 default keyword identifier
+default code column
