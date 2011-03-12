@@ -33,10 +33,13 @@ ft perl perl pl
 ft php php php3 php4
 ft python py
 ft sh sh bash
-ft smarty tpl
 ft sql sql
 ft tcl tcl
 ft xml xml
+
+# first is the default, second line required for adding smarty filetype
+ft html+smarty tpl
+ft smarty tpl
 
 # should be last
 ft -f config '/etc/.*'

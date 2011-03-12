@@ -71,6 +71,11 @@ hi go.builtin blue
 hi html.tag bold
 hi html.attr blue
 
+# html+smarty
+hi html+smarty.smarty blue
+hi html+smarty.tag bold
+hi html+smarty.attr blue
+
 # make
 hi make.builtin bold
 

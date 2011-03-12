@@ -132,6 +132,7 @@ syntax	:=			\
 	syntax/gitrebase	\
 	syntax/go		\
 	syntax/html		\
+	syntax/html+smarty	\
 	syntax/make		\
 	syntax/php		\
 	syntax/python		\
