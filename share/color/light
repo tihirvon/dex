@@ -79,4 +79,4 @@ hi sh.builtin bold
 hi sh.operator bold
 
 # smarty
-hi smarty.code blue
+hi smarty.smarty blue

@@ -2,13 +2,13 @@ syntax smarty
 
 state html
 	str "{*" comment
-	char \{ code
+	char \{ smarty
 	eat html
 
 state comment
 	str "*}" html comment
 	eat comment
 
-state code
-	char \} html code
-	eat code
+state smarty
+	char \} html smarty
+	eat smarty
