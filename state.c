@@ -76,15 +76,16 @@ static int has_destination(enum condition_type type)
 	}
 }
 
-static LIST_HEAD(syntaxes);
+static PTR_ARRAY(syntaxes);
 static struct syntax *current_syntax;
 static struct state *current_state;
 
 static struct syntax *find_any_syntax(const char *name)
 {
-	struct syntax *syn;
+	int i;
 
-	list_for_each_entry(syn, &syntaxes, node) {
+	for (i = 0; i < syntaxes.count; i++) {
+		struct syntax *syn = syntaxes.ptrs[i];
 		if (!strcmp(syn->name, name))
 			return syn;
 	}
@@ -664,7 +665,7 @@ static void finish_syntax(void)
 			error_msg("List %s never used", list->name);
 	}
 
-	list_add_before(&current_syntax->node, &syntaxes);
+	ptr_array_add(&syntaxes, current_syntax);
 	current_syntax = NULL;
 }
 
@@ -731,8 +732,8 @@ void update_syntax_colors(struct syntax *syn)
 
 void update_all_syntax_colors(void)
 {
-	struct syntax *syn;
+	int i;
 
-	list_for_each_entry(syn, &syntaxes, node)
-		update_syntax_colors(syn);
+	for (i = 0; i < syntaxes.count; i++)
+		update_syntax_colors(syntaxes.ptrs[i]);
 }

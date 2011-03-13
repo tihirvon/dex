@@ -1,7 +1,6 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "list.h"
 #include "ptr-array.h"
 #include "command.h"
 
@@ -87,7 +86,6 @@ struct string_list {
 };
 
 struct syntax {
-	struct list_head node;
 	char *name;
 	struct ptr_array states;
 	struct ptr_array string_lists;
