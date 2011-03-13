@@ -55,7 +55,7 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 	unsigned int i = *idx;
 	unsigned int u;
 
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		u = u_buf_get_char(buf, size, &i);
 	} else {
 		u = buf[i++];
@@ -74,7 +74,7 @@ static void print_tab_title(struct view *v, int idx)
 		filename = "(No name)";
 
 	if (skip > 0) {
-		if (term_flags & TERM_UTF8)
+		if (term_utf8)
 			filename += u_skip_chars(filename, &skip);
 		else
 			filename += skip;
@@ -91,7 +91,7 @@ static void print_tab_title(struct view *v, int idx)
 		buf_set_color(&tab_inactive_color->color);
 	buf_add_str(buf);
 
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		unsigned int si = 0;
 		while (filename[si])
 			buf_put_char(u_buf_get_char(filename, si + 4, &si));
@@ -146,7 +146,7 @@ void update_status_line(const char *misc_status)
 	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left, misc_status);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right, misc_status);
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		lw = u_str_width(lbuf, lw);
 		rw = u_str_width(rbuf, rw);
 	}
@@ -164,7 +164,7 @@ void update_status_line(const char *misc_status)
 
 static int get_char_width(unsigned int *idx)
 {
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		return u_char_width(u_buf_get_char(cmdline.buffer, cmdline.len, idx));
 	} else {
 		int i = *idx;

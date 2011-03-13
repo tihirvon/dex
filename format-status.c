@@ -1,5 +1,4 @@
 #include "format-status.h"
-#include "term.h"
 #include "window.h"
 #include "uchar.h"
 
@@ -30,7 +29,7 @@ static void add_status_str(struct formatter *f, const char *str)
 		return;
 
 	add_separator(f);
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		while (f->pos < f->size && str[idx]) {
 			unsigned int u = u_buf_get_char(str, idx + 4, &idx);
 			u_set_char(f->buf, &f->pos, u);

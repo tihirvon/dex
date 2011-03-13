@@ -271,7 +271,7 @@ static int read_simple(unsigned int *key, enum term_key_type *type)
 	input_get_byte(&ch);
 
 	/* normal key */
-	if ((term_flags & TERM_UTF8) && ch > 0x7f) {
+	if (term_utf8 && ch > 0x7f) {
 		/*
 		 * 10xx xxxx invalid
 		 * 110x xxxx valid

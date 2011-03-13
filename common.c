@@ -3,6 +3,8 @@
 
 #include <sys/mman.h>
 
+int term_utf8;
+
 int count_strings(char **strings)
 {
 	int count;

@@ -1,6 +1,5 @@
 #include "cmdline.h"
 #include "gbuf.h"
-#include "term.h"
 #include "common.h"
 #include "uchar.h"
 
@@ -11,7 +10,7 @@ void cmdline_insert(unsigned int u)
 {
 	unsigned int len = 1;
 
-	if (term_flags & TERM_UTF8)
+	if (term_utf8)
 		len = u_char_size(u);
 	gbuf_make_space(&cmdline, cmdline_pos, len);
 	if (len > 1) {
@@ -28,7 +27,7 @@ void cmdline_delete(void)
 	if (cmdline_pos == cmdline.len)
 		return;
 
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		unsigned int pos = cmdline_pos;
 		u_buf_get_char(cmdline.buffer, cmdline.len, &pos);
 		len = pos - cmdline_pos;

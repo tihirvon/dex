@@ -1,6 +1,5 @@
 #include "tabbar.h"
 #include "window.h"
-#include "term.h"
 #include "uchar.h"
 
 static int first_tab_idx;
@@ -25,7 +24,7 @@ static void update_tab_title_width(struct view *v, int tab_number)
 		filename = "(No name)";
 
 	w = 3 + number_width(tab_number);
-	if (term_flags & TERM_UTF8) {
+	if (term_utf8) {
 		unsigned int i = 0;
 		while (filename[i])
 			w += u_char_width(u_buf_get_char(filename, i + 4, &i));

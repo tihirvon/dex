@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
 	if (strcmp(charset, "UTF-8") == 0)
-		flags |= TERM_UTF8;
+		term_utf8 = 1;
 
 	if (term_init(flags))
 		error_msg("No terminal entry found.");

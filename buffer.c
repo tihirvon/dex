@@ -5,7 +5,6 @@
 #include "block.h"
 #include "move.h"
 #include "wbuf.h"
-#include "term.h"
 #include "filetype.h"
 #include "state.h"
 #include "file-history.h"
@@ -149,7 +148,7 @@ static struct buffer *buffer_new(void)
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
 	b->id = ++id;
-	b->options.utf8 = !!(term_flags & TERM_UTF8);
+	b->options.utf8 = term_utf8;
 
 	memcpy(&b->options, &options, sizeof(struct common_options));
 	b->options.filetype = xstrdup("none");
