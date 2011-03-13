@@ -106,8 +106,8 @@ static inline void list_del_init(struct list_head *entry)
  */
 static inline void list_move_after(struct list_head *list, struct list_head *head)
 {
-        __list_del(list->prev, list->next);
-        list_add_after(list, head);
+	__list_del(list->prev, list->next);
+	list_add_after(list, head);
 }
 
 /**
@@ -118,8 +118,8 @@ static inline void list_move_after(struct list_head *list, struct list_head *hea
 static inline void list_move_before(struct list_head *list,
 				  struct list_head *head)
 {
-        __list_del(list->prev, list->next);
-        list_add_before(list, head);
+	__list_del(list->prev, list->next);
+	list_add_before(list, head);
 }
 
 /**
@@ -184,8 +184,8 @@ static inline void list_splice_init(struct list_head *list,
  *
  */
 #define container_of(ptr, type, member) ({			\
-        const __typeof__( ((type *)0)->member ) *__mptr = (ptr);	\
-        (type *)( (char *)__mptr - offsetof(type,member) );})
+	const __typeof__( ((type *)0)->member ) *__mptr = (ptr);	\
+	(type *)( (char *)__mptr - offsetof(type,member) );})
 
 /**
  * list_for_each - iterate over a list
