@@ -152,9 +152,9 @@ static void skipped_too_much(unsigned int u)
 	}
 }
 
-void buf_skip(unsigned int u, int utf8)
+void buf_skip(unsigned int u)
 {
-	if (u < 0x80 || !utf8) {
+	if (u < 0x80 || !(term_flags & TERM_UTF8)) {
 		if (u >= 0x20) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
@@ -188,7 +188,7 @@ static void print_tab(unsigned int width)
 	}
 }
 
-int buf_put_char(unsigned int u, int utf8)
+int buf_put_char(unsigned int u)
 {
 	unsigned int space = obuf.scroll_x + obuf.width - obuf.x;
 	unsigned int width;
@@ -198,7 +198,7 @@ int buf_put_char(unsigned int u, int utf8)
 	if (obuf.alloc - obuf.count < 8)
 		buf_flush();
 
-	if (u < 0x80 || !utf8) {
+	if (u < 0x80 || !(term_flags & TERM_UTF8)) {
 		if (u >= 0x20 && u != 0x7f) {
 			obuf.buf[obuf.count++] = u;
 			obuf.x++;

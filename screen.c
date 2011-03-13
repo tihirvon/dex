@@ -94,11 +94,11 @@ static void print_tab_title(struct view *v, int idx)
 	if (term_flags & TERM_UTF8) {
 		unsigned int si = 0;
 		while (filename[si])
-			buf_put_char(u_buf_get_char(filename, si + 4, &si), 1);
+			buf_put_char(u_buf_get_char(filename, si + 4, &si));
 	} else {
 		unsigned int si = 0;
 		while (filename[si])
-			buf_put_char(filename[si++], 0);
+			buf_put_char(filename[si++]);
 	}
 	if (obuf.x == obuf.width - 1 && v->node.next != &window->views)
 		buf_ch('>');
@@ -197,20 +197,20 @@ int print_command(char prefix)
 	buf_set_color(&commandline_color->color);
 	i = 0;
 	if (obuf.x < obuf.scroll_x) {
-		buf_skip(prefix, 0);
+		buf_skip(prefix);
 		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
 			u = term_get_char(cmdline.buffer, cmdline.len, &i);
-			buf_skip(u, term_flags & TERM_UTF8);
+			buf_skip(u);
 		}
 	} else {
-		buf_put_char(prefix, 0);
+		buf_put_char(prefix);
 	}
 
 	x = obuf.x - obuf.scroll_x;
 	while (cmdline.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = term_get_char(cmdline.buffer, cmdline.len, &i);
-		if (!buf_put_char(u, term_flags & TERM_UTF8))
+		if (!buf_put_char(u))
 			break;
 		if (i <= cmdline_pos)
 			x = obuf.x - obuf.scroll_x;
@@ -228,7 +228,7 @@ void print_message(const char *msg, int is_error)
 	buf_set_color(color);
 	while (msg[i]) {
 		unsigned int u = term_get_char(msg, i + 4, &i);
-		if (!buf_put_char(u, term_flags & TERM_UTF8))
+		if (!buf_put_char(u))
 			break;
 	}
 }
@@ -435,7 +435,6 @@ static void init_line_info(struct line_info *info, struct lineref *lr, struct hl
 
 static void print_line(struct line_info *info)
 {
-	int utf8 = term_flags & TERM_UTF8;
 	unsigned int u;
 
 	/*
@@ -452,7 +451,7 @@ static void print_line(struct line_info *info)
 	 */
 	while (obuf.x < obuf.scroll_x && info->pos < info->size) {
 		u = screen_next_char(info);
-		buf_skip(u, utf8);
+		buf_skip(u);
 	}
 
 	/*
@@ -461,7 +460,7 @@ static void print_line(struct line_info *info)
 	while (info->pos < info->size) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = screen_next_char(info);
-		if (!buf_put_char(u, utf8)) {
+		if (!buf_put_char(u)) {
 			// +1 for newline
 			cur_offset += info->size - info->pos + 1;
 			return;
@@ -470,7 +469,7 @@ static void print_line(struct line_info *info)
 	update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
 	cur_offset += 1; // newline
 	if (options.display_special && obuf.x >= obuf.scroll_x)
-		buf_put_char('$', utf8);
+		buf_put_char('$');
 	buf_clear_eol();
 }
 
