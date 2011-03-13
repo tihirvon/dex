@@ -37,8 +37,8 @@ static int load_terminfo_caps(const char *path, const char *term)
 
 static int read_terminfo(const char *term)
 {
-	const char *paths[] = {
-		NULL,
+	static const char *paths[] = {
+		NULL, // $HOME/.terminfo
 		"/etc/terminfo",
 		"/lib/terminfo",
 		"/usr/share/terminfo",
@@ -64,6 +64,30 @@ static int read_terminfo(const char *term)
 	return rc;
 }
 
+static int read_termcap(const char *term)
+{
+	static const char *paths[] = {
+		"/etc/termcap",
+		"/usr/share/misc/termcap",
+		NULL, // $HOME/.termcap
+	};
+	const char *path = getenv("TERMCAP");
+	char buf[1024];
+	int i, rc = 0;
+
+	if (path && *path)
+		return termcap_get_caps(path, term);
+
+	snprintf(buf, sizeof(buf), "%s/.termcap", home_dir);
+	paths[2] = buf;
+	for (i = 0; i < ARRAY_COUNT(paths); i++) {
+		rc = termcap_get_caps(paths[i], term);
+		if (!rc)
+			return 0;
+	}
+	return rc;
+}
+
 int term_init(const char *term, unsigned int flags)
 {
 	int rc;
@@ -79,7 +103,7 @@ int term_init(const char *term, unsigned int flags)
 	if (flags & TERM_USE_TERMINFO)
 		rc = read_terminfo(term);
 	if (rc && flags & TERM_USE_TERMCAP)
-		rc = termcap_get_caps("/etc/termcap", term);
+		rc = read_termcap(term);
 	return rc;
 }
 
