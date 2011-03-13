@@ -114,10 +114,9 @@ extern unsigned int term_flags;
 
 /* initialize terminal
  *
- * @term   terminal value or NULL
  * @flags  TERM_* flags
  */
-int term_init(const char *term, unsigned int flags);
+int term_init(unsigned int flags);
 
 void term_raw(void);
 void term_cooked(void);

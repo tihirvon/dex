@@ -88,14 +88,13 @@ static int read_termcap(const char *term)
 	return rc;
 }
 
-int term_init(const char *term, unsigned int flags)
+int term_init(unsigned int flags)
 {
+	const char *term = getenv("TERM");
 	int rc;
 
 	term_flags = flags;
 
-	if (term == NULL)
-		term = getenv("TERM");
 	if (term == NULL || term[0] == 0)
 		term = "linux";
 

@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	if (strcmp(charset, "UTF-8") == 0)
 		flags |= TERM_UTF8;
 
-	if (term_init(NULL, flags))
+	if (term_init(flags))
 		error_msg("No terminal entry found.");
 
 	exec_config(commands, builtin_rc, strlen(builtin_rc));
