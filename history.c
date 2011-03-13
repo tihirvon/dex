@@ -2,119 +2,85 @@
 #include "common.h"
 #include "editor.h"
 #include "wbuf.h"
+#include "ptr-array.h"
 
-struct history_entry {
-	struct list_head node;
-	char text[1];
-};
+PTR_ARRAY(search_history);
+PTR_ARRAY(command_history);
 
-struct history search_history = {
-	.head = LIST_HEAD_INIT(search_history.head),
-	.nr_entries = 0,
-	.max_entries = 100,
-};
-
-struct history command_history = {
-	.head = LIST_HEAD_INIT(command_history.head),
-	.nr_entries = 0,
-	.max_entries = 500,
-};
-
-static struct list_head *search_pos;
+static int search_pos = -1;
 static char *search_text;
 
-void history_add(struct history *history, const char *text)
+// add item to end of array
+void history_add(struct ptr_array *history, const char *text, int max_entries)
 {
-	struct history_entry *item;
-	int len = strlen(text);
+	int i;
 
-	if (!len)
+	if (text[0] == 0)
 		return;
 
 	// don't add identical entries
-	list_for_each_entry(item, &history->head, node) {
-		if (!strcmp(item->text, text)) {
-			// move identical entry to first
-			list_del(&item->node);
-			list_add_after(&item->node, &history->head);
+	for (i = 0; i < history->count; i++) {
+		if (!strcmp(history->ptrs[i], text)) {
+			// move identical entry to end
+			ptr_array_add(history, ptr_array_remove(history, i));
 			return;
 		}
 	}
-
-	if (history->nr_entries == history->max_entries) {
-		struct list_head *node = history->head.prev;
-		list_del(node);
-		item = container_of(node, struct history_entry, node);
-		free(item);
-		history->nr_entries--;
-	}
-
-	item = xmalloc(sizeof(struct history_entry) + len);
-	memcpy(item->text, text, len + 1);
-	list_add_after(&item->node, &history->head);
-	history->nr_entries++;
+	if (history->count == max_entries)
+		free(ptr_array_remove(history, 0));
+	ptr_array_add(history, xstrdup(text));
 }
 
 void history_reset_search(void)
 {
 	free(search_text);
 	search_text = NULL;
-	search_pos = NULL;
+	search_pos = -1;
 }
 
-const char *history_search_forward(struct history *history, const char *text)
+const char *history_search_forward(struct ptr_array *history, const char *text)
 {
-	struct list_head *item;
+	int i = search_pos;
 	int search_len;
 
-	if (search_pos) {
-		item = search_pos->next;
-	} else {
+	if (i < 0) {
 		// NOTE: not freed in history_search_backward()
 		free(search_text);
 
-		item = history->head.next;
 		search_text = xstrdup(text);
+		i = history->count;
 	}
 	search_len = strlen(search_text);
-	while (item != &history->head) {
-		struct history_entry *hentry;
-
-		hentry = container_of(item, struct history_entry, node);
-		if (!strncmp(search_text, hentry->text, search_len)) {
-			search_pos = item;
-			return hentry->text;
+	while (--i >= 0) {
+		if (!strncmp(search_text, history->ptrs[i], search_len)) {
+			search_pos = i;
+			return history->ptrs[i];
 		}
-		item = item->next;
 	}
 	return NULL;
 }
 
-const char *history_search_backward(struct history *history)
+const char *history_search_backward(struct ptr_array *history)
 {
-	struct list_head *item;
+	int i = search_pos;
 	int search_len;
 
-	if (!search_pos)
+	if (i < 0)
 		return NULL;
-	item = search_pos->prev;
-	search_len = strlen(search_text);
-	while (item != &history->head) {
-		struct history_entry *hentry;
 
-		hentry = container_of(item, struct history_entry, node);
-		if (!strncmp(search_text, hentry->text, search_len)) {
-			search_pos = item;
-			return hentry->text;
+	search_len = strlen(search_text);
+	while (++i < history->count) {
+		if (!strncmp(search_text, history->ptrs[i], search_len)) {
+			search_pos = i;
+			return history->ptrs[i];
 		}
-		item = item->prev;
 	}
 	// NOTE: search_text is freed in history_search_forward()
-	search_pos = NULL;
+	search_pos = -1;
 	return search_text;
 }
 
-void history_load(struct history *history, const char *filename)
+void history_load(struct ptr_array *history, const char *filename, int max_entries)
 {
 	char *buf;
 	ssize_t size, pos = 0;
@@ -126,20 +92,21 @@ void history_load(struct history *history, const char *filename)
 		return;
 	}
 	while (pos < size)
-		history_add(history, buf_next_line(buf, &pos, size));
+		history_add(history, buf_next_line(buf, &pos, size), max_entries);
 	free(buf);
 }
 
-void history_save(struct history *history, const char *filename)
+void history_save(struct ptr_array *history, const char *filename)
 {
-	struct history_entry *item;
 	WBUF(buf);
+	int i;
 
 	buf.fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	if (buf.fd < 0)
 		return;
-	list_for_each_entry_reverse(item, &history->head, node) {
-		wbuf_write_str(&buf, item->text);
+
+	for (i = 0; i < history->count; i++) {
+		wbuf_write_str(&buf, history->ptrs[i]);
 		wbuf_write_ch(&buf, '\n');
 	}
 	wbuf_flush(&buf);

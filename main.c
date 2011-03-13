@@ -197,8 +197,8 @@ int main(int argc, char *argv[])
 	obuf.buf = xmalloc(obuf.alloc);
 
 	load_file_history();
-	history_load(&command_history, editor_file("command-history"));
-	history_load(&search_history, editor_file("search-history"));
+	history_load(&command_history, editor_file("command-history"), command_history_size);
+	history_load(&search_history, editor_file("search-history"), search_history_size);
 
 	/* Initialize terminal but don't update screen yet.  Also display
 	 * "Press any key to continue" prompt if there were any errors

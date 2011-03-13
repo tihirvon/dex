@@ -1,22 +1,19 @@
 #ifndef HISTORY_H
 #define HISTORY_H
 
-#include "list.h"
+#include "ptr-array.h"
 
-struct history {
-	struct list_head head;
-	int nr_entries;
-	int max_entries;
-};
+#define search_history_size 100
+#define command_history_size 500
 
-extern struct history search_history;
-extern struct history command_history;
+extern struct ptr_array search_history;
+extern struct ptr_array command_history;
 
-void history_add(struct history *h, const char *str);
+void history_add(struct ptr_array *history, const char *text, int max_entries);
 void history_reset_search(void);
-const char *history_search_forward(struct history *history, const char *text);
-const char *history_search_backward(struct history *history);
-void history_load(struct history *history, const char *filename);
-void history_save(struct history *history, const char *filename);
+const char *history_search_forward(struct ptr_array *history, const char *text);
+const char *history_search_backward(struct ptr_array *history);
+void history_load(struct ptr_array *history, const char *filename, int max_entries);
+void history_save(struct ptr_array *history, const char *filename);
 
 #endif

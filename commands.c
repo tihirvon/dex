@@ -946,7 +946,7 @@ static void cmd_search(const char *pf, char **args)
 		search_init(dir);
 		search(pattern);
 		if (history)
-			history_add(&search_history, pattern);
+			history_add(&search_history, pattern, search_history_size);
 
 		if (pattern != args[0])
 			free(pattern);

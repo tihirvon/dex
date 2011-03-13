@@ -38,7 +38,7 @@ static void cmdline_insert_paste(void)
 	free(text);
 }
 
-static int common_key(struct history *history, enum term_key_type type, unsigned int key)
+static int common_key(struct ptr_array *history, enum term_key_type type, unsigned int key)
 {
 	const char *str;
 
@@ -150,7 +150,7 @@ static void command_line_enter(void)
 	/* Need to do this before executing the command because
 	 * "command" can modify contents of command line.
 	 */
-	history_add(&command_history, cmdline.buffer);
+	history_add(&command_history, cmdline.buffer, command_history_size);
 	cmdline_clear();
 
 	if (!ret)
@@ -193,7 +193,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		case '\r':
 			if (cmdline.buffer[0]) {
 				search(cmdline.buffer);
-				history_add(&search_history, cmdline.buffer);
+				history_add(&search_history, cmdline.buffer, search_history_size);
 			} else {
 				search_next();
 			}
