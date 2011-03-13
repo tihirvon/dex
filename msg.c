@@ -6,13 +6,12 @@
 #include "editor.h"
 
 struct file_location {
-	struct list_head node;
 	char *filename;
 	unsigned int buffer_id;
 	int row, col;
 };
 
-static LIST_HEAD(location_head);
+static PTR_ARRAY(file_locations);
 static PTR_ARRAY(msgs);
 static int msg_pos;
 
@@ -45,7 +44,7 @@ static int move_to_file(const char *filename, int save_location)
 		return 0;
 	}
 	if (loc)
-		list_add_after(&loc->node, &location_head);
+		ptr_array_add(&file_locations, loc);
 
 	if (view != v) {
 		set_view(v);
@@ -60,10 +59,9 @@ void pop_location(void)
 	struct file_location *loc;
 	struct view *v;
 
-	if (list_empty(&location_head))
+	if (file_locations.count == 0)
 		return;
-	loc = container_of(location_head.next, struct file_location, node);
-	list_del(&loc->node);
+	loc = file_locations.ptrs[--file_locations.count];
 	v = find_view_by_buffer_id(loc->buffer_id);
 	if (!v) {
 		if (loc->filename) {
