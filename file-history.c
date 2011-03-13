@@ -1,44 +1,38 @@
 #include "file-history.h"
 #include "common.h"
 #include "editor.h"
-#include "list.h"
 #include "wbuf.h"
+#include "ptr-array.h"
 
 struct history_entry {
-	struct list_head node;
 	int row, col;
 	char *filename;
 };
 
-static LIST_HEAD(history_head);
-static int history_size;
-static int max_history_size = 50;
+static PTR_ARRAY(history);
 
-static void add_entry(struct history_entry *e)
-{
-	list_add_after(&e->node, &history_head);
-}
+#define max_history_size 50
 
 void add_file_history(int row, int col, const char *filename)
 {
 	struct history_entry *e;
+	int i;
 
-	list_for_each_entry(e, &history_head, node) {
+	for (i = 0; i < history.count; i++) {
+		e = history.ptrs[i];
 		if (!strcmp(filename, e->filename)) {
 			e->row = row;
 			e->col = col;
-			list_del(&e->node);
-			add_entry(e);
+			// keep newest at end of the array
+			ptr_array_add(&history, ptr_array_remove(&history, i));
 			return;
 		}
 	}
 
-	while (history_size >= max_history_size) {
-		e = container_of(history_head.prev, struct history_entry, node);
-		list_del(&e->node);
+	while (max_history_size && history.count >= max_history_size) {
+		e = ptr_array_remove(&history, 0);
 		free(e->filename);
 		free(e);
-		history_size--;
 	}
 
 	if (!max_history_size)
@@ -48,8 +42,7 @@ void add_file_history(int row, int col, const char *filename)
 	e->row = row;
 	e->col = col;
 	e->filename = xstrdup(filename);
-	add_entry(e);
-	history_size++;
+	ptr_array_add(&history, e);
 }
 
 void load_file_history(void)
@@ -86,13 +79,14 @@ void load_file_history(void)
 void save_file_history(void)
 {
 	const char *filename = editor_file("file-history");
-	struct history_entry *e;
 	WBUF(buf);
+	int i;
 
 	buf.fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	if (buf.fd < 0)
 		return;
-	list_for_each_entry_reverse(e, &history_head, node) {
+	for (i = 0; i < history.count; i++) {
+		struct history_entry *e = history.ptrs[i];
 		char str[64];
 		snprintf(str, sizeof(str), "%d %d ", e->row, e->col);
 		wbuf_write_str(&buf, str);
@@ -105,9 +99,10 @@ void save_file_history(void)
 
 int find_file_in_history(const char *filename, int *row, int *col)
 {
-	struct history_entry *e;
+	int i;
 
-	list_for_each_entry(e, &history_head, node) {
+	for (i = 0; i < history.count; i++) {
+		struct history_entry *e = history.ptrs[i];
 		if (!strcmp(filename, e->filename)) {
 			*row = e->row;
 			*col = e->col;
