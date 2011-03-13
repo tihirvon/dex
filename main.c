@@ -167,7 +167,6 @@ int main(int argc, char *argv[])
 	set_basic_colors();
 
 	window = window_new();
-	update_screen_size();
 
 	if (read_rc) {
 		if (rc) {
