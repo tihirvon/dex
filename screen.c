@@ -382,7 +382,7 @@ static unsigned int screen_next_char(struct line_info *info)
 	return u;
 }
 
-static void screen_skip_char(struct line_info *info, int utf8)
+static void screen_skip_char(struct line_info *info)
 {
 	unsigned int count, pos = info->pos;
 	unsigned int u = (unsigned char)info->line[pos];
@@ -443,7 +443,7 @@ static void print_line(struct line_info *info)
 	 * faster than screen_next_char() which does color updating etc.
 	 */
 	while (obuf.x + 8 < obuf.scroll_x && info->pos < info->size)
-		screen_skip_char(info, utf8);
+		screen_skip_char(info);
 
 	/*
 	 * Skip rest. If a skipped character is wide (tab, control code
