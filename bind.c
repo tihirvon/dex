@@ -2,12 +2,11 @@
 #include "common.h"
 #include "editor.h"
 #include "command.h"
-#include "list.h"
+#include "ptr-array.h"
 
 #define MAX_KEYS 4
 
 struct binding {
-	struct list_head node;
 	char *command;
 	enum term_key_type types[MAX_KEYS];
 	unsigned int keys[MAX_KEYS];
@@ -19,7 +18,7 @@ int nr_pressed_keys;
 static enum term_key_type pressed_types[MAX_KEYS];
 static unsigned int pressed_keys[MAX_KEYS];
 
-static LIST_HEAD(bindings);
+static PTR_ARRAY(bindings);
 static const char *special_names[NR_SKEYS] = {
 	"insert",
 	"delete",
@@ -118,7 +117,7 @@ void add_binding(char *keys, const char *command)
 	}
 
 	b->command = xstrdup(command);
-	list_add_after(&b->node, &bindings);
+	ptr_array_add(&bindings, b);
 	return;
 error:
 	free(b);
@@ -126,13 +125,15 @@ error:
 
 void handle_binding(enum term_key_type type, unsigned int key)
 {
-	struct binding *b;
+	int i;
 
 	pressed_types[nr_pressed_keys] = type;
 	pressed_keys[nr_pressed_keys] = key;
 	nr_pressed_keys++;
 
-	list_for_each_entry(b, &bindings, node) {
+	for (i = 0; i < bindings.count; i++) {
+		struct binding *b = bindings.ptrs[i];
+
 		if (b->nr_keys < nr_pressed_keys)
 			continue;
 
