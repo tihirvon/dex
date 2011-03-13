@@ -7,7 +7,6 @@
 #include <termios.h>
 
 struct term_cap term_cap;
-unsigned int term_flags;
 
 static struct termios termios_save;
 static char buffer[64];
@@ -88,20 +87,18 @@ static int read_termcap(const char *term)
 	return rc;
 }
 
-int term_init(unsigned int flags)
+int term_init(int use_terminfo, int use_termcap)
 {
 	const char *term = getenv("TERM");
 	int rc;
-
-	term_flags = flags;
 
 	if (term == NULL || term[0] == 0)
 		term = "linux";
 
 	rc = -2;
-	if (flags & TERM_USE_TERMINFO)
+	if (use_terminfo)
 		rc = read_terminfo(term);
-	if (rc && flags & TERM_USE_TERMCAP)
+	if (rc && use_termcap)
 		rc = read_termcap(term);
 	return rc;
 }

@@ -101,12 +101,13 @@ static const char *opt_arg(const char *opt, const char *arg)
 
 int main(int argc, char *argv[])
 {
-	unsigned int flags = TERM_USE_TERMCAP | TERM_USE_TERMINFO;
 	const char *home = getenv("HOME");
 	const char *tag = NULL;
 	const char *rc = NULL;
 	const char *command = NULL;
 	const char *charset;
+	int use_terminfo = 1;
+	int use_termcap = 1;
 	int i, read_rc = 1;
 
 	if (!home)
@@ -121,10 +122,10 @@ int main(int argc, char *argv[])
 		if (!opt[2]) {
 			switch (opt[1]) {
 			case 'C':
-				flags &= ~TERM_USE_TERMCAP;
+				use_termcap = 0;
 				continue;
 			case 'I':
-				flags &= ~TERM_USE_TERMINFO;
+				use_terminfo = 0;
 				continue;
 			case 'R':
 				read_rc = 0;
@@ -159,7 +160,7 @@ int main(int argc, char *argv[])
 	if (strcmp(charset, "UTF-8") == 0)
 		term_utf8 = 1;
 
-	if (term_init(flags))
+	if (term_init(use_terminfo, use_termcap))
 		error_msg("No terminal entry found.");
 
 	exec_config(commands, builtin_rc, strlen(builtin_rc));

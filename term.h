@@ -103,19 +103,9 @@ struct term_color {
 	unsigned short attr;
 };
 
-enum {
-	TERM_USE_TERMINFO	= 0x01,
-	TERM_USE_TERMCAP	= 0x02,
-};
-
 extern struct term_cap term_cap;
-extern unsigned int term_flags;
 
-/* initialize terminal
- *
- * @flags  TERM_* flags
- */
-int term_init(unsigned int flags);
+int term_init(int use_terminfo, int use_termcap);
 
 void term_raw(void);
 void term_cooked(void);
