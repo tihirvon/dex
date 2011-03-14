@@ -142,13 +142,18 @@ state attrs code
 	char " \t\n" attrs
 	char -b a-zA-Z attr-name
 	char > text special
+	char / short-close
 	# smarty
 	str "{*" .smarty-comment:attrs
 	char \{ .smarty-code:attrs
 	eat attrs error
 
+state short-close special
+	char > text special
+	eat text error
+
 state attr-name attr
-	char a-zA-Z attr-name
+	char a-zA-Z:- attr-name
 	char = attr-eq
 	noeat attrs
 
