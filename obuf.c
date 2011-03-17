@@ -141,6 +141,8 @@ static void skipped_too_much(unsigned int u)
 		obuf.count += n;
 	} else if (u < 0x20) {
 		obuf.buf[obuf.count++] = u | 0x40;
+	} else if (u == 0x7f) {
+		obuf.buf[obuf.count++] = '?';
 	} else if (u & U_INVALID_MASK) {
 		if (n > 2)
 			obuf.buf[obuf.count++] = hex_tab[(u >> 4) & 0x0f];
@@ -155,7 +157,7 @@ static void skipped_too_much(unsigned int u)
 void buf_skip(unsigned int u)
 {
 	if (u < 0x80 || !term_utf8) {
-		if (u >= 0x20) {
+		if (u >= 0x20 && u != 0x7f) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
 			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;

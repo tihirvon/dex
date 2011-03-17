@@ -391,7 +391,7 @@ static void screen_skip_char(struct line_info *info)
 		info->pos++;
 		count = 1;
 
-		if (u >= 0x20) {
+		if (likely(u >= 0x20 && u != 0x7f)) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
 			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;

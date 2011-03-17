@@ -35,7 +35,7 @@ void move_to_preferred_x(void)
 		} else if (u == '\n') {
 			block_iter_prev_byte(&view->cursor, &u);
 			break;
-		} else if (u < 0x20) {
+		} else if (u < 0x20 || u == 0x7f) {
 			x += 2;
 		} else {
 			x++;
