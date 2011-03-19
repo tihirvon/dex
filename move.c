@@ -1,6 +1,7 @@
 #include "move.h"
 #include "buffer.h"
 #include "indent.h"
+#include "uchar.h"
 
 enum char_type {
 	CT_SPACE,
@@ -26,19 +27,28 @@ void move_to_preferred_x(void)
 		}
 
 		in_space_indent = 0;
-		if (u == '\t') {
-			x = (x + tw) / tw * tw;
-			if (x > view->preferred_x) {
+		if (u < 0x80) {
+			if (u >= 0x20 && u != 0x7f) {
+				x++;
+			} else if (u == '\t') {
+				x = (x + tw) / tw * tw;
+			} else if (u == '\n') {
 				block_iter_prev_byte(&view->cursor, &u);
 				break;
+			} else {
+				x += 2;
 			}
-		} else if (u == '\n') {
-			block_iter_prev_byte(&view->cursor, &u);
-			break;
-		} else if (u < 0x20 || u == 0x7f) {
-			x += 2;
-		} else {
+		} else if (buffer->options.utf8) {
+			x += u_char_width(u);
+		} else if (u > 0x9f) {
 			x++;
+		} else {
+			x += 4;
+		}
+
+		if (x > view->preferred_x) {
+			buffer_prev_char(&view->cursor, &u);
+			break;
 		}
 	}
 

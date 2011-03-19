@@ -32,18 +32,24 @@ void update_cursor_x(void)
 		unsigned int u = (unsigned char)lr.line[idx];
 
 		c++;
-		if (likely(u < 0x80) || !buffer->options.utf8) {
+		if (likely(u < 0x80)) {
 			idx++;
-			if (u == '\t') {
+			if (u >= 0x20 && u != 0x7f) {
+				w++;
+			} else if (u == '\t') {
 				w = (w + tw) / tw * tw;
 			} else {
-				w++;
-				if (u < 0x20 || u == 0x7f)
-					w++;
+				w += 2;
 			}
-		} else {
+		} else if (buffer->options.utf8) {
 			u = u_buf_get_char(lr.line, lr.size, &idx);
 			w += u_char_width(u);
+		} else if (u > 0x9f) {
+			idx++;
+			w++;
+		} else {
+			idx++;
+			w += 4;
 		}
 	}
 	view->cx_char = c;

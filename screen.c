@@ -384,12 +384,11 @@ static unsigned int screen_next_char(struct line_info *info)
 
 static void screen_skip_char(struct line_info *info)
 {
-	unsigned int count, pos = info->pos;
+	unsigned int pos = info->pos;
 	unsigned int u = (unsigned char)info->line[pos];
 
-	if (likely(u < 0x80) || !buffer->options.utf8) {
+	if (likely(u < 0x80)) {
 		info->pos++;
-		count = 1;
 
 		if (likely(u >= 0x20 && u != 0x7f)) {
 			obuf.x++;
@@ -399,13 +398,19 @@ static void screen_skip_char(struct line_info *info)
 			// control
 			obuf.x += 2;
 		}
-	} else {
+	} else if (buffer->options.utf8) {
 		u = u_buf_get_char(info->line, info->size, &info->pos);
-		count = info->pos - pos;
-
 		obuf.x += u_char_width(u);
+	} else if (u > 0x9f) {
+		info->pos++;
+		obuf.x++;
+	} else {
+		// 0x80 - 0x9f is displayed as "<xx>"
+		info->pos++;
+		obuf.x += 4;
 	}
-	cur_offset += count;
+
+	cur_offset += info->pos - pos;
 }
 
 static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
