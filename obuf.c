@@ -156,7 +156,7 @@ static void skipped_too_much(unsigned int u)
 
 void buf_skip(unsigned int u)
 {
-	if (u < 0x80 || !term_utf8) {
+	if (u < 0x80) {
 		if (u >= 0x20 && u != 0x7f) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
@@ -166,6 +166,7 @@ void buf_skip(unsigned int u)
 			obuf.x += 2;
 		}
 	} else {
+		// u_char_width() needed to handle 0x80-0x9f even if term_utf8 is 0
 		obuf.x += u_char_width(u);
 	}
 
@@ -200,7 +201,7 @@ int buf_put_char(unsigned int u)
 	if (obuf.alloc - obuf.count < 8)
 		buf_flush();
 
-	if (u < 0x80 || !term_utf8) {
+	if (u < 0x80) {
 		if (u >= 0x20 && u != 0x7f) {
 			obuf.buf[obuf.count++] = u;
 			obuf.x++;
@@ -221,7 +222,7 @@ int buf_put_char(unsigned int u)
 				obuf.x++;
 			}
 		}
-	} else {
+	} else if (term_utf8) {
 		width = u_char_width(u);
 		if (width <= space) {
 			u_set_char(obuf.buf, &obuf.count, u);
@@ -238,6 +239,24 @@ int buf_put_char(unsigned int u)
 		} else {
 			obuf.buf[obuf.count++] = '>';
 			obuf.x++;
+		}
+	} else {
+		// terminal character set is assumed to be latin1
+		if (u > 0x9f) {
+			// 0xa0 - 0xff
+			obuf.buf[obuf.count++] = u;
+			obuf.x++;
+		} else {
+			// 0x80 - 0x9f
+			if (space >= 4) {
+				u_set_hex(obuf.buf, &obuf.count, u);
+				obuf.x += 4;
+			} else {
+				unsigned int idx = obuf.count;
+				u_set_hex(obuf.buf, &idx, u);
+				obuf.count += space;
+				obuf.x += space;
+			}
 		}
 	}
 	return 1;
