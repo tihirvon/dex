@@ -65,6 +65,22 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 	return (1U << 7U >> len) - 1U;
 }
 
+static inline int u_is_ctrl(unsigned int u)
+{
+	return u < 0x20 || u == 0x7f;
+}
+
+static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
+{
+	unsigned int i = *idx;
+	buf[i++] = '^';
+	if (u == 0x7f)
+		buf[i++] = '?';
+	else
+		buf[i++] = u | 0x40;
+	*idx = i;
+}
+
 int u_char_width(unsigned int uch);
 
 unsigned int u_str_width(const char *str, unsigned int size);

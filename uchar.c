@@ -5,7 +5,7 @@ const char hex_tab[16] = "0123456789abcdef";
 
 int u_char_width(unsigned int u)
 {
-	if (unlikely(u < 0x20 || u == 0x7f))
+	if (unlikely(u_is_ctrl(u)))
 		return 2;
 
 	if (likely(u < 0x80))
@@ -210,21 +210,16 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 {
 	unsigned int i = *idx;
 
-	if (unlikely(uch < 0x20))
-		goto control;
-
-	if (likely(uch < 0x7f)) {
-		str[i++] = uch;
-		*idx = i;
-		return;
-	}
-	if (unlikely(uch <= 0x9f)) {
-		if (uch == 0x7f) {
-			str[i++] = '^';
-			str[i++] = '?';
+	if (uch < 0x80) {
+		if (likely(!u_is_ctrl(uch))) {
+			str[i++] = uch;
 			*idx = i;
 			return;
 		}
+		u_set_ctrl(str, idx, uch);
+		return;
+	}
+	if (unlikely(uch <= 0x9f)) {
 		// 0x80 - 0x9f are unprintable. display same way as an invalid byte
 		goto invalid;
 	}
@@ -254,12 +249,6 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 	}
 invalid:
 	u_set_hex(str, idx, uch);
-	return;
-control:
-	str[i++] = '^';
-	str[i++] = uch | 0x40;
-	*idx = i;
-	return;
 }
 
 // uses only lower 8 bits of uch

@@ -34,7 +34,7 @@ void update_cursor_x(void)
 		c++;
 		if (likely(u < 0x80)) {
 			idx++;
-			if (u >= 0x20 && u != 0x7f) {
+			if (!u_is_ctrl(u)) {
 				w++;
 			} else if (u == '\t') {
 				w = (w + tw) / tw * tw;

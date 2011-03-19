@@ -28,7 +28,7 @@ void move_to_preferred_x(void)
 
 		in_space_indent = 0;
 		if (u < 0x80) {
-			if (u >= 0x20 && u != 0x7f) {
+			if (!u_is_ctrl(u)) {
 				x++;
 			} else if (u == '\t') {
 				x = (x + tw) / tw * tw;

@@ -157,7 +157,7 @@ static void skipped_too_much(unsigned int u)
 void buf_skip(unsigned int u)
 {
 	if (u < 0x80) {
-		if (u >= 0x20 && u != 0x7f) {
+		if (!u_is_ctrl(u)) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
 			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
@@ -202,7 +202,7 @@ int buf_put_char(unsigned int u)
 		buf_flush();
 
 	if (u < 0x80) {
-		if (u >= 0x20 && u != 0x7f) {
+		if (!u_is_ctrl(u)) {
 			obuf.buf[obuf.count++] = u;
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
@@ -211,15 +211,12 @@ int buf_put_char(unsigned int u)
 				width = space;
 			print_tab(width);
 		} else {
-			obuf.buf[obuf.count++] = '^';
-			obuf.x++;
-			if (space > 1) {
-				if (u == 0x7f) {
-					obuf.buf[obuf.count++] = '?';
-				} else {
-					obuf.buf[obuf.count++] = u | 0x40;
-				}
-				obuf.x++;
+			u_set_ctrl(obuf.buf, &obuf.count, u);
+			obuf.x += 2;
+			if (unlikely(space == 1)) {
+				// wrote too much
+				obuf.count--;
+				obuf.x--;
 			}
 		}
 	} else if (term_utf8) {

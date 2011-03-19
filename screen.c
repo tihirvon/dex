@@ -171,9 +171,11 @@ static int get_char_width(unsigned int *idx)
 		char ch = cmdline.buffer[i++];
 
 		*idx = i;
-		if (ch >= 0x20 && ch != 0x7f)
-			return 1;
-		return 2;
+		if (u_is_ctrl(ch))
+			return 2;
+		if (ch >= 0x80 && ch <= 0x9f)
+			return 4;
+		return 1;
 	}
 }
 
@@ -390,7 +392,7 @@ static void screen_skip_char(struct line_info *info)
 	if (likely(u < 0x80)) {
 		info->pos++;
 
-		if (likely(u >= 0x20 && u != 0x7f)) {
+		if (likely(!u_is_ctrl(u))) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
 			obuf.x += (obuf.x + obuf.tab_width) / obuf.tab_width * obuf.tab_width - obuf.x;
