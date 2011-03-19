@@ -29,7 +29,11 @@ static void update_tab_title_width(struct view *v, int tab_number)
 		while (filename[i])
 			w += u_char_width(u_buf_get_char(filename, i + 4, &i));
 	} else {
-		w += strlen(filename);
+		unsigned int i = 0;
+		while (filename[i]) {
+			// latin1 is subset of unicode
+			w += u_char_width(filename[i++]);
+		}
 	}
 
 	v->tt_width = w;
