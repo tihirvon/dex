@@ -22,6 +22,8 @@
 
 extern int term_utf8;
 
+#if defined(__GNUC__)
+
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
 
@@ -31,8 +33,16 @@ extern int term_utf8;
  * argument at index @first_idx is the first format argument */
 #define __FORMAT(fmt_idx, first_idx) __attribute__((format(printf, (fmt_idx), (first_idx))))
 
-#define ARRAY_COUNT(x) ((unsigned long)sizeof(x) / sizeof(x[0]))
+#else
 
+#define likely(x)	(x)
+#define unlikely(x)	(x)
+#define __NORETURN
+#define __FORMAT(fmt_idx, first_idx)
+
+#endif
+
+#define ARRAY_COUNT(x) ((unsigned long)sizeof(x) / sizeof(x[0]))
 #define clear(ptr) memset((ptr), 0, sizeof(*(ptr)))
 
 static inline size_t ROUND_UP(size_t x, size_t r)
