@@ -74,6 +74,7 @@ unsigned int u_buf_get_char(const char *buf, unsigned int size, unsigned int *id
 
 void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch);
 void u_set_char(char *str, unsigned int *idx, unsigned int uch);
+void u_set_hex(char *str, unsigned int *idx, unsigned int uch);
 
 /*
  * Total width of skipped characters is stored back to @width.

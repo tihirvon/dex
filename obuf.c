@@ -232,7 +232,7 @@ int buf_put_char(unsigned int u)
 			// there's enough space in the buffer so render all 4 characters
 			// but increment position less
 			unsigned int idx = obuf.count;
-			u_set_char(obuf.buf, &idx, u);
+			u_set_hex(obuf.buf, &idx, u);
 			obuf.count += space;
 			obuf.x += space;
 		} else {

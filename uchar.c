@@ -253,17 +253,25 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 		return;
 	}
 invalid:
-	str[i++] = '<';
-	str[i++] = hex_tab[(uch >> 4) & 0x0f];
-	str[i++] = hex_tab[uch & 0x0f];
-	str[i++] = '>';
-	*idx = i;
+	u_set_hex(str, idx, uch);
 	return;
 control:
 	str[i++] = '^';
 	str[i++] = uch | 0x40;
 	*idx = i;
 	return;
+}
+
+// uses only lower 8 bits of uch
+void u_set_hex(char *str, unsigned int *idx, unsigned int uch)
+{
+	unsigned int i = *idx;
+
+	str[i++] = '<';
+	str[i++] = hex_tab[(uch >> 4) & 0x0f];
+	str[i++] = hex_tab[uch & 0x0f];
+	str[i++] = '>';
+	*idx = i;
 }
 
 unsigned int u_skip_chars(const char *str, int *width)
