@@ -37,12 +37,10 @@ static void add_status_str(struct formatter *f, const char *str)
 	} else {
 		while (f->pos < f->size && str[idx]) {
 			unsigned char ch = str[idx++];
-			if (ch < 0x20) {
-				add_ch(f, '^');
-				add_ch(f, ch | 0x40);
-			} else if (ch == 0x7f) {
-				add_ch(f, '^');
-				add_ch(f, '?');
+			if (u_is_ctrl(ch)) {
+				u_set_ctrl(f->buf, &f->pos, ch);
+			} else if (ch >= 0x80 && ch <= 0x9f) {
+				u_set_hex(f->buf, &f->pos, ch);
 			} else {
 				add_ch(f, ch);
 			}
