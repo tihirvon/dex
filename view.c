@@ -29,11 +29,10 @@ void update_cursor_x(void)
 
 	view->cx = fetch_this_line(&view->cursor, &lr);
 	while (idx < view->cx) {
-		unsigned int u = (unsigned char)lr.line[idx];
+		unsigned int u = (unsigned char)lr.line[idx++];
 
 		c++;
 		if (likely(u < 0x80)) {
-			idx++;
 			if (!u_is_ctrl(u)) {
 				w++;
 			} else if (u == '\t') {
@@ -42,13 +41,12 @@ void update_cursor_x(void)
 				w += 2;
 			}
 		} else if (buffer->options.utf8) {
+			idx--;
 			u = u_buf_get_char(lr.line, lr.size, &idx);
 			w += u_char_width(u);
 		} else if (u > 0x9f) {
-			idx++;
 			w++;
 		} else {
-			idx++;
 			w += 4;
 		}
 	}
