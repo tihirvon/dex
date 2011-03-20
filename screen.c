@@ -386,12 +386,10 @@ static unsigned int screen_next_char(struct line_info *info)
 
 static void screen_skip_char(struct line_info *info)
 {
-	unsigned int pos = info->pos;
-	unsigned int u = (unsigned char)info->line[pos];
+	unsigned int u = (unsigned char)info->line[info->pos++];
 
+	cur_offset++;
 	if (likely(u < 0x80)) {
-		info->pos++;
-
 		if (likely(!u_is_ctrl(u))) {
 			obuf.x++;
 		} else if (u == '\t' && obuf.tab != TAB_CONTROL) {
@@ -401,18 +399,18 @@ static void screen_skip_char(struct line_info *info)
 			obuf.x += 2;
 		}
 	} else if (buffer->options.utf8) {
+		unsigned int pos = info->pos;
+
+		info->pos--;
 		u = u_buf_get_char(info->line, info->size, &info->pos);
 		obuf.x += u_char_width(u);
+		cur_offset += info->pos - pos;
 	} else if (u > 0x9f) {
-		info->pos++;
 		obuf.x++;
 	} else {
 		// 0x80 - 0x9f is displayed as "<xx>"
-		info->pos++;
 		obuf.x += 4;
 	}
-
-	cur_offset += info->pos - pos;
 }
 
 static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
