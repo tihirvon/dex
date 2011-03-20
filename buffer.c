@@ -701,7 +701,7 @@ static void check_incomplete_last_line(void)
 {
 	struct block *blk = BLOCK(buffer->blocks.prev);
 	if (blk->size && blk->data[blk->size - 1] != '\n')
-		info_msg("Incomplete last line");
+		info_msg("File saved with incomplete last line.");
 }
 
 int save_buffer(const char *filename, enum newline_sequence newline)
