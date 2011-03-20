@@ -11,11 +11,10 @@
 struct line_info {
 	const char *line;
 	unsigned int size;
-
 	unsigned int pos;
 	unsigned int indent_size;
 	unsigned int trailing_ws_offset;
-
+	int has_nl;
 	struct hl_color **colors;
 };
 
@@ -421,6 +420,13 @@ static void init_line_info(struct line_info *info, struct lineref *lr, struct hl
 	info->size = lr->size;
 	info->pos = 0;
 	info->colors = colors;
+	info->has_nl = 0;
+
+	if (info->size && info->line[info->size - 1] == '\n') {
+		// make printing easier
+		info->size--;
+		info->has_nl = 1;
+	}
 
 	for (i = 0; i < info->size; i++) {
 		char ch = info->line[i];
@@ -471,10 +477,15 @@ static void print_line(struct line_info *info)
 			return;
 		}
 	}
-	update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
-	cur_offset += 1; // newline
-	if (options.display_special && obuf.x >= obuf.scroll_x)
-		buf_put_char('$');
+
+	if (info->has_nl) {
+		update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
+		cur_offset += 1;
+		if (options.display_special && obuf.x >= obuf.scroll_x)
+			buf_put_char('$');
+	} else {
+		update_color(NULL, 0, 0);
+	}
 	buf_clear_eol();
 }
 
@@ -513,10 +524,6 @@ void update_range(int y1, int y2)
 
 		fill_line_nl_ref(&bi, &lr);
 		colors = hl_line(lr.line, lr.size, current_line, &next_changed);
-		if (lr.size && lr.line[lr.size - 1] == '\n') {
-			// highlighter needs \n but other code does not want it
-			lr.size--;
-		}
 		init_line_info(&info, &lr, colors);
 		print_line(&info);
 
