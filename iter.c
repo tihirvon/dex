@@ -264,13 +264,19 @@ int block_iter_is_bol(const struct block_iter *bi)
 void fill_line_ref(struct block_iter *bi, struct lineref *lr)
 {
 	unsigned int max;
-	const char *ptr, *nl;
+	const char *ptr, *nl = NULL;
 
 	block_iter_normalize(bi);
 
 	max = bi->blk->size - bi->offset;
 	ptr = bi->blk->data + bi->offset;
-	nl = memchr(ptr, '\n', max);
+
+	if (multi_line_block(bi->blk)) {
+		nl = memchr(ptr, '\n', max);
+	} else {
+		if (max && ptr[max - 1] == '\n')
+			nl = ptr + max - 1;
+	}
 
 	lr->line = ptr;
 	lr->size = nl ? nl - ptr : max;
