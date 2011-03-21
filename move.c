@@ -12,50 +12,57 @@ enum char_type {
 void move_to_preferred_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;
-	int in_space_indent = 1;
-	int x = 0;
-	unsigned int u;
+	struct lineref lr;
+	unsigned int i = 0;
+	unsigned int x = 0;
 
 	block_iter_bol(&view->cursor);
-	while (x < view->preferred_x) {
-		if (!buffer_next_char(&view->cursor, &u))
-			break;
+	fill_line_ref(&view->cursor, &lr);
 
-		if (u == ' ') {
-			x++;
-			continue;
+	if (buffer->options.emulate_tab && view->preferred_x < lr.size) {
+		while (i < view->preferred_x && lr.line[i] == ' ')
+			i++;
+
+		x = i;
+		if (i == view->preferred_x) {
+			// force cursor to beginning of the indentation level
+			int iw = buffer->options.indent_width;
+			view->cursor.offset += i / iw * iw;
+			return;
 		}
+	}
 
-		in_space_indent = 0;
+	while (x < view->preferred_x && i < lr.size) {
+		unsigned int u = lr.line[i++];
+
 		if (u < 0x80) {
 			if (!u_is_ctrl(u)) {
 				x++;
 			} else if (u == '\t') {
 				x = (x + tw) / tw * tw;
 			} else if (u == '\n') {
-				block_iter_prev_byte(&view->cursor, &u);
 				break;
 			} else {
 				x += 2;
 			}
 		} else if (buffer->options.utf8) {
+			int next = i;
+			i--;
+			u = u_buf_get_char(lr.line, lr.size, &i);
 			x += u_char_width(u);
+			if (x > view->preferred_x) {
+				i = next;
+				break;
+			}
 		} else if (u > 0x9f) {
 			x++;
 		} else {
 			x += 4;
 		}
-
-		if (x > view->preferred_x) {
-			buffer_prev_char(&view->cursor, &u);
-			break;
-		}
 	}
-
-	if (buffer->options.emulate_tab && in_space_indent && x % buffer->options.indent_width) {
-		// force cursor to beginning of a indentation level
-		block_iter_back_bytes(&view->cursor, x % buffer->options.indent_width);
-	}
+	if (x > view->preferred_x)
+		i--;
+	view->cursor.offset += i;
 }
 
 void move_cursor_left(void)
