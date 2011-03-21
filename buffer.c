@@ -284,12 +284,12 @@ void free_buffer(struct buffer *b)
 
 static struct view *find_view(const char *abs_filename)
 {
-	struct window *w;
-	struct view *v;
 	struct view *found = NULL;
+	int i, j;
 
-	list_for_each_entry(w, &windows, node) {
-		list_for_each_entry(v, &w->views, node) {
+	for (i = 0; i < windows.count; i++) {
+		for (j = 0; j < WINDOW(i)->views.count; j++) {
+			struct view *v = VIEW(i, j);
 			const char *f = v->buffer->abs_filename;
 			if (f && !strcmp(f, abs_filename)) {
 				// found in current window?
@@ -305,12 +305,12 @@ static struct view *find_view(const char *abs_filename)
 
 struct view *find_view_by_buffer_id(unsigned int buffer_id)
 {
-	struct window *w;
-	struct view *v;
-	struct view *found = NULL;
+	struct view *v, *found = NULL;
+	int i, j;
 
-	list_for_each_entry(w, &windows, node) {
-		list_for_each_entry(v, &w->views, node) {
+	for (i = 0; i < windows.count; i++) {
+		for (j = 0; j < WINDOW(i)->views.count; j++) {
+			v = VIEW(i, j);
 			if (buffer_id == v->buffer->id) {
 				// found in current window?
 				if (v->window == window)

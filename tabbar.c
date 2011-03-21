@@ -29,28 +29,25 @@ static void update_tab_title_width(struct view *v, int tab_number)
 	v->tt_truncated_width = w;
 }
 
-static void update_first_tab_idx(int count)
+static void update_first_tab_idx(void)
 {
 	int min_first_idx, max_first_idx, w;
-	struct view *v;
 
 	w = 0;
-	max_first_idx = count;
-	list_for_each_entry_reverse(v, &window->views, node) {
+	for (max_first_idx = window->views.count; max_first_idx > 0; max_first_idx--) {
+		struct view *v = window->views.ptrs[max_first_idx - 1];
 		w += v->tt_truncated_width;
 		if (w > window->w)
 			break;
-		max_first_idx--;
 	}
 
 	w = 0;
-	min_first_idx = count;
-	list_for_each_entry_reverse(v, &window->views, node) {
+	for (min_first_idx = window->views.count; min_first_idx > 0; min_first_idx--) {
+		struct view *v = window->views.ptrs[min_first_idx - 1];
 		if (w || v == view)
 			w += v->tt_truncated_width;
 		if (w > window->w)
 			break;
-		min_first_idx--;
 	}
 
 	if (first_tab_idx < min_first_idx)
@@ -62,18 +59,19 @@ static void update_first_tab_idx(int count)
 int calculate_tabbar(void)
 {
 	int truncated_w = 20;
-	int count = 0, total_w = 0;
+	int total_w = 0;
 	int truncated_count = 0, total_truncated_w = 0;
-	int extra;
-	struct view *v;
+	int extra, i;
 
-	list_for_each_entry(v, &window->views, node) {
+	for (i = 0; i < window->views.count; i++) {
+		struct view *v = window->views.ptrs[i];
+
 		if (v == view) {
 			// make sure current tab is visible
-			if (first_tab_idx > count)
-				first_tab_idx = count;
+			if (first_tab_idx > i)
+				first_tab_idx = i;
 		}
-		update_tab_title_width(v, ++count);
+		update_tab_title_width(v, i + 1);
 		total_w += v->tt_width;
 
 		if (v->tt_width > truncated_w) {
@@ -91,14 +89,15 @@ int calculate_tabbar(void)
 	}
 
 	// truncate all wide tabs
-	list_for_each_entry(v, &window->views, node) {
+	for (i = 0; i < window->views.count; i++) {
+		struct view *v = window->views.ptrs[i];
 		if (v->tt_width > truncated_w)
 			v->tt_truncated_width = truncated_w;
 	}
 
 	if (total_truncated_w > window->w) {
 		// not all tabs fit even after truncating wide tabs
-		update_first_tab_idx(count);
+		update_first_tab_idx();
 		return first_tab_idx;
 	}
 
@@ -110,7 +109,8 @@ int calculate_tabbar(void)
 		int extra_avg = extra / truncated_count;
 		int extra_mod = extra % truncated_count;
 
-		list_for_each_entry(v, &window->views, node) {
+		for (i = 0; i < window->views.count; i++) {
+			struct view *v = window->views.ptrs[i];
 			int add = v->tt_width - v->tt_truncated_width;
 			int avail;
 

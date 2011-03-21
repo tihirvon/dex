@@ -1,15 +1,14 @@
 #include "window.h"
 #include "file-history.h"
 
-LIST_HEAD(windows);
+PTR_ARRAY(windows);
 struct window *window;
 
 struct window *window_new(void)
 {
 	struct window *w = xnew0(struct window, 1);
 
-	list_init(&w->views);
-	list_add_before(&w->node, &windows);
+	ptr_array_add(&windows, w);
 	return w;
 }
 
@@ -20,7 +19,7 @@ struct view *window_add_buffer(struct buffer *b)
 	b->ref++;
 	v->buffer = b;
 	v->window = window;
-	list_add_before(&v->node, &window->views);
+	ptr_array_add(&window->views, v);
 	update_flags |= UPDATE_TAB_BAR;
 	return v;
 }
@@ -37,15 +36,15 @@ void view_delete(struct view *v)
 			add_file_history(v->cy + 1, v->cx_char + 1, b->abs_filename);
 		free_buffer(b);
 	}
-	list_del(&v->node);
 	free(v);
 	update_flags |= UPDATE_TAB_BAR;
 }
 
 void remove_view(void)
 {
-	struct list_head *node = view->node.next;
+	int idx = view_idx();
 
+	ptr_array_remove(&window->views, idx);
 	view_delete(view);
 	view = NULL;
 
@@ -53,11 +52,11 @@ void remove_view(void)
 		set_view(prev_view);
 		return;
 	}
-	if (list_empty(&window->views))
+	if (window->views.count == 0)
 		open_empty_buffer();
-	if (node == &window->views)
-		node = node->prev;
-	set_view(VIEW(node));
+	if (window->views.count == idx)
+		idx--;
+	set_view(window->views.ptrs[idx]);
 }
 
 void set_view(struct view *v)
@@ -136,4 +135,15 @@ void update_view(void)
 
 	view->force_center = 0;
 	view->center_on_scroll = 0;
+}
+
+int view_idx(void)
+{
+	int i;
+
+	for (i = 0; i < window->views.count; i++) {
+		if (window->views.ptrs[i] == view)
+			return i;
+	}
+	return -1;
 }

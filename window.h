@@ -4,8 +4,7 @@
 #include "buffer.h"
 
 struct window {
-	struct list_head node;
-	struct list_head views;
+	struct ptr_array views;
 
 	// Current view
 	struct view *view;
@@ -20,11 +19,16 @@ struct window {
 };
 
 extern struct window *window;
-extern struct list_head windows;
+extern struct ptr_array windows;
 
-static inline struct window *WINDOW(struct list_head *item)
+static inline struct window *WINDOW(int i)
 {
-	return container_of(item, struct window, node);
+	return windows.ptrs[i];
+}
+
+static inline struct view *VIEW(int i, int j)
+{
+	return WINDOW(i)->views.ptrs[j];
 }
 
 struct window *window_new(void);
@@ -33,6 +37,12 @@ void view_delete(struct view *v);
 void remove_view(void);
 void set_view(struct view *v);
 void update_view(void);
+int view_idx(void);
+
+static inline int new_view_idx(int idx)
+{
+	return (idx + window->views.count) % window->views.count;
+}
 
 static inline int get_scroll_margin(void)
 {

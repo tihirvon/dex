@@ -60,7 +60,6 @@ enum selection {
 };
 
 struct view {
-	struct list_head node;
 	struct buffer *buffer;
 	struct window *window;
 
@@ -125,11 +124,6 @@ extern struct view *prev_view;
 extern unsigned int update_flags;
 extern int changed_line_min;
 extern int changed_line_max;
-
-static inline struct view *VIEW(struct list_head *item)
-{
-	return container_of(item, struct view, node);
-}
 
 static inline int buffer_modified(struct buffer *b)
 {

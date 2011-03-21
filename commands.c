@@ -66,9 +66,7 @@ static void cmd_case(const char *pf, char **args)
 static void cmd_cd(const char *pf, char **args)
 {
 	char cwd[PATH_MAX];
-	struct window *w;
-	struct view *v;
-	int got_cwd;
+	int i, j, got_cwd;
 
 	got_cwd = !!getcwd(cwd, sizeof(cwd));
 	if (chdir(args[0])) {
@@ -82,8 +80,9 @@ static void cmd_cd(const char *pf, char **args)
 	if (got_cwd)
 		setenv("PWD", cwd, 1);
 
-	list_for_each_entry(w, &windows, node) {
-		list_for_each_entry(v, &w->views, node) {
+	for (i = 0; i < windows.count; i++) {
+		for (j = 0; j < WINDOW(i)->views.count; j++) {
+			struct view *v = VIEW(i, j);
 			if (got_cwd)
 				update_short_filename_cwd(v->buffer, cwd);
 			else
@@ -413,38 +412,29 @@ static void cmd_load_syntax(const char *pf, char **args)
 
 static void cmd_move_tab(const char *pf, char **args)
 {
-	struct list_head *item;
-	char *end, *str = args[0];
-	long num;
+	int j, i = view_idx();
+	char *str = args[0];
+	struct view *tmp;
 
 	if (!strcmp(str, "left")) {
-		item = view->node.prev;
-		list_del(&view->node);
-		list_add_before(&view->node, item);
-		update_flags |= UPDATE_TAB_BAR;
-		return;
-	}
-	if (!strcmp(str, "right")) {
-		item = view->node.next;
-		list_del(&view->node);
-		list_add_after(&view->node, item);
-		update_flags |= UPDATE_TAB_BAR;
-		return;
-	}
-	num = strtol(str, &end, 10);
-	if (!*str || *end || num < 1) {
-		error_msg("Invalid tab position %s", str);
-		return;
+		j = new_view_idx(i - 1);
+	} else if (!strcmp(str, "right")) {
+		j = new_view_idx(i + 1);
+	} else {
+		char *end;
+		long num = strtol(str, &end, 10);
+		if (!*str || *end || num < 1) {
+			error_msg("Invalid tab position %s", str);
+			return;
+		}
+		j = num - 1;
+		if (j >= window->views.count)
+			j = window->views.count - 1;
 	}
 
-	list_del(&view->node);
-	item = &window->views;
-	while (item->next != &window->views) {
-		if (--num == 0)
-			break;
-		item = item->next;
-	}
-	list_add_after(&view->node, item);
+	tmp = window->views.ptrs[i];
+	window->views.ptrs[i] = window->views.ptrs[j];
+	window->views.ptrs[j] = tmp;
 	update_flags |= UPDATE_TAB_BAR;
 }
 
@@ -478,11 +468,7 @@ static void cmd_new_line(const char *pf, char **args)
 
 static void cmd_next(const char *pf, char **args)
 {
-	if (window->view->node.next == &window->views) {
-		set_view(VIEW(window->views.next));
-	} else {
-		set_view(VIEW(window->view->node.next));
-	}
+	set_view(window->views.ptrs[new_view_idx(view_idx() + 1)]);
 }
 
 static void cmd_open(const char *pf, char **args)
@@ -593,24 +579,20 @@ static void cmd_pgup(const char *pf, char **args)
 
 static void cmd_prev(const char *pf, char **args)
 {
-	if (window->view->node.prev == &window->views) {
-		set_view(VIEW(window->views.prev));
-	} else {
-		set_view(VIEW(window->view->node.prev));
-	}
+	set_view(window->views.ptrs[new_view_idx(view_idx() - 1)]);
 }
 
 static void cmd_quit(const char *pf, char **args)
 {
-	struct window *w;
-	struct view *v;
+	int i, j;
 
 	if (pf[0]) {
 		editor_status = EDITOR_EXITING;
 		return;
 	}
-	list_for_each_entry(w, &windows, node) {
-		list_for_each_entry(v, &w->views, node) {
+	for (i = 0; i < windows.count; i++) {
+		for (j = 0; j < WINDOW(i)->views.count; j++) {
+			struct view *v = VIEW(i, j);
 			if (buffer_modified(v->buffer)) {
 				error_msg("Save modified files or run 'quit -f' to quit without saving.");
 				return;
@@ -1143,27 +1125,20 @@ static void cmd_up(const char *pf, char **args)
 
 static void cmd_view(const char *pf, char **args)
 {
-	struct list_head *node;
 	int idx;
 
 	if (strcmp(args[0], "last") == 0) {
-		set_view(VIEW(window->views.prev));
-		return;
-	}
-	idx = atoi(args[0]) - 1;
-	if (idx < 0) {
-		error_msg("View number must be positive.");
-		return;
-	}
-
-	node = window->views.next;
-	while (node != &window->views) {
-		if (!idx--) {
-			set_view(VIEW(node));
+		idx = window->views.count - 1;
+	} else {
+		idx = atoi(args[0]) - 1;
+		if (idx < 0) {
+			error_msg("View number must be positive.");
 			return;
 		}
-		node = node->next;
+		if (idx > window->views.count - 1)
+			idx = window->views.count - 1;
 	}
+	set_view(window->views.ptrs[idx]);
 }
 
 static void cmd_word_bwd(const char *pf, char **args)

@@ -101,7 +101,7 @@ static void print_tab_title(struct view *v, int idx)
 		while (filename[si])
 			buf_put_char(filename[si++]);
 	}
-	if (obuf.x == obuf.width - 1 && v->node.next != &window->views)
+	if (obuf.x == obuf.width - 1 && idx < window->views.count - 1)
 		buf_ch('>');
 	else
 		buf_ch(' ');
@@ -109,15 +109,15 @@ static void print_tab_title(struct view *v, int idx)
 
 void print_tabbar(void)
 {
-	int first_tab_idx = calculate_tabbar();
-	int idx = -1;
-	struct view *v;
+	int idx, first_tab_idx = calculate_tabbar();
 
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y);
 
-	list_for_each_entry(v, &window->views, node) {
-		if (++idx < first_tab_idx)
+	for (idx = 0; idx < window->views.count; idx++) {
+		struct view *v = window->views.ptrs[idx];
+
+		if (idx < first_tab_idx)
 			continue;
 
 		if (obuf.x + v->tt_truncated_width > window->w)
@@ -126,7 +126,7 @@ void print_tabbar(void)
 		print_tab_title(v, idx);
 	}
 	buf_set_color(&tabbar_color->color);
-	if (&v->node != &window->views) {
+	if (idx != window->views.count) {
 		while (obuf.x < obuf.width - 1)
 			buf_ch(' ');
 		if (obuf.x == obuf.width - 1)

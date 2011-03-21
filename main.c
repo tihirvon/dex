@@ -79,15 +79,13 @@ static void handle_sigwinch(int signum)
 
 static void close_all_views(void)
 {
-	struct window *w;
+	int i, j;
 
-	list_for_each_entry(w, &windows, node) {
-		struct list_head *item = w->views.next;
-		while (item != &w->views) {
-			struct list_head *next = item->next;
-			view_delete(VIEW(item));
-			item = next;
-		}
+	for (i = 0; i < windows.count; i++) {
+		struct window *w = WINDOW(i);
+		for (j = 0; j < w->views.count; j++)
+			view_delete(VIEW(i, j));
+		w->views.count = 0;
 	}
 }
 
@@ -215,9 +213,9 @@ int main(int argc, char *argv[])
 
 	for (; i < argc; i++)
 		open_buffer(argv[i], 0);
-	if (list_empty(&window->views))
+	if (window->views.count == 0)
 		open_empty_buffer();
-	set_view(VIEW(window->views.next));
+	set_view(window->views.ptrs[0]);
 
 	if (command || tag)
 		resize();
