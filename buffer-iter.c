@@ -25,7 +25,7 @@ unsigned int buffer_next_char(struct block_iter *bi, unsigned int *up)
 		return 1;
 	}
 
-	*up = u_buf_get_char(bi->blk->data, bi->blk->size, &bi->offset);
+	*up = u_get_nonascii(bi->blk->data, bi->blk->size, &bi->offset);
 	return bi->offset - offset;
 }
 

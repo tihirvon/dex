@@ -374,7 +374,7 @@ static unsigned int screen_next_char(struct line_info *info)
 		if (u == '\t' || u == ' ')
 			ws_error = whitespace_error(info, u, pos);
 	} else {
-		u = u_buf_get_char(info->line, info->size, &info->pos);
+		u = u_get_nonascii(info->line, info->size, &info->pos);
 		count = info->pos - pos;
 	}
 
@@ -401,7 +401,7 @@ static void screen_skip_char(struct line_info *info)
 		unsigned int pos = info->pos;
 
 		info->pos--;
-		u = u_buf_get_char(info->line, info->size, &info->pos);
+		u = u_get_nonascii(info->line, info->size, &info->pos);
 		obuf.x += u_char_width(u);
 		cur_offset += info->pos - pos;
 	} else if (u > 0x9f) {

@@ -48,7 +48,7 @@ void move_to_preferred_x(void)
 		} else if (buffer->options.utf8) {
 			int next = i;
 			i--;
-			u = u_buf_get_char(lr.line, lr.size, &i);
+			u = u_get_nonascii(lr.line, lr.size, &i);
 			x += u_char_width(u);
 			if (x > view->preferred_x) {
 				i = next;

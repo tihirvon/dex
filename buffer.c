@@ -247,7 +247,7 @@ static int read_blocks(struct buffer *b, int fd)
 	for (pos = 0; pos < size; pos++) {
 		if ((unsigned char)buf[pos] >= 0x80) {
 			unsigned int idx = pos;
-			unsigned int u = u_buf_get_char(buf, size, &idx);
+			unsigned int u = u_get_nonascii(buf, size, &idx);
 			b->options.utf8 = !(u & U_INVALID_MASK);
 			break;
 		}

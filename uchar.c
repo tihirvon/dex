@@ -142,15 +142,23 @@ unsigned int u_buf_get_char(const char *buf, unsigned int size, unsigned int *id
 {
 	const unsigned char *s = (const unsigned char *)buf;
 	unsigned int i = *idx;
+	unsigned int u = s[i];
+
+	if (likely(u < 0x80)) {
+		*idx = i + 1;
+		return u;
+	}
+	return u_get_nonascii(buf, size, idx);
+}
+
+unsigned int u_get_nonascii(const char *buf, unsigned int size, unsigned int *idx)
+{
+	const unsigned char *s = (const unsigned char *)buf;
+	unsigned int i = *idx;
 	int len, c;
 	unsigned int first, u;
 
 	first = s[i++];
-	if (likely(first < 0x80)) {
-		*idx = i;
-		return first;
-	}
-
 	len = u_seq_len(first);
 	if (unlikely(len < 2 || len > size - i + 1))
 		goto invalid;

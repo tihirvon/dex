@@ -42,7 +42,7 @@ void update_cursor_x(void)
 			}
 		} else if (buffer->options.utf8) {
 			idx--;
-			u = u_buf_get_char(lr.line, lr.size, &idx);
+			u = u_get_nonascii(lr.line, lr.size, &idx);
 			w += u_char_width(u);
 		} else if (u > 0x9f) {
 			w++;
