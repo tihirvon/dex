@@ -33,7 +33,7 @@ void move_to_preferred_x(void)
 	}
 
 	while (x < view->preferred_x && i < lr.size) {
-		unsigned int u = lr.line[i++];
+		unsigned int u = (unsigned char)lr.line[i++];
 
 		if (u < 0x80) {
 			if (!u_is_ctrl(u)) {
