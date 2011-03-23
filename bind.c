@@ -131,8 +131,8 @@ void handle_binding(enum term_key_type type, unsigned int key)
 	pressed_keys[nr_pressed_keys] = key;
 	nr_pressed_keys++;
 
-	for (i = 0; i < bindings.count; i++) {
-		struct binding *b = bindings.ptrs[i];
+	for (i = bindings.count; i > 0; i--) {
+		struct binding *b = bindings.ptrs[i - 1];
 
 		if (b->nr_keys < nr_pressed_keys)
 			continue;
