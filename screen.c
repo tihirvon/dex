@@ -479,13 +479,13 @@ static void print_line(struct line_info *info)
 	}
 
 	if (info->has_nl) {
-		cur_offset += 1;
 		if (options.display_special && obuf.x >= obuf.scroll_x) {
 			update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
 			buf_put_char('$');
 		}
 	}
 	update_color(NULL, 0, 0);
+	cur_offset++; // must be after update_color()
 	buf_clear_eol();
 }
 
