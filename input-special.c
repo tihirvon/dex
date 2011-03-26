@@ -4,6 +4,7 @@
 #include "change.h"
 #include "cmdline.h"
 #include "uchar.h"
+#include "edit.h"
 
 static struct {
 	int base;

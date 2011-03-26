@@ -157,13 +157,6 @@ void free_buffer(struct buffer *b);
 
 char *buffer_get_bytes(unsigned int len);
 
-void insert(const char *buf, unsigned int len);
-void replace(unsigned int del_count, const char *inserted, int ins_count);
-
-void delete_ch(void);
-void erase(void);
-void insert_ch(unsigned int ch);
-
 unsigned int buffer_get_char(struct block_iter *bi, unsigned int *up);
 unsigned int buffer_next_char(struct block_iter *bi, unsigned int *up);
 unsigned int buffer_prev_char(struct block_iter *bi, unsigned int *up);
