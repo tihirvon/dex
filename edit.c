@@ -191,9 +191,10 @@ void paste(void)
 static void delete_one_ch(void)
 {
 	struct block_iter bi = view->cursor;
-	unsigned int u;
+	unsigned int size, u;
 
-	if (!buffer_next_char(&bi, &u))
+	size = buffer_next_char(&bi, &u);
+	if (!size)
 		return;
 
 	if (u == '\n' && block_iter_is_eof(&bi) &&
@@ -203,20 +204,13 @@ static void delete_one_ch(void)
 		return;
 	}
 
-	if (buffer->options.utf8) {
-		delete(u_char_size(u), 0);
-	} else {
-		delete(1, 0);
-	}
+	delete(size, 0);
 }
 
 void delete_ch(void)
 {
 	if (selecting()) {
-		unsigned int len;
-
-		len = prepare_selection();
-		delete(len, 0);
+		delete(prepare_selection(), 0);
 		unselect();
 	} else {
 		begin_change(CHANGE_MERGE_DELETE);
@@ -236,10 +230,7 @@ void delete_ch(void)
 void erase(void)
 {
 	if (selecting()) {
-		unsigned int len;
-
-		len = prepare_selection();
-		delete(len, 1);
+		delete(prepare_selection(), 1);
 		unselect();
 	} else {
 		unsigned int u;
@@ -247,7 +238,7 @@ void erase(void)
 		begin_change(CHANGE_MERGE_ERASE);
 
 		if (buffer->options.emulate_tab) {
-			int size = get_indent_level_bytes_left();
+			unsigned int size = get_indent_level_bytes_left();
 			if (size) {
 				block_iter_back_bytes(&view->cursor, size);
 				delete(size, 1);
@@ -255,13 +246,7 @@ void erase(void)
 			}
 		}
 
-		if (buffer_prev_char(&view->cursor, &u)) {
-			if (buffer->options.utf8) {
-				delete(u_char_size(u), 1);
-			} else {
-				delete(1, 1);
-			}
-		}
+		delete(buffer_prev_char(&view->cursor, &u), 1);
 	}
 }
 
