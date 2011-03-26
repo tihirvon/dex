@@ -378,7 +378,7 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 
 char *term_read_paste(unsigned int *size)
 {
-	unsigned int alloc = ROUND_UP(input_buf_fill, 1024);
+	unsigned int alloc = ROUND_UP(input_buf_fill + 1, 1024);
 	unsigned int count = 0;
 	unsigned int i;
 	char *buf = xmalloc(alloc);
