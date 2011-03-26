@@ -291,63 +291,98 @@ static int goto_beginning_of_whitespace(void)
 	return count;
 }
 
+static void insert_nl(void)
+{
+	unsigned int ins_count = 0;
+	unsigned int del_count = 0;
+	char *deleted = NULL;
+	char *indent = NULL;
+
+	// prepare deleted text (selection or whitespace around cursor)
+	if (selecting()) {
+		del_count = prepare_selection();
+		unselect();
+	} else if (buffer->options.trim_whitespace) {
+		del_count = goto_beginning_of_whitespace();
+	}
+
+	// prepare inserted indentation
+	if (buffer->options.auto_indent) {
+		indent = get_indent();
+		if (indent)
+			ins_count = strlen(indent);
+	}
+
+	// modify
+	if (del_count)
+		deleted = do_delete(del_count);
+	if (ins_count) {
+		do_insert(indent, ins_count);
+		free(indent);
+	}
+	do_insert("\n", 1);
+	ins_count++;
+
+	// record change
+	begin_change(CHANGE_MERGE_NONE);
+	record_replace(deleted, del_count, ins_count);
+	end_change();
+
+	// move after inserted text
+	block_iter_skip_bytes(&view->cursor, ins_count);
+	update_preferred_x();
+}
+
 void insert_ch(unsigned int ch)
 {
-	if (selecting())
-		delete_ch();
+	unsigned int del_count = 0;
+	unsigned int ins_count = 0;
+	unsigned int skip;
+	char *del = NULL;
+	char ins[9];
 
 	if (ch == '\n') {
-		char *indent = NULL;
-		char *deleted = NULL;
-		int ins_count = 0;
-		int del_count = 0;
-
-		if (buffer->options.auto_indent) {
-			indent = get_indent();
-			if (indent)
-				ins_count += strlen(indent);
-		}
-		if (buffer->options.trim_whitespace) {
-			del_count = goto_beginning_of_whitespace();
-			if (del_count)
-				deleted = do_delete(del_count);
-		}
-		if (indent) {
-			do_insert(indent, ins_count);
-			free(indent);
-		}
-		do_insert("\n", 1);
-		ins_count++;
-
-		begin_change(CHANGE_MERGE_NONE);
-		record_replace(deleted, del_count, ins_count);
-		end_change();
-
-		block_iter_skip_bytes(&view->cursor, ins_count);
-		update_preferred_x();
-	} else {
-		char buf[9];
-		unsigned int bytes, i = 0;
-
-		if (ch == '\t' && buffer->options.expand_tab) {
-			i = buffer->options.indent_width;
-			memset(buf, ' ', i);
-		} else if (buffer->options.utf8) {
-			u_set_char_raw(buf, &i, ch);
-		} else {
-			buf[i++] = ch;
-		}
-		bytes = i;
-		if (block_iter_is_eof(&view->cursor))
-			buf[i++] = '\n';
-
-		begin_change(CHANGE_MERGE_INSERT);
-		insert(buf, i);
-		end_change();
-
-		block_iter_skip_bytes(&view->cursor, bytes);
-		update_preferred_x();
+		insert_nl();
+		return;
 	}
+
+	// prepare deleted text (selection)
+	if (selecting()) {
+		del_count = prepare_selection();
+		unselect();
+	}
+
+	// prepare inserted text
+	if (ch == '\t' && buffer->options.expand_tab) {
+		ins_count = buffer->options.indent_width;
+		memset(ins, ' ', ins_count);
+	} else if (buffer->options.utf8) {
+		u_set_char_raw(ins, &ins_count, ch);
+	} else {
+		ins[ins_count++] = ch;
+	}
+	skip = ins_count;
+
+	// modify
+	if (del_count)
+		del = do_delete(del_count);
+	if (block_iter_is_eof(&view->cursor))
+		ins[ins_count++] = '\n';
+	do_insert(ins, ins_count);
+
+	// record change
+	if (del_count) {
+		begin_change(CHANGE_MERGE_NONE);
+		record_replace(del, del_count, ins_count);
+	} else {
+		begin_change(CHANGE_MERGE_INSERT);
+		record_insert(ins_count);
+	}
+	end_change();
+
+	// move after inserted text
+	block_iter_skip_bytes(&view->cursor, skip);
+	update_preferred_x();
 }
 
 static void join_selection(void)
