@@ -1,6 +1,6 @@
 #include "input.h"
 #include "buffer.h"
-#include "change.h"
+#include "edit.h"
 #include "cmdline.h"
 #include "history.h"
 #include "editor.h"
@@ -14,19 +14,7 @@ static void insert_paste(void)
 {
 	unsigned int size;
 	char *text = term_read_paste(&size);
-	unsigned int skip = size;
-
-	if (text[size - 1] != '\n' && block_iter_is_eof(&view->cursor)) {
-		xrenew(text, ++size);
-		text[size - 1] = '\n';
-	}
-
-	begin_change(CHANGE_MERGE_NONE);
-	insert(text, size);
-	end_change();
-
-	block_iter_skip_bytes(&view->cursor, skip);
-	update_preferred_x();
+	insert_text(text, size);
 	free(text);
 }
 

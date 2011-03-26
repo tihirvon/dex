@@ -8,6 +8,7 @@ void cut(unsigned int len, int is_lines);
 void copy(unsigned int len, int is_lines);
 void select_block(void);
 void unselect(void);
+void insert_text(const char *text, unsigned int size);
 void paste(void);
 void join_lines(void);
 void shift_lines(int count);

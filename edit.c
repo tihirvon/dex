@@ -156,6 +156,41 @@ unsigned int prepare_selection(void)
 	return info.eo - info.so;
 }
 
+void insert_text(const char *text, unsigned int size)
+{
+	unsigned int del_count = 0;
+	unsigned int skip = size;
+	char *del = NULL;
+
+	// prepare deleted text (selection)
+	if (selecting()) {
+		del_count = prepare_selection();
+		unselect();
+	}
+
+	// modify
+	if (del_count)
+		del = do_delete(del_count);
+	if (block_iter_is_eof(&view->cursor) && text[size - 1] != '\n') {
+		// this appears to be in wrong order but because the cursor
+		// doesn't move the result is correct
+		do_insert("\n", 1);
+		do_insert(text, size);
+		size++;
+	} else {
+		do_insert(text, size);
+	}
+
+	// record change
+	begin_change(CHANGE_MERGE_NONE);
+	record_replace(del, del_count, size);
+	end_change();
+
+	// move after inserted text
+	block_iter_skip_bytes(&view->cursor, skip);
+	update_preferred_x();
+}
+
 void paste(void)
 {
 	unsigned int del_count = 0;
