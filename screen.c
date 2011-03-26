@@ -7,6 +7,7 @@
 #include "search.h"
 #include "color.h"
 #include "uchar.h"
+#include "hl.h"
 
 struct line_info {
 	const char *line;

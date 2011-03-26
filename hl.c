@@ -1,4 +1,5 @@
-#include "window.h"
+#include "hl.h"
+#include "buffer.h"
 #include "state.h"
 
 static int state_is_valid(const struct state *st)
