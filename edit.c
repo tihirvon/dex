@@ -267,10 +267,10 @@ void erase(void)
 
 // goto beginning of whitespace (tabs and spaces) under cursor and
 // return number of whitespace bytes after cursor after moving cursor
-static int goto_beginning_of_whitespace(void)
+static unsigned int goto_beginning_of_whitespace(void)
 {
 	struct block_iter bi = view->cursor;
-	int count = 0;
+	unsigned int count = 0;
 	unsigned int u;
 
 	// count spaces and tabs at or after cursor
