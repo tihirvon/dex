@@ -75,7 +75,6 @@ struct global_options {
 	int ws_error;
 
 	/* only global */
-	int allow_incomplete_last_line;
 	enum case_sensitive_search case_sensitive_search;
 	int display_special;
 	int esc_timeout;

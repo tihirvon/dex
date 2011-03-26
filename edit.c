@@ -232,9 +232,7 @@ static void delete_one_ch(void)
 	if (!size)
 		return;
 
-	if (u == '\n' && block_iter_is_eof(&bi) &&
-			!block_iter_is_bol(&view->cursor) &&
-			!options.allow_incomplete_last_line) {
+	if (u == '\n' && block_iter_is_eof(&bi) && !block_iter_is_bol(&view->cursor)) {
 		/* don't make last line incomplete */
 		return;
 	}

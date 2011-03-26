@@ -545,10 +545,6 @@ utf8 false/true
 
 @h2 Global only options
 
-allow-incomplete-last-line [false]
-	Allow deleting last newline of file. Probably not very useful
-	option and may be removed.
-
 newline [unix]
 	Whether to use LF (`unix`) or CRLF (`dos`) line-endings. This is
 	just a default value for new files.

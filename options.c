@@ -17,7 +17,6 @@ struct global_options options = {
 	.trim_whitespace = 1,
 	.ws_error = 0,
 
-	.allow_incomplete_last_line = 0,
 	.case_sensitive_search = CSS_TRUE,
 	.display_special = 0,
 	.esc_timeout = 100,
@@ -221,7 +220,6 @@ static const char *ws_error_values[] = {
 };
 
 static const struct option_description option_desc[] = {
-	G_BOOL("allow-incomplete-last-line", allow_incomplete_last_line, default_bool_set),
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
 	G_ENUM("case-sensitive-search", case_sensitive_search, case_sensitive_search_enum, default_enum_set),
 	G_BOOL("display-special", display_special, default_bool_set),
