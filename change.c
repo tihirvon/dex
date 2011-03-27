@@ -311,30 +311,6 @@ void insert(const char *buf, unsigned int len)
 	record_insert(rec_len);
 }
 
-void delete(unsigned int len, int move_after)
-{
-	char *buf;
-
-	if (len == 0)
-		return;
-
-	buf = do_delete(len);
-	if (block_iter_is_eof(&view->cursor)) {
-		struct block_iter bi = view->cursor;
-		unsigned int u;
-		if (block_iter_prev_byte(&bi, &u) && u != '\n') {
-			// deleted last newline from EOF
-			do_insert("\n", 1);
-			if (--len == 0) {
-				begin_change(CHANGE_MERGE_NONE);
-				free(buf);
-				return;
-			}
-		}
-	}
-	record_delete(buf, len, move_after);
-}
-
 static int would_delete_last_bytes(unsigned int count)
 {
 	struct block *blk = view->cursor.blk;
@@ -353,6 +329,27 @@ static int would_delete_last_bytes(unsigned int count)
 		blk = BLOCK(blk->node.next);
 		offset = 0;
 	}
+}
+
+void delete(unsigned int len, int move_after)
+{
+	if (len == 0)
+		return;
+
+	// check if all newlines from EOF would be deleted
+	if (would_delete_last_bytes(len)) {
+		struct block_iter bi = view->cursor;
+		unsigned int u;
+
+		if (block_iter_prev_byte(&bi, &u) && u != '\n') {
+			// no newline before cursor
+			if (--len == 0) {
+				begin_change(CHANGE_MERGE_NONE);
+				return;
+			}
+		}
+	}
+	record_delete(do_delete(len), len, move_after);
 }
 
 void replace(unsigned int del_count, const char *inserted, int ins_count)
