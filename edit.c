@@ -270,42 +270,21 @@ void paste(void)
 	}
 }
 
-static void delete_one_ch(void)
-{
-	struct block_iter bi = view->cursor;
-	unsigned int size, u;
-
-	size = buffer_next_char(&bi, &u);
-	if (!size)
-		return;
-
-	if (u == '\n' && block_iter_is_eof(&bi) && !block_iter_is_bol(&view->cursor)) {
-		/* don't make last line incomplete */
-		return;
-	}
-
-	delete(size, 0);
-}
-
 void delete_ch(void)
 {
+	unsigned int u, size = 0;
+
 	if (selecting()) {
-		delete(prepare_selection(), 0);
+		size = prepare_selection();
 		unselect();
 	} else {
 		begin_change(CHANGE_MERGE_DELETE);
-
-		if (buffer->options.emulate_tab) {
-			int size = get_indent_level_bytes_right();
-			if (size) {
-				delete(size, 0);
-				update_preferred_x();
-				return;
-			}
-		}
-
-		delete_one_ch();
+		if (buffer->options.emulate_tab)
+			size = get_indent_level_bytes_right();
+		if (size == 0)
+			size = buffer_get_char(&view->cursor, &u);
 	}
+	delete(size, 0);
 	update_preferred_x();
 }
 
