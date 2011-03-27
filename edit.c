@@ -217,33 +217,13 @@ unsigned int prepare_selection(void)
 void insert_text(const char *text, unsigned int size)
 {
 	unsigned int del_count = 0;
-	unsigned int skip = size;
-	char *del = NULL;
 
-	// prepare deleted text (selection)
 	if (selecting()) {
 		del_count = prepare_selection();
 		unselect();
 	}
-
-	// modify
-	if (del_count)
-		del = do_delete(del_count);
-	if (block_iter_is_eof(&view->cursor) && text[size - 1] != '\n') {
-		// this appears to be in wrong order but because the cursor
-		// doesn't move the result is correct
-		do_insert("\n", 1);
-		do_insert(text, size);
-		size++;
-	} else {
-		do_insert(text, size);
-	}
-
-	// record change
-	record_replace(del, del_count, size);
-
-	// move after inserted text
-	block_iter_skip_bytes(&view->cursor, skip);
+	replace(del_count, text, size);
+	block_iter_skip_bytes(&view->cursor, size);
 	update_preferred_x();
 }
 
@@ -336,10 +316,9 @@ static unsigned int goto_beginning_of_whitespace(void)
 
 static void insert_nl(void)
 {
-	unsigned int ins_count = 0;
 	unsigned int del_count = 0;
-	char *deleted = NULL;
-	char *indent = NULL;
+	unsigned int ins_count = 1;
+	char *ins = NULL;
 
 	// prepare deleted text (selection or whitespace around cursor)
 	if (selecting()) {
@@ -350,25 +329,22 @@ static void insert_nl(void)
 	}
 
 	// prepare inserted indentation
-	if (buffer->options.auto_indent) {
-		indent = get_indent();
-		if (indent)
-			ins_count = strlen(indent);
-	}
+	if (buffer->options.auto_indent)
+		ins = get_indent();
 
-	// modify
-	if (del_count)
-		deleted = do_delete(del_count);
-	if (ins_count) {
-		do_insert(indent, ins_count);
-		free(indent);
-	}
-	do_insert("\n", 1);
-	ins_count++;
-
-	// record change
 	begin_change(CHANGE_MERGE_NONE);
-	record_replace(deleted, del_count, ins_count);
+	if (ins) {
+		// add newline before indent
+		ins_count = strlen(ins);
+		memmove(ins + 1, ins, ins_count);
+		ins[0] = '\n';
+		ins_count++;
+
+		replace(del_count, ins, ins_count);
+		free(ins);
+	} else {
+		replace(del_count, "\n", ins_count);
+	}
 	end_change();
 
 	// move after inserted text
@@ -380,9 +356,7 @@ void insert_ch(unsigned int ch)
 {
 	unsigned int del_count = 0;
 	unsigned int ins_count = 0;
-	unsigned int skip;
-	char *del = NULL;
-	char ins[9];
+	char ins[8];
 
 	if (ch == '\n') {
 		insert_nl();
@@ -404,27 +378,18 @@ void insert_ch(unsigned int ch)
 	} else {
 		ins[ins_count++] = ch;
 	}
-	skip = ins_count;
-
-	// modify
-	if (del_count)
-		del = do_delete(del_count);
-	if (block_iter_is_eof(&view->cursor))
-		ins[ins_count++] = '\n';
-	do_insert(ins, ins_count);
 
 	// record change
 	if (del_count) {
 		begin_change(CHANGE_MERGE_NONE);
-		record_replace(del, del_count, ins_count);
 	} else {
 		begin_change(CHANGE_MERGE_INSERT);
-		record_insert(ins_count);
 	}
+	replace(del_count, ins, ins_count);
 	end_change();
 
 	// move after inserted text
-	block_iter_skip_bytes(&view->cursor, skip);
+	block_iter_skip_bytes(&view->cursor, ins_count);
 	update_preferred_x();
 }
 
@@ -486,7 +451,6 @@ void join_lines(void)
 	struct block_iter next, bi = view->cursor;
 	int count;
 	unsigned int u;
-	char *buf;
 
 	if (selecting()) {
 		join_selection();
@@ -515,9 +479,7 @@ void join_lines(void)
 	}
 
 	view->cursor = bi;
-	buf = do_delete(count);
-	do_insert(" ", 1);
-	record_replace(buf, count, 1);
+	replace(count, " ", 1);
 	update_preferred_x();
 }
 
@@ -556,27 +518,16 @@ static void shift_right(int nr_lines, int count)
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
-				char *deleted;
-
-				deleted = do_delete(info.bytes);
-				record_delete(deleted, info.bytes, 0);
+				delete(info.bytes, 0);
 			}
 		} else if (info.sane) {
 			// insert whitespace
-			do_insert(indent, indent_size);
-			record_insert(indent_size);
+			insert(indent, indent_size);
 		} else {
 			// replace whole indentation with sane one
-			int level = info.level + count;
-			char *deleted;
-			char *buf;
 			int size;
-
-			deleted = do_delete(info.bytes);
-			buf = alloc_indent(level, &size);
-			do_insert(buf, size);
-			free(buf);
-			record_replace(deleted, info.bytes, size);
+			char *buf = alloc_indent(info.level + count, &size);
+			replace(info.bytes, buf, size);
 		}
 		if (++i == nr_lines)
 			break;
@@ -599,36 +550,24 @@ static void shift_left(int nr_lines, int count)
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
-				char *deleted;
-
-				deleted = do_delete(info.bytes);
-				record_delete(deleted, info.bytes, 0);
+				delete(info.bytes, 0);
 			}
 		} else if (info.level && info.sane) {
-			char *buf;
 			int n = count;
 
 			if (n > info.level)
 				n = info.level;
 			if (use_spaces_for_indent())
 				n *= buffer->options.indent_width;
-			buf = do_delete(n);
-			record_delete(buf, n, 0);
+			delete(n, 0);
 		} else if (info.bytes) {
 			// replace whole indentation with sane one
-			char *deleted;
-
-			deleted = do_delete(info.bytes);
 			if (info.level > count) {
-				char *buf;
 				int size;
-
-				buf = alloc_indent(info.level - count, &size);
-				do_insert(buf, size);
-				free(buf);
-				record_replace(deleted, info.bytes, size);
+				char *buf = alloc_indent(info.level - count, &size);
+				replace(info.bytes, buf, size);
 			} else {
-				record_delete(deleted, info.bytes, 0);
+				delete(info.bytes, 0);
 			}
 		}
 		if (++i == nr_lines)
@@ -710,20 +649,23 @@ void clear_lines(void)
 void new_line(void)
 {
 	unsigned int ins_count = 1;
+	char *ins = NULL;
 
 	block_iter_eol(&view->cursor);
 
-	if (buffer->options.auto_indent) {
-		char *indent = get_indent();
-		if (indent) {
-			ins_count += strlen(indent);
-			do_insert(indent, ins_count - 1);
-			free(indent);
-		}
+	if (buffer->options.auto_indent)
+		ins = get_indent();
+	if (ins) {
+		ins_count = strlen(ins);
+		memmove(ins + 1, ins, ins_count);
+		ins[0] = '\n';
+		ins_count++;
+		insert(ins, ins_count);
+		free(ins);
+	} else {
+		insert("\n", 1);
 	}
-	do_insert("\n", 1);
 
-	record_insert(ins_count);
 	block_iter_skip_bytes(&view->cursor, ins_count);
 	update_preferred_x();
 }
@@ -821,7 +763,7 @@ void format_paragraph(int text_width)
 	if (!len)
 		return;
 
-	sel = do_delete(len);
+	sel = buffer_get_bytes(len);
 	get_indent_info(sel, len, &info);
 
 	gbuf_init(&pf.buf);
@@ -847,15 +789,14 @@ void format_paragraph(int text_width)
 		add_word(&pf, sel + start, i - start);
 	}
 
-	if (pf.buf.len) {
+	if (pf.buf.len)
 		gbuf_add_ch(&pf.buf, '\n');
-		do_insert(pf.buf.buffer, pf.buf.len);
-	}
-	record_replace(sel, len, pf.buf.len);
+	replace(len, pf.buf.buffer, pf.buf.len);
 	if (pf.buf.len)
 		block_iter_skip_bytes(&view->cursor, pf.buf.len - 1);
 	gbuf_free(&pf.buf);
 	free(pf.indent);
+	free(sel);
 
 	unselect();
 	update_preferred_x();
@@ -881,7 +822,7 @@ void change_case(int mode, int move_after)
 			text_len = u_char_size(u);
 	}
 
-	src = do_delete(text_len);
+	src = buffer_get_bytes(text_len);
 	i = 0;
 	while (i < text_len) {
 		unsigned int u;
@@ -917,8 +858,8 @@ void change_case(int mode, int move_after)
 		}
 	}
 
-	do_insert(dst.buffer, dst.len);
-	record_replace(src, text_len, dst.len);
+	replace(text_len, dst.buffer, dst.len);
+	free(src);
 
 	if (move_after)
 		block_iter_skip_bytes(&view->cursor, dst.len);
