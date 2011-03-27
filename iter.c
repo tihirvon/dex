@@ -2,25 +2,6 @@
 
 #include <string.h>
 
-static int multi_line_block(struct block *blk)
-{
-	if (blk->nl > 1)
-		return 1;
-
-	if (blk->nl == 0) {
-		// empty or one incomplete line
-		return 0;
-	}
-
-	if (blk->data[blk->size - 1] == '\n') {
-		// single line block ending with newline
-		return 0;
-	}
-
-	// two lines, second one is incomplete
-	return 1;
-}
-
 void block_iter_normalize(struct block_iter *bi)
 {
 	struct block *blk = bi->blk;
@@ -148,7 +129,7 @@ unsigned int block_iter_bol(struct block_iter *bi)
 	if (!offset)
 		return 0;
 
-	if (multi_line_block(bi->blk)) {
+	if (bi->blk->nl > 1) {
 		while (offset && bi->blk->data[offset - 1] != '\n')
 			offset--;
 	} else {
@@ -271,7 +252,7 @@ void fill_line_ref(struct block_iter *bi, struct lineref *lr)
 	max = bi->blk->size - bi->offset;
 	ptr = bi->blk->data + bi->offset;
 
-	if (multi_line_block(bi->blk)) {
+	if (bi->blk->nl > 1) {
 		nl = memchr(ptr, '\n', max);
 	} else {
 		if (max && ptr[max - 1] == '\n')

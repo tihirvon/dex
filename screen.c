@@ -15,7 +15,6 @@ struct line_info {
 	unsigned int pos;
 	unsigned int indent_size;
 	unsigned int trailing_ws_offset;
-	int has_nl;
 	struct hl_color **colors;
 };
 
@@ -417,17 +416,13 @@ static void init_line_info(struct line_info *info, struct lineref *lr, struct hl
 {
 	int i;
 
+	BUG_ON(lr->size == 0);
+	BUG_ON(lr->line[lr->size - 1] != '\n');
+
 	info->line = lr->line;
-	info->size = lr->size;
+	info->size = lr->size - 1;
 	info->pos = 0;
 	info->colors = colors;
-	info->has_nl = 0;
-
-	if (info->size && info->line[info->size - 1] == '\n') {
-		// make printing easier
-		info->size--;
-		info->has_nl = 1;
-	}
 
 	for (i = 0; i < info->size; i++) {
 		char ch = info->line[i];
@@ -479,11 +474,9 @@ static void print_line(struct line_info *info)
 		}
 	}
 
-	if (info->has_nl) {
-		if (options.display_special && obuf.x >= obuf.scroll_x) {
-			update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
-			buf_put_char('$');
-		}
+	if (options.display_special && obuf.x >= obuf.scroll_x) {
+		update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
+		buf_put_char('$');
 	}
 	update_color(NULL, 0, 0);
 	cur_offset++; // must be after update_color()
