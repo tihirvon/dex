@@ -81,7 +81,7 @@ wide:
 	return 2;
 }
 
-unsigned int u_str_width(const char *str, unsigned int size)
+unsigned int u_str_width(const unsigned char *str, unsigned int size)
 {
 	unsigned int idx = 0, w = 0;
 
@@ -90,14 +90,13 @@ unsigned int u_str_width(const char *str, unsigned int size)
 	return w;
 }
 
-unsigned int u_prev_char(const char *str, unsigned int *idx)
+unsigned int u_prev_char(const unsigned char *buf, unsigned int *idx)
 {
-	const unsigned char *s = (const unsigned char *)str;
 	unsigned int i = *idx;
 	unsigned int count, shift;
 	unsigned int u;
 
-	u = s[--i];
+	u = buf[--i];
 	if (likely(u < 0x80)) {
 		*idx = i;
 		return u;
@@ -110,7 +109,7 @@ unsigned int u_prev_char(const char *str, unsigned int *idx)
 	count = 1;
 	shift = 6;
 	while (i) {
-		unsigned int ch = s[--i];
+		unsigned int ch = buf[--i];
 		unsigned int len = u_seq_len(ch);
 
 		count++;
@@ -138,11 +137,10 @@ invalid:
 	return u | U_INVALID_MASK;
 }
 
-unsigned int u_buf_get_char(const char *buf, unsigned int size, unsigned int *idx)
+unsigned int u_buf_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
 {
-	const unsigned char *s = (const unsigned char *)buf;
 	unsigned int i = *idx;
-	unsigned int u = s[i];
+	unsigned int u = buf[i];
 
 	if (likely(u < 0x80)) {
 		*idx = i + 1;
@@ -151,14 +149,13 @@ unsigned int u_buf_get_char(const char *buf, unsigned int size, unsigned int *id
 	return u_get_nonascii(buf, size, idx);
 }
 
-unsigned int u_get_nonascii(const char *buf, unsigned int size, unsigned int *idx)
+unsigned int u_get_nonascii(const unsigned char *buf, unsigned int size, unsigned int *idx)
 {
-	const unsigned char *s = (const unsigned char *)buf;
 	unsigned int i = *idx;
 	int len, c;
 	unsigned int first, u;
 
-	first = s[i++];
+	first = buf[i++];
 	len = u_seq_len(first);
 	if (unlikely(len < 2 || len > size - i + 1))
 		goto invalid;
@@ -166,7 +163,7 @@ unsigned int u_get_nonascii(const char *buf, unsigned int size, unsigned int *id
 	u = first & u_get_first_byte_mask(len);
 	c = len - 1;
 	do {
-		unsigned int ch = s[i++];
+		unsigned int ch = buf[i++];
 		if (!u_is_continuation(ch))
 			goto invalid;
 		u = (u << 6) | (ch & 0x3f);
