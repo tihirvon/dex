@@ -13,9 +13,8 @@ static void bitmap_set(unsigned char *bitmap, unsigned int idx)
 	bitmap[byte] |= 1 << bit;
 }
 
-static void set_bits(unsigned char *bitmap, const char *_pattern)
+static void set_bits(unsigned char *bitmap, const unsigned char *pattern)
 {
-	const unsigned char *pattern = (const unsigned char *)_pattern;
 	int i;
 
 	for (i = 0; pattern[i]; i++) {

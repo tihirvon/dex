@@ -231,7 +231,7 @@ static size_t add_block(struct buffer *b, const char *buf, size_t size)
 static int read_blocks(struct buffer *b, int fd)
 {
 	size_t pos, size = b->st_size;
-	char *nl, *buf = xmmap(fd, 0, size);
+	unsigned char *nl, *buf = xmmap(fd, 0, size);
 
 	if (!buf)
 		return -1;
@@ -245,7 +245,7 @@ static int read_blocks(struct buffer *b, int fd)
 		pos += add_block(b, buf + pos, size - pos);
 
 	for (pos = 0; pos < size; pos++) {
-		if ((unsigned char)buf[pos] >= 0x80) {
+		if (buf[pos] >= 0x80) {
 			unsigned int idx = pos;
 			unsigned int u = u_get_nonascii(buf, size, &idx);
 			b->options.utf8 = !(u & U_INVALID_MASK);

@@ -44,9 +44,9 @@ static unsigned char string_cap_map[NR_STR_CAPS] = {
 
 struct terminfo {
 	unsigned int nr_bools, nr_nums, nr_strs, strs_size;
-	const char *bools;
-	const char *nums;
-	const char *offsets;
+	const unsigned char *bools;
+	const unsigned char *nums;
+	const unsigned char *offsets;
 	const char *strs;
 };
 
@@ -55,10 +55,8 @@ static inline int max(int a, int b)
 	return a > b ? a : b;
 }
 
-static unsigned short get_u16le(const char *buffer)
+static unsigned short get_u16le(const unsigned char *buf)
 {
-	const unsigned char *buf = (const unsigned char *)buffer;
-
 	return buf[0] + (buf[1] << 8);
 }
 
@@ -112,7 +110,7 @@ static int validate(struct terminfo *ti)
 	int i;
 
 	for (i = 0; i < ti->nr_bools; i++) {
-		if ((unsigned char)ti->bools[i] > 2) {
+		if (ti->bools[i] > 2) {
 			d_print("bool %3d: %d\n", i, ti->bools[i]);
 			valid = 0;
 		}
