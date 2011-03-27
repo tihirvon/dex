@@ -12,6 +12,6 @@ errorfmt -i gcc "^ +from (.+):([0-9]+)[,:]" file line
 errorfmt -i gcc "^(.+): (In function .*:)$" file message
 errorfmt -i gcc "^In function '.*',$"
 errorfmt -i gcc "^(.+): At top level:$" file
-errorfmt -i gcc "^cc1: warnings being treated as errors$"
+errorfmt -i gcc "^cc1: (all )?warnings being treated as errors$"
 errorfmt -i gcc '^make: \*\*\* \[.*\] Error [0-9]+$'
 errorfmt -i gcc "^collect2: ld returned [0-9]+ exit status$"
