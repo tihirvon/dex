@@ -23,15 +23,62 @@ static int copy_is_lines;
 
 void insert(const char *buf, unsigned int len)
 {
-	record_insert(len);
+	unsigned int rec_len = len;
+
+	if (len == 0)
+		return;
+
+	if (buf[len - 1] != '\n' && block_iter_is_eof(&view->cursor)) {
+		// force newline at EOF
+		do_insert("\n", 1);
+		rec_len++;
+	}
+
 	do_insert(buf, len);
+	record_insert(rec_len);
 }
 
 void delete(unsigned int len, int move_after)
 {
-	if (len) {
-		char *buf = do_delete(len);
-		record_delete(buf, len, move_after);
+	char *buf;
+
+	if (len == 0)
+		return;
+
+	buf = do_delete(len);
+	if (block_iter_is_eof(&view->cursor)) {
+		struct block_iter bi = view->cursor;
+		unsigned int u;
+		if (block_iter_prev_byte(&bi, &u) && u != '\n') {
+			// deleted last newline from EOF
+			do_insert("\n", 1);
+			if (--len == 0) {
+				begin_change(CHANGE_MERGE_NONE);
+				free(buf);
+				return;
+			}
+		}
+	}
+	record_delete(buf, len, move_after);
+}
+
+static int would_delete_last_bytes(unsigned int count)
+{
+	struct block *blk = view->cursor.blk;
+	unsigned int offset = view->cursor.offset;
+
+	while (1) {
+		unsigned int avail = blk->size - offset;
+
+		if (avail > count)
+			return 0;
+
+		if (blk->node.next == view->cursor.head)
+			return 1;
+
+		count -= avail;
+		blk = BLOCK(blk->node.next);
+		offset = 0;
 	}
 }
 
@@ -39,15 +86,27 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 {
 	char *deleted = NULL;
 
-	if (!del_count) {
-		if (!ins_count)
-			return;
-		do_insert(inserted, ins_count);
-	} else if (!ins_count) {
-		deleted = do_delete(del_count);
-	} else {
-		deleted = do_replace(del_count, inserted, ins_count);
+	if (del_count == 0) {
+		insert(inserted, ins_count);
+		return;
 	}
+	if (ins_count == 0) {
+		delete(del_count, 0);
+		return;
+	}
+
+	// check if all newlines from EOF would be deleted
+	if (would_delete_last_bytes(del_count)) {
+		if (inserted[ins_count - 1] != '\n') {
+			// don't replace last newline
+			if (--del_count == 0) {
+				insert(inserted, ins_count);
+				return;
+			}
+		}
+	}
+
+	deleted = do_replace(del_count, inserted, ins_count);
 	record_replace(deleted, del_count, ins_count);
 }
 
