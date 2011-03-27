@@ -29,7 +29,7 @@ void update_cursor_x(void)
 
 	view->cx = fetch_this_line(&view->cursor, &lr);
 	while (idx < view->cx) {
-		unsigned int u = (unsigned char)lr.line[idx++];
+		unsigned int u = lr.line[idx++];
 
 		c++;
 		if (likely(u < 0x80)) {

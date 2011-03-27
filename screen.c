@@ -10,7 +10,7 @@
 #include "hl.h"
 
 struct line_info {
-	const char *line;
+	const unsigned char *line;
 	unsigned int size;
 	unsigned int pos;
 	unsigned int indent_size;
@@ -366,7 +366,7 @@ static int whitespace_error(struct line_info *info, unsigned int u, unsigned int
 static unsigned int screen_next_char(struct line_info *info)
 {
 	unsigned int count, pos = info->pos;
-	unsigned int u = (unsigned char)info->line[pos];
+	unsigned int u = info->line[pos];
 	int ws_error = 0;
 
 	if (likely(u < 0x80) || !buffer->options.utf8) {
@@ -386,7 +386,7 @@ static unsigned int screen_next_char(struct line_info *info)
 
 static void screen_skip_char(struct line_info *info)
 {
-	unsigned int u = (unsigned char)info->line[info->pos++];
+	unsigned int u = info->line[info->pos++];
 
 	cur_offset++;
 	if (likely(u < 0x80)) {

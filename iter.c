@@ -40,7 +40,7 @@ unsigned int block_iter_next_byte(struct block_iter *i, unsigned int *byte)
 		i->blk = BLOCK(i->blk->node.next);
 		i->offset = 0;
 	}
-	*byte = (unsigned char)i->blk->data[i->offset];
+	*byte = i->blk->data[i->offset];
 	i->offset++;
 	return 1;
 }
@@ -55,7 +55,7 @@ unsigned int block_iter_prev_byte(struct block_iter *i, unsigned int *byte)
 		i->offset = i->blk->size;
 	}
 	i->offset--;
-	*byte = (unsigned char)i->blk->data[i->offset];
+	*byte = i->blk->data[i->offset];
 	return 1;
 }
 
@@ -67,7 +67,7 @@ unsigned int block_iter_prev_byte(struct block_iter *i, unsigned int *byte)
 unsigned int block_iter_eat_line(struct block_iter *bi)
 {
 	unsigned int offset;
-	const char *end;
+	const unsigned char *end;
 
 	block_iter_normalize(bi);
 
@@ -91,7 +91,7 @@ unsigned int block_iter_next_line(struct block_iter *bi)
 	struct block *blk;
 	unsigned int offset;
 	unsigned int new_offset;
-	const char *end;
+	const unsigned char *end;
 
 	block_iter_normalize(bi);
 
@@ -168,7 +168,7 @@ unsigned int block_iter_eol(struct block_iter *bi)
 {
 	struct block *blk;
 	unsigned int offset;
-	const char *end;
+	const unsigned char *end;
 
 	block_iter_normalize(bi);
 

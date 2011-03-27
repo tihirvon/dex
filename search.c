@@ -260,7 +260,7 @@ static char *build_replace(const char *line, const char *format, regmatch_t *m)
 static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 	struct block_iter *bi, unsigned int *flagsp)
 {
-	char *buf = (char *)lr->line;
+	unsigned char *buf = (unsigned char *)lr->line;
 	unsigned int flags = *flagsp;
 	regmatch_t m[MAX_SUBSTRINGS];
 	size_t pos = 0;

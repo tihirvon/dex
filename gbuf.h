@@ -4,12 +4,12 @@
 #include <stdlib.h>
 
 struct gbuf {
-	char *buffer;
+	unsigned char *buffer;
 	size_t alloc;
 	size_t len;
 };
 
-extern char gbuf_empty_buffer[];
+extern unsigned char gbuf_empty_buffer[];
 
 #define GBUF(name) struct gbuf name = { gbuf_empty_buffer, 0, 0 }
 

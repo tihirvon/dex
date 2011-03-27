@@ -5,7 +5,7 @@
 #include "gbuf.h"
 #include "common.h"
 
-char gbuf_empty_buffer[1];
+unsigned char gbuf_empty_buffer[1];
 
 void gbuf_grow(struct gbuf *buf, size_t more)
 {

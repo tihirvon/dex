@@ -11,7 +11,7 @@
  */
 struct block {
 	struct list_head node;
-	char *data;
+	unsigned char *data;
 	unsigned int size;
 	unsigned int alloc;
 	unsigned int nl;
@@ -29,7 +29,7 @@ struct block_iter {
 };
 
 struct lineref {
-	const char *line;
+	const unsigned char *line;
 	unsigned int size;
 };
 
