@@ -82,6 +82,8 @@ static void run_command(const struct command *cmds, char **av)
 		return;
 	}
 
+	// By default change can't be merged with previous on.
+	// Any command can override this by calling begin_change() again.
 	begin_change(CHANGE_MERGE_NONE);
 
 	current_command = cmd;
