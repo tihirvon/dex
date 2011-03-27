@@ -168,7 +168,7 @@ static int get_char_width(unsigned int *idx)
 		return u_char_width(u_buf_get_char(cmdline.buffer, cmdline.len, idx));
 	} else {
 		int i = *idx;
-		char ch = cmdline.buffer[i++];
+		unsigned char ch = cmdline.buffer[i++];
 
 		*idx = i;
 		if (u_is_ctrl(ch))
