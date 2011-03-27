@@ -181,9 +181,7 @@ void insert_text(const char *text, unsigned int size)
 	}
 
 	// record change
-	begin_change(CHANGE_MERGE_NONE);
 	record_replace(del, del_count, size);
-	end_change();
 
 	// move after inserted text
 	block_iter_skip_bytes(&view->cursor, skip);
