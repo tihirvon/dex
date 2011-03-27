@@ -290,26 +290,21 @@ void delete_ch(void)
 
 void erase(void)
 {
+	unsigned int u, size = 0;
+
 	if (selecting()) {
-		delete(prepare_selection(), 1);
+		size = prepare_selection();
 		unselect();
 	} else {
-		unsigned int u;
-
 		begin_change(CHANGE_MERGE_ERASE);
-
 		if (buffer->options.emulate_tab) {
-			unsigned int size = get_indent_level_bytes_left();
-			if (size) {
-				block_iter_back_bytes(&view->cursor, size);
-				delete(size, 1);
-				update_preferred_x();
-				return;
-			}
+			size = get_indent_level_bytes_left();
+			block_iter_back_bytes(&view->cursor, size);
 		}
-
-		delete(buffer_prev_char(&view->cursor, &u), 1);
+		if (size == 0)
+			size = buffer_prev_char(&view->cursor, &u);
 	}
+	delete(size, 1);
 	update_preferred_x();
 }
 
