@@ -196,6 +196,7 @@ static void cmd_delete_eol(const char *pf, char **args)
 {
 	struct block_iter bi = view->cursor;
 	delete(block_iter_eol(&bi), 0);
+	update_preferred_x();
 }
 
 static void cmd_delete_word(const char *pf, char **args)
@@ -209,6 +210,7 @@ static void cmd_delete_word(const char *pf, char **args)
 	if (count && block_iter_is_eof(&bi) && block_iter_prev_byte(&bi, &u) && u == '\n')
 		count--;
 	delete(count, 0);
+	update_preferred_x();
 }
 
 static void cmd_down(const char *pf, char **args)
@@ -234,12 +236,14 @@ static void cmd_erase(const char *pf, char **args)
 static void cmd_erase_bol(const char *pf, char **args)
 {
 	delete(block_iter_bol(&view->cursor), 1);
+	update_preferred_x();
 }
 
 static void cmd_erase_word(const char *pf, char **args)
 {
 	int skip_non_word = *pf == 's';
 	delete(word_bwd(&view->cursor, skip_non_word), 1);
+	update_preferred_x();
 }
 
 static void cmd_errorfmt(const char *pf, char **args)

@@ -32,7 +32,6 @@ void delete(unsigned int len, int move_after)
 	if (len) {
 		char *buf = do_delete(len);
 		record_delete(buf, len, move_after);
-		update_preferred_x();
 	}
 }
 
@@ -252,12 +251,14 @@ void delete_ch(void)
 			int size = get_indent_level_bytes_right();
 			if (size) {
 				delete(size, 0);
+				update_preferred_x();
 				return;
 			}
 		}
 
 		delete_one_ch();
 	}
+	update_preferred_x();
 }
 
 void erase(void)
@@ -275,12 +276,14 @@ void erase(void)
 			if (size) {
 				block_iter_back_bytes(&view->cursor, size);
 				delete(size, 1);
+				update_preferred_x();
 				return;
 			}
 		}
 
 		delete(buffer_prev_char(&view->cursor, &u), 1);
 	}
+	update_preferred_x();
 }
 
 // goto beginning of whitespace (tabs and spaces) under cursor and
