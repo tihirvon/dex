@@ -31,6 +31,9 @@ static void handle_error_msg(struct compiler *c, char *str, unsigned int flags)
 	if (flags & SPAWN_PRINT_ERRORS)
 		fprintf(stderr, "%s\n", str);
 
+	if (len == 0)
+		return;
+
 	for (i = 0; str[i]; i++) {
 		if (str[i] == '\t')
 			str[i] = ' ';
