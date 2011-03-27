@@ -192,9 +192,9 @@ static void record_copy(char *buf, unsigned int len, int is_lines)
 void cut(unsigned int len, int is_lines)
 {
 	if (len) {
-		char *buf = do_delete(len);
-		record_copy(xmemdup(buf, len), len, is_lines);
-		record_delete(buf, len, 0);
+		char *buf = buffer_get_bytes(len);
+		record_copy(buf, len, is_lines);
+		delete(len, 0);
 	}
 }
 
