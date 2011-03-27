@@ -610,6 +610,18 @@ static int load_buffer(struct buffer *b, int must_exist)
 	if (list_empty(&b->blocks)) {
 		struct block *blk = block_new(1);
 		list_add_before(&blk->node, &b->blocks);
+	} else {
+		// Incomplete lines are not allowed because they are
+		// special cases and cause lots of trouble.
+		struct block *blk = BLOCK(b->blocks.prev);
+		if (blk->size && blk->data[blk->size - 1] != '\n') {
+			if (blk->size == blk->alloc) {
+				blk->alloc = ROUND_UP(blk->size + 1, 64);
+				xrenew(blk->data, blk->alloc);
+			}
+			blk->data[blk->size++] = '\n';
+			blk->nl++;
+		}
 	}
 	return 0;
 }
