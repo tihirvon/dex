@@ -41,23 +41,26 @@ unsigned int block_iter_prev_byte(struct block_iter *i, unsigned int *byte)
 }
 
 /*
- * Move after first seen newline (beginning of next line).
- * If there is no newline move to end of file (after all bytes).
- * Returns number of bytes offset changes.
+ * Move after next newline (beginning of next line or end of file).
+ * Returns number of bytes iterator advanced.
  */
 unsigned int block_iter_eat_line(struct block_iter *bi)
 {
 	unsigned int offset;
-	const unsigned char *end;
 
 	block_iter_normalize(bi);
 
 	offset = bi->offset;
-	end = memchr(bi->blk->data + offset, '\n', bi->blk->size - offset);
-	if (end) {
-		bi->offset = end + 1 - bi->blk->data;
-	} else {
+	if (offset == bi->blk->size)
+		return 0;
+
+	// there must be at least one newline
+	if (bi->blk->nl == 1) {
 		bi->offset = bi->blk->size;
+	} else {
+		const unsigned char *end;
+		end = memchr(bi->blk->data + offset, '\n', bi->blk->size - offset);
+		bi->offset = end + 1 - bi->blk->data;
 	}
 	return bi->offset - offset;
 }
@@ -69,22 +72,24 @@ unsigned int block_iter_eat_line(struct block_iter *bi)
  */
 unsigned int block_iter_next_line(struct block_iter *bi)
 {
-	struct block *blk;
 	unsigned int offset;
 	unsigned int new_offset;
-	const unsigned char *end;
 
 	block_iter_normalize(bi);
 
-	blk = bi->blk;
 	offset = bi->offset;
-
-	end = memchr(blk->data + offset, '\n', blk->size - offset);
-	if (!end)
+	if (offset == bi->blk->size)
 		return 0;
 
-	new_offset = end + 1 - blk->data;
-	if (new_offset == blk->size && blk->node.next == bi->head)
+	// there must be at least one newline
+	if (bi->blk->nl == 1) {
+		new_offset = bi->blk->size;
+	} else {
+		const unsigned char *end;
+		end = memchr(bi->blk->data + offset, '\n', bi->blk->size - offset);
+		new_offset = end + 1 - bi->blk->data;
+	}
+	if (new_offset == bi->blk->size && bi->blk->node.next == bi->head)
 		return 0;
 
 	bi->offset = new_offset;
@@ -126,18 +131,14 @@ unsigned int block_iter_bol(struct block_iter *bi)
 	block_iter_normalize(bi);
 
 	offset = bi->offset;
-	if (!offset)
+	if (!offset || offset == bi->blk->size)
 		return 0;
 
-	if (bi->blk->nl > 1) {
+	if (bi->blk->nl == 1) {
+		offset = 0;
+	} else {
 		while (offset && bi->blk->data[offset - 1] != '\n')
 			offset--;
-	} else {
-		// Only one (possibly very long) line in this block. Even
-		// after block_iter_normalize() call iterator can be at end
-		// of the block if it is the last block.
-		if (bi->blk->data[offset - 1] != '\n')
-			offset = 0;
 	}
 
 	ret = bi->offset - offset;
@@ -155,11 +156,16 @@ unsigned int block_iter_eol(struct block_iter *bi)
 
 	blk = bi->blk;
 	offset = bi->offset;
-
+	if (offset == blk->size) {
+		// cursor at end of last block
+		return 0;
+	}
+	if (blk->nl == 1) {
+		bi->offset = blk->size - 1;
+		return bi->offset - offset;
+	}
 	end = memchr(blk->data + offset, '\n', blk->size - offset);
 	bi->offset = end - blk->data;
-	if (!end)
-		bi->offset = blk->size;
 	return bi->offset - offset;
 }
 
@@ -245,37 +251,45 @@ int block_iter_is_bol(const struct block_iter *bi)
 void fill_line_ref(struct block_iter *bi, struct lineref *lr)
 {
 	unsigned int max;
-	const char *ptr, *nl = NULL;
+	const unsigned char *nl;
 
 	block_iter_normalize(bi);
 
+	lr->line = bi->blk->data + bi->offset;
 	max = bi->blk->size - bi->offset;
-	ptr = bi->blk->data + bi->offset;
-
-	if (bi->blk->nl > 1) {
-		nl = memchr(ptr, '\n', max);
-	} else {
-		if (max && ptr[max - 1] == '\n')
-			nl = ptr + max - 1;
+	if (max == 0) {
+		// cursor at end of last block
+		lr->size = 0;
+		return;
 	}
-
-	lr->line = ptr;
-	lr->size = nl ? nl - ptr : max;
+	if (bi->blk->nl == 1) {
+		lr->size = max - 1;
+		return;
+	}
+	nl = memchr(lr->line, '\n', max);
+	lr->size = nl - lr->line;
 }
 
 void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr)
 {
 	unsigned int max;
-	const char *ptr, *nl;
+	const unsigned char *nl;
 
 	block_iter_normalize(bi);
 
+	lr->line = bi->blk->data + bi->offset;
 	max = bi->blk->size - bi->offset;
-	ptr = bi->blk->data + bi->offset;
-	nl = memchr(ptr, '\n', max);
-
-	lr->line = ptr;
-	lr->size = nl ? nl - ptr + 1 : max;
+	if (max == 0) {
+		// cursor at end of last block
+		lr->size = 0;
+		return;
+	}
+	if (bi->blk->nl == 1) {
+		lr->size = max;
+		return;
+	}
+	nl = memchr(lr->line, '\n', max);
+	lr->size = nl - lr->line + 1;
 }
 
 unsigned int fetch_this_line(const struct block_iter *bi, struct lineref *lr)
