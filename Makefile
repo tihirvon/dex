@@ -158,6 +158,7 @@ WARNINGS += -Wcast-align
 endif
 
 BASIC_CFLAGS += $(call cc-option,$(WARNINGS))
+BASIC_CFLAGS += $(call cc-option,-Wno-pointer-sign) # char vs unsigned char madness
 
 ifdef WERROR
 BASIC_CFLAGS += $(call cc-option,-Werror -Wno-error=shadow -Wno-error=unused-variable)
