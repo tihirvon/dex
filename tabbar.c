@@ -4,17 +4,6 @@
 
 static int first_tab_idx;
 
-static unsigned int number_width(unsigned int n)
-{
-	unsigned int width = 0;
-
-	do {
-		n /= 10;
-		width++;
-	} while (n);
-	return width;
-}
-
 static void update_tab_title_width(struct view *v, int tab_number)
 {
 	const char *filename = v->buffer->filename;

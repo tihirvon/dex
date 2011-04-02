@@ -30,6 +30,7 @@ static struct hl_color *nontext_color;
 static struct hl_color *tabbar_color;
 static struct hl_color *tab_active_color;
 static struct hl_color *tab_inactive_color;
+static struct hl_color *linenumber_color;
 
 static int current_line;
 
@@ -47,6 +48,7 @@ void set_basic_colors(void)
 	tabbar_color = find_color("tabbar");
 	tab_active_color = find_color("activetab");
 	tab_inactive_color = find_color("inactivetab");
+	linenumber_color = find_color("linenumber");
 }
 
 static unsigned int term_get_char(const char *buf, unsigned int size, unsigned int *idx)
@@ -550,6 +552,60 @@ void update_range(int y1, int y2)
 	}
 }
 
+static int line_numbers_width;
+static int first_line_number;
+static int last_line_number;
+
+static void calculate_line_numbers(void)
+{
+	int w = 0, min_w = 5;
+
+	if (options.show_line_numbers) {
+		w = number_width(buffer->nl) + 1;
+		if (w < min_w)
+			w = min_w;
+	}
+	if (w != line_numbers_width) {
+		line_numbers_width = w;
+		first_line_number = 0;
+		last_line_number = 0;
+		update_flags |= UPDATE_FULL;
+	}
+}
+
+static const char *format_line_number(int line, int w)
+{
+	if (line > buffer->nl)
+		return ssprintf("%*s ", w - 1, "");
+	return ssprintf("%*d ", w - 1, line);
+}
+
+void update_line_numbers(int force)
+{
+	int i, first, last;
+
+	calculate_line_numbers();
+
+	first = view->vy + 1;
+	last = view->vy + window->edit_h;
+	if (last > buffer->nl)
+		last = buffer->nl;
+
+	if (!force && first_line_number == first && last_line_number == last)
+		return;
+
+	first_line_number = first;
+	last_line_number = last;
+
+	buf_reset(window->x, window->w, 0);
+	buf_set_color(&linenumber_color->color);
+	for (i = 0; i < window->edit_h; i++) {
+		const char *buf = format_line_number(view->vy + i + 1, line_numbers_width);
+		buf_move_cursor(window->x, window->edit_y + i);
+		buf_add_bytes(buf, line_numbers_width);
+	}
+}
+
 void update_window_sizes(void)
 {
 	// tabbar + editable area + status line (command line is separate)
@@ -562,6 +618,10 @@ void update_window_sizes(void)
 	window->edit_y = window->y + options.show_tab_bar;
 	window->edit_w = window->w;
 	window->edit_h = window->h - options.show_tab_bar - 1;
+
+	calculate_line_numbers();
+	window->edit_x += line_numbers_width;
+	window->edit_w -= line_numbers_width;
 }
 
 void update_screen_size(void)

@@ -18,7 +18,7 @@ void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
 }
 
 // does not update obuf.x
-static void buf_add_bytes(const char *str, int count)
+void buf_add_bytes(const char *str, int count)
 {
 	while (count) {
 		unsigned int avail = obuf.alloc - obuf.count;

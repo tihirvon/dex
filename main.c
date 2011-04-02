@@ -44,6 +44,7 @@ static const char *builtin_rc =
 "hi tabbar black gray\n"
 "hi activetab bold\n"
 "hi inactivetab black gray\n"
+"hi linenumber\n"
 // must initialize string options
 "set statusline-left \" %f%s%m%r%s%M\"\n"
 "set statusline-right \" %y,%X   %c %C   %E %n %t   %p \"\n";

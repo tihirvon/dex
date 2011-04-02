@@ -613,6 +613,9 @@ esc-timeout [100] 0...2000
 	timeout can cause escape sequences of for example arrow keys to
 	be split and treated as multiple key presses.
 
+show-line-numbers [false]
+	Show line numbers.
+
 show-tab-bar [true]
 	Show tab bar at top of screen.
 

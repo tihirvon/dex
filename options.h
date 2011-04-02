@@ -81,6 +81,7 @@ struct global_options {
 	int lock_files;
 	enum newline_sequence newline; // default value for new files
 	int scroll_margin;
+	int show_line_numbers;
 	int show_tab_bar;
 	char *statusline_left;
 	char *statusline_right;

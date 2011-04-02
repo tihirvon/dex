@@ -77,6 +77,7 @@ static inline void d_print(const char *fmt, ...)
 	} while (0)
 
 int count_strings(char **strings);
+unsigned int number_width(unsigned int n);
 const char *ssprintf(const char *format, ...) __FORMAT(1, 2);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);

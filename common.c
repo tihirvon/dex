@@ -14,6 +14,17 @@ int count_strings(char **strings)
 	return count;
 }
 
+unsigned int number_width(unsigned int n)
+{
+	unsigned int width = 0;
+
+	do {
+		n /= 10;
+		width++;
+	} while (n);
+	return width;
+}
+
 const char *ssprintf(const char *format, ...)
 {
 	static char buf[1024];
