@@ -111,14 +111,14 @@ void print_tabbar(void)
 	int idx = -1;
 	struct view *v;
 
-	buf_reset(window->edit_x, window->edit_w, 0);
-	buf_move_cursor(window->edit_x, window->edit_y - 1);
+	buf_reset(window->x, window->w, 0);
+	buf_move_cursor(window->x, window->y);
 
 	list_for_each_entry(v, &window->views, node) {
 		if (++idx < first_tab_idx)
 			continue;
 
-		if (obuf.x + v->tt_truncated_width > window->edit_w)
+		if (obuf.x + v->tt_truncated_width > window->w)
 			break;
 
 		print_tab_title(v, idx);
@@ -140,8 +140,8 @@ void update_status_line(const char *misc_status)
 	char rbuf[256];
 	int lw, rw;
 
-	buf_reset(window->edit_x, window->edit_w, 0);
-	buf_move_cursor(window->edit_x, window->edit_y + window->edit_h);
+	buf_reset(window->x, window->w, 0);
+	buf_move_cursor(window->x, window->y + window->h - 1);
 	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left, misc_status);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right, misc_status);
@@ -149,14 +149,14 @@ void update_status_line(const char *misc_status)
 		lw = u_str_width(lbuf, lw);
 		rw = u_str_width(rbuf, rw);
 	}
-	if (lw + rw <= window->edit_w) {
+	if (lw + rw <= window->w) {
 		buf_add_str(lbuf);
-		buf_set_bytes(' ', window->edit_w - lw - rw);
+		buf_set_bytes(' ', window->w - lw - rw);
 		buf_add_str(rbuf);
 	} else {
 		buf_add_str(lbuf);
-		obuf.x = window->edit_w - rw;
-		buf_move_cursor(window->edit_x + window->edit_w - rw, window->edit_y + window->edit_h);
+		obuf.x = window->w - rw;
+		buf_move_cursor(window->x + window->w - rw, window->y + window->h - 1);
 		buf_add_str(rbuf);
 	}
 }
@@ -192,8 +192,8 @@ int print_command(char prefix)
 	if (!cmdline.buffer[cmdline_pos])
 		w++;
 
-	if (w > window->edit_w)
-		obuf.scroll_x = w - window->edit_w;
+	if (w > screen_w)
+		obuf.scroll_x = w - screen_w;
 
 	buf_set_color(&commandline_color->color);
 	i = 0;
@@ -552,10 +552,16 @@ void update_range(int y1, int y2)
 
 void update_window_sizes(void)
 {
-	window->edit_x = 0;
-	window->edit_y = options.show_tab_bar;
-	window->edit_w = screen_w;
-	window->edit_h = screen_h - window->edit_y - 2;
+	// tabbar + editable area + status line (command line is separate)
+	window->x = 0;
+	window->y = 0;
+	window->w = screen_w;
+	window->h = screen_h - 1;
+
+	window->edit_x = window->x;
+	window->edit_y = window->y + options.show_tab_bar;
+	window->edit_w = window->w;
+	window->edit_h = window->h - options.show_tab_bar - 1;
 }
 
 void update_screen_size(void)

@@ -49,7 +49,7 @@ static void update_first_tab_idx(int count)
 	max_first_idx = count;
 	list_for_each_entry_reverse(v, &window->views, node) {
 		w += v->tt_truncated_width;
-		if (w > window->edit_w)
+		if (w > window->w)
 			break;
 		max_first_idx--;
 	}
@@ -59,7 +59,7 @@ static void update_first_tab_idx(int count)
 	list_for_each_entry_reverse(v, &window->views, node) {
 		if (w || v == view)
 			w += v->tt_truncated_width;
-		if (w > window->edit_w)
+		if (w > window->w)
 			break;
 		min_first_idx--;
 	}
@@ -95,7 +95,7 @@ int calculate_tabbar(void)
 		}
 	}
 
-	if (total_w <= window->edit_w) {
+	if (total_w <= window->w) {
 		// all tabs fit without truncating
 		first_tab_idx = 0;
 		return first_tab_idx;
@@ -107,14 +107,14 @@ int calculate_tabbar(void)
 			v->tt_truncated_width = truncated_w;
 	}
 
-	if (total_truncated_w > window->edit_w) {
+	if (total_truncated_w > window->w) {
 		// not all tabs fit even after truncating wide tabs
 		update_first_tab_idx(count);
 		return first_tab_idx;
 	}
 
 	// all tabs fit after truncating wide tabs
-	extra = window->edit_w - total_truncated_w;
+	extra = window->w - total_truncated_w;
 
 	// divide extra space between truncated tabs
 	while (extra > 0) {

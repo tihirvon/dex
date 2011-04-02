@@ -7,12 +7,14 @@ struct window {
 	struct list_head node;
 	struct list_head views;
 
-	/* current view. always exists */
+	// Current view
 	struct view *view;
 
-	/* Coordinates and size of editable area not including tabs,
-	 * status line and command line.
-	 */
+	// Coordinates and size of entire window including tabbar and status line
+	int x, y;
+	int w, h;
+
+	// Coordinates and size of editable area
 	int edit_x, edit_y;
 	int edit_w, edit_h;
 };

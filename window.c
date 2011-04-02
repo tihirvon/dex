@@ -10,8 +10,6 @@ struct window *window_new(void)
 
 	list_init(&w->views);
 	list_add_before(&w->node, &windows);
-	w->edit_w = 80;
-	w->edit_h = 24;
 	return w;
 }
 
