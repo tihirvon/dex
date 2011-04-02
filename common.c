@@ -14,6 +14,16 @@ int count_strings(char **strings)
 	return count;
 }
 
+const char *ssprintf(const char *format, ...)
+{
+	static char buf[1024];
+	va_list ap;
+	va_start(ap, format);
+	vsnprintf(buf, sizeof(buf), format, ap);
+	va_end(ap);
+	return buf;
+}
+
 ssize_t xread(int fd, void *buf, size_t count)
 {
 	char *b = buf;

@@ -197,16 +197,6 @@ void ui_end(void)
 	term_cooked();
 }
 
-const char *ssprintf(const char *format, ...)
-{
-	static char buf[1024];
-	va_list ap;
-	va_start(ap, format);
-	vsnprintf(buf, sizeof(buf), format, ap);
-	va_end(ap);
-	return buf;
-}
-
 const char *editor_file(const char *name)
 {
 	return ssprintf("%s/.%s/%s", home_dir, program, name);

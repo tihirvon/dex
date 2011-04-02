@@ -47,7 +47,6 @@ extern const char *program;
 extern const char *version;
 extern const char *pkgdatadir;
 
-const char *ssprintf(const char *format, ...);
 const char *editor_file(const char *name);
 void clear_error(void);
 void error_msg(const char *format, ...) __FORMAT(1, 2);

@@ -48,18 +48,6 @@ static void add_status_str(struct formatter *f, const char *str)
 	}
 }
 
-__FORMAT(1, 2)
-static const char *ssprintf(const char *format, ...)
-{
-	static char buf[256];
-	va_list ap;
-
-	va_start(ap, format);
-	vsnprintf(buf, sizeof(buf), format, ap);
-	va_end(ap);
-	return buf;
-}
-
 static void add_status_pos(struct formatter *f)
 {
 	int h = window->edit_h;
