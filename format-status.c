@@ -62,7 +62,7 @@ static const char *ssprintf(const char *format, ...)
 
 static void add_status_pos(struct formatter *f)
 {
-	int h = window->h;
+	int h = window->edit_h;
 	int pos = view->vy;
 
 	if (buffer->nl <= h) {

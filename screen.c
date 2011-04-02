@@ -111,14 +111,14 @@ void print_tabbar(void)
 	int idx = -1;
 	struct view *v;
 
-	buf_reset(window->x, window->w, 0);
-	buf_move_cursor(window->x, window->y - 1);
+	buf_reset(window->edit_x, window->edit_w, 0);
+	buf_move_cursor(window->edit_x, window->edit_y - 1);
 
 	list_for_each_entry(v, &window->views, node) {
 		if (++idx < first_tab_idx)
 			continue;
 
-		if (obuf.x + v->tt_truncated_width > window->w)
+		if (obuf.x + v->tt_truncated_width > window->edit_w)
 			break;
 
 		print_tab_title(v, idx);
@@ -140,8 +140,8 @@ void update_status_line(const char *misc_status)
 	char rbuf[256];
 	int lw, rw;
 
-	buf_reset(window->x, window->w, 0);
-	buf_move_cursor(window->x, window->y + window->h);
+	buf_reset(window->edit_x, window->edit_w, 0);
+	buf_move_cursor(window->edit_x, window->edit_y + window->edit_h);
 	buf_set_color(&statusline_color->color);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left, misc_status);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right, misc_status);
@@ -149,14 +149,14 @@ void update_status_line(const char *misc_status)
 		lw = u_str_width(lbuf, lw);
 		rw = u_str_width(rbuf, rw);
 	}
-	if (lw + rw <= window->w) {
+	if (lw + rw <= window->edit_w) {
 		buf_add_str(lbuf);
-		buf_set_bytes(' ', window->w - lw - rw);
+		buf_set_bytes(' ', window->edit_w - lw - rw);
 		buf_add_str(rbuf);
 	} else {
 		buf_add_str(lbuf);
-		obuf.x = window->w - rw;
-		buf_move_cursor(window->x + window->w - rw, window->y + window->h);
+		obuf.x = window->edit_w - rw;
+		buf_move_cursor(window->edit_x + window->edit_w - rw, window->edit_y + window->edit_h);
 		buf_add_str(rbuf);
 	}
 }
@@ -192,8 +192,8 @@ int print_command(char prefix)
 	if (!cmdline.buffer[cmdline_pos])
 		w++;
 
-	if (w > window->w)
-		obuf.scroll_x = w - window->w;
+	if (w > window->edit_w)
+		obuf.scroll_x = w - window->edit_w;
 
 	buf_set_color(&commandline_color->color);
 	i = 0;
@@ -488,7 +488,7 @@ void update_range(int y1, int y2)
 	struct block_iter bi = view->cursor;
 	int i, got_line;
 
-	buf_reset(window->x, window->w, view->vx);
+	buf_reset(window->edit_x, window->edit_w, view->vx);
 	obuf.tab_width = buffer->options.tab_width;
 	obuf.tab = options.display_special ? TAB_SPECIAL : TAB_NORMAL;
 
@@ -514,7 +514,7 @@ void update_range(int y1, int y2)
 		int next_changed;
 
 		obuf.x = 0;
-		buf_move_cursor(window->x, window->y + i);
+		buf_move_cursor(window->edit_x, window->edit_y + i);
 
 		fill_line_nl_ref(&bi, &lr);
 		colors = hl_line(lr.line, lr.size, current_line, &next_changed);
@@ -524,7 +524,7 @@ void update_range(int y1, int y2)
 		got_line = block_iter_next_line(&bi);
 		current_line++;
 
-		if (next_changed && i + 1 == y2 && y2 < window->h) {
+		if (next_changed && i + 1 == y2 && y2 < window->edit_h) {
 			// more lines need to be updated not because their
 			// contents have changed but because their highlight
 			// state has
@@ -536,7 +536,7 @@ void update_range(int y1, int y2)
 		// dummy empty line
 		obuf.x = 0;
 		update_color(NULL, 0, 0);
-		buf_move_cursor(window->x, window->y + i++);
+		buf_move_cursor(window->edit_x, window->edit_y + i++);
 		buf_clear_eol();
 	}
 
@@ -544,7 +544,7 @@ void update_range(int y1, int y2)
 		buf_set_color(&nontext_color->color);
 	for (; i < y2; i++) {
 		obuf.x = 0;
-		buf_move_cursor(window->x, window->y + i);
+		buf_move_cursor(window->edit_x, window->edit_y + i);
 		buf_ch('~');
 		buf_clear_eol();
 	}
@@ -552,10 +552,10 @@ void update_range(int y1, int y2)
 
 void update_window_sizes(void)
 {
-	window->x = 0;
-	window->y = options.show_tab_bar;
-	window->w = screen_w;
-	window->h = screen_h - window->y - 2;
+	window->edit_x = 0;
+	window->edit_y = options.show_tab_bar;
+	window->edit_w = screen_w;
+	window->edit_h = screen_h - window->edit_y - 2;
 }
 
 void update_screen_size(void)

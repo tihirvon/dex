@@ -10,8 +10,8 @@ struct window *window_new(void)
 
 	list_init(&w->views);
 	list_add_before(&w->node, &windows);
-	w->w = 80;
-	w->h = 24;
+	w->edit_w = 80;
+	w->edit_h = 24;
 	return w;
 }
 
@@ -82,22 +82,22 @@ void set_view(struct view *v)
 
 static int cursor_outside_view(void)
 {
-	return view->cy < view->vy || view->cy > view->vy + window->h - 1;
+	return view->cy < view->vy || view->cy > view->vy + window->edit_h - 1;
 }
 
 static void center_view_to_cursor(void)
 {
-	unsigned int hh = window->h / 2;
+	unsigned int hh = window->edit_h / 2;
 
-	if (window->h >= buffer->nl || view->cy < hh) {
+	if (window->edit_h >= buffer->nl || view->cy < hh) {
 		view->vy = 0;
 		return;
 	}
 
 	view->vy = view->cy - hh;
-	if (view->vy + window->h > buffer->nl) {
+	if (view->vy + window->edit_h > buffer->nl) {
 		/* -1 makes one ~ line visible so that you know where the EOF is */
-		view->vy -= view->vy + window->h - buffer->nl - 1;
+		view->vy -= view->vy + window->edit_h - buffer->nl - 1;
 	}
 }
 
@@ -105,8 +105,8 @@ static void update_view_x(void)
 {
 	unsigned int c = 8;
 
-	if (view->cx_display - view->vx >= window->w)
-		view->vx = (view->cx_display - window->w + c) / c * c;
+	if (view->cx_display - view->vx >= window->edit_w)
+		view->vx = (view->cx_display - window->edit_w + c) / c * c;
 	if (view->cx_display < view->vx)
 		view->vx = view->cx_display / c * c;
 }
@@ -114,7 +114,7 @@ static void update_view_x(void)
 static void update_view_y(void)
 {
 	int margin = get_scroll_margin();
-	int max_y = view->vy + window->h - 1 - margin;
+	int max_y = view->vy + window->edit_h - 1 - margin;
 
 	if (view->cy < view->vy + margin) {
 		view->vy = view->cy - margin;
@@ -122,7 +122,7 @@ static void update_view_y(void)
 			view->vy = 0;
 	} else if (view->cy > max_y) {
 		view->vy += view->cy - max_y;
-		max_y = buffer->nl - window->h + 1;
+		max_y = buffer->nl - window->edit_h + 1;
 		if (view->vy > max_y && max_y >= 0)
 			view->vy = max_y;
 	}

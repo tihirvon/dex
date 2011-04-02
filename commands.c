@@ -583,12 +583,12 @@ static void cmd_paste(const char *pf, char **args)
 
 static void cmd_pgdown(const char *pf, char **args)
 {
-	move_down(window->h - 1 - get_scroll_margin() * 2);
+	move_down(window->edit_h - 1 - get_scroll_margin() * 2);
 }
 
 static void cmd_pgup(const char *pf, char **args)
 {
-	move_up(window->h - 1 - get_scroll_margin() * 2);
+	move_up(window->edit_h - 1 - get_scroll_margin() * 2);
 }
 
 static void cmd_prev(const char *pf, char **args)
@@ -868,10 +868,10 @@ static void cmd_scroll_down(const char *pf, char **args)
 
 static void cmd_scroll_pgdown(const char *pf, char **args)
 {
-	int max = buffer->nl - window->h + 1;
+	int max = buffer->nl - window->edit_h + 1;
 
 	if (view->vy < max && max > 0) {
-		int count = window->h - 1;
+		int count = window->edit_h - 1;
 
 		if (view->vy + count > max)
 			count = max - view->vy;
@@ -883,7 +883,7 @@ static void cmd_scroll_pgdown(const char *pf, char **args)
 static void cmd_scroll_pgup(const char *pf, char **args)
 {
 	if (view->vy > 0) {
-		int count = window->h - 1;
+		int count = window->edit_h - 1;
 
 		if (count > view->vy)
 			count = view->vy;
@@ -896,7 +896,7 @@ static void cmd_scroll_up(const char *pf, char **args)
 {
 	if (view->vy)
 		view->vy--;
-	if (view->vy + window->h <= view->cy)
+	if (view->vy + window->edit_h <= view->cy)
 		move_up(1);
 }
 

@@ -13,8 +13,8 @@ struct window {
 	/* Coordinates and size of editable area not including tabs,
 	 * status line and command line.
 	 */
-	int x, y;
-	int w, h;
+	int edit_x, edit_y;
+	int edit_w, edit_h;
 };
 
 extern struct window *window;
@@ -34,7 +34,7 @@ void update_view(void);
 
 static inline int get_scroll_margin(void)
 {
-	int max = (window->h - 1) / 2;
+	int max = (window->edit_h - 1) / 2;
 
 	if (options.scroll_margin > max)
 		return max;

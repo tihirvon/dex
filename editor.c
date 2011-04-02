@@ -119,7 +119,7 @@ static void update_full(void)
 	update_term_title();
 	if (options.show_tab_bar)
 		print_tabbar();
-	update_range(view->vy, view->vy + window->h);
+	update_range(view->vy, view->vy + window->edit_h);
 	update_status_line(format_misc_status());
 	update_command_line();
 }
@@ -129,8 +129,8 @@ static void restore_cursor(void)
 	switch (input_mode) {
 	case INPUT_NORMAL:
 		buf_move_cursor(
-			window->x + view->cx_display - view->vx,
-			window->y + view->cy - view->vy);
+			window->edit_x + view->cx_display - view->vx,
+			window->edit_y + view->cy - view->vy);
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
@@ -358,14 +358,14 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tabbar();
 	if (update_flags & UPDATE_FULL) {
-		update_range(view->vy, view->vy + window->h);
+		update_range(view->vy, view->vy + window->edit_h);
 	} else  {
 		int y1 = changed_line_min;
 		int y2 = changed_line_max;
 		if (y1 < view->vy)
 			y1 = view->vy;
-		if (y2 > view->vy + window->h - 1)
-			y2 = view->vy + window->h - 1;
+		if (y2 > view->vy + window->edit_h - 1)
+			y2 = view->vy + window->edit_h - 1;
 		update_range(y1, y2 + 1);
 	}
 	update_status_line(format_misc_status());
