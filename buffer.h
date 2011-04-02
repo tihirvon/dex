@@ -115,6 +115,7 @@ struct selection_info {
 #define UPDATE_TAB_BAR		(1 << 0)
 #define UPDATE_FULL		(1 << 1)
 #define UPDATE_COMMAND_LINE	(1 << 2)
+#define UPDATE_WINDOW_SIZES	(1 << 3)
 
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;

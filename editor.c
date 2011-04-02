@@ -341,10 +341,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	}
 
 	buf_hide_cursor();
-	if (update_flags & UPDATE_TAB_BAR) {
+	if (update_flags & UPDATE_WINDOW_SIZES)
 		update_window_sizes();
+	if (update_flags & UPDATE_TAB_BAR)
 		update_term_title();
-	}
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tabbar();
 	if (update_flags & UPDATE_FULL) {

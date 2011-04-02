@@ -41,7 +41,7 @@ static void default_int_set(int *local, int *global, int value)
 		*local = value;
 	if (global)
 		*global = value;
-	update_flags |= UPDATE_FULL;
+	update_flags |= UPDATE_TAB_BAR | UPDATE_FULL | UPDATE_WINDOW_SIZES;
 }
 
 static void default_str_set(char **local, char **global, const char *value)
@@ -84,12 +84,6 @@ static void syntax_set(int *local, int *global, int value)
 {
 	default_int_set(local, global, value);
 	syntax_changed();
-}
-
-static void tabbar_int_set(int *local, int *global, int value)
-{
-	default_int_set(local, global, value);
-	update_flags |= UPDATE_TAB_BAR;
 }
 
 static void filetype_set(char **local, char **global, const char *value)
@@ -232,7 +226,7 @@ static const struct option_description option_desc[] = {
 	G_BOOL("lock-files", lock_files, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_enum_set),
 	G_INT("scroll-margin", scroll_margin, 0, 100, default_int_set),
-	G_BOOL("show-tab-bar", show_tab_bar, tabbar_int_set),
+	G_BOOL("show-tab-bar", show_tab_bar, default_int_set),
 	G_STR("statusline-left", statusline_left, statusline_set),
 	G_STR("statusline-right", statusline_right, statusline_set),
 	C_BOOL("syntax", syntax, syntax_set),
