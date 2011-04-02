@@ -10,11 +10,11 @@ int screen_h = 24;
 void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
 {
 	obuf.x = 0;
-	obuf.start_x = start_x;
 	obuf.width = width;
 	obuf.scroll_x = scroll_x;
 	obuf.tab_width = 8;
 	obuf.tab = TAB_CONTROL;
+	obuf.can_clear = start_x + width == screen_w;
 }
 
 // does not update obuf.x
@@ -108,9 +108,7 @@ void buf_set_color(const struct term_color *color)
 void buf_clear_eol(void)
 {
 	if (obuf.x < obuf.scroll_x + obuf.width) {
-		int can_clear = obuf.start_x + obuf.width == screen_w;
-
-		if (can_clear && term_cap.strings[STR_CAP_CMD_ce] && (obuf.color.bg < 0 || term_cap.ut)) {
+		if (obuf.can_clear && term_cap.strings[STR_CAP_CMD_ce] && (obuf.color.bg < 0 || term_cap.ut)) {
 			buf_escape(term_cap.strings[STR_CAP_CMD_ce]);
 		} else {
 			buf_set_bytes(' ', obuf.scroll_x + obuf.width - obuf.x);

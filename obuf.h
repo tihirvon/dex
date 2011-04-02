@@ -15,7 +15,6 @@ struct output_buffer {
 	// if smaller than scroll_x printed characters are not visible
 	unsigned int x;
 
-	unsigned int start_x;
 	unsigned int width;
 
 	unsigned int tab_width;
@@ -24,6 +23,7 @@ struct output_buffer {
 		TAB_SPECIAL,
 		TAB_CONTROL,
 	} tab;
+	int can_clear;
 
 	struct term_color color;
 };
