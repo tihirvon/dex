@@ -497,10 +497,6 @@ text-width [72]
 	Preferred with of text. Used as default value for
 	*format-paragraph*.
 
-trim-whitespace [true]
-	Trim whitespace from end of line when pressing enter. Affects
-	only the line you are editing.
-
 ws-error 0
 	Comma separated list of flags that describe what whitespace
 	errors should be highlighted. Set to `0` to disable.

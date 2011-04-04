@@ -234,7 +234,8 @@ static void insert_nl(void)
 	if (selecting()) {
 		del_count = prepare_selection();
 		unselect();
-	} else if (buffer->options.trim_whitespace) {
+	} else {
+		// trim whitespace around cursor
 		del_count = goto_beginning_of_whitespace();
 	}
 

@@ -39,7 +39,6 @@ struct common_options {
 	int syntax;
 	int tab_width;
 	int text_width;
-	int trim_whitespace;
 	int ws_error;
 };
 
@@ -53,7 +52,6 @@ struct local_options {
 	int syntax;
 	int tab_width;
 	int text_width;
-	int trim_whitespace;
 	int ws_error;
 
 	/* only local */
@@ -71,7 +69,6 @@ struct global_options {
 	int syntax;
 	int tab_width;
 	int text_width;
-	int trim_whitespace;
 	int ws_error;
 
 	/* only global */
