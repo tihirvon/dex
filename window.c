@@ -161,7 +161,7 @@ void calculate_line_numbers(struct window *win)
 		win->line_numbers.width = w;
 		win->line_numbers.first = 0;
 		win->line_numbers.last = 0;
-		update_flags |= UPDATE_FULL;
+		update_flags |= UPDATE_VIEW;
 	}
 
 	win->edit_x = win->x + w;

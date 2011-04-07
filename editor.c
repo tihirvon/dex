@@ -324,7 +324,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {
-			update_flags |= UPDATE_FULL;
+			update_flags |= UPDATE_VIEW;
 		} else if (cy != view->cy) {
 			// Because of trailing whitespace highlighting and
 			// highlighting current line in different color
@@ -339,7 +339,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		if (is_modified != buffer_modified(buffer))
 			update_flags |= UPDATE_TAB_BAR;
 	} else {
-		update_flags |= UPDATE_FULL | UPDATE_TAB_BAR;
+		update_flags |= UPDATE_VIEW | UPDATE_TAB_BAR;
 	}
 
 	buf_hide_cursor();
@@ -350,8 +350,8 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers)
-		update_line_numbers(window, update_flags & UPDATE_FULL);
-	if (update_flags & UPDATE_FULL) {
+		update_line_numbers(window, update_flags & UPDATE_VIEW);
+	if (update_flags & UPDATE_VIEW) {
 		update_range(view->vy, view->vy + window->edit_h);
 	} else  {
 		int y1 = changed_line_min;

@@ -332,7 +332,7 @@ static void cmd_hi(const char *pf, char **args)
 		// It is called right after config has been loaded.
 		if (editor_status != EDITOR_INITIALIZING) {
 			update_all_syntax_colors();
-			update_flags = UPDATE_FULL | UPDATE_TAB_BAR;
+			update_flags = UPDATE_VIEW | UPDATE_TAB_BAR;
 		}
 	}
 }
@@ -971,7 +971,7 @@ static void cmd_select(const char *pf, char **args)
 			return;
 		}
 		view->selection = sel;
-		update_flags |= UPDATE_FULL;
+		update_flags |= UPDATE_VIEW;
 		return;
 	}
 
