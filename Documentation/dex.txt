@@ -521,6 +521,10 @@ ws-error 0
 		Display tabs used anywhere else but indentation as
 		errors.
 
+	No-break space (U+00A0) is always displayed as on error because
+	otherwise it can't be distinguished from space. It does not
+	belong to text files and is often typed accidentally.
+
 @h2 Local only options
 
 filetype [none]
