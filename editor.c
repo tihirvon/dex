@@ -111,7 +111,7 @@ static void update_term_title(void)
 		program));
 }
 
-static void update_full(void)
+static void update_current_window(void)
 {
 	update_cursor_x();
 	update_cursor_y();
@@ -123,7 +123,6 @@ static void update_full(void)
 		update_line_numbers(window, 1);
 	update_range(view->vy, view->vy + window->edit_h);
 	update_status_line(format_misc_status());
-	update_command_line();
 }
 
 static void restore_cursor(void)
@@ -141,6 +140,22 @@ static void restore_cursor(void)
 	}
 }
 
+static void start_update(void)
+{
+	buf_hide_cursor();
+}
+
+static void end_update(void)
+{
+	restore_cursor();
+	buf_show_cursor();
+	buf_flush();
+
+	update_flags = 0;
+	changed_line_min = INT_MAX;
+	changed_line_max = -1;
+}
+
 void resize(void)
 {
 	resized = 0;
@@ -156,13 +171,10 @@ void resize(void)
 		buf_escape(term_cap.strings[STR_CAP_CMD_ti]);
 	}
 
-	buf_hide_cursor();
-	update_full();
-	restore_cursor();
-	buf_show_cursor();
-	buf_flush();
-
-	update_flags = 0;
+	start_update();
+	update_current_window();
+	update_command_line();
+	end_update();
 }
 
 void ui_start(int prompt)
@@ -272,11 +284,10 @@ char get_confirmation(const char *choices, const char *format, ...)
 	error_buf[pos++] = ']';
 	error_buf[pos] = 0;
 
-	buf_hide_cursor();
-	update_full();
-	restore_cursor();
-	buf_show_cursor();
-	buf_flush();
+	start_update();
+	update_current_window();
+	update_command_line();
+	end_update();
 
 	while (1) {
 		enum term_key_type type;
@@ -340,7 +351,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_flags |= UPDATE_VIEW | UPDATE_TAB_BAR;
 	}
 
-	buf_hide_cursor();
+	start_update();
 	if (update_flags & UPDATE_WINDOW_SIZES)
 		update_window_sizes();
 	if (update_flags & UPDATE_TAB_BAR)
@@ -363,13 +374,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	update_status_line(format_misc_status());
 	if (update_flags & UPDATE_COMMAND_LINE)
 		update_command_line();
-	restore_cursor();
-	buf_show_cursor();
-	buf_flush();
-
-	update_flags = 0;
-	changed_line_min = INT_MAX;
-	changed_line_max = -1;
+	end_update();
 }
 
 void main_loop(void)
