@@ -120,7 +120,7 @@ static void update_full(void)
 	if (options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers)
-		update_line_numbers(1);
+		update_line_numbers(window, 1);
 	update_range(view->vy, view->vy + window->edit_h);
 	update_status_line(format_misc_status());
 	update_command_line();
@@ -350,7 +350,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers)
-		update_line_numbers(update_flags & UPDATE_FULL);
+		update_line_numbers(window, update_flags & UPDATE_FULL);
 	if (update_flags & UPDATE_FULL) {
 		update_range(view->vy, view->vy + window->edit_h);
 	} else  {

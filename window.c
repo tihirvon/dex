@@ -147,3 +147,41 @@ int view_idx(void)
 	}
 	return -1;
 }
+
+void calculate_line_numbers(struct window *win)
+{
+	int w = 0, min_w = 5;
+
+	if (options.show_line_numbers && win->view) {
+		w = number_width(win->view->buffer->nl) + 1;
+		if (w < min_w)
+			w = min_w;
+	}
+	if (w != win->line_numbers.width) {
+		win->line_numbers.width = w;
+		win->line_numbers.first = 0;
+		win->line_numbers.last = 0;
+		update_flags |= UPDATE_FULL;
+	}
+
+	win->edit_x = win->x + w;
+	win->edit_w = win->w - w;
+}
+
+void set_window_coordinates(struct window *win, int x, int y)
+{
+	win->x = x;
+	win->y = y;
+	win->edit_x = x;
+	win->edit_y = y + options.show_tab_bar;
+}
+
+void set_window_size(struct window *win, int w, int h)
+{
+	win->w = w;
+	win->h = h;
+	win->edit_w = w;
+	win->edit_h = h - options.show_tab_bar - 1;
+
+	calculate_line_numbers(win);
+}

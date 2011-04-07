@@ -16,6 +16,12 @@ struct window {
 	// Coordinates and size of editable area
 	int edit_x, edit_y;
 	int edit_w, edit_h;
+
+	struct {
+		int width;
+		int first;
+		int last;
+	} line_numbers;
 };
 
 extern struct window *window;
@@ -38,6 +44,9 @@ void remove_view(void);
 void set_view(struct view *v);
 void update_view(void);
 int view_idx(void);
+void calculate_line_numbers(struct window *win);
+void set_window_coordinates(struct window *win, int x, int y);
+void set_window_size(struct window *win, int w, int h);
 
 static inline int new_view_idx(int idx)
 {

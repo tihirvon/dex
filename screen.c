@@ -552,27 +552,6 @@ void update_range(int y1, int y2)
 	}
 }
 
-static int line_numbers_width;
-static int first_line_number;
-static int last_line_number;
-
-static void calculate_line_numbers(void)
-{
-	int w = 0, min_w = 5;
-
-	if (options.show_line_numbers) {
-		w = number_width(buffer->nl) + 1;
-		if (w < min_w)
-			w = min_w;
-	}
-	if (w != line_numbers_width) {
-		line_numbers_width = w;
-		first_line_number = 0;
-		last_line_number = 0;
-		update_flags |= UPDATE_FULL;
-	}
-}
-
 static const char *format_line_number(int line, int w)
 {
 	if (line > buffer->nl)
@@ -580,48 +559,37 @@ static const char *format_line_number(int line, int w)
 	return ssprintf("%*d ", w - 1, line);
 }
 
-void update_line_numbers(int force)
+void update_line_numbers(struct window *win, int force)
 {
+	struct view *v = win->view;
 	int i, first, last;
 
-	calculate_line_numbers();
+	calculate_line_numbers(win);
 
-	first = view->vy + 1;
-	last = view->vy + window->edit_h;
-	if (last > buffer->nl)
-		last = buffer->nl;
+	first = v->vy + 1;
+	last = v->vy + win->edit_h;
+	if (last > v->buffer->nl)
+		last = v->buffer->nl;
 
-	if (!force && first_line_number == first && last_line_number == last)
+	if (!force && win->line_numbers.first == first && win->line_numbers.last == last)
 		return;
 
-	first_line_number = first;
-	last_line_number = last;
+	win->line_numbers.first = first;
+	win->line_numbers.last = last;
 
-	buf_reset(window->x, window->w, 0);
+	buf_reset(win->x, win->w, 0);
 	buf_set_color(&linenumber_color->color);
-	for (i = 0; i < window->edit_h; i++) {
-		const char *buf = format_line_number(view->vy + i + 1, line_numbers_width);
-		buf_move_cursor(window->x, window->edit_y + i);
-		buf_add_bytes(buf, line_numbers_width);
+	for (i = 0; i < win->edit_h; i++) {
+		const char *buf = format_line_number(v->vy + i + 1, win->line_numbers.width);
+		buf_move_cursor(win->x, win->edit_y + i);
+		buf_add_bytes(buf, win->line_numbers.width);
 	}
 }
 
 void update_window_sizes(void)
 {
-	// tabbar + editable area + status line (command line is separate)
-	window->x = 0;
-	window->y = 0;
-	window->w = screen_w;
-	window->h = screen_h - 1;
-
-	window->edit_x = window->x;
-	window->edit_y = window->y + options.show_tab_bar;
-	window->edit_w = window->w;
-	window->edit_h = window->h - options.show_tab_bar - 1;
-
-	calculate_line_numbers();
-	window->edit_x += line_numbers_width;
-	window->edit_w -= line_numbers_width;
+	set_window_size(window, screen_w, screen_h - 1);
+	set_window_coordinates(window, 0, 0);
 }
 
 void update_screen_size(void)
