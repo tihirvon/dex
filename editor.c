@@ -325,16 +325,14 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {
 			update_flags |= UPDATE_VIEW;
-		} else if (cy != view->cy) {
+		} else {
 			// Because of trailing whitespace highlighting and
 			// highlighting current line in different color
 			// the lines cy (old cursor y) and view->cy need
 			// to be updated.
-			lines_changed(cy, view->cy);
-		} else {
-			// Too many things to track for a little gain.
+			//
 			// Always update at least current line.
-			lines_changed(cy, cy);
+			lines_changed(cy, view->cy);
 		}
 		if (is_modified != buffer_modified(buffer))
 			update_flags |= UPDATE_TAB_BAR;
