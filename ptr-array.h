@@ -12,6 +12,7 @@ struct ptr_array {
 #define PTR_ARRAY(name) struct ptr_array name = { NULL, 0, 0 }
 
 void ptr_array_add(struct ptr_array *array, void *ptr);
+void ptr_array_insert(struct ptr_array *array, void *ptr, unsigned int pos);
 void ptr_array_free(struct ptr_array *array);
 void *ptr_array_remove(struct ptr_array *array, unsigned int pos);
 int ptr_array_idx(struct ptr_array *array, void *ptr);

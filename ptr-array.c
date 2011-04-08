@@ -15,6 +15,14 @@ void ptr_array_add(struct ptr_array *array, void *ptr)
 	array->ptrs[array->count++] = ptr;
 }
 
+void ptr_array_insert(struct ptr_array *array, void *ptr, unsigned int pos)
+{
+	unsigned int count = array->count - pos;
+	ptr_array_add(array, NULL);
+	memmove(array->ptrs + pos + 1, array->ptrs + pos, count * sizeof(void *));
+	array->ptrs[pos] = ptr;
+}
+
 void ptr_array_free(struct ptr_array *array)
 {
 	int i;

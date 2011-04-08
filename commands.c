@@ -414,7 +414,6 @@ static void cmd_move_tab(const char *pf, char **args)
 {
 	int j, i = view_idx();
 	char *str = args[0];
-	struct view *tmp;
 
 	if (!strcmp(str, "left")) {
 		j = new_view_idx(i - 1);
@@ -432,9 +431,7 @@ static void cmd_move_tab(const char *pf, char **args)
 			j = window->views.count - 1;
 	}
 
-	tmp = window->views.ptrs[i];
-	window->views.ptrs[i] = window->views.ptrs[j];
-	window->views.ptrs[j] = tmp;
+	ptr_array_insert(&window->views, ptr_array_remove(&window->views, i), j);
 	update_flags |= UPDATE_TAB_BAR;
 }
 
