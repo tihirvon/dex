@@ -31,3 +31,14 @@ void *ptr_array_remove(struct ptr_array *array, unsigned int pos)
 	memmove(array->ptrs + pos, array->ptrs + pos + 1, (array->count - pos) * sizeof(void *));
 	return ptr;
 }
+
+int ptr_array_idx(struct ptr_array *array, void *ptr)
+{
+	int i;
+
+	for (i = 0; i < array->count; i++) {
+		if (array->ptrs[i] == ptr)
+			return i;
+	}
+	return -1;
+}

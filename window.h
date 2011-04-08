@@ -43,10 +43,14 @@ void view_delete(struct view *v);
 void remove_view(void);
 void set_view(struct view *v);
 void update_view(void);
-int view_idx(void);
 void calculate_line_numbers(struct window *win);
 void set_window_coordinates(struct window *win, int x, int y);
 void set_window_size(struct window *win, int w, int h);
+
+static inline int view_idx(void)
+{
+	return ptr_array_idx(&window->views, view);
+}
 
 static inline int new_view_idx(int idx)
 {

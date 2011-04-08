@@ -137,17 +137,6 @@ void update_view(void)
 	view->center_on_scroll = 0;
 }
 
-int view_idx(void)
-{
-	int i;
-
-	for (i = 0; i < window->views.count; i++) {
-		if (window->views.ptrs[i] == view)
-			return i;
-	}
-	return -1;
-}
-
 void calculate_line_numbers(struct window *win)
 {
 	int w = 0, min_w = 5;
