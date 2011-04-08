@@ -17,14 +17,28 @@ state smarty
 syntax .html-entity
 
 state entity
-	char # number
+	char # hash
 	char -b a-zA-Z0-9 name
 	recolor error 1
 	char "\n" END
 	eat END error
 
-state number entity
-	char 0-9 number
+state hash entity
+	char xX x
+	char 0-9 dec
+	eat END error
+
+state x entity
+	char 0-9a-fA-F hex
+	eat END error
+
+state hex entity
+	char 0-9a-fA-F hex
+	char ";" END entity
+	eat END error
+
+state dec entity
+	char 0-9 dec
 	char ";" END entity
 	eat END error
 
