@@ -1079,16 +1079,13 @@ static void cmd_tag(const char *pf, char **args)
 
 static void cmd_toggle(const char *pf, char **args)
 {
-	unsigned int flags = 0;
+	int global = 0;
 	int verbose = 0;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'g':
-			flags |= OPT_GLOBAL;
-			break;
-		case 'l':
-			flags |= OPT_LOCAL;
+			global = 1;
 			break;
 		case 'v':
 			verbose = 1;
@@ -1097,9 +1094,9 @@ static void cmd_toggle(const char *pf, char **args)
 		pf++;
 	}
 	if (args[1])
-		toggle_option_values(args[0], flags, verbose, args + 1);
+		toggle_option_values(args[0], global, verbose, args + 1);
 	else
-		toggle_option(args[0], flags, verbose);
+		toggle_option(args[0], global, verbose);
 }
 
 static void cmd_undo(const char *pf, char **args)

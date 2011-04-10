@@ -489,37 +489,29 @@ static int toggle(int value, const char **values)
 	return value;
 }
 
-void toggle_option(const char *name, unsigned int flags, int verbose)
+void toggle_option(const char *name, int global, int verbose)
 {
-	const struct option_description *desc = find_option(name, flags);
+	const struct option_description *desc;
 	char *ptr = NULL;
 
+	desc = find_option(name, global ? OPT_GLOBAL : 0);
 	if (!desc)
 		return;
 	if (desc->type != OPT_ENUM) {
 		error_msg("Option %s is not toggleable.", name);
 		return;
 	}
-	if (flags & OPT_LOCAL && flags & OPT_GLOBAL) {
-		error_msg("Can't toggle both local and global option value");
-		return;
-	}
 
-	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
-		/* doesn't make sense to toggle both local and global value */
-		if (desc->local)
-			flags |= OPT_LOCAL;
-		else if (desc->global)
-			flags |= OPT_GLOBAL;
-	}
+	// toggle local value by default if option has both values
+	if (!global && !desc->local)
+		global = 1;
 
-	if (flags & OPT_LOCAL) {
-		ptr = local_ptr(desc, &buffer->options);
-		desc->u.enum_opt.set((int *)ptr, NULL, toggle(*(int *)ptr, desc->u.enum_opt.values));
-	}
-	if (flags & OPT_GLOBAL) {
+	if (global) {
 		ptr = global_ptr(desc);
 		desc->u.enum_opt.set(NULL, (int *)ptr, toggle(*(int *)ptr, desc->u.enum_opt.values));
+	} else {
+		ptr = local_ptr(desc, &buffer->options);
+		desc->u.enum_opt.set((int *)ptr, NULL, toggle(*(int *)ptr, desc->u.enum_opt.values));
 	}
 
 	if (verbose) {
@@ -529,35 +521,27 @@ void toggle_option(const char *name, unsigned int flags, int verbose)
 	}
 }
 
-void toggle_option_values(const char *name, unsigned int flags, int verbose, char **values)
+void toggle_option_values(const char *name, int global, int verbose, char **values)
 {
-	const struct option_description *desc = find_option(name, flags);
-	int count = count_strings(values);
+	const struct option_description *desc;
+	int i, count = count_strings(values);
 	char *ptr = NULL;
-	int i;
 
+	desc = find_option(name, global ? OPT_GLOBAL : 0);
 	if (!desc)
 		return;
-	if (flags & OPT_LOCAL && flags & OPT_GLOBAL) {
-		error_msg("Can't toggle both local and global option value");
-		return;
-	}
 
-	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
-		/* doesn't make sense to toggle both local and global value */
-		if (desc->local)
-			flags |= OPT_LOCAL;
-		else if (desc->global)
-			flags |= OPT_GLOBAL;
-	}
+	// toggle local value by default if option has both values
+	if (!global && !desc->local)
+		global = 1;
 
 	if (desc->type == OPT_STR) {
 		char *value;
 
-		if (flags & OPT_LOCAL)
-			ptr = local_ptr(desc, &buffer->options);
-		if (flags & OPT_GLOBAL)
+		if (global)
 			ptr = global_ptr(desc);
+		else
+			ptr = local_ptr(desc, &buffer->options);
 
 		value = *(char **)ptr;
 		for (i = 0; i < count; i++) {
@@ -568,10 +552,10 @@ void toggle_option_values(const char *name, unsigned int flags, int verbose, cha
 			i++;
 		i %= count;
 
-		if (flags & OPT_LOCAL)
-			desc->u.str_opt.set((char **)ptr, NULL, values[i]);
-		if (flags & OPT_GLOBAL)
+		if (global)
 			desc->u.str_opt.set(NULL, (char **)ptr, values[i]);
+		else
+			desc->u.str_opt.set((char **)ptr, NULL, values[i]);
 	} else {
 		int *ints = xnew(int, count);
 		int value;
@@ -605,10 +589,10 @@ void toggle_option_values(const char *name, unsigned int flags, int verbose, cha
 			break;
 		}
 
-		if (flags & OPT_LOCAL)
-			ptr = local_ptr(desc, &buffer->options);
-		if (flags & OPT_GLOBAL)
+		if (global)
 			ptr = global_ptr(desc);
+		else
+			ptr = local_ptr(desc, &buffer->options);
 
 		value = *(int *)ptr;
 		for (i = 0; i < count; i++) {
@@ -619,10 +603,10 @@ void toggle_option_values(const char *name, unsigned int flags, int verbose, cha
 			i++;
 		i %= count;
 
-		if (flags & OPT_LOCAL)
-			desc->u.int_opt.set((int *)ptr, NULL, ints[i]);
-		if (flags & OPT_GLOBAL)
+		if (global)
 			desc->u.int_opt.set(NULL, (int *)ptr, ints[i]);
+		else
+			desc->u.int_opt.set((int *)ptr, NULL, ints[i]);
 		free(ints);
 	}
 

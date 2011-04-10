@@ -91,8 +91,8 @@ extern const char *case_sensitive_search_enum[];
 #define OPT_GLOBAL	(1 << 1)
 
 void set_option(const char *name, const char *value, unsigned int flags);
-void toggle_option(const char *name, unsigned int flags, int verbose);
-void toggle_option_values(const char *name, unsigned int flags, int verbose, char **values);
+void toggle_option(const char *name, int global, int verbose);
+void toggle_option_values(const char *name, int global, int verbose, char **values);
 void collect_options(const char *prefix);
 void collect_toggleable_options(const char *prefix);
 void collect_option_values(const char *name, const char *prefix);

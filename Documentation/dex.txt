@@ -422,19 +422,16 @@ tag [-r] [tag]
 
 	See also *msg* command.
 
-toggle [-glv] <option> [value...]
+toggle [-gv] <option> [value...]
 	Toggle option. If list of values is not given then the option
 	must be either boolean or enum.
 
-	-g toggle global option
-
-	-l toggle local option
+	-g toggle global option instead of local
 
 	-v display new value
 
-	If neither -l nor -g is given then only local or global value is
-	toggled. If option has both local and global value then local is
-	toggled.
+	If option has both local and global value then local is toggled
+	unless -g is given.
 
 undo
 	Undo latest change.
