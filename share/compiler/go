@@ -1,1 +1,2 @@
 errorfmt go "^(.+):([0-9]+): (.*)" file line message
+errorfmt go -i '.*'
