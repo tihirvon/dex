@@ -561,6 +561,8 @@ static void update_stat(int fd, struct buffer *b)
 	b->st_dev = st.st_dev;
 	b->st_ino = st.st_ino;
 	b->_st_mtime = st.st_mtime;
+	b->st_uid = st.st_uid;
+	b->st_gid = st.st_gid;
 	b->st_mode = st.st_mode;
 }
 
@@ -725,7 +727,6 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 	WBUF(wbuf);
 	int rc, len;
 	unsigned int size;
-	mode_t mode = buffer->st_mode ? buffer->st_mode : 0666 & ~get_umask();
 
 	if (!strncmp(filename, "/tmp/", 5))
 		ren = 0;
@@ -740,12 +741,25 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 		tmp[len + 7] = 0;
 		wbuf.fd = mkstemp(tmp);
 		if (wbuf.fd < 0) {
+			// No write permission to the directory?
 			ren = 0;
+		} else if (buffer->st_mode) {
+			// Preserve ownership and mode of the original file if possible.
+			fchown(wbuf.fd, buffer->st_uid, buffer->st_gid);
+			fchmod(wbuf.fd, buffer->st_mode);
 		} else {
-			fchmod(wbuf.fd, mode);
+			// new file
+			fchmod(wbuf.fd, 0666 & ~get_umask());
 		}
 	}
 	if (!ren) {
+		// Overwrite the original file (if exists) directly.
+		// Ownership is preserved automatically if the file exists.
+		mode_t mode = buffer->st_mode;
+		if (mode == 0) {
+			// New file.
+			mode = 0666 & ~get_umask();
+		}
 		wbuf.fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, mode);
 		if (wbuf.fd < 0) {
 			error_msg("Error opening file: %s", strerror(errno));

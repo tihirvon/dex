@@ -26,6 +26,8 @@ struct buffer {
 	dev_t st_dev;
 	ino_t st_ino;
 	time_t _st_mtime; // st_mtime is a macro in GarbageLIBC
+	uid_t st_uid;
+	gid_t st_gid;
 	mode_t st_mode;
 
 	// needed for identifying buffers whose filename is NULL
