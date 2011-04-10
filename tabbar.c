@@ -58,10 +58,7 @@ static void update_first_tab_idx(void)
 
 int calculate_tabbar(void)
 {
-	int truncated_w = 20;
-	int total_w = 0;
-	int truncated_count = 0, total_truncated_w = 0;
-	int extra, i;
+	int extra, i, truncated_count, total_w = 0;
 
 	for (i = 0; i < window->views.count; i++) {
 		struct view *v = window->views.ptrs[i];
@@ -73,13 +70,6 @@ int calculate_tabbar(void)
 		}
 		update_tab_title_width(v, i + 1);
 		total_w += v->tt_width;
-
-		if (v->tt_width > truncated_w) {
-			total_truncated_w += truncated_w;
-			truncated_count++;
-		} else {
-			total_truncated_w += v->tt_width;
-		}
 	}
 
 	if (total_w <= window->w) {
@@ -89,20 +79,29 @@ int calculate_tabbar(void)
 	}
 
 	// truncate all wide tabs
+	total_w = 0;
+	truncated_count = 0;
 	for (i = 0; i < window->views.count; i++) {
 		struct view *v = window->views.ptrs[i];
-		if (v->tt_width > truncated_w)
+		int truncated_w = 20;
+
+		if (v->tt_width > truncated_w) {
 			v->tt_truncated_width = truncated_w;
+			total_w += truncated_w;
+			truncated_count++;
+		} else {
+			total_w += v->tt_width;
+		}
 	}
 
-	if (total_truncated_w > window->w) {
+	if (total_w > window->w) {
 		// not all tabs fit even after truncating wide tabs
 		update_first_tab_idx();
 		return first_tab_idx;
 	}
 
 	// all tabs fit after truncating wide tabs
-	extra = window->w - total_truncated_w;
+	extra = window->w - total_w;
 
 	// divide extra space between truncated tabs
 	while (extra > 0) {
