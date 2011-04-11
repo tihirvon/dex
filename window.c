@@ -16,7 +16,7 @@ struct view *window_add_buffer(struct buffer *b)
 {
 	struct view *v = xnew0(struct view, 1);
 
-	b->ref++;
+	ptr_array_add(&b->views, v);
 	v->buffer = b;
 	v->window = window;
 	ptr_array_add(&window->views, v);
@@ -31,7 +31,8 @@ void view_delete(struct view *v)
 	if (v == prev_view)
 		prev_view = NULL;
 
-	if (!--b->ref) {
+	ptr_array_remove(&b->views, ptr_array_idx(&b->views, v));
+	if (b->views.count == 0) {
 		if (b->options.file_history && b->abs_filename)
 			add_file_history(v->cy + 1, v->cx_char + 1, b->abs_filename);
 		free_buffer(b);

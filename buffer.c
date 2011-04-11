@@ -275,7 +275,7 @@ void free_buffer(struct buffer *b)
 	}
 	free_changes(&b->change_head);
 	free(b->line_start_states.ptrs);
-
+	free(b->views.ptrs);
 	free(b->filename);
 	free(b->abs_filename);
 	free_local_options(&b->options);

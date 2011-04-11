@@ -35,8 +35,8 @@ struct buffer {
 
 	unsigned int nl;
 
-	// number of views pointing to this buffer
-	int ref;
+	// views pointing to this buffer
+	struct ptr_array views;
 
 	char *filename;
 	char *abs_filename;

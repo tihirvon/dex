@@ -105,7 +105,7 @@ static void cmd_clear(const char *pf, char **args)
 
 static void cmd_close(const char *pf, char **args)
 {
-	if (buffer_modified(buffer) && buffer->ref == 1 && !*pf) {
+	if (buffer_modified(buffer) && buffer->views.count == 1 && !*pf) {
 		error_msg("The buffer is modified. Save or run 'close -f' to close without saving.");
 		return;
 	}
