@@ -166,8 +166,29 @@ void end_change_chain(void)
 	}
 }
 
+static void fix_cursors(unsigned int offset, unsigned int del, unsigned int ins)
+{
+	int i;
+
+	for (i = 0; i < buffer->views.count; i++) {
+		struct view *v = buffer->views.ptrs[i];
+
+		if (v != view && offset < v->saved_cursor_offset) {
+			if (offset + del <= v->saved_cursor_offset) {
+				v->saved_cursor_offset -= del;
+				v->saved_cursor_offset += ins;
+			} else {
+				v->saved_cursor_offset = offset;
+			}
+		}
+	}
+}
+
 static void reverse_change(struct change *change)
 {
+	if (buffer->views.count > 1)
+		fix_cursors(change->offset, change->ins_count, change->del_count);
+
 	block_iter_goto_offset(&view->cursor, change->offset);
 	if (!change->ins_count) {
 		// convert delete to insert
@@ -309,6 +330,9 @@ void insert(const char *buf, unsigned int len)
 
 	do_insert(buf, len);
 	record_insert(rec_len);
+
+	if (buffer->views.count > 1)
+		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
 static int would_delete_last_bytes(unsigned int count)
@@ -350,6 +374,9 @@ void delete(unsigned int len, int move_after)
 		}
 	}
 	record_delete(do_delete(len), len, move_after);
+
+	if (buffer->views.count > 1)
+		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
 void replace(unsigned int del_count, const char *inserted, int ins_count)
@@ -378,4 +405,7 @@ void replace(unsigned int del_count, const char *inserted, int ins_count)
 
 	deleted = do_replace(del_count, inserted, ins_count);
 	record_replace(deleted, del_count, ins_count);
+
+	if (buffer->views.count > 1)
+		fix_cursors(block_iter_get_offset(&view->cursor), del_count, ins_count);
 }

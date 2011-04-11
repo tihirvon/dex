@@ -62,6 +62,8 @@ void remove_view(void)
 
 void set_view(struct view *v)
 {
+	int i;
+
 	if (view == v)
 		return;
 
@@ -76,6 +78,23 @@ void set_view(struct view *v)
 
 	if (!buffer->setup)
 		setup_buffer();
+
+	// view.cursor can be invalid if same buffer was modified from another view
+	if (view->restore_cursor) {
+		view->cursor.blk = BLOCK(view->buffer->blocks.next);
+		block_iter_goto_offset(&view->cursor, view->saved_cursor_offset);
+		view->restore_cursor = 0;
+		view->saved_cursor_offset = 0;
+	}
+
+	// save cursor states of views sharing same buffer
+	for (i = 0; i < buffer->views.count; i++) {
+		v = buffer->views.ptrs[i];
+		if (v != view) {
+			v->saved_cursor_offset = block_iter_get_offset(&v->cursor);
+			v->restore_cursor = 1;
+		}
+	}
 }
 
 static int cursor_outside_view(void)

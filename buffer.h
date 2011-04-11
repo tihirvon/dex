@@ -102,6 +102,11 @@ struct view {
 
 	// force centering view to cursor
 	unsigned force_center : 1;
+
+	// These are used to save cursor state when there are multiple views
+	// sharing same buffer.
+	int restore_cursor;
+	unsigned int saved_cursor_offset;
 };
 
 struct selection_info {
