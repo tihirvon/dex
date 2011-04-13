@@ -45,6 +45,10 @@ struct buffer {
 	unsigned locked : 1;
 	unsigned setup : 1;
 
+	// This flag is here instead of struct window because when tab title
+	// changes all tabbars where the buffer is need to be updated.
+	unsigned update_tabbar : 1;
+
 	enum newline_sequence newline;
 
 	struct local_options options;
@@ -121,7 +125,6 @@ struct selection_info {
 	int nr_chars;
 };
 
-#define UPDATE_TAB_BAR		(1 << 0)
 #define UPDATE_COMMAND_LINE	(1 << 2)
 #define UPDATE_ALL_WINDOWS	(1 << 3)
 
@@ -134,7 +137,7 @@ extern unsigned int update_flags;
 
 static inline void mark_tabbar_changed(void)
 {
-	update_flags |= UPDATE_TAB_BAR;
+	buffer->update_tabbar = 1;
 }
 
 static inline void mark_command_line_changed(void)

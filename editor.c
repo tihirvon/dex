@@ -152,6 +152,7 @@ static void end_update(void)
 	buf_flush();
 
 	update_flags = 0;
+	buffer->update_tabbar = 0;
 	buffer->changed_line_min = INT_MAX;
 	buffer->changed_line_max = -1;
 }
@@ -382,9 +383,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	}
 
 	start_update();
-	if (update_flags & UPDATE_TAB_BAR)
+	if (buffer->update_tabbar)
 		update_term_title();
-	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
+	if (buffer->update_tabbar && options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers) {
 		// force updating lines numbers if all lines changed
