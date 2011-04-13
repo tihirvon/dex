@@ -242,7 +242,7 @@ void error_msg(const char *format, ...)
 	va_end(ap);
 
 	msg_is_error = 1;
-	update_flags |= UPDATE_COMMAND_LINE;
+	mark_command_line_changed();
 	nr_errors++;
 
 	if (editor_status == EDITOR_INITIALIZING)
@@ -257,7 +257,7 @@ void info_msg(const char *format, ...)
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
 	msg_is_error = 0;
-	update_flags |= UPDATE_COMMAND_LINE;
+	mark_command_line_changed();
 }
 
 char get_confirmation(const char *choices, const char *format, ...)
@@ -335,7 +335,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {
-			update_flags |= UPDATE_VIEW;
+			mark_all_lines_changed();
 		} else {
 			// Because of trailing whitespace highlighting and
 			// highlighting current line in different color
@@ -346,9 +346,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			lines_changed(cy, view->cy);
 		}
 		if (is_modified != buffer_modified(buffer))
-			update_flags |= UPDATE_TAB_BAR;
+			mark_tabbar_changed();
 	} else {
-		update_flags |= UPDATE_VIEW | UPDATE_TAB_BAR;
+		mark_tabbar_changed();
+		mark_all_lines_changed();
 	}
 
 	start_update();
@@ -389,7 +390,7 @@ void main_loop(void)
 				/* clear possible error message */
 				if (error_buf[0]) {
 					clear_error();
-					update_flags |= UPDATE_COMMAND_LINE;
+					mark_command_line_changed();
 				}
 				handle_key(type, key);
 			}

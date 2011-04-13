@@ -41,7 +41,7 @@ static void default_int_set(int *local, int *global, int value)
 		*local = value;
 	if (global)
 		*global = value;
-	update_flags |= UPDATE_TAB_BAR | UPDATE_VIEW | UPDATE_WINDOW_SIZES;
+	mark_everything_changed();
 }
 
 static void default_str_set(char **local, char **global, const char *value)
@@ -54,7 +54,7 @@ static void default_str_set(char **local, char **global, const char *value)
 		free(*global);
 		*global = xstrdup(value);
 	}
-	update_flags |= UPDATE_VIEW;
+	mark_everything_changed();
 }
 
 static void statusline_set(char **local, char **global, const char *value)

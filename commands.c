@@ -90,7 +90,7 @@ static void cmd_cd(const char *pf, char **args)
 		}
 	}
 
-	update_flags |= UPDATE_TAB_BAR;
+	mark_tabbar_changed();
 }
 
 static void cmd_center_view(const char *pf, char **args)
@@ -115,7 +115,7 @@ static void cmd_close(const char *pf, char **args)
 static void cmd_command(const char *pf, char **args)
 {
 	input_mode = INPUT_COMMAND;
-	update_flags |= UPDATE_COMMAND_LINE;
+	mark_command_line_changed();
 
 	if (args[0])
 		cmdline_set_text(args[0]);
@@ -332,7 +332,7 @@ static void cmd_hi(const char *pf, char **args)
 		// It is called right after config has been loaded.
 		if (editor_status != EDITOR_INITIALIZING) {
 			update_all_syntax_colors();
-			update_flags = UPDATE_VIEW | UPDATE_TAB_BAR;
+			mark_everything_changed();
 		}
 	}
 }
@@ -432,7 +432,7 @@ static void cmd_move_tab(const char *pf, char **args)
 	}
 
 	ptr_array_insert(&window->views, ptr_array_remove(&window->views, i), j);
-	update_flags |= UPDATE_TAB_BAR;
+	mark_tabbar_changed();
 }
 
 static void cmd_msg(const char *pf, char **args)
@@ -823,7 +823,7 @@ static void cmd_save(const char *pf, char **args)
 		update_short_filename(buffer);
 
 		// filename change is not detected (only buffer_modified() change)
-		update_flags |= UPDATE_TAB_BAR;
+		mark_tabbar_changed();
 	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
@@ -935,7 +935,7 @@ static void cmd_search(const char *pf, char **args)
 	} else {
 		input_mode = INPUT_SEARCH;
 		search_init(dir);
-		update_flags |= UPDATE_COMMAND_LINE;
+		mark_command_line_changed();
 	}
 }
 
@@ -968,7 +968,7 @@ static void cmd_select(const char *pf, char **args)
 			return;
 		}
 		view->selection = sel;
-		update_flags |= UPDATE_VIEW;
+		mark_all_lines_changed();
 		return;
 	}
 

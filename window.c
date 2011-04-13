@@ -20,7 +20,7 @@ struct view *window_add_buffer(struct buffer *b)
 	v->buffer = b;
 	v->window = window;
 	ptr_array_add(&window->views, v);
-	update_flags |= UPDATE_TAB_BAR;
+	mark_tabbar_changed();
 	return v;
 }
 
@@ -37,7 +37,7 @@ void view_delete(struct view *v)
 		free_buffer(b);
 	}
 	free(v);
-	update_flags |= UPDATE_TAB_BAR;
+	mark_tabbar_changed();
 }
 
 void remove_view(void)
@@ -150,7 +150,7 @@ void calculate_line_numbers(struct window *win)
 		win->line_numbers.width = w;
 		win->line_numbers.first = 0;
 		win->line_numbers.last = 0;
-		update_flags |= UPDATE_VIEW;
+		mark_all_lines_changed();
 	}
 
 	win->edit_x = win->x + w;

@@ -127,6 +127,26 @@ extern unsigned int update_flags;
 extern int changed_line_min;
 extern int changed_line_max;
 
+static inline void mark_tabbar_changed(void)
+{
+	update_flags |= UPDATE_TAB_BAR;
+}
+
+static inline void mark_command_line_changed(void)
+{
+	update_flags |= UPDATE_COMMAND_LINE;
+}
+
+static inline void mark_all_lines_changed(void)
+{
+	update_flags |= UPDATE_VIEW;
+}
+
+static inline void mark_everything_changed(void)
+{
+	update_flags |= UPDATE_WINDOW_SIZES;
+}
+
 static inline int buffer_modified(struct buffer *b)
 {
 	return b->save_change_head != b->cur_change_head;

@@ -35,7 +35,7 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 {
 	char buf[4];
 
-	update_flags |= UPDATE_COMMAND_LINE;
+	mark_command_line_changed();
 
 	if (type != KEY_NORMAL) {
 		if (type == KEY_PASTE)

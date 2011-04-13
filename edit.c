@@ -79,14 +79,14 @@ void select_block(void)
 	view->sel_eo = UINT_MAX;
 	view->selection = SELECT_LINES;
 
-	update_flags |= UPDATE_VIEW;
+	mark_all_lines_changed();
 }
 
 void unselect(void)
 {
 	if (selecting()) {
 		view->selection = SELECT_NONE;
-		update_flags |= UPDATE_VIEW;
+		mark_all_lines_changed();
 	}
 }
 
