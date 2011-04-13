@@ -53,6 +53,9 @@ struct buffer {
 	// Index 0 is always syn->states.ptrs[0].
 	// Lowest bit of an invalidated value is 1.
 	struct ptr_array line_start_states;
+
+	int changed_line_min;
+	int changed_line_max;
 };
 
 enum selection {
@@ -119,7 +122,6 @@ struct selection_info {
 };
 
 #define UPDATE_TAB_BAR		(1 << 0)
-#define UPDATE_VIEW		(1 << 1) // current view + status line
 #define UPDATE_COMMAND_LINE	(1 << 2)
 #define UPDATE_ALL_WINDOWS	(1 << 3)
 
@@ -129,8 +131,6 @@ extern struct buffer *buffer;
 extern struct view *prev_view;
 
 extern unsigned int update_flags;
-extern int changed_line_min;
-extern int changed_line_max;
 
 static inline void mark_tabbar_changed(void)
 {
@@ -144,7 +144,8 @@ static inline void mark_command_line_changed(void)
 
 static inline void mark_all_lines_changed(void)
 {
-	update_flags |= UPDATE_VIEW;
+	buffer->changed_line_min = 0;
+	buffer->changed_line_max = INT_MAX;
 }
 
 static inline void mark_everything_changed(void)

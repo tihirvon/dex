@@ -152,8 +152,8 @@ static void end_update(void)
 	buf_flush();
 
 	update_flags = 0;
-	changed_line_min = INT_MAX;
-	changed_line_max = -1;
+	buffer->changed_line_min = INT_MAX;
+	buffer->changed_line_max = -1;
 }
 
 static void update_all_windows(void)
@@ -345,6 +345,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int cy = view->cy;
 	int vx = view->vx;
 	int vy = view->vy;
+	int y1, y2;
 
 	keypress(type, key);
 	sanity_check();
@@ -385,19 +386,19 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_term_title();
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
 		print_tabbar();
-	if (options.show_line_numbers)
-		update_line_numbers(window, update_flags & UPDATE_VIEW);
-	if (update_flags & UPDATE_VIEW) {
-		update_range(view->vy, view->vy + window->edit_h);
-	} else  {
-		int y1 = changed_line_min;
-		int y2 = changed_line_max;
-		if (y1 < view->vy)
-			y1 = view->vy;
-		if (y2 > view->vy + window->edit_h - 1)
-			y2 = view->vy + window->edit_h - 1;
-		update_range(y1, y2 + 1);
+	if (options.show_line_numbers) {
+		// force updating lines numbers if all lines changed
+		update_line_numbers(window, buffer->changed_line_max == INT_MAX);
 	}
+
+	y1 = buffer->changed_line_min;
+	y2 = buffer->changed_line_max;
+	if (y1 < view->vy)
+		y1 = view->vy;
+	if (y2 > view->vy + window->edit_h - 1)
+		y2 = view->vy + window->edit_h - 1;
+	update_range(y1, y2 + 1);
+
 	update_status_line(format_misc_status());
 	print_separator();
 	if (update_flags & UPDATE_COMMAND_LINE)

@@ -18,8 +18,6 @@ struct buffer *buffer;
 struct view *prev_view;
 
 unsigned int update_flags;
-int changed_line_min = INT_MAX;
-int changed_line_max = -1;
 
 /*
  * Mark line range min...max (inclusive) "changed". These lines will be
@@ -38,10 +36,10 @@ void lines_changed(int min, int max)
 		max = tmp;
 	}
 
-	if (min < changed_line_min)
-		changed_line_min = min;
-	if (max > changed_line_max)
-		changed_line_max = max;
+	if (min < buffer->changed_line_min)
+		buffer->changed_line_min = min;
+	if (max > buffer->changed_line_max)
+		buffer->changed_line_max = max;
 }
 
 const char *buffer_filename(struct buffer *b)
