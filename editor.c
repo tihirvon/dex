@@ -174,6 +174,62 @@ static void update_all_windows(void)
 	buffer = view->buffer;
 }
 
+static void update_window(void)
+{
+	int y1, y2;
+
+	if (buffer->update_tabbar && options.show_tab_bar)
+		print_tabbar();
+
+	if (options.show_line_numbers) {
+		// force updating lines numbers if all lines changed
+		update_line_numbers(window, buffer->changed_line_max == INT_MAX);
+	}
+
+	y1 = buffer->changed_line_min;
+	y2 = buffer->changed_line_max;
+	if (y1 < view->vy)
+		y1 = view->vy;
+	if (y2 > view->vy + window->edit_h - 1)
+		y2 = view->vy + window->edit_h - 1;
+
+	update_range(y1, y2 + 1);
+	update_status_line(format_misc_status());
+}
+
+// update all visible views containing current buffer
+static void update_windows(void)
+{
+	struct view *save = view;
+	void **ptrs = buffer->views.ptrs;
+	int i, count = buffer->views.count;
+
+	for (i = 0; i < count; i++) {
+		struct view *v = ptrs[i];
+		if (v->window->view == v) {
+			// visible view
+			view = v;
+			buffer = view->buffer;
+			window = view->window;
+
+			if (view != save) {
+				// restore cursor
+				view->cursor.blk = BLOCK(view->buffer->blocks.next);
+				block_iter_goto_offset(&view->cursor, view->saved_cursor_offset);
+
+				// these have already been updated for current view
+				update_cursor_x();
+				update_cursor_y();
+				update_view();
+			}
+			update_window();
+		}
+	}
+	view = save;
+	buffer = view->buffer;
+	window = view->window;
+}
+
 void resize(void)
 {
 	resized = 0;
@@ -346,13 +402,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int cy = view->cy;
 	int vx = view->vx;
 	int vy = view->vy;
-	int y1, y2;
 
 	keypress(type, key);
 	sanity_check();
-	update_cursor_x();
-	update_cursor_y();
-	update_view();
 
 	if (update_flags & UPDATE_ALL_WINDOWS) {
 		start_update();
@@ -362,6 +414,10 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		end_update();
 		return;
 	}
+
+	update_cursor_x();
+	update_cursor_y();
+	update_view();
 
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {
@@ -385,22 +441,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	start_update();
 	if (buffer->update_tabbar)
 		update_term_title();
-	if (buffer->update_tabbar && options.show_tab_bar)
-		print_tabbar();
-	if (options.show_line_numbers) {
-		// force updating lines numbers if all lines changed
-		update_line_numbers(window, buffer->changed_line_max == INT_MAX);
-	}
-
-	y1 = buffer->changed_line_min;
-	y2 = buffer->changed_line_max;
-	if (y1 < view->vy)
-		y1 = view->vy;
-	if (y2 > view->vy + window->edit_h - 1)
-		y2 = view->vy + window->edit_h - 1;
-	update_range(y1, y2 + 1);
-
-	update_status_line(format_misc_status());
+	update_windows();
 	print_separator();
 	if (update_flags & UPDATE_COMMAND_LINE)
 		update_command_line();
