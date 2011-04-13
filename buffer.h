@@ -116,7 +116,7 @@ struct selection_info {
 #define UPDATE_TAB_BAR		(1 << 0)
 #define UPDATE_VIEW		(1 << 1) // current view + status line
 #define UPDATE_COMMAND_LINE	(1 << 2)
-#define UPDATE_WINDOW_SIZES	(1 << 3)
+#define UPDATE_ALL_WINDOWS	(1 << 3)
 
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
@@ -144,7 +144,7 @@ static inline void mark_all_lines_changed(void)
 
 static inline void mark_everything_changed(void)
 {
-	update_flags |= UPDATE_WINDOW_SIZES;
+	update_flags |= UPDATE_ALL_WINDOWS;
 }
 
 static inline int buffer_modified(struct buffer *b)

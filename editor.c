@@ -353,7 +353,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	}
 
 	start_update();
-	if (update_flags & UPDATE_WINDOW_SIZES)
+	if (update_flags & UPDATE_ALL_WINDOWS)
 		update_window_sizes();
 	if (update_flags & UPDATE_TAB_BAR)
 		update_term_title();
