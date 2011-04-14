@@ -1,6 +1,8 @@
 #ifndef TABBAR_H
 #define TABBAR_H
 
-int calculate_tabbar(void);
+#include "window.h"
+
+void calculate_tabbar(struct window *win);
 
 #endif

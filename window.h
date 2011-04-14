@@ -23,6 +23,8 @@ struct window {
 		int first;
 		int last;
 	} line_numbers;
+
+	int first_tab_idx;
 };
 
 extern struct window *window;

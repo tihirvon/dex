@@ -107,15 +107,16 @@ static void print_tab_title(struct view *v, int idx)
 
 void print_tabbar(void)
 {
-	int idx, first_tab_idx = calculate_tabbar();
+	int idx;
 
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y);
 
+	calculate_tabbar(window);
 	for (idx = 0; idx < window->views.count; idx++) {
 		struct view *v = window->views.ptrs[idx];
 
-		if (idx < first_tab_idx)
+		if (idx < window->first_tab_idx)
 			continue;
 
 		if (obuf.x + v->tt_truncated_width > window->w)

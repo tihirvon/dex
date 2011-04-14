@@ -2,8 +2,6 @@
 #include "window.h"
 #include "uchar.h"
 
-static int first_tab_idx;
-
 static int filename_width(const char *filename)
 {
 	int w = 0, i = 0;
@@ -32,60 +30,60 @@ static void update_tab_title_width(struct view *v, int tab_number)
 	v->tt_truncated_width = w;
 }
 
-static void update_first_tab_idx(void)
+static void update_first_tab_idx(struct window *win)
 {
 	int min_first_idx, max_first_idx, w;
 
 	w = 0;
-	for (max_first_idx = window->views.count; max_first_idx > 0; max_first_idx--) {
-		struct view *v = window->views.ptrs[max_first_idx - 1];
+	for (max_first_idx = win->views.count; max_first_idx > 0; max_first_idx--) {
+		struct view *v = win->views.ptrs[max_first_idx - 1];
 		w += v->tt_truncated_width;
-		if (w > window->w)
+		if (w > win->w)
 			break;
 	}
 
 	w = 0;
-	for (min_first_idx = window->views.count; min_first_idx > 0; min_first_idx--) {
-		struct view *v = window->views.ptrs[min_first_idx - 1];
+	for (min_first_idx = win->views.count; min_first_idx > 0; min_first_idx--) {
+		struct view *v = win->views.ptrs[min_first_idx - 1];
 		if (w || v == view)
 			w += v->tt_truncated_width;
-		if (w > window->w)
+		if (w > win->w)
 			break;
 	}
 
-	if (first_tab_idx < min_first_idx)
-		first_tab_idx = min_first_idx;
-	if (first_tab_idx > max_first_idx)
-		first_tab_idx = max_first_idx;
+	if (win->first_tab_idx < min_first_idx)
+		win->first_tab_idx = min_first_idx;
+	if (win->first_tab_idx > max_first_idx)
+		win->first_tab_idx = max_first_idx;
 }
 
-int calculate_tabbar(void)
+void calculate_tabbar(struct window *win)
 {
 	int extra, i, truncated_count, total_w = 0;
 
-	for (i = 0; i < window->views.count; i++) {
-		struct view *v = window->views.ptrs[i];
+	for (i = 0; i < win->views.count; i++) {
+		struct view *v = win->views.ptrs[i];
 
 		if (v == view) {
 			// make sure current tab is visible
-			if (first_tab_idx > i)
-				first_tab_idx = i;
+			if (win->first_tab_idx > i)
+				win->first_tab_idx = i;
 		}
 		update_tab_title_width(v, i + 1);
 		total_w += v->tt_width;
 	}
 
-	if (total_w <= window->w) {
+	if (total_w <= win->w) {
 		// all tabs fit without truncating
-		first_tab_idx = 0;
-		return first_tab_idx;
+		win->first_tab_idx = 0;
+		return;
 	}
 
 	// truncate all wide tabs
 	total_w = 0;
 	truncated_count = 0;
-	for (i = 0; i < window->views.count; i++) {
-		struct view *v = window->views.ptrs[i];
+	for (i = 0; i < win->views.count; i++) {
+		struct view *v = win->views.ptrs[i];
 		int truncated_w = 20;
 
 		if (v->tt_width > truncated_w) {
@@ -97,22 +95,22 @@ int calculate_tabbar(void)
 		}
 	}
 
-	if (total_w > window->w) {
+	if (total_w > win->w) {
 		// not all tabs fit even after truncating wide tabs
-		update_first_tab_idx();
-		return first_tab_idx;
+		update_first_tab_idx(win);
+		return;
 	}
 
 	// all tabs fit after truncating wide tabs
-	extra = window->w - total_w;
+	extra = win->w - total_w;
 
 	// divide extra space between truncated tabs
 	while (extra > 0) {
 		int extra_avg = extra / truncated_count;
 		int extra_mod = extra % truncated_count;
 
-		for (i = 0; i < window->views.count; i++) {
-			struct view *v = window->views.ptrs[i];
+		for (i = 0; i < win->views.count; i++) {
+			struct view *v = win->views.ptrs[i];
 			int add = v->tt_width - v->tt_truncated_width;
 			int avail;
 
@@ -137,6 +135,5 @@ int calculate_tabbar(void)
 		}
 	}
 
-	first_tab_idx = 0;
-	return first_tab_idx;
+	win->first_tab_idx = 0;
 }
