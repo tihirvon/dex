@@ -158,6 +158,7 @@ static inline int selecting(void)
 }
 
 void lines_changed(int min, int max);
+const char *buffer_filename(struct buffer *b);
 unsigned int count_nl(const char *buf, unsigned int size);
 
 void init_selection(struct selection_info *info);

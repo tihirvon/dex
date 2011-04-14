@@ -68,11 +68,8 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 static void print_tab_title(struct view *v, int idx)
 {
 	int skip = v->tt_width - v->tt_truncated_width;
-	const char *filename = v->buffer->filename;
+	const char *filename = buffer_filename(v->buffer);
 	char buf[16];
-
-	if (!filename)
-		filename = "(No name)";
 
 	if (skip > 0) {
 		if (term_utf8)

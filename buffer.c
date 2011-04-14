@@ -44,6 +44,11 @@ void lines_changed(int min, int max)
 		changed_line_max = max;
 }
 
+const char *buffer_filename(struct buffer *b)
+{
+	return b->filename ? b->filename : "(No name)";
+}
+
 unsigned int count_nl(const char *buf, unsigned int size)
 {
 	const char *end = buf + size;

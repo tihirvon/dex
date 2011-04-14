@@ -91,7 +91,7 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 			ch = *format++;
 			switch (ch) {
 			case 'f':
-				add_status_str(&f, buffer->filename ? buffer->filename : "(No name)");
+				add_status_str(&f, buffer_filename(buffer));
 				break;
 			case 'm':
 				if (buffer_modified(buffer))

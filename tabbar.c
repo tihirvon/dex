@@ -6,11 +6,8 @@ static int first_tab_idx;
 
 static void update_tab_title_width(struct view *v, int tab_number)
 {
-	const char *filename = v->buffer->filename;
+	const char *filename = buffer_filename(v->buffer);
 	unsigned int w;
-
-	if (!filename)
-		filename = "(No name)";
 
 	w = 3 + number_width(tab_number);
 	if (term_utf8) {

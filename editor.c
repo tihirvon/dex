@@ -106,7 +106,7 @@ static void update_command_line(void)
 static void update_term_title(void)
 {
 	print_term_title(ssprintf("%s %c %s",
-		buffer->filename ? buffer->filename : "(No name)",
+		buffer_filename(buffer),
 		buffer_modified(buffer) ? '+' : '-',
 		program));
 }
