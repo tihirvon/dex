@@ -4,23 +4,29 @@
 
 static int first_tab_idx;
 
-static void update_tab_title_width(struct view *v, int tab_number)
+static int filename_width(const char *filename)
 {
-	const char *filename = buffer_filename(v->buffer);
-	unsigned int w;
+	int w = 0, i = 0;
 
-	w = 3 + number_width(tab_number);
 	if (term_utf8) {
-		unsigned int i = 0;
 		while (filename[i])
 			w += u_char_width(u_buf_get_char(filename, i + 4, &i));
 	} else {
-		unsigned int i = 0;
-		while (filename[i]) {
-			// latin1 is subset of unicode
+		// latin1 is subset of unicode
+		while (filename[i])
 			w += u_char_width(filename[i++]);
-		}
 	}
+	return w;
+}
+
+static int tab_title_width(int number, const char *filename)
+{
+	return 3 + number_width(number) + filename_width(filename);
+}
+
+static void update_tab_title_width(struct view *v, int tab_number)
+{
+	int w = tab_title_width(tab_number, buffer_filename(v->buffer));
 
 	v->tt_width = w;
 	v->tt_truncated_width = w;
