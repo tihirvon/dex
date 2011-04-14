@@ -750,7 +750,8 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 			ren = 0;
 		} else if (buffer->st_mode) {
 			// Preserve ownership and mode of the original file if possible.
-			fchown(wbuf.fd, buffer->st_uid, buffer->st_gid);
+			int ignore = fchown(wbuf.fd, buffer->st_uid, buffer->st_gid);
+			ignore = ignore; // warning: unused variable 'ignore'
 			fchmod(wbuf.fd, buffer->st_mode);
 		} else {
 			// new file
