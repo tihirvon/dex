@@ -568,19 +568,26 @@ void update_range(int y1, int y2)
 	}
 }
 
-// FIXME: draw all separators at once. set color only once
-void print_separator(void)
+static void print_separator(struct window *win)
 {
 	int y;
 
-	if (window->x + window->w == screen_w)
+	if (win->x + win->w == screen_w)
 		return;
 
-	buf_set_color(&statusline_color->color); // FIXME
-	for (y = 0; y < window->h; y++) {
-		buf_move_cursor(window->x + window->w, window->y + y);
+	for (y = 0; y < win->h; y++) {
+		buf_move_cursor(win->x + win->w, win->y + y);
 		buf_add_ch('|');
 	}
+}
+
+void update_separators(void)
+{
+	int i;
+
+	buf_set_color(&statusline_color->color);
+	for (i = 0; i < windows.count; i++)
+		print_separator(windows.ptrs[i]);
 }
 
 static const char *format_line_number(int line, int w)

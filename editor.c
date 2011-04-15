@@ -121,7 +121,6 @@ static void update_current_window(void)
 	if (options.show_line_numbers)
 		update_line_numbers(window, 1);
 	update_range(view->vy, view->vy + window->edit_h);
-	print_separator();
 	update_status_line(format_misc_status());
 }
 
@@ -169,6 +168,7 @@ static void update_all_windows(void)
 		buffer = view->buffer;
 		update_current_window();
 	}
+	update_separators();
 	window = save;
 	view = window->view;
 	buffer = view->buffer;
@@ -442,7 +442,6 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (buffer->update_tabbar)
 		update_term_title();
 	update_windows();
-	print_separator();
 	if (update_flags & UPDATE_COMMAND_LINE)
 		update_command_line();
 	end_update();
