@@ -149,14 +149,26 @@ void update_status_line(const char *misc_status)
 		rw = u_str_width(rbuf, rw);
 	}
 	if (lw + rw <= window->w) {
+		// both fit
 		buf_add_str(lbuf);
 		buf_set_bytes(' ', window->w - lw - rw);
 		buf_add_str(rbuf);
-	} else {
+	} else if (lw <= window->w && rw <= window->w) {
+		// both would fit separately, draw overlapping
 		buf_add_str(lbuf);
 		obuf.x = window->w - rw;
 		buf_move_cursor(window->x + window->w - rw, window->y + window->h - 1);
 		buf_add_str(rbuf);
+	} else if (lw <= window->w) {
+		// left fits
+		buf_add_str(lbuf);
+		buf_clear_eol();
+	} else if (rw <= window->w) {
+		// right fits
+		buf_set_bytes(' ', window->w - rw);
+		buf_add_str(rbuf);
+	} else {
+		buf_clear_eol();
 	}
 }
 
