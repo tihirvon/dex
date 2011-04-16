@@ -392,9 +392,10 @@ select [-bl]
 
 	-l select whole lines
 
-set [-gl] <option> [value]
+set [-gl] <option1> [value1] ...
 	Set option value. Value can be omitted for boolean option to set
-	it true.
+	it true. Multiple options can be set at once but then value must
+	be given for every option.
 
 	-g set only global option
 

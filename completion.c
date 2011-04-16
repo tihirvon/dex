@@ -221,9 +221,9 @@ static void collect_completions(char **args, int argc)
 		return;
 	}
 	if (!strcmp(cmd->name, "set")) {
-		if (argc == 1) {
+		if (argc % 2) {
 			collect_options(completion.parsed);
-		} else if (argc == 2) {
+		} else {
 			collect_option_values(args[argc - 1], completion.parsed);
 		}
 		return;

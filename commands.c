@@ -985,6 +985,7 @@ static void cmd_select(const char *pf, char **args)
 static void cmd_set(const char *pf, char **args)
 {
 	unsigned int flags = 0;
+	int i, count = count_strings(args);
 
 	while (*pf) {
 		switch (*pf) {
@@ -997,7 +998,17 @@ static void cmd_set(const char *pf, char **args)
 		}
 		pf++;
 	}
-	set_option(args[0], args[1], flags);
+	if (count == 1) {
+		// set boolean to true
+		set_option(args[0], NULL, flags);
+		return;
+	}
+	if (count % 2) {
+		error_msg("One or even number of arguments expected.");
+		return;
+	}
+	for (i = 0; args[i]; i += 2)
+		set_option(args[i], args[i + 1], flags);
 }
 
 static void cmd_shift(const char *pf, char **args)
@@ -1208,7 +1219,7 @@ const struct command commands[] = {
 	{ "scroll-up",		"",	0,  0, cmd_scroll_up },
 	{ "search",		"Hnprw",0,  1, cmd_search },
 	{ "select",		"bl",	0,  0, cmd_select },
-	{ "set",		"gl",	1,  2, cmd_set },
+	{ "set",		"gl",	1, -1, cmd_set },
 	{ "shift",		"",	1,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "tag",		"r",	0,  1, cmd_tag },
