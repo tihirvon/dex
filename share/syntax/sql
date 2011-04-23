@@ -118,7 +118,7 @@ state star comment
 	noeat c-comment
 
 # FIXME: types should probably go to separate list
-list -h keyword \
+list -hi keyword \
 	ADD ALL ALTER ANALYZE AND AS ASC ASENSITIVE BEFORE BETWEEN \
 	BIGINT BINARY BLOB BOTH BY CALL CASCADE CASE CHANGE CHAR \
 	CHARACTER CHECK COLLATE COLUMN CONDITION CONSTRAINT CONTINUE \
@@ -149,7 +149,7 @@ list -h keyword \
 	UTC_TIME UTC_TIMESTAMP VALUES VARBINARY VARCHAR VARCHARACTER \
 	VARYING WHEN WHERE WHILE WITH WRITE XOR YEAR_MONTH ZEROFILL
 
-list identifier \
+list -i identifier \
 	ACTION BIT DATE ENUM NO TEXT TIME TIMESTAMP
 
 default keyword identifier
