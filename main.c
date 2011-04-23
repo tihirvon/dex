@@ -34,18 +34,18 @@ static const char *builtin_rc =
 "bind ^C command\n"
 // these colors are assumed to exist
 "hi default\n"
-"hi currentline keep keep keep\n"
+"hi nontext blue keep\n"
+"hi wserror default yellow\n"
 "hi selection keep gray keep\n"
+"hi currentline keep keep keep\n"
+"hi linenumber\n"
 "hi statusline black gray\n"
 "hi commandline\n"
 "hi errormsg bold red\n"
 "hi infomsg bold blue\n"
-"hi wserror default yellow\n"
-"hi nontext blue keep\n"
 "hi tabbar black gray\n"
 "hi activetab bold\n"
 "hi inactivetab black gray\n"
-"hi linenumber\n"
 // must initialize string options
 "set statusline-left \" %f%s%m%r%s%M\"\n"
 "set statusline-right \" %y,%X   %c %C   %E %n %t   %p \"\n";
