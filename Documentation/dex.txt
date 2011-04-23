@@ -446,6 +446,17 @@ up
 view <N|last>
 	Display Nth or last open file.
 
+wclose [-f]
+	Close window.
+
+	-f close even if there are unsaved files in the window
+
+wflip
+	Change from vertical layout to horizontal and vice versa.
+
+wnext
+	Next window.
+
 word-bwd [-s]
 	Move cursor backward one word.
 
@@ -455,6 +466,34 @@ word-fwd [-s]
 	Move cursor forward one word.
 
 	-s skip special characters
+
+wprev
+	Previous window.
+
+wresize [-hv] [[+-]N]
+	If no parameter given, equalize window sizes in current frame.
+
+	-h resize horizontally
+
+	-v resize vertically
+
+	N  Set size of current window to N characters.
+
+	+N Increase size of current window by N characters.
+
+	-N Decrease size of current window by N characters.
+
+wsplit [-bhr] [file...]
+	Like *open* but at first splits current window vertically.
+
+	-b Add new window before current instead of after.
+
+	-h Split horizontally instead of vertically.
+
+	-r Split root instead of current window.
+
+wswap
+	Swap positions of this and next frame.
 
 @h1 OPTIONS
 

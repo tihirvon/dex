@@ -195,6 +195,7 @@ static void collect_completions(char **args, int argc)
 		return;
 
 	if (!strcmp(cmd->name, "open") ||
+	    !strcmp(cmd->name, "wsplit") ||
 	    !strcmp(cmd->name, "save") ||
 	    !strcmp(cmd->name, "compile") ||
 	    !strcmp(cmd->name, "run") ||

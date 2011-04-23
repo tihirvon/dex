@@ -69,6 +69,7 @@ OBJECTS	:= 			\
 	file-option.o		\
 	filetype.o		\
 	format-status.o		\
+	frame.o			\
 	gbuf.o			\
 	history.o		\
 	hl.o			\

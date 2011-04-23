@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "window.h"
+#include "frame.h"
 #include "term.h"
 #include "config.h"
 #include "screen.h"
@@ -166,7 +167,10 @@ int main(int argc, char *argv[])
 	config_line = 0;
 	set_basic_colors();
 
+	root_frame = new_frame();
 	window = window_new();
+	window->frame = root_frame;
+	root_frame->window = window;
 
 	if (read_rc) {
 		if (rc) {

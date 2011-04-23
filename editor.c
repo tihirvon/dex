@@ -116,12 +116,12 @@ static void update_current_window(void)
 	update_cursor_x();
 	update_cursor_y();
 	update_view();
-	update_term_title();
 	if (options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers)
 		update_line_numbers(window, 1);
 	update_range(view->vy, view->vy + window->edit_h);
+	print_separator();
 	update_status_line(format_misc_status());
 }
 
@@ -156,6 +156,23 @@ static void end_update(void)
 	changed_line_max = -1;
 }
 
+static void update_all_windows(void)
+{
+	struct window *save = window;
+	int i;
+
+	update_window_sizes();
+	for (i = 0; i < windows.count; i++) {
+		window = WINDOW(i);
+		view = window->view;
+		buffer = view->buffer;
+		update_current_window();
+	}
+	window = save;
+	view = window->view;
+	buffer = view->buffer;
+}
+
 void resize(void)
 {
 	resized = 0;
@@ -172,7 +189,8 @@ void resize(void)
 	}
 
 	start_update();
-	update_current_window();
+	update_term_title();
+	update_all_windows();
 	update_command_line();
 	end_update();
 }
@@ -285,6 +303,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	error_buf[pos] = 0;
 
 	start_update();
+	update_term_title();
 	update_current_window();
 	update_command_line();
 	end_update();
@@ -333,6 +352,15 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	update_cursor_y();
 	update_view();
 
+	if (update_flags & UPDATE_ALL_WINDOWS) {
+		start_update();
+		update_term_title();
+		update_all_windows();
+		update_command_line();
+		end_update();
+		return;
+	}
+
 	if (id == buffer->id) {
 		if (vx != view->vx || vy != view->vy) {
 			mark_all_lines_changed();
@@ -353,8 +381,6 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	}
 
 	start_update();
-	if (update_flags & UPDATE_ALL_WINDOWS)
-		update_window_sizes();
 	if (update_flags & UPDATE_TAB_BAR)
 		update_term_title();
 	if (update_flags & UPDATE_TAB_BAR && options.show_tab_bar)
@@ -373,6 +399,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 		update_range(y1, y2 + 1);
 	}
 	update_status_line(format_misc_status());
+	print_separator();
 	if (update_flags & UPDATE_COMMAND_LINE)
 		update_command_line();
 	end_update();

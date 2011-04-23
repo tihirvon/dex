@@ -56,6 +56,14 @@ void buf_set_bytes(char ch, int count)
 	}
 }
 
+// does not update obuf.x
+void buf_add_ch(char ch)
+{
+	if (obuf.count == obuf.alloc)
+		buf_flush();
+	obuf.buf[obuf.count++] = ch;
+}
+
 void buf_escape(const char *str)
 {
 	buf_add_bytes(str, strlen(str));
@@ -71,11 +79,8 @@ void buf_add_str(const char *str)
 // width of ch must be 1
 void buf_ch(char ch)
 {
-	if (obuf.x >= obuf.scroll_x && obuf.x < obuf.width + obuf.scroll_x) {
-		if (obuf.count == obuf.alloc)
-			buf_flush();
-		obuf.buf[obuf.count++] = ch;
-	}
+	if (obuf.x >= obuf.scroll_x && obuf.x < obuf.width + obuf.scroll_x)
+		buf_add_ch(ch);
 	obuf.x++;
 }
 

@@ -35,6 +35,7 @@ extern int screen_h;
 void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x);
 void buf_add_bytes(const char *str, int count);
 void buf_set_bytes(char ch, int count);
+void buf_add_ch(char ch);
 void buf_ch(char ch);
 void buf_escape(const char *str);
 void buf_add_str(const char *str);

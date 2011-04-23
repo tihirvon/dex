@@ -8,6 +8,7 @@ void print_tabbar(void);
 int print_command(char prefix);
 void print_message(const char *msg, int is_error);
 void print_term_title(const char *title);
+void print_separator(void);
 void update_range(int y1, int y2);
 void update_status_line(const char *misc_status);
 void update_window_sizes(void);

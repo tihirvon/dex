@@ -8,6 +8,7 @@
 #include "color.h"
 #include "uchar.h"
 #include "hl.h"
+#include "frame.h"
 
 struct line_info {
 	const unsigned char *line;
@@ -566,6 +567,21 @@ void update_range(int y1, int y2)
 	}
 }
 
+// FIXME: draw all separators at once. set color only once
+void print_separator(void)
+{
+	int y;
+
+	if (window->x + window->w == screen_w)
+		return;
+
+	buf_set_color(&statusline_color->color); // FIXME
+	for (y = 0; y < window->h; y++) {
+		buf_move_cursor(window->x + window->w, window->y + y);
+		buf_add_ch('|');
+	}
+}
+
 static const char *format_line_number(int line, int w)
 {
 	if (line > buffer->nl)
@@ -602,8 +618,8 @@ void update_line_numbers(struct window *win, int force)
 
 void update_window_sizes(void)
 {
-	set_window_size(window, screen_w, screen_h - 1);
-	set_window_coordinates(window, 0, 0);
+	set_frame_size(root_frame, screen_w, screen_h - 1);
+	update_window_coordinates();
 }
 
 void update_screen_size(void)

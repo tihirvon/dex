@@ -21,6 +21,7 @@
 #include "parse-args.h"
 #include "file-option.h"
 #include "msg.h"
+#include "frame.h"
 
 static void cmd_alias(const char *pf, char **args)
 {
@@ -1146,6 +1147,76 @@ static void cmd_view(const char *pf, char **args)
 	set_view(window->views.ptrs[idx]);
 }
 
+static int can_close_window_safely(void)
+{
+	int i;
+
+	for (i = 0; i < window->views.count; i++) {
+		struct view *v = window->views.ptrs[i];
+		if (buffer_modified(v->buffer) && v->buffer->views.count == 1) {
+			// buffer modified and only in this window
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static void cmd_wclose(const char *pf, char **args)
+{
+	int i, idx, force = !!*pf;
+	struct window *w;
+
+	if (!force && !can_close_window_safely()) {
+		error_msg("Save modified files or run 'wclose -f' to close window without saving.");
+		return;
+	}
+	for (i = 0; i < window->views.count; i++)
+		view_delete(window->views.ptrs[i]);
+	window->views.count = 0;
+	view = NULL;
+	buffer = NULL;
+	prev_view = NULL;
+
+	if (windows.count == 1) {
+		// don't close last window
+		set_view(open_empty_buffer());
+		return;
+	}
+
+	idx = window_idx();
+	w = ptr_array_remove(&windows, idx);
+	remove_frame(w->frame);
+	free(w->views.ptrs);
+	free(w);
+
+	if (idx == windows.count)
+		idx = windows.count - 1;
+	window = windows.ptrs[idx];
+	set_view(window->view);
+
+	mark_everything_changed();
+	debug_frames();
+}
+
+static void cmd_wflip(const char *pf, char **args)
+{
+	struct frame *f = window->frame;
+
+	if (f->parent == NULL)
+		return;
+
+	f->parent->vertical ^= 1;
+	mark_everything_changed();
+}
+
+static void cmd_wnext(const char *pf, char **args)
+{
+	window = windows.ptrs[new_window_idx(window_idx() + 1)];
+	set_view(window->view);
+	mark_everything_changed();
+	debug_frames();
+}
+
 static void cmd_word_bwd(const char *pf, char **args)
 {
 	int skip_non_word = *pf == 's';
@@ -1158,6 +1229,127 @@ static void cmd_word_fwd(const char *pf, char **args)
 	int skip_non_word = *pf == 's';
 	word_fwd(&view->cursor, skip_non_word);
 	update_preferred_x();
+}
+
+static void cmd_wprev(const char *pf, char **args)
+{
+	window = windows.ptrs[new_window_idx(window_idx() - 1)];
+	set_view(window->view);
+	mark_everything_changed();
+	debug_frames();
+}
+
+static void cmd_wresize(const char *pf, char **args)
+{
+	enum resize_direction dir = RESIZE_DIRECTION_AUTO;
+	const char *arg = *args;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'h':
+			dir = RESIZE_DIRECTION_HORIZONTAL;
+			break;
+		case 'v':
+			dir = RESIZE_DIRECTION_VERTICAL;
+			break;
+		}
+		pf++;
+	}
+	if (window->frame->parent == NULL) {
+		// only window
+		return;
+	}
+	if (arg) {
+		int n = atoi(arg);
+
+		if (arg[0] == '+' || arg[0] == '-')
+			add_to_frame_size(window->frame, dir, n);
+		else
+			resize_frame(window->frame, dir, n);
+	} else {
+		equalize_frame_sizes(window->frame->parent);
+	}
+	mark_everything_changed();
+	debug_frames();
+}
+
+static void cmd_wsplit(const char *pf, char **args)
+{
+	int before = 0;
+	int vertical = 0;
+	int root = 0;
+	struct frame *f;
+	struct view *save;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'b':
+			// add new window before current window
+			before = 1;
+			break;
+		case 'h':
+			// split horizontally to get vertical layout
+			vertical = 1;
+			break;
+		case 'r':
+			// split root frame instead of current window
+			root = 1;
+			break;
+		}
+		pf++;
+	}
+
+	if (root)
+		f = split_root(vertical, before);
+	else
+		f = split_frame(window, vertical, before);
+
+	save = view;
+	window = f->window;
+	view = NULL;
+	buffer = NULL;
+	mark_everything_changed();
+
+	if (*args) {
+		cmd_open("", args);
+	} else {
+		struct view *new = window_add_buffer(save->buffer);
+		new->cursor = save->cursor;
+		set_view(new);
+	}
+
+	if (window->views.count == 0) {
+		// open failed, remove new window
+		ptr_array_remove(&windows, ptr_array_idx(&windows, window));
+		remove_frame(window->frame);
+		free(window->views.ptrs);
+		free(window);
+
+		view = save;
+		buffer = view->buffer;
+		window = view->window;
+	}
+
+	debug_frames();
+}
+
+static void cmd_wswap(const char *pf, char **args)
+{
+	struct frame *tmp, *parent = window->frame->parent;
+	int i, j;
+
+	if (parent == NULL)
+		return;
+
+	i = ptr_array_idx(&parent->frames, window->frame);
+	j = i + 1;
+	if (j == parent->frames.count)
+		j = 0;
+
+	tmp = parent->frames.ptrs[i];
+	parent->frames.ptrs[i] = parent->frames.ptrs[j];
+	parent->frames.ptrs[j] = tmp;
+	mark_everything_changed();
 }
 
 const struct command commands[] = {
@@ -1228,7 +1420,14 @@ const struct command commands[] = {
 	{ "unselect",		"",	0,  0, cmd_unselect },
 	{ "up",			"",	0,  0, cmd_up },
 	{ "view",		"",	1,  1, cmd_view },
+	{ "wclose",		"f",	0,  0, cmd_wclose },
+	{ "wflip",		"",	0,  0, cmd_wflip },
+	{ "wnext",		"",	0,  0, cmd_wnext },
 	{ "word-bwd",		"s",	0,  0, cmd_word_bwd },
 	{ "word-fwd",		"s",	0,  0, cmd_word_fwd },
+	{ "wprev",		"",	0,  0, cmd_wprev },
+	{ "wresize",		"hv",	0,  1, cmd_wresize },
+	{ "wsplit",		"bhr",	0, -1, cmd_wsplit },
+	{ "wswap",		"",	0,  0, cmd_wswap },
 	{ NULL,			NULL,	0,  0, NULL }
 };
