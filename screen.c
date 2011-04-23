@@ -19,37 +19,52 @@ struct line_info {
 	struct hl_color **colors;
 };
 
-static struct hl_color *default_color;
-static struct hl_color *currentline_color;
-static struct hl_color *selection_color;
-static struct hl_color *statusline_color;
-static struct hl_color *commandline_color;
-static struct hl_color *errormsg_color;
-static struct hl_color *infomsg_color;
-static struct hl_color *wserror_color;
-static struct hl_color *nontext_color;
-static struct hl_color *tabbar_color;
-static struct hl_color *tab_active_color;
-static struct hl_color *tab_inactive_color;
-static struct hl_color *linenumber_color;
+enum builtin_color {
+	BC_DEFAULT,
+	BC_NONTEXT,
+	BC_WSERROR,
+	BC_SELECTION,
+	BC_CURRENTLINE,
+	BC_LINENUMBER,
+	BC_STATUSLINE,
+	BC_COMMANDLINE,
+	BC_ERRORMSG,
+	BC_INFOMSG,
+	BC_TABBAR,
+	BC_ACTIVETAB,
+	BC_INACTIVETAB,
+	NR_BC
+};
 
+static const char * const builtin_color_names[NR_BC] = {
+	"default",
+	"nontext",
+	"wserror",
+	"selection",
+	"currentline",
+	"linenumber",
+	"statusline",
+	"commandline",
+	"errormsg",
+	"infomsg",
+	"tabbar",
+	"activetab",
+	"inactivetab",
+};
+
+static struct term_color *builtin_colors[NR_BC];
 static int current_line;
 
 void set_basic_colors(void)
 {
-	default_color = find_color("default");
-	currentline_color = find_color("currentline");
-	selection_color = find_color("selection");
-	statusline_color = find_color("statusline");
-	commandline_color = find_color("commandline");
-	errormsg_color = find_color("errormsg");
-	infomsg_color = find_color("infomsg");
-	wserror_color = find_color("wserror");
-	nontext_color = find_color("nontext");
-	tabbar_color = find_color("tabbar");
-	tab_active_color = find_color("activetab");
-	tab_inactive_color = find_color("inactivetab");
-	linenumber_color = find_color("linenumber");
+	int i;
+	for (i = 0; i < NR_BC; i++)
+		builtin_colors[i] = &find_color(builtin_color_names[i])->color;
+}
+
+static void set_builtin_color(enum builtin_color c)
+{
+	buf_set_color(builtin_colors[c]);
 }
 
 static unsigned int term_get_char(const char *buf, unsigned int size, unsigned int *idx)
@@ -85,9 +100,9 @@ static void print_tab_title(struct view *v, int idx)
 		buffer_modified(v->buffer) ? "+" : ":");
 
 	if (v == view)
-		buf_set_color(&tab_active_color->color);
+		set_builtin_color(BC_ACTIVETAB);
 	else
-		buf_set_color(&tab_inactive_color->color);
+		set_builtin_color(BC_INACTIVETAB);
 	buf_add_str(buf);
 
 	if (term_utf8) {
@@ -124,7 +139,7 @@ void print_tabbar(void)
 
 		print_tab_title(v, idx);
 	}
-	buf_set_color(&tabbar_color->color);
+	set_builtin_color(BC_TABBAR);
 	if (idx != window->views.count) {
 		while (obuf.x < obuf.width - 1)
 			buf_ch(' ');
@@ -143,7 +158,7 @@ void update_status_line(const char *misc_status)
 
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y + window->h - 1);
-	buf_set_color(&statusline_color->color);
+	set_builtin_color(BC_STATUSLINE);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left, misc_status);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right, misc_status);
 	if (term_utf8) {
@@ -208,7 +223,7 @@ int print_command(char prefix)
 	if (w > screen_w)
 		obuf.scroll_x = w - screen_w;
 
-	buf_set_color(&commandline_color->color);
+	set_builtin_color(BC_COMMANDLINE);
 	i = 0;
 	if (obuf.x < obuf.scroll_x) {
 		buf_skip(prefix);
@@ -234,12 +249,12 @@ int print_command(char prefix)
 
 void print_message(const char *msg, int is_error)
 {
-	const struct term_color *color = &commandline_color->color;
+	enum builtin_color c = BC_COMMANDLINE;
 	unsigned int i = 0;
 
 	if (msg[0])
-		color = is_error ? &errormsg_color->color : &infomsg_color->color;
-	buf_set_color(color);
+		c = is_error ? BC_ERRORMSG : BC_INFOMSG;
+	set_builtin_color(c);
 	while (msg[i]) {
 		unsigned int u = term_get_char(msg, i + 4, &i);
 		if (!buf_put_char(u))
@@ -291,16 +306,16 @@ static void update_color(struct hl_color *hl_color, int nontext, int wserror)
 	if (hl_color)
 		color = hl_color->color;
 	else
-		color = default_color->color;
+		color = *builtin_colors[BC_DEFAULT];
 
 	if (nontext)
-		mask_color(&color, &nontext_color->color);
+		mask_color(&color, builtin_colors[BC_NONTEXT]);
 	if (wserror)
-		mask_color(&color, &wserror_color->color);
+		mask_color(&color, builtin_colors[BC_WSERROR]);
 	if (selecting() && cur_offset >= sel_so && cur_offset < sel_eo)
-		mask_color(&color, &selection_color->color);
+		mask_color(&color, builtin_colors[BC_SELECTION]);
 	else if (current_line == view->cy)
-		mask_color(&color, &currentline_color->color);
+		mask_color(&color, builtin_colors[BC_CURRENTLINE]);
 	buf_set_color(&color);
 }
 
@@ -559,7 +574,7 @@ void update_range(int y1, int y2)
 	}
 
 	if (i < y2)
-		buf_set_color(&nontext_color->color);
+		set_builtin_color(BC_NONTEXT);
 	for (; i < y2; i++) {
 		obuf.x = 0;
 		buf_move_cursor(window->edit_x, window->edit_y + i);
@@ -585,7 +600,7 @@ void update_separators(void)
 {
 	int i;
 
-	buf_set_color(&statusline_color->color);
+	set_builtin_color(BC_STATUSLINE);
 	for (i = 0; i < windows.count; i++)
 		print_separator(windows.ptrs[i]);
 }
@@ -616,7 +631,7 @@ void update_line_numbers(struct window *win, int force)
 	win->line_numbers.last = last;
 
 	buf_reset(win->x, win->w, 0);
-	buf_set_color(&linenumber_color->color);
+	set_builtin_color(BC_LINENUMBER);
 	for (i = 0; i < win->edit_h; i++) {
 		const char *buf = format_line_number(v->vy + i + 1, win->line_numbers.width);
 		buf_move_cursor(win->x, win->edit_y + i);
