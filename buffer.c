@@ -72,8 +72,6 @@ void init_selection(struct selection_info *info)
 	info->si = view->cursor;
 	block_iter_goto_offset(&info->si, info->so);
 	info->swapped = 0;
-	info->nr_lines = 1;
-	info->nr_chars = 0;
 	if (info->so > info->eo) {
 		unsigned int o = info->so;
 		info->so = info->eo;
@@ -98,20 +96,32 @@ void init_selection(struct selection_info *info)
 	}
 }
 
-void fill_selection_info(struct selection_info *info)
+int get_nr_selected_lines(struct selection_info *info)
 {
-	struct block_iter bi;
-	unsigned int pos = 0;
+	struct block_iter bi = info->si;
+	unsigned int pos = info->so;
 	unsigned int u = 0;
+	int nr_lines = 1;
 
-	init_selection(info);
-	bi = info->si;
-	while (pos < info->eo - info->so) {
+	while (pos < info->eo) {
 		if (u == '\n')
-			info->nr_lines++;
-		info->nr_chars++;
+			nr_lines++;
 		pos += buffer_next_char(&bi, &u);
 	}
+	return nr_lines;
+}
+
+int get_nr_selected_chars(struct selection_info *info)
+{
+	struct block_iter bi = info->si;
+	unsigned int u, pos = info->so;
+	int nr_chars = 0;
+
+	while (pos < info->eo) {
+		nr_chars++;
+		pos += buffer_next_char(&bi, &u);
+	}
+	return nr_chars;
 }
 
 char *buffer_get_bytes(unsigned int len)

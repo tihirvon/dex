@@ -121,8 +121,6 @@ struct selection_info {
 	unsigned int so;
 	unsigned int eo;
 	int swapped;
-	int nr_lines;
-	int nr_chars;
 };
 
 #define UPDATE_COMMAND_LINE	(1 << 2)
@@ -171,7 +169,8 @@ const char *buffer_filename(struct buffer *b);
 unsigned int count_nl(const char *buf, unsigned int size);
 
 void init_selection(struct selection_info *info);
-void fill_selection_info(struct selection_info *info);
+int get_nr_selected_lines(struct selection_info *info);
+int get_nr_selected_chars(struct selection_info *info);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);

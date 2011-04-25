@@ -494,9 +494,9 @@ void shift_lines(int count)
 
 	if (selecting()) {
 		view->selection = SELECT_LINES;
-		fill_selection_info(&info);
+		init_selection(&info);
 		view->cursor = info.si;
-		nr_lines = info.nr_lines;
+		nr_lines = get_nr_selected_lines(&info);
 	}
 
 	view->preferred_x += buffer->options.indent_width * count;

@@ -71,11 +71,11 @@ static const char *format_misc_status(void)
 	} else if (selecting()) {
 		struct selection_info info;
 
-		fill_selection_info(&info);
+		init_selection(&info);
 		if (view->selection == SELECT_LINES) {
-			snprintf(misc_status, sizeof(misc_status), "[%d lines]", info.nr_lines);
+			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
 		} else {
-			snprintf(misc_status, sizeof(misc_status), "[%d chars]", info.nr_chars);
+			snprintf(misc_status, sizeof(misc_status), "[%d chars]", get_nr_selected_chars(&info));
 		}
 	} else {
 		misc_status[0] = 0;
