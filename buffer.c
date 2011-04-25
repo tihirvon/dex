@@ -87,6 +87,25 @@ char *buffer_get_bytes(unsigned int len)
 	return buf;
 }
 
+char *get_word_under_cursor(void)
+{
+	struct lineref lr;
+	unsigned int ei, si = fetch_this_line(&view->cursor, &lr);
+
+	while (si < lr.size && !is_word_byte(lr.line[si]))
+		si++;
+
+	if (si == lr.size)
+		return NULL;
+
+	ei = si;
+	while (si > 0 && is_word_byte(lr.line[si - 1]))
+		si--;
+	while (ei + 1 < lr.size && is_word_byte(lr.line[ei + 1]))
+		ei++;
+	return xstrndup(lr.line + si, ei - si + 1);
+}
+
 static struct buffer *buffer_new(void)
 {
 	static int id;
