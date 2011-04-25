@@ -9,6 +9,7 @@
 #include "uchar.h"
 #include "hl.h"
 #include "frame.h"
+#include "selection.h"
 
 struct line_info {
 	const unsigned char *line;

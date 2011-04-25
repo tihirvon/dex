@@ -116,13 +116,6 @@ struct view {
 	unsigned int saved_cursor_offset;
 };
 
-struct selection_info {
-	struct block_iter si;
-	unsigned int so;
-	unsigned int eo;
-	int swapped;
-};
-
 #define UPDATE_COMMAND_LINE	(1 << 2)
 #define UPDATE_ALL_WINDOWS	(1 << 3)
 
@@ -167,10 +160,6 @@ static inline int selecting(void)
 void lines_changed(int min, int max);
 const char *buffer_filename(struct buffer *b);
 unsigned int count_nl(const char *buf, unsigned int size);
-
-void init_selection(struct selection_info *info);
-int get_nr_selected_lines(struct selection_info *info);
-int get_nr_selected_chars(struct selection_info *info);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);

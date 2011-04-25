@@ -6,6 +6,7 @@
 #include "indent.h"
 #include "uchar.h"
 #include "regexp.h"
+#include "selection.h"
 
 struct paragraph_formatter {
 	struct gbuf buf;
@@ -114,14 +115,6 @@ void copy(unsigned int len, int is_lines)
 		char *buf = buffer_get_bytes(len);
 		record_copy(buf, len, is_lines);
 	}
-}
-
-unsigned int prepare_selection(void)
-{
-	struct selection_info info;
-	init_selection(&info);
-	view->cursor = info.si;
-	return info.eo - info.so;
 }
 
 void insert_text(const char *text, unsigned int size)

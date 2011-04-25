@@ -91,6 +91,7 @@ OBJECTS	:= 			\
 	run.o			\
 	screen.o		\
 	search.o		\
+	selection.o		\
 	spawn.o			\
 	state.o			\
 	tabbar.o		\

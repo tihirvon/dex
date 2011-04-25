@@ -10,6 +10,7 @@
 #include "command.h"
 #include "input.h"
 #include "input-special.h"
+#include "selection.h"
 
 enum editor_status editor_status;
 enum input_mode input_mode;

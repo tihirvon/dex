@@ -23,6 +23,7 @@
 #include "msg.h"
 #include "frame.h"
 #include "load-save.h"
+#include "selection.h"
 
 static void cmd_alias(const char *pf, char **args)
 {

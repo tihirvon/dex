@@ -5,6 +5,7 @@
 #include "edit.h"
 #include "gbuf.h"
 #include "regexp.h"
+#include "selection.h"
 
 #define MAX_SUBSTRINGS 32
 
