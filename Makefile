@@ -77,6 +77,7 @@ OBJECTS	:= 			\
 	input-special.o		\
 	input.o			\
 	iter.o			\
+	load-save.o		\
 	lock.o			\
 	main.o			\
 	move.o			\

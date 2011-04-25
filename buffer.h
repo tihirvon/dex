@@ -178,7 +178,6 @@ struct view *find_view_by_buffer_id(unsigned int buffer_id);
 struct view *open_buffer(const char *filename, int must_exist);
 struct view *open_empty_buffer(void);
 void setup_buffer(void);
-int save_buffer(const char *filename, enum newline_sequence newline);
 void free_buffer(struct buffer *b);
 
 char *buffer_get_bytes(unsigned int len);
