@@ -310,7 +310,7 @@ prev
 quit [-f]
 	Quit.
 
-	-f force quiting even if there are unsaved files
+	-f force quitting even if there are unsaved files
 
 redo [choice]
 	Redo given or latest undid change. If there are multiple
@@ -570,7 +570,7 @@ filetype [none]
 
 utf8 false/true
 	Whether to treat file data as UTF-8 or 8 bits per character.
-	Other multi-byte character encodings are not supported.
+	Other multibyte character encodings are not supported.
 
 	Value of this option is automatically detected from first
 	non-ASCII bytes. For ASCII files the value depends on the
