@@ -181,6 +181,31 @@ static void collect_and_sort_files(void)
 	}
 }
 
+static void collect_env(const char *name, int len)
+{
+	static const char * const builtin[] = {
+		"FILE",
+		"PKGDATADIR",
+		"WORD",
+	};
+	extern char **environ;
+	int i;
+
+	for (i = 0; environ[i]; i++) {
+		const char *e = environ[i];
+
+		if (strncmp(e, name, len) == 0) {
+			const char *end = strchr(e, '=');
+			if (end)
+				add_completion(xstrndup(e, end - e));
+		}
+	}
+	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
+		if (strncmp(builtin[i], name, len) == 0)
+			add_completion(xstrdup(builtin[i]));
+	}
+}
+
 static void collect_completions(char **args, int argc)
 {
 	const struct command *cmd;
@@ -241,11 +266,11 @@ static void collect_completions(char **args, int argc)
 
 static void init_completion(void)
 {
-	const char *cmd = cmdline.buffer;
+	const char *str, *cmd = cmdline.buffer;
 	PTR_ARRAY(array);
 	int semicolon = -1;
 	int completion_pos = -1;
-	int pos = 0;
+	int len, pos = 0;
 
 	while (1) {
 		int end;
@@ -302,7 +327,34 @@ static void init_completion(void)
 		pos = end;
 	}
 
-	completion.escaped = xstrndup(cmd + completion_pos, cmdline_pos - completion_pos);
+	str = cmd + completion_pos;
+	len = cmdline_pos - completion_pos;
+	if (len && str[0] == '$') {
+		int i, var = 1;
+		for (i = 1; i < len; i++) {
+			char ch = str[i];
+			if (isalpha(ch) || ch == '_')
+				continue;
+			if (i > 1 && isdigit(ch))
+				continue;
+
+			var = 0;
+			break;
+		}
+		if (var) {
+			completion_pos++;
+			completion.escaped = NULL;
+			completion.parsed = NULL;
+			completion.head = xstrndup(cmd, completion_pos);
+			completion.tail = xstrdup(cmd + cmdline_pos);
+			collect_env(str + 1, len - 1);
+			sort_completions();
+			ptr_array_free(&array);
+			return;
+		}
+	}
+
+	completion.escaped = xstrndup(str, len);
 	completion.parsed = parse_command_arg(completion.escaped, 1);
 	completion.head = xstrndup(cmd, completion_pos);
 	completion.tail = xstrdup(cmd + cmdline_pos);
