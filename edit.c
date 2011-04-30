@@ -383,7 +383,11 @@ void join_lines(void)
 	}
 
 	view->cursor = bi;
-	replace(count, " ", 1);
+	if (u == '\n') {
+		delete(count, 0);
+	} else {
+		replace(count, " ", 1);
+	}
 	update_preferred_x();
 }
 
