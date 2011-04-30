@@ -5,6 +5,7 @@
 
 enum char_type {
 	CT_SPACE,
+	CT_NEWLINE,
 	CT_WORD,
 	CT_OTHER,
 };
@@ -167,6 +168,8 @@ void move_to_column(int column)
 
 static enum char_type get_char_type(char ch)
 {
+	if (ch == '\n')
+		return CT_NEWLINE;
 	if (isspace(ch))
 		return CT_SPACE;
 	if (is_word_byte(ch))
