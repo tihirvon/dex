@@ -260,12 +260,34 @@ static int fork_exec(char **argv, int fd[3])
 	return -1;
 }
 
+static int wait_child(int pid)
+{
+	int status;
+
+	while (waitpid(pid, &status, 0) < 0) {
+		if (errno == EINTR)
+			continue;
+		return -errno;
+	}
+	if (WIFEXITED(status))
+		return (unsigned char)WEXITSTATUS(status);
+	if (WIFSIGNALED(status))
+		return WTERMSIG(status) << 8;
+	if (WIFSTOPPED(status))
+		return WSTOPSIG(status) << 8;
+#if defined(WIFCONTINUED)
+	if (WIFCONTINUED(status))
+		return SIGCONT << 8;
+#endif
+	return -EINVAL;
+}
+
 int spawn_filter(char **argv, struct filter_data *data)
 {
 	int p0[2] = { -1, -1 };
 	int p1[2] = { -1, -1 };
 	int dev_null = -1;
-	int fd[3], pid, status;
+	int fd[3], pid, ret;
 
 	data->out = NULL;
 	data->out_len = 0;
@@ -302,9 +324,19 @@ int spawn_filter(char **argv, struct filter_data *data)
 	close(p1[0]);
 	close(p0[1]);
 
-	while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
-		;
-
+	ret = wait_child(pid);
+	if (ret < 0) {
+		error_msg("waitpid: %s", strerror(errno));
+		return -1;
+	}
+	if (ret >= 256) {
+		error_msg("Child received signal %d", ret >> 8);
+		return -1;
+	}
+	if (ret) {
+		error_msg("Child returned %d", ret);
+		return -1;
+	}
 	return 0;
 error:
 	close(p0[0]);
@@ -330,7 +362,7 @@ struct compiler *find_compiler(const char *name)
 void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 {
 	unsigned int redir = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
-	int pid, status, quiet;
+	int pid, quiet;
 	int dev_null, p[2], fd[3];
 
 	dev_null = open("/dev/null", O_WRONLY);
@@ -385,12 +417,22 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		close(p[1]);
 		close(dev_null);
 	} else {
+		int ret;
+
 		close(dev_null);
 		close(p[1]);
 		read_errors(c, p[0], flags);
 		close(p[0]);
-		while (wait(&status) < 0 && errno == EINTR)
-			;
+
+		ret = wait_child(pid);
+		if (ret < 0) {
+			error_msg("waitpid: %s", strerror(errno));
+		} else if (ret >= 256) {
+			error_msg("Child received signal %d", ret >> 8);
+		} else if (ret) {
+			error_msg("Child returned %d", ret);
+		}
+
 		if (!quiet) {
 			ui_start(flags & SPAWN_PROMPT);
 			child_controls_terminal = 0;
@@ -400,7 +442,7 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 
 void spawn(char **args, int fd[3], int prompt)
 {
-	int i, pid, status, quiet, redir_count = 0;
+	int i, pid, ret, quiet, redir_count = 0;
 	int dev_null = -1;
 
 	for (i = 0; i < 3; i++) {
@@ -435,8 +477,14 @@ void spawn(char **args, int fd[3], int prompt)
 	}
 
 	close(dev_null);
-	while (wait(&status) < 0 && errno == EINTR)
-		;
+	ret = wait_child(pid);
+	if (ret < 0) {
+		error_msg("waitpid: %s", strerror(errno));
+	} else if (ret >= 256) {
+		error_msg("Child received signal %d", ret >> 8);
+	} else if (ret) {
+		error_msg("Child returned %d", ret);
+	}
 	if (!quiet) {
 		ui_start(prompt);
 		child_controls_terminal = 0;
