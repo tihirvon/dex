@@ -391,7 +391,7 @@ char *term_read_paste(unsigned int *size)
 	while (1) {
 		struct timeval tv = {
 			.tv_sec = 0,
-			.tv_usec = 100 * 1000
+			.tv_usec = 0
 		};
 		fd_set set;
 		int rc;
