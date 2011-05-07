@@ -594,6 +594,7 @@ static void cmd_quit(const char *pf, char **args)
 		for (j = 0; j < WINDOW(i)->views.count; j++) {
 			struct view *v = VIEW(i, j);
 			if (buffer_modified(v->buffer)) {
+				set_view(v);
 				error_msg("Save modified files or run 'quit -f' to quit without saving.");
 				return;
 			}
@@ -1149,7 +1150,7 @@ static void cmd_view(const char *pf, char **args)
 	set_view(window->views.ptrs[idx]);
 }
 
-static int can_close_window_safely(void)
+static int activate_modified_buffer(void)
 {
 	int i;
 
@@ -1157,10 +1158,11 @@ static int can_close_window_safely(void)
 		struct view *v = window->views.ptrs[i];
 		if (buffer_modified(v->buffer) && v->buffer->views.count == 1) {
 			// buffer modified and only in this window
-			return 0;
+			set_view(v);
+			return 1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static void cmd_wclose(const char *pf, char **args)
@@ -1168,7 +1170,7 @@ static void cmd_wclose(const char *pf, char **args)
 	int i, idx, force = !!*pf;
 	struct window *w;
 
-	if (!force && !can_close_window_safely()) {
+	if (!force && activate_modified_buffer()) {
 		error_msg("Save modified files or run 'wclose -f' to close window without saving.");
 		return;
 	}
