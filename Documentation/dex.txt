@@ -196,11 +196,11 @@ format-paragraph [width]
 ft <filetype> <extension>...
 	Add extensions for filetype.
 
-ft -c <filetype> <regexp>
+ft -c <filetype> <regexp>...
 	Detect filetype by matching the regexp against first line of
 	file.
 
-ft -f <filetype> <regexp>
+ft -f <filetype> <regexp>...
 	Detect filetype by matching the regexp against filename.
 
 ft -i <filetype> <interpreter>...
