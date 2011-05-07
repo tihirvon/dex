@@ -79,21 +79,20 @@ next:
 
 void search_tag(const char *pattern)
 {
+	struct block_iter bi = view->cursor;
 	regex_t regex;
 
-	// NOTE: regex needs to be freed even if regcomp() fails
-	if (regexp_compile(&regex, pattern, REG_NEWLINE)) {
-		struct block_iter bi = view->cursor;
+	if (!regexp_compile(&regex, pattern, REG_NEWLINE))
+		return;
 
-		buffer_bof(&bi);
-		if (do_search_fwd(&regex, &bi)) {
-			view->center_on_scroll = 1;
-		} else {
-			error_msg("Tag not found.");
+	buffer_bof(&bi);
+	if (do_search_fwd(&regex, &bi)) {
+		view->center_on_scroll = 1;
+	} else {
+		error_msg("Tag not found.");
 
-			/* don't center view to cursor unnecessarily */
-			view->force_center = 0;
-		}
+		/* don't center view to cursor unnecessarily */
+		view->force_center = 0;
 	}
 	regfree(&regex);
 }
@@ -355,10 +354,8 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	if (flags & REPLACE_BASIC)
 		re_flags &= ~REG_EXTENDED;
 
-	if (!regexp_compile(&re, pattern, re_flags)) {
-		regfree(&re);
+	if (!regexp_compile(&re, pattern, re_flags))
 		return;
-	}
 
 	if (selecting()) {
 		struct selection_info info;
