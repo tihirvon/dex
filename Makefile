@@ -136,6 +136,7 @@ syntax	:=			\
 	syntax/go		\
 	syntax/html		\
 	syntax/html+smarty	\
+	syntax/mail		\
 	syntax/make		\
 	syntax/php		\
 	syntax/python		\
