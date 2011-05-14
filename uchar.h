@@ -3,7 +3,7 @@
 
 extern const char hex_tab[16];
 
-#define U_INVALID_MASK 0x10000000U
+#define U_INVALID_MASK 0x80000000U
 
 static inline int u_is_unicode(unsigned int uch)
 {
