@@ -147,11 +147,11 @@ static void skipped_too_much(unsigned int u)
 	} else if (u == 0x7f) {
 		obuf.buf[obuf.count++] = '?';
 	} else if (u & U_INVALID_MASK) {
-		if (n > 2)
-			obuf.buf[obuf.count++] = hex_tab[(u >> 4) & 0x0f];
-		if (n > 1)
-			obuf.buf[obuf.count++] = hex_tab[u & 0x0f];
-		obuf.buf[obuf.count++] = '>';
+		char tmp[4];
+		unsigned int idx = 0;
+		u_set_hex(tmp, &idx, u);
+		memcpy(obuf.buf + obuf.count, tmp + 4 - n, n);
+		obuf.count += n;
 	} else {
 		obuf.buf[obuf.count++] = '>';
 	}
