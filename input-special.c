@@ -76,6 +76,14 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 		}
 	}
 
+	if (key == 0x08 || key == 0x7f) {
+		if (raw_input.nr) {
+			raw_input.value /= raw_input.base;
+			raw_input.nr--;
+		}
+		return;
+	}
+
 	if (key != '\r') {
 		int n = hex_decode(key);
 
