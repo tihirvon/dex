@@ -77,6 +77,8 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 		u = u_buf_get_char(buf, size, &i);
 	} else {
 		u = buf[i++];
+		if (u >= 0x80 && u <= 0x9f)
+			u |= U_UNPRINTABLE_BIT;
 	}
 	*idx = i;
 	return u;
@@ -344,13 +346,9 @@ static int is_non_text(unsigned int u)
 {
 	if (u < 0x20)
 		return u != '\t' || options.display_special;
-	if (u < 0x7f)
-		return 0;
-	if (u <= 0x9f) {
-		// 0x7f is displayed as ^? and 0x80 - 0x9f as <xx>
+	if (u == 0x7f)
 		return 1;
-	}
-	return !u_is_unicode(u);
+	return u_is_unprintable(u);
 }
 
 static int whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
@@ -397,11 +395,16 @@ static unsigned int screen_next_char(struct line_info *info)
 	unsigned int u = info->line[pos];
 	int ws_error = 0;
 
-	if (likely(u < 0x80) || !buffer->options.utf8) {
+	if (likely(u < 0x80)) {
 		info->pos++;
 		count = 1;
 		if (u == '\t' || u == ' ')
 			ws_error = whitespace_error(info, u, pos);
+	} else if (!buffer->options.utf8) {
+		info->pos++;
+		count = 1;
+		if (u <= 0x9f)
+			u |= U_UNPRINTABLE_BIT;
 	} else {
 		u = u_get_nonascii(info->line, info->size, &info->pos);
 		count = info->pos - pos;

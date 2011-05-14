@@ -3,6 +3,14 @@
 
 const char hex_tab[16] = "0123456789abcdef";
 
+static unsigned int unprintable_bit(unsigned int u)
+{
+	// Unprintable garbage inherited from latin1.
+	if (u >= 0x80 && u <= 0x9f)
+		return U_UNPRINTABLE_BIT;
+	return 0;
+}
+
 int u_char_width(unsigned int u)
 {
 	if (unlikely(u_is_ctrl(u)))
@@ -10,11 +18,6 @@ int u_char_width(unsigned int u)
 
 	if (likely(u < 0x80))
 		return 1;
-
-	if (unlikely(u <= 0x9f)) {
-		// 0x80 - 0x9f are unprintable, display as "<xx>"
-		return 4;
-	}
 
 	if (likely(u < 0x1100U))
 		return 1;
@@ -72,8 +75,8 @@ int u_char_width(unsigned int u)
 	if (u >= 0x30000U && u <= 0x3fffdU)
 		goto wide;
 
-	/* invalid bytes in unicode stream are rendered "<xx>" */
-	if (u & U_INVALID_MASK)
+	/* unprintable characters (includes invalid bytes in unicode stream) are rendered "<xx>" */
+	if (u_is_unprintable(u))
 		return 4;
 narrow:
 	return 1;
@@ -129,12 +132,12 @@ unsigned int u_prev_char(const unsigned char *buf, unsigned int *idx)
 				break;
 
 			*idx = i;
-			return u;
+			return u | unprintable_bit(u);
 		}
 	}
 invalid:
 	*idx = *idx - 1;
-	return u | U_INVALID_MASK;
+	return u | U_UNPRINTABLE_BIT | U_INVALID_BIT;
 }
 
 unsigned int u_buf_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
@@ -173,10 +176,10 @@ unsigned int u_get_nonascii(const unsigned char *buf, unsigned int size, unsigne
 		goto invalid;
 
 	*idx = i;
-	return u;
+	return u | unprintable_bit(u);
 invalid:
 	*idx += 1;
-	return first | U_INVALID_MASK;
+	return first | U_UNPRINTABLE_BIT | U_INVALID_BIT;
 }
 
 void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch)
@@ -224,10 +227,6 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 		u_set_ctrl(str, idx, uch);
 		return;
 	}
-	if (unlikely(uch <= 0x9f)) {
-		// 0x80 - 0x9f are unprintable. display same way as an invalid byte
-		goto invalid;
-	}
 	if (uch <= 0x7ff) {
 		str[i + 1] = (uch & 0x3f) | 0x80; uch >>= 6;
 		str[i + 0] = uch | 0xc0U;
@@ -252,18 +251,24 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 		*idx = i;
 		return;
 	}
-invalid:
+	// U_UNPRINTABLE_BIT must be set
 	u_set_hex(str, idx, uch);
 }
 
-// uses only lower 8 bits of uch
 void u_set_hex(char *str, unsigned int *idx, unsigned int uch)
 {
 	unsigned int i = *idx;
 
+	uch &= ~(U_UNPRINTABLE_BIT | U_INVALID_BIT);
+
 	str[i++] = '<';
-	str[i++] = hex_tab[(uch >> 4) & 0x0f];
-	str[i++] = hex_tab[uch & 0x0f];
+	if (uch <= 0xff) {
+		str[i++] = hex_tab[(uch >> 4) & 0x0f];
+		str[i++] = hex_tab[uch & 0x0f];
+	} else {
+		str[i++] = '?';
+		str[i++] = '?';
+	}
 	str[i++] = '>';
 	*idx = i;
 }

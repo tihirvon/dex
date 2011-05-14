@@ -94,7 +94,7 @@ static int read_blocks(struct buffer *b, int fd)
 		if (buf[pos] >= 0x80) {
 			unsigned int idx = pos;
 			unsigned int u = u_get_nonascii(buf, size, &idx);
-			b->options.utf8 = !(u & U_INVALID_MASK);
+			b->options.utf8 = u_is_valid(u);
 			break;
 		}
 	}

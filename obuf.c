@@ -146,7 +146,7 @@ static void skipped_too_much(unsigned int u)
 		obuf.buf[obuf.count++] = u | 0x40;
 	} else if (u == 0x7f) {
 		obuf.buf[obuf.count++] = '?';
-	} else if (u & U_INVALID_MASK) {
+	} else if (u_is_unprintable(u)) {
 		char tmp[4];
 		unsigned int idx = 0;
 		u_set_hex(tmp, &idx, u);
@@ -227,8 +227,7 @@ int buf_put_char(unsigned int u)
 		if (width <= space) {
 			u_set_char(obuf.buf, &obuf.count, u);
 			obuf.x += width;
-		} else if (u & U_INVALID_MASK || u <= 0x9f) {
-			// invalid or unprintable (0x80 - 0x9f)
+		} else if (u_is_unprintable(u)) {
 			// <xx> would not fit
 			// there's enough space in the buffer so render all 4 characters
 			// but increment position less

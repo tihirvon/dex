@@ -3,15 +3,32 @@
 
 extern const char hex_tab[16];
 
-#define U_INVALID_MASK 0x80000000U
+// Used to mark unprintable characters or invalid byte in UTF-8 byte sequence.
+#define U_UNPRINTABLE_BIT	0x80000000U
+
+// Used to mark invalid byte in UTF-8 byte sequence.
+// If this bit is set then U_UNPRINTABLE_BIT must be set too.
+#define U_INVALID_BIT		0x40000000U
 
 static inline int u_is_unicode(unsigned int uch)
 {
 	return uch <= 0x10ffffU;
 }
 
+static inline int u_is_unprintable(unsigned int uch)
+{
+	return (uch & U_UNPRINTABLE_BIT) != 0;
+}
+
+static inline int u_is_valid(unsigned int uch)
+{
+	return (uch & U_INVALID_BIT) == 0;
+}
+
 static inline unsigned int u_char_size(unsigned int uch)
 {
+	uch &= ~U_UNPRINTABLE_BIT;
+
 	if (uch <= 0x7fU)
 		return 1;
 	if (uch <= 0x7ffU)
@@ -20,6 +37,8 @@ static inline unsigned int u_char_size(unsigned int uch)
 		return 3;
 	if (uch <= 0x10ffffU)
 		return 4;
+
+	// Invalid byte in UTF-8 byte sequence.
 	return 1;
 }
 

@@ -80,8 +80,10 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 	f.separator = 0;
 
 	got_char = buffer_get_char(&view->cursor, &u);
-	if (got_char)
-		u &= ~U_INVALID_MASK;
+	if (got_char) {
+		// Display unmodified numeric value.
+		u &= ~(U_UNPRINTABLE_BIT | U_INVALID_BIT);
+	}
 	while (f.pos < f.size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
