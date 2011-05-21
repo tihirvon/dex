@@ -9,6 +9,7 @@ int regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 
 	rc = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE | REG_NOSUB);
 	if (rc) {
+		error_msg("Invalid regexp: %s", pattern);
 		return 0;
 	}
 	rc = buf_regexec(&re, buf, len, 1, &m, 0);
@@ -29,6 +30,7 @@ int regexp_match(const char *pattern, const char *buf, unsigned int len)
 
 	err = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE);
 	if (err) {
+		error_msg("Invalid regexp: %s", pattern);
 		return 0;
 	}
 	ret = !buf_regexec(&re, buf, len, REGEXP_SUBSTRINGS, m, 0);

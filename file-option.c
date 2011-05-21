@@ -41,8 +41,22 @@ void set_file_options(void)
 
 void add_file_options(enum file_options_type type, char *to, char **strs)
 {
-	struct file_option *opt = xnew(struct file_option, 1);
+	struct file_option *opt;
+	regex_t re;
 
+	if (type == FILE_OPTIONS_FILENAME) {
+		if (!regexp_compile(&re, to, REG_EXTENDED | REG_NEWLINE | REG_NOSUB)) {
+			int i;
+			free(to);
+			for (i = 0; strs[i]; i++)
+				free(strs[i]);
+			free(strs);
+			return;
+		}
+		regfree(&re);
+	}
+
+	opt = xnew(struct file_option, 1);
 	opt->type = type;
 	opt->type_or_pattern = to;
 	opt->strs = strs;

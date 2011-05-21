@@ -3,6 +3,11 @@
 #include "regexp.h"
 #include "ptr-array.h"
 
+/*
+ * Single filetype and extension/regexp pair.
+ *
+ * Filetypes are not grouped by name to make it possible to order them freely.
+ */
 struct filetype {
 	char *name;
 	char *str;
@@ -19,6 +24,18 @@ static const char *ignore[] = {
 void add_filetype(const char *name, const char *str, enum detect_type type)
 {
 	struct filetype *ft;
+	regex_t re;
+
+	switch (type) {
+	case FT_CONTENT:
+	case FT_FILENAME:
+		if (!regexp_compile(&re, str, REG_EXTENDED | REG_NEWLINE | REG_NOSUB))
+			return;
+		regfree(&re);
+		break;
+	default:
+		break;
+	}
 
 	ft = xnew(struct filetype, 1);
 	ft->name = xstrdup(name);
