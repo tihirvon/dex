@@ -147,14 +147,17 @@ static void start_update(void)
 
 static void end_update(void)
 {
+	int i;
+
 	restore_cursor();
 	buf_show_cursor();
 	buf_flush();
 
 	update_flags = 0;
-	buffer->update_tabbar = 0;
 	buffer->changed_line_min = INT_MAX;
 	buffer->changed_line_max = -1;
+	for (i = 0; i < windows.count; i++)
+		WINDOW(i)->update_tabbar = 0;
 }
 
 static void update_all_windows(void)
@@ -179,7 +182,7 @@ static void update_window(void)
 {
 	int y1, y2;
 
-	if (buffer->update_tabbar && options.show_tab_bar)
+	if (window->update_tabbar && options.show_tab_bar)
 		print_tabbar();
 
 	if (options.show_line_numbers) {
@@ -433,14 +436,14 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			lines_changed(cy, view->cy);
 		}
 		if (is_modified != buffer_modified(buffer))
-			mark_tabbar_changed();
+			mark_buffer_tabbars_changed();
 	} else {
-		mark_tabbar_changed();
+		window->update_tabbar = 1;
 		mark_all_lines_changed();
 	}
 
 	start_update();
-	if (buffer->update_tabbar)
+	if (window->update_tabbar)
 		update_term_title();
 	update_windows();
 	if (update_flags & UPDATE_COMMAND_LINE)

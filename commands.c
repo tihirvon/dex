@@ -93,7 +93,8 @@ static void cmd_cd(const char *pf, char **args)
 		}
 	}
 
-	mark_tabbar_changed();
+	// need to update all tabbars
+	mark_everything_changed();
 }
 
 static void cmd_center_view(const char *pf, char **args)
@@ -435,7 +436,7 @@ static void cmd_move_tab(const char *pf, char **args)
 	}
 
 	ptr_array_insert(&window->views, ptr_array_remove(&window->views, i), j);
-	mark_tabbar_changed();
+	window->update_tabbar = 1;
 }
 
 static void cmd_msg(const char *pf, char **args)
@@ -827,7 +828,7 @@ static void cmd_save(const char *pf, char **args)
 		update_short_filename(buffer);
 
 		// filename change is not detected (only buffer_modified() change)
-		mark_tabbar_changed();
+		mark_buffer_tabbars_changed();
 	}
 	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */

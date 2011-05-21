@@ -25,6 +25,8 @@ struct window {
 	} line_numbers;
 
 	int first_tab_idx;
+
+	unsigned int update_tabbar;
 };
 
 extern struct window *window;
@@ -38,6 +40,15 @@ static inline struct window *WINDOW(int i)
 static inline struct view *VIEW(int i, int j)
 {
 	return WINDOW(i)->views.ptrs[j];
+}
+
+static inline void mark_buffer_tabbars_changed(void)
+{
+	int i;
+	for (i = 0; i < buffer->views.count; i++) {
+		struct view *v = buffer->views.ptrs[i];
+		v->window->update_tabbar = 1;
+	}
 }
 
 struct window *window_new(void);

@@ -30,6 +30,7 @@ void view_delete(struct view *v)
 	if (v == prev_view)
 		prev_view = NULL;
 
+	v->window->update_tabbar = 1;
 	ptr_array_remove(&b->views, ptr_array_idx(&b->views, v));
 	if (b->views.count == 0) {
 		if (b->options.file_history && b->abs_filename)
@@ -37,7 +38,6 @@ void view_delete(struct view *v)
 		free_buffer(b);
 	}
 	free(v);
-	mark_tabbar_changed();
 }
 
 void remove_view(void)
