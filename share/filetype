@@ -17,6 +17,8 @@ ft -f dex $PKGDATADIR'/.*'
 ft -f gitcommit '/COMMIT_EDITMSG$'
 ft -f gitrebase '/git-rebase-todo$'
 ft -f indent '/\.indent\.pro$'
+ft -f mail '/tmpmsg-.*\.txt$'
+ft -f mail '(snd\.[0-9]+|\.letter|\.letter\.[0-9]+|\.followup|\.article|\.article\.[0-9]+|pico\.[0-9]+|mutt(ng)?-*-\w+|mutt[a-zA-Z0-9_-]{6}|ae[0-9]+\.txt|/tmp/SLRN[0-9A-Z.]+|\.eml$)'
 ft -f make '[mM]akefile(\.[^/]*)?$'
 ft -f make '/Make\.[^/]*$'
 
