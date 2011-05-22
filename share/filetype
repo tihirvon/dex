@@ -30,6 +30,7 @@ ft diff diff patch
 ft go go
 ft html html htm xhtml
 ft java java
+ft javascript js
 ft make mk mak
 ft perl perl pl
 ft php php php3 php4
