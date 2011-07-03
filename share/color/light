@@ -78,6 +78,9 @@ hi html+smarty.smarty blue
 hi html+smarty.tag bold
 hi html+smarty.attr blue
 
+# javascript
+hi javascript.regexp magenta
+
 # make
 hi make.builtin bold
 
