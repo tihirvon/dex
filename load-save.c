@@ -160,6 +160,7 @@ int load_buffer(struct buffer *b, int must_exist)
 			}
 			blk->data[blk->size++] = '\n';
 			blk->nl++;
+			b->nl++;
 		}
 	}
 	return 0;
