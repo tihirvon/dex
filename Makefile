@@ -136,6 +136,7 @@ syntax	:=			\
 	syntax/go		\
 	syntax/html		\
 	syntax/html+smarty	\
+	syntax/java		\
 	syntax/javascript	\
 	syntax/mail		\
 	syntax/make		\
