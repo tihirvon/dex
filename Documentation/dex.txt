@@ -193,6 +193,10 @@ format-paragraph [width]
 	paragraph width is not given then the *text-width* option is
 	used.
 
+	This command merges selection into one paragraph. To format
+	multiple paragraphs use the external command `fmt` with *filter*
+	command. E.g. *filter fmt -w 60*.
+
 ft <filetype> <extension>...
 	Add extensions for filetype.
 

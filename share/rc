@@ -14,6 +14,9 @@ alias man "run -p man"
 alias make "compile gcc make"
 alias read "pass-through cat"
 
+# format quoted text in email messages
+alias fmt-email "filter fmt -w 74 -p '> '"
+
 option gitcommit,gitrebase file-history false
 option -r '/\.git/.*\.diff$' file-history false
 option diff ws-error 0
