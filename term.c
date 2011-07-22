@@ -227,7 +227,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		len = strlen(keycode);
 		if (len > input_buf_fill) {
 			/* this might be a truncated escape sequence */
-			if (!strncmp(keycode, input_buf, len))
+			if (!memcmp(keycode, input_buf, input_buf_fill))
 				possibly_truncated = 1;
 			continue;
 		}
@@ -243,7 +243,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 
 		if (len > input_buf_fill) {
 			/* this might be a truncated escape sequence */
-			if (!strncmp(builtin[i].code, input_buf, len))
+			if (!memcmp(builtin[i].code, input_buf, input_buf_fill))
 				possibly_truncated = 1;
 			continue;
 		}
