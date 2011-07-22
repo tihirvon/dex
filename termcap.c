@@ -165,7 +165,7 @@ static char *termcap_open(const char *filename, int *size)
 
 static void bool_cap(const char *cap)
 {
-	if (strncmp(cap, "ut", 2) == 0)
+	if (str_has_prefix(cap, "ut"))
 		term_cap.ut = 1;
 }
 
@@ -179,7 +179,7 @@ static char *int_cap(char *cap)
 		ival += *val++ - '0';
 	}
 
-	if (strncmp(cap, "Co", 2) == 0)
+	if (str_has_prefix(cap, "Co"))
 		term_cap.colors = ival;
 	return val;
 }
@@ -283,7 +283,7 @@ static char *str_cap(const char *buf, int size, char *cap)
 			end++;
 	}
 
-	if (strncmp(cap, "tc", 2) == 0) {
+	if (str_has_prefix(cap, "tc")) {
 		char *term = xstrndup(val, end - val);
 
 		process(buf, size, term);

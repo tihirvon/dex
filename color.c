@@ -134,26 +134,26 @@ int parse_term_color(struct term_color *color, char **strs)
 
 void collect_hl_colors(const char *prefix)
 {
-	int i, len = strlen(prefix);
+	int i;
 
 	for (i = 0; i < hl_colors.count; i++) {
 		struct hl_color *c = hl_colors.ptrs[i];
-		if (!strncmp(c->name, prefix, len))
+		if (str_has_prefix(c->name, prefix))
 			add_completion(xstrdup(c->name));
 	}
 }
 
 void collect_colors_and_attributes(const char *prefix)
 {
-	int i, len = strlen(prefix);
+	int i;
 
 	// skip first (keep) because it is in attr_names too
 	for (i = 1; i < ARRAY_COUNT(color_names); i++) {
-		if (!strncmp(color_names[i], prefix, len))
+		if (str_has_prefix(color_names[i], prefix))
 			add_completion(xstrdup(color_names[i]));
 	}
 	for (i = 0; i < ARRAY_COUNT(attr_names); i++) {
-		if (!strncmp(attr_names[i], prefix, len))
+		if (str_has_prefix(attr_names[i], prefix))
 			add_completion(xstrdup(attr_names[i]));
 	}
 }

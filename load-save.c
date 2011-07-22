@@ -209,7 +209,7 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 	int rc, len;
 	unsigned int size;
 
-	if (!strncmp(filename, "/tmp/", 5))
+	if (str_has_prefix(filename, "/tmp/"))
 		ren = 0;
 
 	len = strlen(filename);

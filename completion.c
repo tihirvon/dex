@@ -48,13 +48,12 @@ void add_completion(char *str)
 
 static void collect_commands(const char *prefix)
 {
-	int prefix_len = strlen(prefix);
 	int i;
 
 	for (i = 0; commands[i].name; i++) {
 		const struct command *c = &commands[i];
 
-		if (!strncmp(prefix, c->name, prefix_len))
+		if (str_has_prefix(c->name, prefix))
 			add_completion(xstrdup(c->name));
 	}
 

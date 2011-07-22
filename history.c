@@ -41,7 +41,6 @@ void history_reset_search(void)
 const char *history_search_forward(struct ptr_array *history, const char *text)
 {
 	int i = search_pos;
-	int search_len;
 
 	if (i < 0) {
 		// NOTE: not freed in history_search_backward()
@@ -50,9 +49,8 @@ const char *history_search_forward(struct ptr_array *history, const char *text)
 		search_text = xstrdup(text);
 		i = history->count;
 	}
-	search_len = strlen(search_text);
 	while (--i >= 0) {
-		if (!strncmp(search_text, history->ptrs[i], search_len)) {
+		if (str_has_prefix(history->ptrs[i], search_text)) {
 			search_pos = i;
 			return history->ptrs[i];
 		}
@@ -63,14 +61,12 @@ const char *history_search_forward(struct ptr_array *history, const char *text)
 const char *history_search_backward(struct ptr_array *history)
 {
 	int i = search_pos;
-	int search_len;
 
 	if (i < 0)
 		return NULL;
 
-	search_len = strlen(search_text);
 	while (++i < history->count) {
-		if (!strncmp(search_text, history->ptrs[i], search_len)) {
+		if (str_has_prefix(history->ptrs[i], search_text)) {
 			search_pos = i;
 			return history->ptrs[i];
 		}

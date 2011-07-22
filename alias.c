@@ -83,11 +83,11 @@ const char *find_alias(const char *name)
 
 void collect_aliases(const char *prefix)
 {
-	int i, prefix_len = strlen(prefix);
+	int i;
 
 	for (i = 0; i < aliases.count; i++) {
 		struct alias *alias = aliases.ptrs[i];
-		if (!strncmp(prefix, alias->name, prefix_len))
+		if (str_has_prefix(alias->name, prefix))
 			add_completion(xstrdup(alias->name));
 	}
 }

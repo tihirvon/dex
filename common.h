@@ -76,6 +76,11 @@ static inline void d_print(const char *fmt, ...)
 			BUG("%s\n", __STR(a)); \
 	} while (0)
 
+static inline int str_has_prefix(const char *str, const char *prefix)
+{
+	return !strncmp(str, prefix, strlen(prefix));
+}
+
 int count_strings(char **strings);
 unsigned int number_width(unsigned int n);
 const char *ssprintf(const char *format, ...) __FORMAT(1, 2);
