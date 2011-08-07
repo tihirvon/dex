@@ -83,6 +83,10 @@ const char *parse_args(char **args, const char *flag_desc, int min, int max)
 		free(arg);
 		argc--;
 	}
+
+	// don't count arguments to flags as arguments to command
+	argc -= nr_flag_args;
+
 	if (argc < min) {
 		error_msg("Not enough arguments");
 		return NULL;
