@@ -105,7 +105,6 @@ int main(int argc, char *argv[])
 	const char *tag = NULL;
 	const char *rc = NULL;
 	const char *command = NULL;
-	const char *charset;
 	int use_terminfo = 1;
 	int use_termcap = 1;
 	int i, read_rc = 1;
@@ -216,7 +215,7 @@ int main(int argc, char *argv[])
 	editor_status = EDITOR_RUNNING;
 
 	for (; i < argc; i++)
-		open_buffer(argv[i], 0);
+		open_buffer(argv[i], 0, NULL);
 	if (window->views.count == 0)
 		open_empty_buffer();
 	set_view(window->views.ptrs[0]);

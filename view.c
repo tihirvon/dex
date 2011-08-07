@@ -40,14 +40,10 @@ void update_cursor_x(void)
 			} else {
 				w += 2;
 			}
-		} else if (buffer->options.utf8) {
+		} else {
 			idx--;
 			u = u_get_nonascii(lr.line, lr.size, &idx);
 			w += u_char_width(u);
-		} else if (u > 0x9f) {
-			w++;
-		} else {
-			w += 4;
 		}
 	}
 	view->cx_char = c;

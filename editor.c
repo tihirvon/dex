@@ -16,6 +16,7 @@ enum editor_status editor_status;
 enum input_mode input_mode;
 enum input_special input_special;
 char *home_dir;
+char *charset;
 int child_controls_terminal;
 int resized;
 int nr_errors;

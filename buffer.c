@@ -106,7 +106,7 @@ char *get_word_under_cursor(void)
 	return xstrndup(lr.line + si, ei - si + 1);
 }
 
-static struct buffer *buffer_new(void)
+static struct buffer *buffer_new(const char *encoding)
 {
 	static int id;
 	struct buffer *b;
@@ -116,7 +116,8 @@ static struct buffer *buffer_new(void)
 	b->cur_change_head = &b->change_head;
 	b->save_change_head = &b->change_head;
 	b->id = ++id;
-	b->options.utf8 = term_utf8;
+	if (encoding)
+		b->encoding = xstrdup(encoding);
 
 	memcpy(&b->options, &options, sizeof(struct common_options));
 	b->options.filetype = xstrdup("none");
@@ -127,7 +128,7 @@ static struct buffer *buffer_new(void)
 
 struct view *open_empty_buffer(void)
 {
-	struct buffer *b = buffer_new();
+	struct buffer *b = buffer_new(charset);
 	struct block *blk;
 	struct view *v;
 
@@ -162,6 +163,7 @@ void free_buffer(struct buffer *b)
 	free(b->views.ptrs);
 	free(b->filename);
 	free(b->abs_filename);
+	free(b->encoding);
 	free_local_options(&b->options);
 	free(b);
 }
@@ -394,7 +396,7 @@ void update_short_filename(struct buffer *b)
 	}
 }
 
-struct view *open_buffer(const char *filename, int must_exist)
+struct view *open_buffer(const char *filename, int must_exist, const char *encoding)
 {
 	struct buffer *b;
 	struct view *v;
@@ -420,7 +422,7 @@ struct view *open_buffer(const char *filename, int must_exist)
 		return v;
 	}
 
-	b = buffer_new();
+	b = buffer_new(encoding);
 	b->abs_filename = absolute;
 	update_short_filename(b);
 

@@ -24,6 +24,7 @@
 #include "frame.h"
 #include "load-save.h"
 #include "selection.h"
+#include "encoding.h"
 
 static void cmd_alias(const char *pf, char **args)
 {
@@ -475,21 +476,45 @@ static void cmd_next(const char *pf, char **args)
 static void cmd_open(const char *pf, char **args)
 {
 	struct view *old_view = view;
+	const char *enc = NULL;
+	char *encoding = NULL;
 	int i, first = 1;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'e':
+			enc = *args++;
+			break;
+		}
+		pf++;
+	}
+
+	if (enc) {
+		encoding = normalize_encoding(enc);
+		if (encoding == NULL) {
+			error_msg("Unsupported encoding %s", enc);
+			return;
+		}
+	}
 
 	if (!args[0]) {
 		set_view(open_empty_buffer());
+		if (encoding) {
+			free(buffer->encoding);
+			buffer->encoding = encoding;
+		}
 		prev_view = old_view;
 		return;
 	}
 	for (i = 0; args[i]; i++) {
-		struct view *v = open_buffer(args[i], 0);
+		struct view *v = open_buffer(args[i], 0, encoding);
 		if (v && first) {
 			set_view(v);
 			prev_view = old_view;
 			first = 0;
 		}
 	}
+	free(encoding);
 }
 
 static void cmd_option(const char *pf, char **args)
@@ -702,6 +727,8 @@ static int stat_changed(const struct buffer *b, const struct stat *st)
 static void cmd_save(const char *pf, char **args)
 {
 	char *absolute = buffer->abs_filename;
+	char *encoding = buffer->encoding;
+	const char *enc = NULL;
 	int force = 0;
 	enum newline_sequence newline = buffer->newline;
 	mode_t old_mode = buffer->st_mode;
@@ -713,6 +740,9 @@ static void cmd_save(const char *pf, char **args)
 		case 'd':
 			newline = NEWLINE_DOS;
 			break;
+		case 'e':
+			enc = *args++;
+			break;
 		case 'f':
 			force = 1;
 			break;
@@ -721,6 +751,14 @@ static void cmd_save(const char *pf, char **args)
 			break;
 		}
 		pf++;
+	}
+
+	if (enc) {
+		encoding = normalize_encoding(enc);
+		if (encoding == NULL) {
+			error_msg("Unsupported encoding %s", enc);
+			return;
+		}
 	}
 
 	if (args[0]) {
@@ -813,8 +851,16 @@ static void cmd_save(const char *pf, char **args)
 		/* allow chmod 755 etc. */
 		buffer->st_mode = st.st_mode;
 	}
-	if (save_buffer(absolute, newline))
+	if (save_buffer(absolute, encoding, newline))
 		goto error;
+
+	buffer->save_change_head = buffer->cur_change_head;
+	buffer->ro = 0;
+	buffer->newline = newline;
+	if (encoding != buffer->encoding) {
+		free(buffer->encoding);
+		buffer->encoding = encoding;
+	}
 
 	if (absolute != buffer->abs_filename) {
 		if (buffer->locked) {
@@ -841,6 +887,8 @@ error:
 		unlock_file(absolute);
 	if (absolute != buffer->abs_filename)
 		free(absolute);
+	if (encoding != buffer->encoding)
+		free(encoding);
 }
 
 static void cmd_scroll_down(const char *pf, char **args)
@@ -1396,7 +1444,7 @@ const struct command commands[] = {
 	{ "msg",		"np",	0,  0, cmd_msg },
 	{ "new-line",		"",	0,  0, cmd_new_line },
 	{ "next",		"",	0,  0, cmd_next },
-	{ "open",		"",	0, -1, cmd_open },
+	{ "open",		"e=",	0, -1, cmd_open },
 	{ "option",		"-r",	3, -1, cmd_option },
 	{ "pass-through",	"-ms",	1, -1, cmd_pass_through },
 	{ "paste",		"",	0,  0, cmd_paste },
@@ -1409,7 +1457,7 @@ const struct command commands[] = {
 	{ "replace",		"bcgi",	2,  2, cmd_replace },
 	{ "right",		"",	0,  0, cmd_right },
 	{ "run",		"-ps",	1, -1, cmd_run },
-	{ "save",		"dfu",	0,  1, cmd_save },
+	{ "save",		"de=fu",0,  1, cmd_save },
 	{ "scroll-down",	"",	0,  0, cmd_scroll_down },
 	{ "scroll-pgdown",	"",	0,  0, cmd_scroll_pgdown },
 	{ "scroll-pgup",	"",	0,  0, cmd_scroll_pgup },

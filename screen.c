@@ -400,11 +400,6 @@ static unsigned int screen_next_char(struct line_info *info)
 		count = 1;
 		if (u == '\t' || u == ' ')
 			ws_error = whitespace_error(info, u, pos);
-	} else if (!buffer->options.utf8) {
-		info->pos++;
-		count = 1;
-		if (u <= 0x9f)
-			u |= U_UNPRINTABLE_BIT;
 	} else {
 		u = u_get_nonascii(info->line, info->size, &info->pos);
 		count = info->pos - pos;
@@ -434,18 +429,13 @@ static void screen_skip_char(struct line_info *info)
 			// control
 			obuf.x += 2;
 		}
-	} else if (buffer->options.utf8) {
+	} else {
 		unsigned int pos = info->pos;
 
 		info->pos--;
 		u = u_get_nonascii(info->line, info->size, &info->pos);
 		obuf.x += u_char_width(u);
 		cur_offset += info->pos - pos;
-	} else if (u > 0x9f) {
-		obuf.x++;
-	} else {
-		// 0x80 - 0x9f is displayed as "<xx>"
-		obuf.x += 4;
 	}
 }
 

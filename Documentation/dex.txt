@@ -283,8 +283,12 @@ new-line
 next
 	Display next file.
 
-open [file]...
+open [-e encoding] [file]...
 	Open files. If filename is omitted a new file is opened.
+
+	-e encoding
+		Set file encoding. See "iconv -l" for list of supported
+		encodings.
 
 option <filetype> <option value>...
 	Add automatic options for filetype.
@@ -348,7 +352,7 @@ run [-ps] <command> [parameters]...
 
 	-s silent. both stderr and stdout are redirected to /dev/null
 
-save [-dfu] [filename]
+save [-dfu] [-e encoding] [filename]
 	Save file.  By default line-endings (LF vs CRLF) are preserved.
 
 	-d save with DOS/CRLF line-endings
@@ -356,6 +360,10 @@ save [-dfu] [filename]
 	-f force saving read-only file
 
 	-u save with Unix/LF line-endings
+
+	-e encoding
+		Set file encoding. See "iconv -l" for list of supported
+		encodings.
 
 scroll-down
 	Scroll view down one line. Keeps cursor position unchanged if
@@ -571,18 +579,6 @@ ws-error 0
 filetype [none]
 	Type of file. Value must be previously registered using the *ft*
 	command.
-
-utf8 false/true
-	Whether to treat file data as UTF-8 or 8 bits per character.
-	Other multibyte character encodings are not supported.
-
-	Value of this option is automatically detected from first
-	non-ASCII bytes. For ASCII files the value depends on the
-	current locale.
-
-	Toggle this option if the detection fails. Changing this option
-	does not convert data. Use the external command iconv if you
-	need to change file encoding.
 
 @h2 Global only options
 

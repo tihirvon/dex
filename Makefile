@@ -63,8 +63,11 @@ OBJECTS	:= 			\
 	config.o		\
 	ctags.o			\
 	ctype.o			\
+	decoder.o		\
 	edit.o			\
 	editor.o		\
+	encoder.o		\
+	encoding.o		\
 	file-history.o		\
 	file-option.o		\
 	filetype.o		\

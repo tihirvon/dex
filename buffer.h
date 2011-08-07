@@ -47,6 +47,9 @@ struct buffer {
 
 	enum newline_sequence newline;
 
+	// Encoding of the file. Buffer always contains UTF-8.
+	char *encoding;
+
 	struct local_options options;
 
 	const struct syntax *syn;
@@ -155,7 +158,7 @@ unsigned int count_nl(const char *buf, unsigned int size);
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);
 struct view *find_view_by_buffer_id(unsigned int buffer_id);
-struct view *open_buffer(const char *filename, int must_exist);
+struct view *open_buffer(const char *filename, int must_exist, const char *encoding);
 struct view *open_empty_buffer(void);
 void setup_buffer(void);
 void free_buffer(struct buffer *b);

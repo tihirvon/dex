@@ -46,7 +46,7 @@ void move_to_preferred_x(void)
 			} else {
 				x += 2;
 			}
-		} else if (buffer->options.utf8) {
+		} else {
 			int next = i;
 			i--;
 			u = u_get_nonascii(lr.line, lr.size, &i);
@@ -55,10 +55,6 @@ void move_to_preferred_x(void)
 				i = next;
 				break;
 			}
-		} else if (u > 0x9f) {
-			x++;
-		} else {
-			x += 4;
 		}
 	}
 	if (x > view->preferred_x)

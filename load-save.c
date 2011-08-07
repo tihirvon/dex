@@ -5,6 +5,9 @@
 #include "uchar.h"
 #include "lock.h"
 #include "wbuf.h"
+#include "decoder.h"
+#include "encoder.h"
+#include "encoding.h"
 
 static void update_stat(int fd, struct buffer *b)
 {
@@ -19,88 +22,127 @@ static void update_stat(int fd, struct buffer *b)
 	b->st_mode = st.st_mode;
 }
 
-static size_t copy_strip_cr(char *dst, const char *src, size_t size)
+static void add_block(struct buffer *b, struct block *blk)
 {
-	size_t si = 0;
-	size_t di = 0;
-
-	while (si < size) {
-		char ch = src[si++];
-		if (ch == '\r' && si < size && src[si] == '\n')
-			ch = src[si++];
-		dst[di++] = ch;
-	}
-	return di;
+	b->nl += blk->nl;
+	list_add_before(&blk->node, &b->blocks);
 }
 
-static size_t add_block(struct buffer *b, const char *buf, size_t size)
+static struct block *add_utf8_line(struct buffer *b, struct block *blk, const unsigned char *line, size_t len)
 {
-	const char *start = buf;
-	const char *eof = buf + size;
-	const char *end;
-	struct block *blk;
-	unsigned int lines = 0;
+	size_t size = len + 1;
 
-	do {
-		const char *nl = memchr(start, '\n', eof - start);
+	if (blk) {
+		size_t avail = blk->alloc - blk->size;
+		if (size <= avail)
+			goto copy;
 
-		end = nl ? nl + 1 : eof;
-		if (end - buf > 8192) {
-			if (start == buf) {
-				lines += !!nl;
-				break;
-			}
-			end = start;
-			break;
-		}
-		start = end;
-		lines += !!nl;
-	} while (end < eof);
-
-	size = end - buf;
-	blk = block_new(size);
-	switch (b->newline) {
-	case NEWLINE_UNIX:
-		memcpy(blk->data, buf, size);
-		blk->size = size;
-		break;
-	case NEWLINE_DOS:
-		blk->size = copy_strip_cr(blk->data, buf, size);
-		break;
+		add_block(b, blk);
 	}
-	blk->nl = lines;
-	b->nl += lines;
-	list_add_before(&blk->node, &b->blocks);
-	return size;
+
+	if (size < 8192)
+		size = 8192;
+	blk = block_new(size);
+copy:
+	memcpy(blk->data + blk->size, line, len);
+	blk->size += len;
+	blk->data[blk->size++] = '\n';
+	blk->nl++;
+	return blk;
+}
+
+static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, size_t size)
+{
+	struct file_decoder *dec;
+	char *line;
+	size_t len;
+
+	if (b->encoding) {
+		// Detect endianness for UTF-16 and UTF-32.
+		const char *e = detect_encoding_from_bom(buf, size);
+
+		if (!strcmp(b->encoding, "UTF-16")) {
+			if (e && str_has_prefix(e, b->encoding)) {
+				free(b->encoding);
+				b->encoding = xstrdup(e);
+			} else {
+				// "open -e UTF-16" but incompatible or no BOM.
+				// Do what the user wants. Big-endian is default.
+				free(b->encoding);
+				b->encoding = xstrdup("UTF-16BE");
+			}
+		}
+
+		if (!strcmp(b->encoding, "UTF-32")) {
+			if (e && str_has_prefix(e, b->encoding)) {
+				free(b->encoding);
+				b->encoding = xstrdup(e);
+			} else {
+				// "open -e UTF-32" but incompatible or no BOM.
+				// Do what the user wants. Big-endian is default.
+				free(b->encoding);
+				b->encoding = xstrdup("UTF-32BE");
+			}
+		}
+
+		if (e && !strcmp(b->encoding, e)) {
+			// skip BOM
+			size_t bom_len = 2;
+			if (str_has_prefix(e, "UTF-32"))
+				bom_len = 4;
+			buf += bom_len;
+			size -= bom_len;
+		}
+	}
+
+	dec = new_file_decoder(b->encoding, buf, size);
+	if (dec == NULL)
+		return -1;
+
+	if (file_decoder_read_line(dec, &line, &len)) {
+		struct block *blk = NULL;
+
+		if (len && line[len - 1] == '\r') {
+			b->newline = NEWLINE_DOS;
+			len--;
+		}
+		blk = add_utf8_line(b, blk, line, len);
+
+		while (file_decoder_read_line(dec, &line, &len)) {
+			if (b->newline == NEWLINE_DOS && len && line[len - 1] == '\r')
+				len--;
+			blk = add_utf8_line(b, blk, line, len);
+		}
+		if (blk)
+			add_block(b, blk);
+	}
+	if (b->encoding == NULL) {
+		const char *e = dec->encoding;
+		if (e == NULL)
+			e = charset;
+		b->encoding = xstrdup(e);
+	}
+	free_file_decoder(dec);
+	return 0;
 }
 
 static int read_blocks(struct buffer *b, int fd)
 {
-	size_t pos, size = b->st_size;
-	unsigned char *nl, *buf = xmmap(fd, 0, size);
+	size_t size = b->st_size;
+	unsigned char *buf = xmmap(fd, 0, size);
+	int rc;
 
 	if (!buf)
 		return -1;
 
-	nl = memchr(buf, '\n', size);
-	if (nl > buf && nl[-1] == '\r')
-		b->newline = NEWLINE_DOS;
-
-	pos = 0;
-	while (pos < size)
-		pos += add_block(b, buf + pos, size - pos);
-
-	for (pos = 0; pos < size; pos++) {
-		if (buf[pos] >= 0x80) {
-			unsigned int idx = pos;
-			unsigned int u = u_get_nonascii(buf, size, &idx);
-			b->options.utf8 = u_is_valid(u);
-			break;
-		}
+	if (b->encoding == NULL) {
+		const char *e = detect_encoding_from_bom(buf, size);
+		if (e)
+			b->encoding = xstrdup(e);
 	}
-
+	rc = decode_and_add_blocks(b, buf, size);
 	xmunmap(buf, size);
-	return 0;
+	return rc;
 }
 
 int load_buffer(struct buffer *b, int must_exist)
@@ -163,25 +205,10 @@ int load_buffer(struct buffer *b, int must_exist)
 			b->nl++;
 		}
 	}
+
+	if (b->encoding == NULL)
+		b->encoding = xstrdup(charset);
 	return 0;
-}
-
-static int write_crlf(struct wbuf *wbuf, const char *buf, int size)
-{
-	int written = 0;
-
-	while (size--) {
-		char ch = *buf++;
-		if (ch == '\n') {
-			if (wbuf_write_ch(wbuf, '\r'))
-				return -1;
-			written++;
-		}
-		if (wbuf_write_ch(wbuf, ch))
-			return -1;
-		written++;
-	}
-	return written;
 }
 
 static mode_t get_umask(void)
@@ -192,15 +219,16 @@ static mode_t get_umask(void)
 	return old;
 }
 
-int save_buffer(const char *filename, enum newline_sequence newline)
+int save_buffer(const char *filename, const char *encoding, enum newline_sequence newline)
 {
 	/* try to use temporary file first, safer */
 	int ren = 1;
 	struct block *blk;
 	char tmp[PATH_MAX];
-	WBUF(wbuf);
-	int rc, len;
+	int fd, len;
 	unsigned int size;
+	struct file_encoder *enc;
+	const struct byte_order_mark *bom;
 
 	if (str_has_prefix(filename, "/tmp/"))
 		ren = 0;
@@ -213,18 +241,18 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 		tmp[len] = '.';
 		memset(tmp + len + 1, 'X', 6);
 		tmp[len + 7] = 0;
-		wbuf.fd = mkstemp(tmp);
-		if (wbuf.fd < 0) {
+		fd = mkstemp(tmp);
+		if (fd < 0) {
 			// No write permission to the directory?
 			ren = 0;
 		} else if (buffer->st_mode) {
 			// Preserve ownership and mode of the original file if possible.
-			int ignore = fchown(wbuf.fd, buffer->st_uid, buffer->st_gid);
+			int ignore = fchown(fd, buffer->st_uid, buffer->st_gid);
 			ignore = ignore; // warning: unused variable 'ignore'
-			fchmod(wbuf.fd, buffer->st_mode);
+			fchmod(fd, buffer->st_mode);
 		} else {
 			// new file
-			fchmod(wbuf.fd, 0666 & ~get_umask());
+			fchmod(fd, 0666 & ~get_umask());
 		}
 	}
 	if (!ren) {
@@ -235,54 +263,60 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 			// New file.
 			mode = 0666 & ~get_umask();
 		}
-		wbuf.fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, mode);
-		if (wbuf.fd < 0) {
+		fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, mode);
+		if (fd < 0) {
 			error_msg("Error opening file: %s", strerror(errno));
 			return -1;
 		}
 	}
 
-	rc = 0;
-	size = 0;
-	if (newline == NEWLINE_DOS) {
-		list_for_each_entry(blk, &buffer->blocks, node) {
-			rc = write_crlf(&wbuf, blk->data, blk->size);
-			if (rc < 0)
-				break;
-			size += rc;
-		}
-	} else {
-		list_for_each_entry(blk, &buffer->blocks, node) {
-			rc = wbuf_write(&wbuf, blk->data, blk->size);
-			if (rc)
-				break;
-			size += blk->size;
-		}
-	}
-	if (rc < 0 || wbuf_flush(&wbuf)) {
-		error_msg("Write error: %s", strerror(errno));
-		if (ren)
-			unlink(tmp);
-		close(wbuf.fd);
+	enc = new_file_encoder(encoding, newline, fd);
+	if (enc == NULL) {
+		// this should never happen because encoding is validated early
+		error_msg("iconv_open: %s", strerror(errno));
+		close(fd);
 		return -1;
 	}
-	if (!ren && ftruncate(wbuf.fd, size)) {
+	size = 0;
+
+	bom = get_bom_for_encoding(encoding);
+	if (bom) {
+		size = bom->len;
+		if (xwrite(fd, bom->bytes, size) < 0)
+			goto write_error;
+	}
+
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		ssize_t rc = file_encoder_write(enc, blk->data, blk->size);
+
+		if (rc < 0)
+			goto write_error;
+		size += rc;
+	}
+	if (enc->errors) {
+		// any real error hides this message
+		error_msg("Warning: %d nonreversible character conversions. File saved.", enc->errors);
+	}
+	free_file_encoder(enc);
+	if (!ren && ftruncate(fd, size)) {
 		error_msg("Truncate failed: %s", strerror(errno));
-		close(wbuf.fd);
+		close(fd);
 		return -1;
 	}
 	if (ren && rename(tmp, filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
 		unlink(tmp);
-		close(wbuf.fd);
+		close(fd);
 		return -1;
 	}
-	update_stat(wbuf.fd, buffer);
-	close(wbuf.fd);
-
-	buffer->save_change_head = buffer->cur_change_head;
-	buffer->ro = 0;
-	buffer->newline = newline;
-
+	update_stat(fd, buffer);
+	close(fd);
 	return 0;
+write_error:
+	error_msg("Write error: %s", strerror(errno));
+	free_file_encoder(enc);
+	if (ren)
+		unlink(tmp);
+	close(fd);
+	return -1;
 }

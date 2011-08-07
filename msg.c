@@ -35,7 +35,7 @@ static int move_to_file(const char *filename, int save_location)
 	if (save_location)
 		loc = create_location();
 
-	v = open_buffer(filename, 1);
+	v = open_buffer(filename, 1, NULL);
 	if (!v) {
 		if (loc) {
 			free(loc->filename);
@@ -65,7 +65,7 @@ void pop_location(void)
 	v = find_view_by_buffer_id(loc->buffer_id);
 	if (!v) {
 		if (loc->filename) {
-			v = open_buffer(loc->filename, 1);
+			v = open_buffer(loc->filename, 1, NULL);
 		} else {
 			// Can't restore closed buffer which had no filename.
 			free(loc->filename);

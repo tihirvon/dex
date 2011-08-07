@@ -277,10 +277,8 @@ void insert_ch(unsigned int ch)
 	if (ch == '\t' && buffer->options.expand_tab) {
 		ins_count = buffer->options.indent_width;
 		memset(ins, ' ', ins_count);
-	} else if (buffer->options.utf8) {
-		u_set_char_raw(ins, &ins_count, ch);
 	} else {
-		ins[ins_count++] = ch;
+		u_set_char_raw(ins, &ins_count, ch);
 	}
 
 	// record change
@@ -567,7 +565,7 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 
 	while (i < len) {
 		unsigned char ch = word[i];
-		if (ch < 0x80 || !buffer->options.utf8) {
+		if (ch < 0x80) {
 			word_width++;
 			i++;
 		} else {
@@ -706,22 +704,16 @@ void change_case(int mode, int move_after)
 		if (!buffer_get_char(&view->cursor, &u))
 			return;
 
-		text_len = 1;
-		if (buffer->options.utf8)
-			text_len = u_char_size(u);
+		text_len = u_char_size(u);
 	}
 
 	src = buffer_get_bytes(text_len);
 	i = 0;
 	while (i < text_len) {
-		unsigned int u;
+		unsigned int u = u_buf_get_char(src, text_len, &i);
+		unsigned int idx = 0;
+		char buf[4];
 
-		if (buffer->options.utf8)
-			u = u_buf_get_char(src, text_len, &i);
-		else
-			u = src[i++];
-
-		// this works with latin1 too
 		switch (mode) {
 		case 't':
 			if (iswupper(u))
@@ -737,14 +729,8 @@ void change_case(int mode, int move_after)
 			break;
 		}
 
-		if (buffer->options.utf8) {
-			char buf[4];
-			unsigned int idx = 0;
-			u_set_char_raw(buf, &idx, u);
-			gbuf_add_buf(&dst, buf, idx);
-		} else {
-			gbuf_add_ch(&dst, u);
-		}
+		u_set_char_raw(buf, &idx, u);
+		gbuf_add_buf(&dst, buf, idx);
 	}
 
 	replace(text_len, dst.buffer, dst.len);

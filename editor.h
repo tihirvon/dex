@@ -39,6 +39,7 @@ extern enum editor_status editor_status;
 extern enum input_mode input_mode;
 extern enum input_special input_special;
 extern char *home_dir;
+extern char *charset;
 extern int child_controls_terminal;
 extern int resized;
 extern int nr_errors;
