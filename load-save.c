@@ -192,13 +192,6 @@ static mode_t get_umask(void)
 	return old;
 }
 
-static void check_incomplete_last_line(void)
-{
-	struct block *blk = BLOCK(buffer->blocks.prev);
-	if (blk->size && blk->data[blk->size - 1] != '\n')
-		info_msg("File saved with incomplete last line.");
-}
-
 int save_buffer(const char *filename, enum newline_sequence newline)
 {
 	/* try to use temporary file first, safer */
@@ -291,6 +284,5 @@ int save_buffer(const char *filename, enum newline_sequence newline)
 	buffer->ro = 0;
 	buffer->newline = newline;
 
-	check_incomplete_last_line();
 	return 0;
 }
