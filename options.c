@@ -14,7 +14,7 @@ struct global_options options = {
 	.syntax = 1,
 	.tab_width = 8,
 	.text_width = 72,
-	.ws_error = 0,
+	.ws_error = WSE_SPECIAL,
 
 	.case_sensitive_search = CSS_TRUE,
 	.display_special = 0,
@@ -210,6 +210,7 @@ static const char *ws_error_values[] = {
 	"space-align",
 	"tab-indent",
 	"tab-after-indent",
+	"special",
 	NULL
 };
 

@@ -403,11 +403,10 @@ static unsigned int screen_next_char(struct line_info *info)
 	} else {
 		u = u_get_nonascii(info->line, info->size, &info->pos);
 		count = info->pos - pos;
-	}
-	if (u == 0xa0) {
-		// display highly annoying no-break space as an error even
-		// if ws-error option is set to 0
-		ws_error = 1;
+
+		// highly annoying no-break space etc.?
+		if (u_is_special_whitespace(u) && (buffer->options.ws_error & WSE_SPECIAL))
+			ws_error = 1;
 	}
 
 	update_color(info->colors ? info->colors[pos] : NULL, is_non_text(u), ws_error);

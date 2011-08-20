@@ -22,6 +22,9 @@ enum {
 
 	/* tab anywhere but in indentation */
 	WSE_TAB_AFTER_INDENT	= 1 << 4,
+
+	/* special whitespace characters */
+	WSE_SPECIAL		= 1 << 5,
 };
 
 enum case_sensitive_search {

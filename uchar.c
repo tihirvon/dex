@@ -1,7 +1,35 @@
 #include "uchar.h"
 #include "common.h"
 
+struct codepoint_range {
+	unsigned int lo, hi;
+};
+
+// All these are indistinguishable from ASCII space on terminal.
+static const struct codepoint_range evil_space[] = {
+	{ 0x00a0, 0x00a0 }, // No-break space. Easy to type accidentally (AltGr+Space)
+	{ 0x00ad, 0x00ad }, // Soft hyphen. Very very soft...
+	{ 0x2000, 0x200a }, // Legacy spaces of varying sizes
+	{ 0x2028, 0x2029 }, // Line and paragraph separators
+	{ 0x202f, 0x202f }, // Narrow No-Break Space
+	{ 0x205f, 0x205f }, // Mathematical space. Proven to be correct. Legacy
+	{ 0x2800, 0x2800 }, // Braille Pattern Blank
+};
+
 const char hex_tab[16] = "0123456789abcdef";
+
+static inline int in_range(unsigned int u, const struct codepoint_range *range, int count)
+{
+	int i;
+
+	for (i = 0; i < count; i++) {
+		if (u < range[i].lo)
+			return 0;
+		if (u <= range[i].hi)
+			return 1;
+	}
+	return 0;
+}
 
 static unsigned int unprintable_bit(unsigned int u)
 {
@@ -9,6 +37,11 @@ static unsigned int unprintable_bit(unsigned int u)
 	if (u >= 0x80 && u <= 0x9f)
 		return U_UNPRINTABLE_BIT;
 	return 0;
+}
+
+int u_is_special_whitespace(unsigned int u)
+{
+	return in_range(u, evil_space, ARRAY_COUNT(evil_space));
 }
 
 int u_char_width(unsigned int u)

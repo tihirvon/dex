@@ -100,6 +100,7 @@ static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
 	*idx = i;
 }
 
+int u_is_special_whitespace(unsigned int u);
 int u_char_width(unsigned int uch);
 
 unsigned int u_str_width(const unsigned char *str, unsigned int size);
