@@ -308,7 +308,8 @@ static int is_text(const char *str, int len)
 	int i;
 
 	for (i = 0; i < len; i++) {
-		char ch = str[i];
+		// NOTE: must be unsigned!
+		unsigned char ch = str[i];
 
 		switch (ch) {
 		case '\t':
