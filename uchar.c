@@ -16,6 +16,13 @@ static const struct codepoint_range evil_space[] = {
 	{ 0x2800, 0x2800 }, // Braille Pattern Blank
 };
 
+static const struct codepoint_range zero_width[] = {
+	{ 0x200b, 0x200f },
+	{ 0x202a, 0x202e },
+	{ 0x2060, 0x2063 },
+	{ 0xfeff, 0xfeff },
+};
+
 const char hex_tab[16] = "0123456789abcdef";
 
 static inline int in_range(unsigned int u, const struct codepoint_range *range, int count)
@@ -35,6 +42,9 @@ static unsigned int unprintable_bit(unsigned int u)
 {
 	// Unprintable garbage inherited from latin1.
 	if (u >= 0x80 && u <= 0x9f)
+		return U_UNPRINTABLE_BIT;
+
+	if (in_range(u, zero_width, ARRAY_COUNT(zero_width)))
 		return U_UNPRINTABLE_BIT;
 	return 0;
 }
