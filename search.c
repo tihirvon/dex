@@ -164,12 +164,11 @@ static int update_regex(void)
 	return 0;
 }
 
-void search(const char *pattern)
+void search_set_regexp(const char *pattern)
 {
 	free_regex();
 	free(current_search.pattern);
 	current_search.pattern = xstrdup(pattern);
-	search_next();
 }
 
 void search_next(void)

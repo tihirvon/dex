@@ -18,7 +18,7 @@ void search_tag(const char *pattern);
 
 void search_set_direction(enum search_direction dir);
 enum search_direction current_search_direction(void);
-void search(const char *pattern);
+void search_set_regexp(const char *pattern);
 void search_prev(void);
 void search_next(void);
 

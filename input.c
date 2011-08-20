@@ -187,7 +187,8 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 		switch (key) {
 		case '\r':
 			if (cmdline.buffer[0]) {
-				search(cmdline.buffer);
+				search_set_regexp(cmdline.buffer);
+				search_next();
 				history_add(&search_history, cmdline.buffer, search_history_size);
 			} else {
 				search_next();
