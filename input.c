@@ -207,7 +207,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 			options.case_sensitive_search = (options.case_sensitive_search + 1) % 3;
 			break;
 		case 'r':
-			search_init(current_search_direction() ^ 1);
+			search_set_direction(current_search_direction() ^ 1);
 			break;
 		}
 		break;

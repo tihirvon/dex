@@ -106,7 +106,7 @@ static struct {
 	int re_flags;
 } current_search;
 
-void search_init(enum search_direction dir)
+void search_set_direction(enum search_direction dir)
 {
 	current_search.direction = dir;
 }

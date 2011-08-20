@@ -974,7 +974,7 @@ static void cmd_search(const char *pf, char **args)
 	}
 
 	if (pattern) {
-		search_init(dir);
+		search_set_direction(dir);
 		search(pattern);
 		if (history)
 			history_add(&search_history, pattern, search_history_size);
@@ -987,7 +987,7 @@ static void cmd_search(const char *pf, char **args)
 		search_prev();
 	} else {
 		input_mode = INPUT_SEARCH;
-		search_init(dir);
+		search_set_direction(dir);
 		mark_command_line_changed();
 	}
 }
