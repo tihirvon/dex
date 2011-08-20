@@ -9,6 +9,7 @@
 #include "obuf.h"
 #include "history.h"
 #include "file-history.h"
+#include "search.h"
 
 #include <locale.h>
 #include <langinfo.h>
@@ -201,6 +202,8 @@ int main(int argc, char *argv[])
 	load_file_history();
 	history_load(&command_history, editor_file("command-history"), command_history_size);
 	history_load(&search_history, editor_file("search-history"), search_history_size);
+	if (search_history.count)
+		search_set_regexp(search_history.ptrs[search_history.count - 1]);
 
 	/* Initialize terminal but don't update screen yet.  Also display
 	 * "Press any key to continue" prompt if there were any errors
