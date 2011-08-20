@@ -89,7 +89,7 @@ static ssize_t encode(struct file_encoder *enc, const unsigned char *buf, ssize_
 				oc--;
 
 				// reset
-				iconv(enc->cd, NULL, 0, NULL, 0);
+				iconv(enc->cd, NULL, NULL, NULL, NULL);
 
 				enc->errors++;
 				break;

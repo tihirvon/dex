@@ -44,7 +44,7 @@ static int fill(struct file_decoder *dec)
 			oc--;
 
 			// reset
-			iconv(dec->cd, NULL, 0, NULL, 0);
+			iconv(dec->cd, NULL, NULL, NULL, NULL);
 			break;
 		case E2BIG:
 		default:
