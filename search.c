@@ -176,7 +176,7 @@ void search_next(void)
 	struct block_iter bi = view->cursor;
 
 	if (!current_search.pattern) {
-		error_msg("No previous search pattern");
+		error_msg("No previous search pattern.");
 		return;
 	}
 	if (!update_regex())
@@ -194,7 +194,7 @@ void search_next(void)
 		if (do_search_fwd(&current_search.regex, &bi)) {
 			info_msg("Continuing at top.");
 		} else {
-			info_msg("No matches.");
+			info_msg("Pattern '%s' not found.", current_search.pattern);
 		}
 	} else {
 		int cursor_x = block_iter_bol(&bi);
@@ -206,7 +206,7 @@ void search_next(void)
 		if (do_search_bwd(&current_search.regex, &bi, -1)) {
 			info_msg("Continuing at bottom.");
 		} else {
-			info_msg("No matches.");
+			info_msg("Pattern '%s' not found.", current_search.pattern);
 		}
 	}
 }
@@ -409,7 +409,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	regfree(&re);
 
 	if (nr_substitutions) {
-		info_msg("%d substitutions on %d lines", nr_substitutions, nr_lines);
+		info_msg("%d substitutions on %d lines.", nr_substitutions, nr_lines);
 	} else if (!(flags & REPLACE_CANCEL)) {
 		info_msg("Pattern '%s' not found.", pattern);
 	}
