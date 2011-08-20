@@ -4,7 +4,8 @@
 
 static int filename_width(const char *filename)
 {
-	int w = 0, i = 0;
+	unsigned int i = 0;
+	int w = 0;
 
 	if (term_utf8) {
 		while (filename[i])

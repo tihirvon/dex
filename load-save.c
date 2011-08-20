@@ -55,7 +55,7 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 {
 	struct file_decoder *dec;
 	char *line;
-	size_t len;
+	ssize_t len;
 
 	if (b->encoding) {
 		// Detect endianness for UTF-16 and UTF-32.
