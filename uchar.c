@@ -304,10 +304,8 @@ void u_set_hex(char *str, unsigned int *idx, unsigned int uch)
 {
 	unsigned int i = *idx;
 
-	uch &= ~U_INVALID_BIT;
-
 	str[i++] = '<';
-	if (uch <= 0xff) {
+	if (!u_is_unicode(uch)) {
 		str[i++] = hex_tab[(uch >> 4) & 0x0f];
 		str[i++] = hex_tab[uch & 0x0f];
 	} else {
