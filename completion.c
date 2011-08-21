@@ -8,6 +8,7 @@
 #include "tag.h"
 #include "common.h"
 #include "color.h"
+#include "env.h"
 
 static struct {
 	// part of string which is to be replaced
@@ -182,11 +183,6 @@ static void collect_and_sort_files(void)
 
 static void collect_env(const char *name, int len)
 {
-	static const char * const builtin[] = {
-		"FILE",
-		"PKGDATADIR",
-		"WORD",
-	};
 	extern char **environ;
 	int i;
 
@@ -199,10 +195,7 @@ static void collect_env(const char *name, int len)
 				add_completion(xstrndup(e, end - e));
 		}
 	}
-	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
-		if (strncmp(builtin[i], name, len) == 0)
-			add_completion(xstrdup(builtin[i]));
-	}
+	collect_builtin_env(name, len);
 }
 
 static void collect_completions(char **args, int argc)

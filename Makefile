@@ -68,6 +68,7 @@ OBJECTS	:= 			\
 	editor.o		\
 	encoder.o		\
 	encoding.o		\
+	env.o			\
 	file-history.o		\
 	file-option.o		\
 	filetype.o		\

@@ -1,8 +1,8 @@
 #include "command.h"
 #include "editor.h"
 #include "gbuf.h"
-#include "buffer.h"
 #include "ptr-array.h"
+#include "env.h"
 
 static GBUF(arg);
 
@@ -119,18 +119,6 @@ static void parse_dq(const char *cmd, int *posp)
 	*posp = pos;
 }
 
-static int var_is(const char *buf, int len, const char *name)
-{
-	return len == strlen(name) && !memcmp(buf, name, len);
-}
-
-/*
- * $FILE	current filename
- * $PKGDATADIR	set at compile time
- * $WORD	word under cursor
- *
- * Otherwise the corresponding environment value or "" if not set.
- */
 static void parse_var(const char *cmd, int *posp)
 {
 	int len, pos = *posp;
@@ -157,24 +145,8 @@ static void parse_var(const char *cmd, int *posp)
 	if (!len)
 		return;
 
-	if (var_is(var, len, "FILE")) {
-		if (buffer->abs_filename)
-			gbuf_add_str(&arg, buffer->abs_filename);
+	if (expand_builtin_env(&arg, var, len))
 		return;
-	}
-	if (var_is(var, len, "PKGDATADIR")) {
-		gbuf_add_str(&arg, pkgdatadir);
-		return;
-	}
-	if (var_is(var, len, "WORD")) {
-		char *word = get_word_under_cursor();
-
-		if (word) {
-			gbuf_add_str(&arg, word);
-			free(word);
-		}
-		return;
-	}
 
 	name = xstrndup(var, len);
 	value = getenv(name);
