@@ -3,6 +3,7 @@
 
 #include <sys/mman.h>
 
+const char hex_tab[16] = "0123456789abcdef";
 int term_utf8;
 
 int count_strings(char **strings)

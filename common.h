@@ -20,6 +20,7 @@
 
 #include "ctype.h"
 
+extern const char hex_tab[16];
 extern int term_utf8;
 
 #if defined(__GNUC__)

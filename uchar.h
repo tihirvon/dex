@@ -3,8 +3,6 @@
 
 #include "unicode.h"
 
-extern const char hex_tab[16];
-
 static inline unsigned int u_char_size(unsigned int uch)
 {
 	if (uch <= 0x7fU)

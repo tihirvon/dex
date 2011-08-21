@@ -2,8 +2,6 @@
 #include "unicode.h"
 #include "common.h"
 
-const char hex_tab[16] = "0123456789abcdef";
-
 unsigned int u_str_width(const unsigned char *str, unsigned int size)
 {
 	unsigned int idx = 0, w = 0;
