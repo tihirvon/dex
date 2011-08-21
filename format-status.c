@@ -37,10 +37,9 @@ static void add_status_str(struct formatter *f, const char *str)
 	} else {
 		while (f->pos < f->size && str[idx]) {
 			unsigned char ch = str[idx++];
-			if (u_is_ctrl(ch)) {
-				u_set_ctrl(f->buf, &f->pos, ch);
-			} else if (ch >= 0x80 && ch <= 0x9f) {
-				u_set_hex(f->buf, &f->pos, ch);
+			if (ch <= 0x9f) {
+				// can be used for ASCII and unprintable 0x80 - 0x9f
+				u_set_char(f->buf, &f->pos, ch);
 			} else {
 				add_ch(f, ch);
 			}
@@ -82,7 +81,7 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 	got_char = buffer_get_char(&view->cursor, &u);
 	if (got_char) {
 		// Display unmodified numeric value.
-		u &= ~(U_UNPRINTABLE_BIT | U_INVALID_BIT);
+		u &= ~U_INVALID_BIT;
 	}
 	while (f.pos < f.size && *format) {
 		char ch = *format++;

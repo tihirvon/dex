@@ -77,8 +77,6 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 		u = u_buf_get_char(buf, size, &i);
 	} else {
 		u = buf[i++];
-		if (u >= 0x80 && u <= 0x9f)
-			u |= U_UNPRINTABLE_BIT;
 	}
 	*idx = i;
 	return u;
