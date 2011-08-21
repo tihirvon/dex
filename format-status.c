@@ -79,10 +79,6 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 	f.separator = 0;
 
 	got_char = buffer_get_char(&view->cursor, &u);
-	if (got_char) {
-		// Display unmodified numeric value.
-		u &= ~U_INVALID_BIT;
-	}
 	while (f.pos < f.size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
@@ -113,14 +109,6 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 				if (view->cx_display != view->cx_char)
 					add_status_str(&f, ssprintf("-%d", view->cx_display + 1));
 				break;
-			case 'c':
-				if (got_char)
-					add_status_str(&f, ssprintf("%3d", u));
-				break;
-			case 'C':
-				if (got_char)
-					add_status_str(&f, ssprintf("0x%02x", u));
-				break;
 			case 'p':
 				add_status_pos(&f);
 				break;
@@ -146,6 +134,15 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 				break;
 			case 't':
 				add_status_str(&f, buffer->options.filetype);
+				break;
+			case 'u':
+				if (got_char) {
+					if (u_is_unicode(u)) {
+						add_status_str(&f, ssprintf("U+%04X", u));
+					} else {
+						add_status_str(&f, "Invalid");
+					}
+				}
 				break;
 			case '%':
 				add_separator(&f);

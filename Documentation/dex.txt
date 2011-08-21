@@ -610,12 +610,6 @@ statusline-left [" %f%s%m%r%s%M"]
 	Cursor column as characters. If it differs from cursor
 	display column it is show too (e.g. "2-9").
 
-	@li %c
-	Decimal value of character under cursor.
-
-	@li %C
-	Hexadecimal value value of character under cursor.
-
 	@li %p
 	Position in percentage.
 
@@ -634,10 +628,13 @@ statusline-left [" %f%s%m%r%s%M"]
 	@li %t
 	File type.
 
+	@li %u
+	Hexadecimal unicode value value of character under cursor.
+
 	@li %%
 	Literal %.
 
-statusline-right [" %y,%X   %c %C   %E %n %t   %p "]
+statusline-right [" %y,%X   %u   %E %n %t   %p "]
 	Format string for the right aligned part of status line.
 
 display-special [false]

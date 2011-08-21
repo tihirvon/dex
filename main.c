@@ -49,7 +49,7 @@ static const char *builtin_rc =
 "hi inactivetab black gray\n"
 // must initialize string options
 "set statusline-left \" %f%s%m%r%s%M\"\n"
-"set statusline-right \" %y,%X   %c %C   %E %n %t   %p \"\n";
+"set statusline-right \" %y,%X   %u   %E %n %t   %p \"\n";
 
 void set_signal_handler(int signum, void (*handler)(int))
 {
