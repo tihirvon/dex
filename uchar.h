@@ -3,9 +3,6 @@
 
 extern const char hex_tab[16];
 
-// Used to mark invalid byte in UTF-8 byte sequence.
-#define U_INVALID_BIT		0x40000000U
-
 static inline int u_is_unicode(unsigned int uch)
 {
 	return uch <= 0x10ffffU;

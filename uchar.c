@@ -181,7 +181,8 @@ unsigned int u_prev_char(const unsigned char *buf, unsigned int *idx)
 	}
 invalid:
 	*idx = *idx - 1;
-	return u | U_INVALID_BIT;
+	u = buf[*idx];
+	return -u;
 }
 
 unsigned int u_buf_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
@@ -223,7 +224,7 @@ unsigned int u_get_nonascii(const unsigned char *buf, unsigned int size, unsigne
 	return u;
 invalid:
 	*idx += 1;
-	return first | U_INVALID_BIT;
+	return -first;
 }
 
 void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch)
@@ -306,6 +307,8 @@ void u_set_hex(char *str, unsigned int *idx, unsigned int uch)
 
 	str[i++] = '<';
 	if (!u_is_unicode(uch)) {
+		// invalid byte (negated)
+		uch *= -1;
 		str[i++] = hex_tab[(uch >> 4) & 0x0f];
 		str[i++] = hex_tab[uch & 0x0f];
 	} else {
