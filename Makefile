@@ -104,6 +104,7 @@ OBJECTS	:= 			\
 	termcap.o		\
 	terminfo.o		\
 	uchar.o			\
+	unicode.o		\
 	vars.o			\
 	view.o			\
 	wbuf.o			\

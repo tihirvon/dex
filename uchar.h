@@ -1,12 +1,9 @@
 #ifndef UCHAR_H
 #define UCHAR_H
 
-extern const char hex_tab[16];
+#include "unicode.h"
 
-static inline int u_is_unicode(unsigned int uch)
-{
-	return uch <= 0x10ffffU;
-}
+extern const char hex_tab[16];
 
 static inline unsigned int u_char_size(unsigned int uch)
 {
@@ -65,11 +62,6 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 	return (1U << 7U >> len) - 1U;
 }
 
-static inline int u_is_ctrl(unsigned int u)
-{
-	return u < 0x20 || u == 0x7f;
-}
-
 static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
 {
 	unsigned int i = *idx;
@@ -80,10 +72,6 @@ static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
 		buf[i++] = u | 0x40;
 	*idx = i;
 }
-
-int u_is_unprintable(unsigned int u);
-int u_is_special_whitespace(unsigned int u);
-int u_char_width(unsigned int uch);
 
 unsigned int u_str_width(const unsigned char *str, unsigned int size);
 
