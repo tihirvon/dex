@@ -2,7 +2,6 @@
 #include "editor.h"
 #include "buffer.h"
 #include "block.h"
-#include "uchar.h"
 #include "lock.h"
 #include "wbuf.h"
 #include "decoder.h"
