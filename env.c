@@ -22,11 +22,13 @@ static void expand_pkgdatadir(struct gbuf *buf)
 
 static void expand_word(struct gbuf *buf)
 {
-	char *word = get_word_under_cursor();
+	char *str = get_selection();
 
-	if (word) {
-		gbuf_add_str(buf, word);
-		free(word);
+	if (str == NULL)
+		str = get_word_under_cursor();
+	if (str) {
+		gbuf_add_str(buf, str);
+		free(str);
 	}
 }
 

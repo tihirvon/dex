@@ -154,6 +154,9 @@ static inline int selecting(void)
 void lines_changed(int min, int max);
 const char *buffer_filename(struct buffer *b);
 unsigned int count_nl(const char *buf, unsigned int size);
+char *buffer_get_bytes(unsigned int len);
+char *get_selection(void);
+char *get_word_under_cursor(void);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);
@@ -162,8 +165,6 @@ struct view *open_buffer(const char *filename, int must_exist, const char *encod
 struct view *open_empty_buffer(void);
 void setup_buffer(void);
 void free_buffer(struct buffer *b);
-
-char *buffer_get_bytes(unsigned int len);
 
 unsigned int buffer_get_char(struct block_iter *bi, unsigned int *up);
 unsigned int buffer_next_char(struct block_iter *bi, unsigned int *up);
@@ -182,8 +183,6 @@ static inline void buffer_eof(struct block_iter *bi)
 	bi->blk = BLOCK(buffer->blocks.prev);
 	bi->offset = bi->blk->size;
 }
-
-char *get_word_under_cursor(void);
 
 int guess_filetype(void);
 struct syntax *load_syntax_by_filename(const char *filename);

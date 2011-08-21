@@ -11,6 +11,7 @@
 #include "file-option.h"
 #include "lock.h"
 #include "regexp.h"
+#include "selection.h"
 
 struct buffer *buffer;
 struct view *prev_view;
@@ -85,6 +86,19 @@ char *buffer_get_bytes(unsigned int len)
 		offset = 0;
 	}
 	return buf;
+}
+
+char *get_selection(void)
+{
+	struct block_iter save = view->cursor;
+	char *str;
+
+	if (!selecting())
+		return NULL;
+
+	str = buffer_get_bytes(prepare_selection());
+	view->cursor = save;
+	return str;
 }
 
 char *get_word_under_cursor(void)

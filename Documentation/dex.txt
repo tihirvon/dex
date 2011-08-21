@@ -710,8 +710,8 @@ $PKGDATADIR
 $FILE
 	Current file. Empty string if there's no filename.
 $WORD
-	Word under cursor. Empty string if cursor is not on a
-	word.
+	Selected text or word under cursor. Empty string if there's no
+	selection and cursor is not on a word.
 
 @h2 Single quoted strings
 
