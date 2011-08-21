@@ -11,11 +11,6 @@ static inline int u_is_unicode(unsigned int uch)
 	return uch <= 0x10ffffU;
 }
 
-static inline int u_is_valid(unsigned int uch)
-{
-	return (uch & U_INVALID_BIT) == 0;
-}
-
 static inline unsigned int u_char_size(unsigned int uch)
 {
 	if (uch <= 0x7fU)

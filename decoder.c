@@ -80,7 +80,7 @@ static int detect(struct file_decoder *dec, const unsigned char *line, ssize_t l
 			unsigned int idx = i;
 			unsigned int u = u_get_nonascii(line, len, &idx);
 
-			if (u_is_valid(u)) {
+			if (u_is_unicode(u)) {
 				set_encoding(dec, "UTF-8");
 				return 1;
 			}

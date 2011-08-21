@@ -47,7 +47,7 @@ int u_is_unprintable(unsigned int u)
 	if (in_range(u, zero_width, ARRAY_COUNT(zero_width)))
 		return 1;
 
-	return !u_is_valid(u);
+	return !u_is_unicode(u);
 }
 
 int u_is_special_whitespace(unsigned int u)
