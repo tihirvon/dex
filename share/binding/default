@@ -88,8 +88,8 @@ bind F1 "run -p man dex"
 #bind M-o "search -Hr '^[a-zA-Z]'"
 
 # grep word under cursor using GIT
-#bind M-g 'compile -1 grep git grep -nwe $WORD'
-#bind M-G 'run -p git grep -nwe $WORD'
+#bind M-g 'compile -s1 grep git grep -n -w -e $WORD'
+#bind M-G 'run -p git grep -n -w -e $WORD'
 
 # Insert date and time (press first ^X and then t)
 #bind '^X t' "pass-through -ms date '+%Y-%m-%d %H:%M'"
