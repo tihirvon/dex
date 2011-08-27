@@ -22,6 +22,14 @@ option -r '/\.git/.*\.diff$' file-history false
 option diff ws-error 0
 option make indent-width 8 expand-tab false emulate-tab false
 
+option c      indent-regex '^\s*(case|do|else|for|if|while)\b|\{\s*(//.*|/\*.*\*/\s*)?$'
+option css    indent-regex '\{\s*(/\*.*\*/)?$'
+option go     indent-regex '\{\s*(/\*.*\*/|//.*)?$'
+option java   indent-regex '^\s*(case|do|else|for|if|while)\b|\{\s*(//.*|/\*.*\*/\s*)?$'
+option php    indent-regex '^\s*(case|do|else|for|foreach|if|while)\b|\{\s*(//.*|/\*.*\*/\s*)?$'
+option python indent-regex ':\s*(#.*)?$'
+option sh     indent-regex '((^\s*|;\s*)(do|else|then)|\{)(\s+#.*)?\s*$'
+
 # gray background for current line
 #hi currentline keep gray keep
 
