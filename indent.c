@@ -1,27 +1,26 @@
 #include "indent.h"
 #include "buffer.h"
 
-char *make_indent(struct indent_info *info)
+char *make_indent(int width)
 {
 	char *str;
-	int len;
 
-	if (!info->width)
+	if (width == 0)
 		return NULL;
 
 	if (use_spaces_for_indent()) {
-		len = info->width;
-		str = xnew(char, len + 1);
-		memset(str, ' ', len);
-		str[len] = 0;
+		str = xnew(char, width + 1);
+		memset(str, ' ', width);
+		str[width] = 0;
 	} else {
-		int extra = info->width - info->level * buffer->options.indent_width;
+		int tw = buffer->options.tab_width;
+		int nt = width / tw;
+		int ns = width % tw;
 
-		len = info->level;
-		str = xnew(char, len + extra + 1);
-		memset(str, '\t', len);
-		memset(str + len, ' ', extra);
-		str[len + extra] = 0;
+		str = xnew(char, nt + ns + 1);
+		memset(str, '\t', nt);
+		memset(str + nt, ' ', ns);
+		str[nt + ns] = 0;
 	}
 	return str;
 }
@@ -41,7 +40,7 @@ char *get_indent(void)
 		fill_line_ref(&bi, &lr);
 		get_indent_info(lr.line, lr.size, &info);
 		if (!info.wsonly)
-			return make_indent(&info);
+			return make_indent(info.width);
 	} while (block_iter_prev_line(&bi));
 	return NULL;
 }

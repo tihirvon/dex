@@ -654,7 +654,7 @@ void format_paragraph(int text_width)
 	get_indent_info(sel, len, &info);
 
 	gbuf_init(&pf.buf);
-	pf.indent = make_indent(&info);
+	pf.indent = make_indent(info.width);
 	pf.indent_len = pf.indent ? strlen(pf.indent) : 0;
 	pf.indent_width = info.width;
 	pf.cur_width = 0;
