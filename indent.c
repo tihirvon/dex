@@ -1,5 +1,6 @@
 #include "indent.h"
 #include "buffer.h"
+#include "regexp.h"
 
 char *make_indent(int width)
 {
@@ -39,8 +40,16 @@ char *get_indent(void)
 
 		fill_line_ref(&bi, &lr);
 		get_indent_info(lr.line, lr.size, &info);
-		if (!info.wsonly)
-			return make_indent(info.width);
+		if (!info.wsonly) {
+			const char *re = buffer->options.indent_regex;
+			int width = info.width;
+
+			if (*re && regexp_match_nosub(re, lr.line, lr.size)) {
+				int w = buffer->options.indent_width;
+				width = (width + w) / w * w;
+			}
+			return make_indent(width);
+		}
 	} while (block_iter_prev_line(&bi));
 	return NULL;
 }

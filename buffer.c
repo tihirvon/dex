@@ -135,6 +135,7 @@ static struct buffer *buffer_new(const char *encoding)
 
 	memcpy(&b->options, &options, sizeof(struct common_options));
 	b->options.filetype = xstrdup("none");
+	b->options.indent_regex = xstrdup("");
 
 	b->newline = options.newline;
 	return b;

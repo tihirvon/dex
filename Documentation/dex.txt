@@ -520,7 +520,10 @@ Global values of these options serve as default values for local
 
 auto-indent [true]
 	Automatically insert indentation when pressing enter.
-	Indentation is copied from previous non-empty line.
+	Indentation is copied from previous non-empty line. If also the
+	*indent-regex* local option is set then indentation is
+	automatically increased if the regular expression matches
+	current line.
 
 emulate-tab [false]
 	Make *delete*, *erase* and moving *left* and *right* inside
@@ -581,6 +584,11 @@ ws-error [special]
 filetype [none]
 	Type of file. Value must be previously registered using the *ft*
 	command.
+
+indent-regex [""]
+	If this regular expression matches current line when enter is
+	pressed and *auto-indent* is true then indentation is increased.
+	Set to "" to disable.
 
 @h2 Global only options
 

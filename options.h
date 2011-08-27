@@ -59,6 +59,7 @@ struct local_options {
 
 	/* only local */
 	char *filetype;
+	char *indent_regex;
 };
 
 struct global_options {

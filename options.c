@@ -4,6 +4,7 @@
 #include "filetype.h"
 #include "common.h"
 #include "editor.h"
+#include "regexp.h"
 
 struct global_options options = {
 	.auto_indent = 1,
@@ -96,6 +97,18 @@ static void filetype_set(char **local, char **global, const char *value)
 	*local = xstrdup(value);
 
 	filetype_changed();
+}
+
+static void indent_regex_set(char **local, char **global, const char *value)
+{
+	if (value[0]) {
+		regex_t re;
+		if (!regexp_compile(&re, value, REG_EXTENDED | REG_NEWLINE | REG_NOSUB))
+			return;
+		regfree(&re);
+	}
+	free(*local);
+	*local = xstrdup(value);
 }
 
 #define default_enum_set default_int_set
@@ -224,6 +237,7 @@ static const struct option_description option_desc[] = {
 	C_BOOL("file-history", file_history, default_bool_set),
 	L_STR("filetype", filetype, filetype_set),
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),
+	L_STR("indent-regex", indent_regex, indent_regex_set),
 	G_BOOL("lock-files", lock_files, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_enum_set),
 	G_INT("scroll-margin", scroll_margin, 0, 100, default_int_set),
