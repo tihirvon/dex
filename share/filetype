@@ -44,5 +44,7 @@ ft xml xml
 ft html+smarty tpl
 ft smarty tpl
 
+ft -f config '/boot/grub/menu\.lst$'
+
 # should be last
 ft -f config '/etc/.*'
