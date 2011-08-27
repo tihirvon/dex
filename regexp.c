@@ -65,7 +65,7 @@ int regexp_compile(regex_t *regexp, const char *pattern, int flags)
 	if (err) {
 		char msg[1024];
 		regerror(err, regexp, msg, sizeof(msg));
-		error_msg("%s", msg);
+		error_msg("%s: %s", msg, pattern);
 		return 0;
 	}
 	return 1;
