@@ -90,3 +90,7 @@ hi sh.operator bold
 
 # smarty
 hi smarty.smarty blue
+
+# xml
+hi xml.tag bold
+hi xml.attr blue

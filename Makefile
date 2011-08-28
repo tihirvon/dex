@@ -150,6 +150,7 @@ syntax	:=			\
 	syntax/sh		\
 	syntax/smarty		\
 	syntax/sql		\
+	syntax/xml		\
 	# end
 
 binding	:= $(addprefix share/,$(binding))
