@@ -43,10 +43,42 @@ WARNINGS = \
 
 # End of configuration
 
+LIBS =
+X =
+
+uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
+uname_R := $(shell sh -c 'uname -r 2>/dev/null || echo not')
+
+ifeq ($(uname_S),Darwin)
+	LIBS += -liconv
+endif
+ifeq ($(uname_O),Cygwin)
+	LIBS += -liconv
+	X = .exe
+endif
+ifeq ($(uname_S),FreeBSD)
+	LIBS += -liconv
+	BASIC_CFLAGS += -I/usr/local/include
+	BASIC_LDFLAGS += -L/usr/local/lib
+endif
+ifeq ($(uname_S),OpenBSD)
+	LIBS += -liconv
+	BASIC_CFLAGS += -I/usr/local/include
+	BASIC_LDFLAGS += -L/usr/local/lib
+endif
+ifeq ($(uname_S),NetBSD)
+	ifeq ($(shell expr "$(uname_R)" : '[01]\.'),2)
+		LIBS += -liconv
+	endif
+	BASIC_CFLAGS += -I/usr/pkg/include
+	BASIC_LDFLAGS += -L/usr/pkg/lib
+endif
+
 # all good names have been taken. make it easy to change
 PROGRAM = dex
 
-all: $(PROGRAM) man
+all: $(PROGRAM)$(X) man
 
 OBJECTS	:= 			\
 	alias.o			\
@@ -202,18 +234,18 @@ vars.o: BASIC_CFLAGS += -DPROGRAM=\"$(PROGRAM)\" -DVERSION=\"$(VERSION)\" -DPKGD
 .VARS: FORCE
 	@./update-option "PROGRAM=$(PROGRAM) VERSION=$(VERSION) PKGDATADIR=$(PKGDATADIR)" $@
 
-clean += *.o $(PROGRAM)
-$(PROGRAM): $(OBJECTS)
-	$(call cmd,ld,)
+clean += *.o $(PROGRAM)$(X)
+$(PROGRAM)$(X): $(OBJECTS)
+	$(call cmd,ld,$(LIBS))
 
 man	:=					\
 	Documentation/$(PROGRAM).1		\
 	Documentation/$(PROGRAM)-syntax.7	\
 	# end
 
-clean += $(man) Documentation/*.o Documentation/ttman
+clean += $(man) Documentation/*.o Documentation/ttman$(X)
 man: $(man)
-$(man): Documentation/ttman
+$(man): Documentation/ttman$(X)
 
 %.1: %.txt
 	$(call cmd,ttman)
@@ -224,13 +256,13 @@ $(man): Documentation/ttman
 Documentation/ttman.o: Documentation/ttman.c
 	$(call cmd,host_cc)
 
-Documentation/ttman: Documentation/ttman.o
+Documentation/ttman$(X): Documentation/ttman.o
 	$(call cmd,host_ld,)
 
 quiet_cmd_ttman = MAN    $@
       cmd_ttman = sed -e s/%MAN%/$(shell echo $@ | sed 's:.*/\([^.]*\)\..*:\1:' | tr a-z A-Z)/g \
 			-e s/%PROGRAM%/$(PROGRAM)/g \
-			< $< | Documentation/ttman > $@
+			< $< | Documentation/ttman$(X) > $@
 
 install: all
 	$(INSTALL) -d -m755 $(DESTDIR)$(bindir)
@@ -240,7 +272,7 @@ install: all
 	$(INSTALL) -d -m755 $(DESTDIR)$(PKGDATADIR)/syntax
 	$(INSTALL) -d -m755 $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -d -m755 $(DESTDIR)$(mandir)/man7
-	$(INSTALL) -m755 $(PROGRAM)  $(DESTDIR)$(bindir)
+	$(INSTALL) -m755 $(PROGRAM)$(X)  $(DESTDIR)$(bindir)
 	$(INSTALL) -m644 $(config)   $(DESTDIR)$(PKGDATADIR)
 	$(INSTALL) -m644 $(binding)  $(DESTDIR)$(PKGDATADIR)/binding
 	$(INSTALL) -m644 $(color)    $(DESTDIR)$(PKGDATADIR)/color
