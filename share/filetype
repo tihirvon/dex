@@ -10,7 +10,7 @@ ft -c xml '^<\?xml(\s|$)'
 
 # regular expressions
 ft -f sh '/\.bash(rc|_profile|_logout)$'
-ft -f sh '.*/PKGBUILD'
+ft -f sh '/(PKGBUILD|\.INSTALL)$'
 ft -f sh '/var/lib/pacman/.*/install$'
 ft -f dex '/\.dex/(rc|filetype|syntax/.*)$'
 ft -f dex $PKGDATADIR'/.*'
