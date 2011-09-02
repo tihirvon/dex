@@ -217,6 +217,30 @@ static unsigned int goto_beginning_of_whitespace(void)
 	return count;
 }
 
+static int ws_only(struct lineref *lr)
+{
+	unsigned int i;
+	for (i = 0; i < lr->size; i++) {
+		char ch = lr->line[i];
+		if (ch != ' ' && ch != '\t')
+			return 0;
+	}
+	return 1;
+}
+
+// non-empty line can be used to determine size of indentation for the next line
+static int find_non_empty_line_bwd(struct block_iter *bi)
+{
+	block_iter_bol(bi);
+	do {
+		struct lineref lr;
+		fill_line_ref(bi, &lr);
+		if (!ws_only(&lr))
+			return 1;
+	} while (block_iter_prev_line(bi));
+	return 0;
+}
+
 static void insert_nl(void)
 {
 	unsigned int del_count = 0;
@@ -233,8 +257,25 @@ static void insert_nl(void)
 	}
 
 	// prepare inserted indentation
-	if (buffer->options.auto_indent)
-		ins = get_indent();
+	if (buffer->options.auto_indent) {
+		// current line will be split at cursor position
+		struct block_iter bi = view->cursor;
+		unsigned int len = block_iter_bol(&bi);
+		struct lineref lr;
+
+		fill_line_ref(&bi, &lr);
+		lr.size = len;
+		if (ws_only(&lr)) {
+			// This line is (or will become) white space only.
+			// Find previous non whitespace only line.
+			if (block_iter_prev_line(&bi) && find_non_empty_line_bwd(&bi)) {
+				fill_line_ref(&bi, &lr);
+				ins = get_indent_for_next_line(lr.line, lr.size);
+			}
+		} else {
+			ins = get_indent_for_next_line(lr.line, lr.size);
+		}
+	}
 
 	begin_change(CHANGE_MERGE_NONE);
 	if (ins) {
@@ -508,7 +549,17 @@ void shift_lines(int count)
 void clear_lines(void)
 {
 	unsigned int del_count = 0, ins_count = 0;
-	char *indent = get_indent();
+	char *indent = NULL;
+
+	if (buffer->options.auto_indent) {
+		struct block_iter bi = view->cursor;
+
+		if (block_iter_prev_line(&bi) && find_non_empty_line_bwd(&bi)) {
+			struct lineref lr;
+			fill_line_ref(&bi, &lr);
+			indent = get_indent_for_next_line(lr.line, lr.size);
+		}
+	}
 
 	if (selecting()) {
 		view->selection = SELECT_LINES;
@@ -540,8 +591,16 @@ void new_line(void)
 
 	block_iter_eol(&view->cursor);
 
-	if (buffer->options.auto_indent)
-		ins = get_indent();
+	if (buffer->options.auto_indent) {
+		struct block_iter bi = view->cursor;
+
+		if (find_non_empty_line_bwd(&bi)) {
+			struct lineref lr;
+			fill_line_ref(&bi, &lr);
+			ins = get_indent_for_next_line(lr.line, lr.size);
+		}
+	}
+
 	if (ins) {
 		ins_count = strlen(ins);
 		memmove(ins + 1, ins, ins_count);

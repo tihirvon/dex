@@ -20,7 +20,7 @@ struct indent_info {
 };
 
 char *make_indent(int width);
-char *get_indent(void);
+char *get_indent_for_next_line(const char *line, unsigned int len);
 void get_indent_info(const char *buf, int len, struct indent_info *info);
 int use_spaces_for_indent(void);
 int get_indent_level_bytes_left(void);

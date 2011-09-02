@@ -26,32 +26,17 @@ char *make_indent(int width)
 	return str;
 }
 
-/*
- * Get and sanitize indentation of current or previous non-whitespace-only line.
- */
-char *get_indent(void)
+char *get_indent_for_next_line(const char *line, unsigned int len)
 {
-	struct block_iter bi = view->cursor;
+	const char *re = buffer->options.indent_regex;
 	struct indent_info info;
 
-	block_iter_bol(&bi);
-	do {
-		struct lineref lr;
-
-		fill_line_ref(&bi, &lr);
-		get_indent_info(lr.line, lr.size, &info);
-		if (!info.wsonly) {
-			const char *re = buffer->options.indent_regex;
-			int width = info.width;
-
-			if (*re && regexp_match_nosub(re, lr.line, lr.size)) {
-				int w = buffer->options.indent_width;
-				width = (width + w) / w * w;
-			}
-			return make_indent(width);
-		}
-	} while (block_iter_prev_line(&bi));
-	return NULL;
+	get_indent_info(line, len, &info);
+	if (*re && regexp_match_nosub(re, line, len)) {
+		int w = buffer->options.indent_width;
+		info.width = (info.width + w) / w * w;
+	}
+	return make_indent(info.width);
 }
 
 void get_indent_info(const char *buf, int len, struct indent_info *info)
