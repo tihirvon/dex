@@ -58,6 +58,7 @@ struct local_options {
 	int ws_error;
 
 	/* only local */
+	int brace_indent;
 	char *filetype;
 	char *indent_regex;
 };

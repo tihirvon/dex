@@ -26,13 +26,28 @@ char *make_indent(int width)
 	return str;
 }
 
+static int indent_inc(const char *line, unsigned int len)
+{
+	const char *re1 = "\\{\\s*(//.*|/\\*.*\\*/\\s*)?$";
+	const char *re2 = "\\}\\s*(//.*|/\\*.*\\*/\\s*)?$";
+
+	if (buffer->options.brace_indent) {
+		if (regexp_match_nosub(re1, line, len))
+			return 1;
+		if (regexp_match_nosub(re2, line, len))
+			return 0;
+	}
+
+	re1 = buffer->options.indent_regex;
+	return *re1 && regexp_match_nosub(re1, line, len);
+}
+
 char *get_indent_for_next_line(const char *line, unsigned int len)
 {
-	const char *re = buffer->options.indent_regex;
 	struct indent_info info;
 
 	get_indent_info(line, len, &info);
-	if (*re && regexp_match_nosub(re, line, len)) {
+	if (indent_inc(line, len)) {
 		int w = buffer->options.indent_width;
 		info.width = (info.width + w) / w * w;
 	}

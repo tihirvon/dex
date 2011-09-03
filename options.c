@@ -229,6 +229,7 @@ static const char *ws_error_values[] = {
 
 static const struct option_description option_desc[] = {
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
+	L_BOOL("brace-indent", brace_indent, default_bool_set),
 	G_ENUM("case-sensitive-search", case_sensitive_search, case_sensitive_search_enum, default_enum_set),
 	G_BOOL("display-special", display_special, default_bool_set),
 	C_BOOL("emulate-tab", emulate_tab, default_bool_set),

@@ -581,6 +581,10 @@ ws-error [special]
 
 @h2 Local only options
 
+brace-indent [false]
+	Scan for { and } when calculating indentation size. Depends on
+	the *auto-indent* option.
+
 filetype [none]
 	Type of file. Value must be previously registered using the *ft*
 	command.

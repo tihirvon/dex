@@ -83,6 +83,29 @@ void select_block(void)
 	mark_all_lines_changed();
 }
 
+static int get_indent_of_matching_brace(void)
+{
+	const char *spattern = "\\{\\s*$";
+	const char *epattern = "^\\s*\\}";
+	struct block_iter bi = view->cursor;
+	struct lineref lr;
+	int level = 0;
+
+	while (block_iter_prev_line(&bi)) {
+		fetch_this_line(&bi, &lr);
+		if (regexp_match_nosub(spattern, lr.line, lr.size)) {
+			if (level++ == 0) {
+				struct indent_info info;
+				get_indent_info(lr.line, lr.size, &info);
+				return info.width;
+			}
+		}
+		if (regexp_match_nosub(epattern, lr.line, lr.size))
+			level--;
+	}
+	return -1;
+}
+
 void unselect(void)
 {
 	if (selecting()) {
@@ -301,17 +324,39 @@ void insert_ch(unsigned int ch)
 {
 	unsigned int del_count = 0;
 	unsigned int ins_count = 0;
-	char ins[8];
+	char *ins;
 
 	if (ch == '\n') {
 		insert_nl();
 		return;
 	}
 
-	// prepare deleted text (selection)
+	ins = xmalloc(8);
 	if (selecting()) {
+		// prepare deleted text (selection)
 		del_count = prepare_selection();
 		unselect();
+	} else if (ch == '}' && buffer->options.auto_indent && buffer->options.brace_indent) {
+		struct block_iter bi = view->cursor;
+		struct lineref curlr;
+
+		block_iter_bol(&bi);
+		fill_line_ref(&bi, &curlr);
+		if (ws_only(&curlr)) {
+			int width = get_indent_of_matching_brace();
+
+			if (width >= 0) {
+				// replace current (ws only) line with some indent + '}'
+				block_iter_bol(&view->cursor);
+				del_count = curlr.size;
+				if (width) {
+					free(ins);
+					ins = make_indent(width);
+					ins_count = strlen(ins);
+					// '}' will be replace the terminating NUL
+				}
+			}
+		}
 	}
 
 	// prepare inserted text
@@ -334,6 +379,8 @@ void insert_ch(unsigned int ch)
 	// move after inserted text
 	block_iter_skip_bytes(&view->cursor, ins_count);
 	update_preferred_x();
+
+	free(ins);
 }
 
 static void join_selection(void)
