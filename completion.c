@@ -379,6 +379,7 @@ static char *escape(const char *str)
 		case ';':
 		case '?':
 		case '[':
+		case '\\':
 		case '{':
 			gbuf_add_ch(&buf, '\\');
 			gbuf_add_ch(&buf, ch);
