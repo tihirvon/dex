@@ -46,17 +46,22 @@ static const char *special_names[NR_SKEYS] = {
 	"sright",
 };
 
-static int parse_key(enum term_key_type *type, unsigned int *key, const char *str)
+static int buf_str_case_equal(const char *buf, int len, const char *str)
 {
-	int i, len = strlen(str);
-	char ch;
+	return strlen(str) == len && strncasecmp(buf, str, len) == 0;
+}
+
+static int parse_key(enum term_key_type *type, unsigned int *key, const char *str, int len)
+{
+	unsigned char ch;
+	int i;
 
 	if (len == 1) {
 		*type = KEY_NORMAL;
 		*key = str[0];
 		return 1;
 	}
-	if (!strcasecmp(str, "sp") || !strcasecmp(str, "space")) {
+	if (buf_str_case_equal(str, len, "sp") || buf_str_case_equal(str, len, "space")) {
 		*type = KEY_NORMAL;
 		*key = ' ';
 		return 1;
@@ -74,12 +79,12 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 			return 1;
 		}
 	}
-	if (toupper(str[0]) == 'M' && str[1] == '-' && parse_key(type, key, str + 2)) {
+	if (toupper(str[0]) == 'M' && str[1] == '-' && parse_key(type, key, str + 2, len - 2)) {
 		*type = KEY_META;
 		return 1;
 	}
 	for (i = 0; i < NR_SKEYS; i++) {
-		if (!strcasecmp(str, special_names[i])) {
+		if (buf_str_case_equal(str, len, special_names[i])) {
 			*type = KEY_SPECIAL;
 			*key = i;
 			return 1;
@@ -89,38 +94,49 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 	return 0;
 }
 
-void add_binding(char *keys, const char *command)
+static int parse_keys(struct binding *b, const char *keys)
 {
-	struct binding *b;
 	int count = 0, i = 0;
 
-	b = xnew(struct binding, 1);
 	while (keys[i]) {
-		int start = i;
+		int start;
 
-		if (count >= MAX_KEYS)
-			goto error;
-
-		i++;
+		while (keys[i] == ' ')
+			i++;
+		start = i;
 		while (keys[i] && keys[i] != ' ')
 			i++;
-		if (keys[i] == ' ')
-			keys[i++] = 0;
-		if (!parse_key(&b->types[count], &b->keys[count], keys + start))
-			goto error;
+		if (start == i)
+			break;
+
+		if (count >= MAX_KEYS) {
+			error_msg("Too many keys.");
+			return 0;
+		}
+		if (!parse_key(&b->types[count], &b->keys[count], keys + start, i - start))
+			return 0;
 		count++;
 	}
-	b->nr_keys = count;
 	if (!count) {
 		error_msg("Empty key not allowed.");
-		goto error;
+		return 0;
+	}
+	b->nr_keys = count;
+	return 1;
+}
+
+void add_binding(const char *keys, const char *command)
+{
+	struct binding *b;
+
+	b = xnew(struct binding, 1);
+	if (!parse_keys(b, keys)) {
+		free(b);
+		return;
 	}
 
 	b->command = xstrdup(command);
 	ptr_array_add(&bindings, b);
-	return;
-error:
-	free(b);
 }
 
 void handle_binding(enum term_key_type type, unsigned int key)
