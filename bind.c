@@ -4,19 +4,18 @@
 #include "command.h"
 #include "ptr-array.h"
 
-#define MAX_KEYS 4
+struct key_chain {
+	unsigned int keys[3];
+	unsigned char types[3]; // enum term_key_type fits in char
+	unsigned char count;
+};
 
 struct binding {
 	char *command;
-	enum term_key_type types[MAX_KEYS];
-	unsigned int keys[MAX_KEYS];
-	int nr_keys;
+	struct key_chain chain;
 };
 
-int nr_pressed_keys;
-
-static enum term_key_type pressed_types[MAX_KEYS];
-static unsigned int pressed_keys[MAX_KEYS];
+static struct key_chain pressed_keys;
 
 static PTR_ARRAY(bindings);
 static const char *special_names[NR_SKEYS] = {
@@ -51,7 +50,7 @@ static int buf_str_case_equal(const char *buf, int len, const char *str)
 	return strlen(str) == len && strncasecmp(buf, str, len) == 0;
 }
 
-static int parse_key(enum term_key_type *type, unsigned int *key, const char *str, int len)
+static int parse_key(unsigned char *type, unsigned int *key, const char *str, int len)
 {
 	unsigned char ch;
 	int i;
@@ -94,10 +93,11 @@ static int parse_key(enum term_key_type *type, unsigned int *key, const char *st
 	return 0;
 }
 
-static int parse_keys(struct binding *b, const char *keys)
+static int parse_keys(struct key_chain *chain, const char *keys)
 {
-	int count = 0, i = 0;
+	int i = 0;
 
+	clear(chain);
 	while (keys[i]) {
 		int start;
 
@@ -109,19 +109,18 @@ static int parse_keys(struct binding *b, const char *keys)
 		if (start == i)
 			break;
 
-		if (count >= MAX_KEYS) {
+		if (chain->count >= ARRAY_COUNT(chain->keys)) {
 			error_msg("Too many keys.");
 			return 0;
 		}
-		if (!parse_key(&b->types[count], &b->keys[count], keys + start, i - start))
+		if (!parse_key(&chain->types[chain->count], &chain->keys[chain->count], keys + start, i - start))
 			return 0;
-		count++;
+		chain->count++;
 	}
-	if (!count) {
+	if (chain->count == 0) {
 		error_msg("Empty key not allowed.");
 		return 0;
 	}
-	b->nr_keys = count;
 	return 1;
 }
 
@@ -130,7 +129,7 @@ void add_binding(const char *keys, const char *command)
 	struct binding *b;
 
 	b = xnew(struct binding, 1);
-	if (!parse_keys(b, keys)) {
+	if (!parse_keys(&b->chain, keys)) {
 		free(b);
 		return;
 	}
@@ -143,26 +142,32 @@ void handle_binding(enum term_key_type type, unsigned int key)
 {
 	int i;
 
-	pressed_types[nr_pressed_keys] = type;
-	pressed_keys[nr_pressed_keys] = key;
-	nr_pressed_keys++;
+	pressed_keys.types[pressed_keys.count] = type;
+	pressed_keys.keys[pressed_keys.count] = key;
+	pressed_keys.count++;
 
 	for (i = bindings.count; i > 0; i--) {
 		struct binding *b = bindings.ptrs[i - 1];
+		struct key_chain *c = &b->chain;
 
-		if (b->nr_keys < nr_pressed_keys)
+		if (c->count < pressed_keys.count)
 			continue;
 
-		if (memcmp(b->keys, pressed_keys, nr_pressed_keys * sizeof(pressed_keys[0])))
+		if (memcmp(c->keys, pressed_keys.keys, pressed_keys.count * sizeof(pressed_keys.keys[0])))
 			continue;
-		if (memcmp(b->types, pressed_types, nr_pressed_keys * sizeof(pressed_types[0])))
+		if (memcmp(c->types, pressed_keys.types, pressed_keys.count * sizeof(pressed_keys.types[0])))
 			continue;
 
-		if (b->nr_keys == nr_pressed_keys) {
-			handle_command(commands, b->command);
-			nr_pressed_keys = 0;
-		}
-		return;
+		if (c->count > pressed_keys.count)
+			return;
+
+		handle_command(commands, b->command);
+		break;
 	}
-	nr_pressed_keys = 0;
+	clear(&pressed_keys);
+}
+
+int nr_pressed_keys(void)
+{
+	return pressed_keys.count;
 }

@@ -226,7 +226,7 @@ void keypress(enum term_key_type type, unsigned int key)
 		return;
 	}
 
-	if (nr_pressed_keys) {
+	if (nr_pressed_keys()) {
 		handle_binding(type, key);
 		return;
 	}
