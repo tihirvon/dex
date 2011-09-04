@@ -138,6 +138,26 @@ void add_binding(const char *keys, const char *command)
 	ptr_array_add(&bindings, b);
 }
 
+void remove_binding(const char *keys)
+{
+	struct key_chain chain;
+	int i = bindings.count;
+
+	if (!parse_keys(&chain, keys))
+		return;
+
+	while (i > 0) {
+		struct binding *b = bindings.ptrs[--i];
+
+		if (memcmp(&b->chain, &chain, sizeof(chain)) == 0) {
+			ptr_array_remove(&bindings, i);
+			free(b->command);
+			free(b);
+			return;
+		}
+	}
+}
+
 void handle_binding(enum term_key_type type, unsigned int key)
 {
 	int i;

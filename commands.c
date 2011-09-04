@@ -33,7 +33,10 @@ static void cmd_alias(const char *pf, char **args)
 
 static void cmd_bind(const char *pf, char **args)
 {
-	add_binding(args[0], args[1]);
+	if (args[1])
+		add_binding(args[0], args[1]);
+	else
+		remove_binding(args[0]);
 }
 
 static void cmd_bof(const char *pf, char **args)
@@ -1408,7 +1411,7 @@ static void cmd_wswap(const char *pf, char **args)
 
 const struct command commands[] = {
 	{ "alias",		"",	2,  2, cmd_alias },
-	{ "bind",		"",	2,  2, cmd_bind },
+	{ "bind",		"",	1,  2, cmd_bind },
 	{ "bof",		"",	0,  0, cmd_bof },
 	{ "bol",		"",	0,  0, cmd_bol },
 	{ "case",		"lmu",	0,  0, cmd_case },
