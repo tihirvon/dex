@@ -22,11 +22,11 @@ option -r '/\.git/.*\.diff$' file-history false
 option diff,mail ws-error 0
 option make indent-width 8 expand-tab false emulate-tab false
 
-option c      indent-regex '^\s*(case|do|else|for|if|while)\b|\{\s*(//.*|/\*.*\*/\s*)?$'
-option css    indent-regex '\{\s*(/\*.*\*/)?$'
-option go     indent-regex '\{\s*(/\*.*\*/|//.*)?$'
-option java   indent-regex '^\s*(case|do|else|for|if|while)\b|\{\s*(//.*|/\*.*\*/\s*)?$'
-option php    indent-regex '^\s*(case|do|else|for|foreach|if|while)\b|\{\s*(//.*|/\*.*\*/\s*)?$'
+option c,css,go,java,javascript,php brace-indent true
+
+option c      indent-regex '^\s*(case|do|else|for|if|while)\b'
+option java   indent-regex '^\s*(case|do|else|for|if|while)\b'
+option php    indent-regex '^\s*(case|do|else|for|foreach|if|while)\b'
 option python indent-regex ':\s*(#.*)?$'
 option sh     indent-regex '((^\s*|;\s*)(do|else|then)|\{)(\s+#.*)?\s*$'
 
