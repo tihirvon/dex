@@ -21,6 +21,9 @@ static char *copy_buf;
 static unsigned int copy_len;
 static int copy_is_lines;
 
+static const char *spattern = "\\{\\s*(//.*|/\\*.*\\*/\\s*)?$";
+static const char *epattern = "^\\s*\\}";
+
 /*
  * Stupid { ... } block selector.
  *
@@ -31,8 +34,6 @@ static int copy_is_lines;
  */
 void select_block(void)
 {
-	const char *spattern = "\\{\\s*$";
-	const char *epattern = "^\\s*\\}";
 	struct block_iter sbi, ebi, bi = view->cursor;
 	struct lineref lr;
 	int level = 0;
@@ -85,8 +86,6 @@ void select_block(void)
 
 static int get_indent_of_matching_brace(void)
 {
-	const char *spattern = "\\{\\s*$";
-	const char *epattern = "^\\s*\\}";
 	struct block_iter bi = view->cursor;
 	struct lineref lr;
 	int level = 0;
