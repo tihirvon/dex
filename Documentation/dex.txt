@@ -81,9 +81,11 @@ bind <key> <command>
 	A key is one of:
 		Control key, for example "^C"
 
-		Meta-key, for example "M-x" (alt-x)
+		Meta-key, for example "M-x" (alt-x) where x is any ASCII
+		character (use "space" or "sp" for space).
 
-		Key chain, for example "^X c" (press ^X first and then c)
+		Key chain, for example "^X c" (press ^X and then c).
+		Keys are separated by spaces.
 
 		Special key
 
