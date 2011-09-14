@@ -108,8 +108,8 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 		if (i == len)
 			break;
 		ch = line[i];
-		for (ci = 0; ci < state->nr_conditions; ci++) {
-			cond = &state->conditions[ci];
+		for (ci = 0; ci < state->conds.count; ci++) {
+			cond = state->conds.ptrs[ci];
 			a = &cond->a;
 			switch (cond->type) {
 			case COND_CHAR_BUFFER:

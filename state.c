@@ -116,12 +116,11 @@ static struct condition *add_condition(enum condition_type type, const char *des
 	if (no_state())
 		return NULL;
 
-	xrenew(current_state->conditions, current_state->nr_conditions + 1);
-	c = &current_state->conditions[current_state->nr_conditions++];
-	clear(c);
+	c = xnew0(struct condition, 1);
 	c->a.destination.name = dest ? xstrdup(dest) : NULL;
 	c->a.emit_name = emit ? xstrdup(emit) : NULL;
 	c->type = type;
+	ptr_array_add(&current_state->conds, c);
 	return c;
 }
 
@@ -384,8 +383,8 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 {
 	int i;
 
-	for (i = 0; i < s->nr_conditions; i++) {
-		struct condition *c = &s->conditions[i];
+	for (i = 0; i < s->conds.count; i++) {
+		struct condition *c = s->conds.ptrs[i];
 		fix_action(syn, &c->a, prefix);
 		if (!c->a.destination.state && has_destination(c->type))
 			c->a.destination.state = rets;
@@ -412,10 +411,14 @@ static struct state *merge(struct syntax *subsyn, struct state *rets, const char
 
 	for (i = old_count; i < states->count; i++) {
 		struct state *s = xmemdup(states->ptrs[i], sizeof(struct state));
+		int j;
+
 		states->ptrs[i] = s;
 		s->name = xstrdup(fix_name(s->name, prefix));
 		s->emit_name = xstrdup(s->emit_name);
-		s->conditions = xmemdup(s->conditions, sizeof(struct condition) * s->nr_conditions);
+		s->conds.ptrs = xmemdup(s->conds.ptrs, sizeof(void *) * s->conds.alloc);
+		for (j = 0; j < s->conds.count; j++)
+			s->conds.ptrs[j] = xmemdup(s->conds.ptrs[j], sizeof(struct condition));
 	}
 
 	for (i = old_count; i < states->count; i++)
@@ -504,8 +507,8 @@ static int finish_state(struct syntax *syn, struct state *s)
 {
 	int i, errors = 0;
 
-	for (i = 0; i < s->nr_conditions; i++)
-		errors += finish_condition(syn, &s->conditions[i]);
+	for (i = 0; i < s->conds.count; i++)
+		errors += finish_condition(syn, s->conds.ptrs[i]);
 	if (!s->a.destination.name) {
 		error_msg("No default action in state %s", s->name);
 		return ++errors;
@@ -521,8 +524,8 @@ static void visit(struct state *s)
 		return;
 
 	s->visited = 1;
-	for (i = 0; i < s->nr_conditions; i++) {
-		struct condition *cond = &s->conditions[i];
+	for (i = 0; i < s->conds.count; i++) {
+		struct condition *cond = s->conds.ptrs[i];
 		if (cond->a.destination.state)
 			visit(cond->a.destination.state);
 	}
@@ -533,6 +536,7 @@ static void visit(struct state *s)
 static void free_condition(struct condition *cond)
 {
 	free(cond->a.emit_name);
+	free(cond);
 }
 
 static void free_state(struct state *s)
@@ -541,9 +545,9 @@ static void free_state(struct state *s)
 
 	free(s->name);
 	free(s->emit_name);
-	for (i = 0; i < s->nr_conditions; i++)
-		free_condition(&s->conditions[i]);
-	free(s->conditions);
+	for (i = 0; i < s->conds.count; i++)
+		free_condition(s->conds.ptrs[i]);
+	free(s->conds.ptrs);
 	free(s->a.emit_name);
 	free(s);
 }
@@ -723,8 +727,10 @@ void update_syntax_colors(struct syntax *syn)
 	for (i = 0; i < syn->states.count; i++) {
 		struct state *s = syn->states.ptrs[i];
 
-		for (j = 0; j < s->nr_conditions; j++)
-			update_action_color(syn, &s->conditions[j].a);
+		for (j = 0; j < s->conds.count; j++) {
+			struct condition *c = s->conds.ptrs[j];
+			update_action_color(syn, &c->a);
+		}
 		update_action_color(syn, &s->a);
 	}
 }

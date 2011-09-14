@@ -60,8 +60,7 @@ struct condition {
 struct state {
 	char *name;
 	char *emit_name;
-	struct condition *conditions;
-	int nr_conditions;
+	struct ptr_array conds;
 	int visited;
 
 	struct action a;
