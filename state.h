@@ -2,7 +2,6 @@
 #define STATE_H
 
 #include "ptr-array.h"
-#include "command.h"
 
 enum condition_type {
 	COND_BUFIS,
