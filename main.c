@@ -4,7 +4,7 @@
 #include "term.h"
 #include "config.h"
 #include "screen.h"
-#include "state.h"
+#include "syntax.h"
 #include "alias.h"
 #include "obuf.h"
 #include "history.h"

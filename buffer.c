@@ -7,6 +7,7 @@
 #include "move.h"
 #include "filetype.h"
 #include "state.h"
+#include "syntax.h"
 #include "file-history.h"
 #include "file-option.h"
 #include "lock.h"

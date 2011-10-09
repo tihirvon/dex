@@ -10,7 +10,7 @@
 #include "spawn.h"
 #include "filetype.h"
 #include "color.h"
-#include "state.h"
+#include "syntax.h"
 #include "lock.h"
 #include "ptr-array.h"
 #include "bind.h"

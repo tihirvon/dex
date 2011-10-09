@@ -1,6 +1,6 @@
 #include "hl.h"
 #include "buffer.h"
-#include "state.h"
+#include "syntax.h"
 
 static int state_is_valid(const struct state *st)
 {

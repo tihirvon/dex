@@ -130,6 +130,7 @@ OBJECTS	:= 			\
 	selection.o		\
 	spawn.o			\
 	state.o			\
+	syntax.o		\
 	tabbar.o		\
 	tag.o			\
 	term.o			\
