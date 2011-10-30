@@ -98,10 +98,19 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 		s->a.destination.state = rets;
 }
 
-static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *prefix)
+static const char *get_prefix(void)
+{
+	static int counter;
+	static char prefix[32];
+	snprintf(prefix, sizeof(prefix), "%d-", counter++);
+	return prefix;
+}
+
+static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct state *rets)
 {
 	// NOTE: string_lists is owned by struct syntax so there's no need to
 	// copy it.  Freeing struct condition does not free any string lists.
+	const char *prefix = get_prefix();
 	struct ptr_array *states = &syn->states;
 	int i, old_count = states->count;
 
@@ -168,10 +177,7 @@ static int finish_action(struct syntax *syn, struct action *a)
 		}
 
 		if (subsyn && rs) {
-			static int counter;
-			char prefix[32];
-			snprintf(prefix, sizeof(prefix), "%d-", counter++);
-			a->destination.state = merge(syn, subsyn, rs, prefix);
+			a->destination.state = merge(syn, subsyn, rs);
 		}
 	} else {
 		a->destination.state = find_state(syn, name);
