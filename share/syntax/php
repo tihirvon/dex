@@ -16,19 +16,61 @@ state strvar
 	char \} END strvar
 	eat strvar
 
-syntax .php-heredoc
+# common to <<<END and <<<"END"
+syntax .php-heredoc-common
+
+state bol string
+	heredocend match
+	noeat string
 
 state string
-	char "\n" END
+	char "\n" bol
 	char \$ .php-strvar:string strvar
 	str '{$' .php-strcurly:string strvar
 	eat string
 
+state match special
+	char "\n" END
+	str ";\n" END
+	# length clamped to bol
+	recolor string 1000
+	noeat string
+
+# heredoc: <<<END
+syntax .php-heredoc
+
+state start special
+	char "\n" .php-heredoc-common:END
+	noeat END
+
+# heredoc: <<<"END"
+syntax .php-heredoc-dq
+
+state start special
+	str "\"\n" .php-heredoc-common:END
+	noeat END
+
+# nowdoc: <<<'END'
 syntax .php-nowdoc
 
+state start special
+	str "'\n" bol
+	noeat END
+
+state bol string
+	heredocend match
+	noeat string
+
 state string
-	char "\n" END
+	char "\n" bol
 	eat string
+
+state match special
+	char "\n" END
+	str ";\n" END
+	# length clamped to bol
+	recolor string 1000
+	noeat string
 
 # inside <? and ?>
 syntax .php
@@ -183,70 +225,31 @@ state sh-comment-word comment
 	inlist notice sh-comment
 	noeat sh-comment
 
-# generated -----------------------------------------------------------
 state heredoc special
-	str "END\n" heredocbol-END special
-	str "\"END\"\n" heredocbol-END special
-	str "'END'\n" nowdocbol-END special
-	str "EOF\n" heredocbol-EOF special
-	str "\"EOF\"\n" heredocbol-EOF special
-	str "'EOF'\n" nowdocbol-EOF special
-	str "EOT\n" heredocbol-EOT special
-	str "\"EOT\"\n" heredocbol-EOT special
-	str "'EOT'\n" nowdocbol-EOT special
-	str "SQL\n" heredocbol-SQL special
-	str "\"SQL\"\n" heredocbol-SQL special
-	str "'SQL'\n" nowdocbol-SQL special
+	char -b a-zA-Z_ heredoc-plain
+	char \" heredoc-dq-start
+	char \' nowdoc-start
 	noeat code
 
-state heredocbol-END string
-	char "\n" heredocbol-END
-	str "END;\n" code special
-	str "END\n" code special
-	noeat .php-heredoc:heredocbol-END
+state heredoc-plain special
+	char -b a-zA-Z0-9_ heredoc-plain
+	heredocbegin .php-heredoc code
 
-state nowdocbol-END string
-	char "\n" nowdocbol-END
-	str "END;\n" code special
-	str "END\n" code special
-	noeat .php-nowdoc:nowdocbol-END
+state heredoc-dq-start special
+	char -b a-zA-Z_ heredoc-dq
+	noeat code
 
-state heredocbol-EOF string
-	char "\n" heredocbol-EOF
-	str "EOF;\n" code special
-	str "EOF\n" code special
-	noeat .php-heredoc:heredocbol-EOF
+state heredoc-dq special
+	char -b a-zA-Z0-9_ heredoc-dq
+	heredocbegin .php-heredoc-dq code
 
-state nowdocbol-EOF string
-	char "\n" nowdocbol-EOF
-	str "EOF;\n" code special
-	str "EOF\n" code special
-	noeat .php-nowdoc:nowdocbol-EOF
+state nowdoc-start special
+	char -b a-zA-Z_ nowdoc
+	noeat code
 
-state heredocbol-EOT string
-	char "\n" heredocbol-EOT
-	str "EOT;\n" code special
-	str "EOT\n" code special
-	noeat .php-heredoc:heredocbol-EOT
-
-state nowdocbol-EOT string
-	char "\n" nowdocbol-EOT
-	str "EOT;\n" code special
-	str "EOT\n" code special
-	noeat .php-nowdoc:nowdocbol-EOT
-
-state heredocbol-SQL string
-	char "\n" heredocbol-SQL
-	str "SQL;\n" code special
-	str "SQL\n" code special
-	noeat .php-heredoc:heredocbol-SQL
-
-state nowdocbol-SQL string
-	char "\n" nowdocbol-SQL
-	str "SQL;\n" code special
-	str "SQL\n" code special
-	noeat .php-nowdoc:nowdocbol-SQL
-# ---------------------------------------------------------------------
+state nowdoc special
+	char -b a-zA-Z0-9_ nowdoc
+	heredocbegin .php-nowdoc code
 
 list notice \
 	TODO FIXME XXX
@@ -268,6 +271,7 @@ list -h lang \
 	die echo empty exit eval include include_once isset list require \
 	require_once return print unset
 
+# main syntax
 syntax php
 
 state code
