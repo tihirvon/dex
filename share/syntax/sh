@@ -1,3 +1,67 @@
+# common to <<"EOF" and <<'EOF'
+syntax .sh-heredoc-common
+
+state bol string
+	heredocend match
+	noeat string
+
+state string
+	char "\n" bol
+	eat string
+
+state match special
+	char "\n" END
+	# length clamped to bol
+	recolor string 1000
+	noeat string
+
+# << EOF
+syntax .sh-heredoc
+
+state start code
+	char " \t" start
+	char "\n" bol
+	eat END error
+
+state bol string
+	heredocend match
+	noeat string
+
+state string
+	# FIXME: variables etc.
+	char "\n" bol
+	eat string
+
+state match special
+	char "\n" END
+	# length clamped to bol
+	recolor string 1000
+	noeat string
+
+# << "EOF"
+syntax .sh-heredoc-dq
+
+state start string
+	char \" skipws string
+	eat END error
+
+state skipws code
+	char " \t" skipws
+	char "\n" .sh-heredoc-common:END
+	eat END error
+
+# << 'EOF'
+syntax .sh-heredoc-sq
+
+state start string
+	char \' skipws string
+	eat END error
+
+state skipws code
+	char " \t" skipws
+	char "\n" .sh-heredoc-common:END
+	eat END error
+
 # commands can be at beginning of line or after any of && || ; & | { ` $(
 # also beginning of line can contain ( after which command is allowed
 syntax sh
@@ -127,22 +191,33 @@ state lt special
 	noeat args
 
 state lt2 special
-	# FIXME: should make dynamic
-	str "EOF\n" heredocline special
-	char -- - dash
+	char < lt3
+	char -- - heredoc-start special
+	noeat heredoc-start
+
+state lt3 special
+	# cat <<<"string $var"
+	# cat <<< $(echo $USER)
 	noeat args
 
-state dash special
-	str "EOF\n" heredocline special
-	noeat args
-
-state heredocline code
-	str "EOF\n" start special
+state heredoc-start special
+	char " \t" heredoc-start
+	char \" heredoc-dq
+	char \' heredoc-sq
+	char "\n" start error
 	noeat heredoc
 
-state heredoc string
-	char "\n" heredocline
-	eat heredoc
+state heredoc-dq string
+	char -bn "\"\n" heredoc-dq
+	heredocbegin .sh-heredoc-dq start
+
+state heredoc-sq string
+	char -bn "\'\n" heredoc-sq
+	heredocbegin .sh-heredoc-sq start
+
+state heredoc special
+	char -bn " \t\n" heredoc
+	heredocbegin .sh-heredoc start
 
 # command allowed after these
 list keyword1 \
