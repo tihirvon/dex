@@ -202,7 +202,7 @@ static void cmd_noeat(const char *pf, char **args)
 	}
 
 	current_state->a.destination.name = xstrdup(args[0]);
-	current_state->a.emit_name = args[1] ? xstrdup(args[1]) : NULL;
+	current_state->a.emit_name = NULL;
 	current_state->noeat = 1;
 	current_state = NULL;
 }
