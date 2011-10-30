@@ -133,6 +133,39 @@ static void cmd_eat(const char *pf, char **args)
 	current_state = NULL;
 }
 
+static void cmd_heredocbegin(const char *pf, char **args)
+{
+	const char *sub;
+	struct syntax *subsyn;
+
+	if (no_state())
+		return;
+
+	sub = args[0];
+	subsyn = find_any_syntax(sub);
+	if (!subsyn) {
+		error_msg("No such syntax %s", sub);
+		return;
+	}
+	if (!subsyn->subsyntax) {
+		error_msg("Syntax %s is not subsyntax", sub);
+		return;
+	}
+
+	// a.destination is used as the return state
+	current_state->a.destination.name = xstrdup(args[1]);
+	current_state->a.emit_name = NULL;
+	current_state->type = STATE_HEREDOCBEGIN;
+	current_state->heredoc.subsyntax = subsyn;
+	current_state = NULL;
+}
+
+static void cmd_heredocend(const char *pf, char **args)
+{
+	add_condition(COND_HEREDOCEND, args[0], args[1]);
+	current_syntax->heredoc = 1;
+}
+
 static void cmd_list(const char *pf, char **args)
 {
 	const char *name = args[0];
@@ -203,7 +236,7 @@ static void cmd_noeat(const char *pf, char **args)
 
 	current_state->a.destination.name = xstrdup(args[0]);
 	current_state->a.emit_name = NULL;
-	current_state->noeat = 1;
+	current_state->type = STATE_NOEAT;
 	current_state = NULL;
 }
 
@@ -297,6 +330,8 @@ static const struct command syntax_commands[] = {
 	{ "bufis",	"i",	2,  3, cmd_bufis },
 	{ "char",	"bn",	2,  3, cmd_char },
 	{ "default",	"",	2, -1, cmd_default },
+	{ "heredocbegin","",	2,  2, cmd_heredocbegin },
+	{ "heredocend",	"",	1,  2, cmd_heredocend },
 	{ "eat",	"",	1,  2, cmd_eat },
 	{ "inlist",	"",	2,  3, cmd_inlist },
 	{ "list",	"hi",	2, -1, cmd_list },

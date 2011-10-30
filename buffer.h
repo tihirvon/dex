@@ -52,7 +52,7 @@ struct buffer {
 
 	struct local_options options;
 
-	const struct syntax *syn;
+	struct syntax *syn;
 	// Index 0 is always syn->states.ptrs[0].
 	// Lowest bit of an invalidated value is 1.
 	struct ptr_array line_start_states;

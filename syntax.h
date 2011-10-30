@@ -14,6 +14,7 @@ enum condition_type {
 	COND_STR,
 	COND_STR2,
 	COND_STR_ICASE,
+	COND_HEREDOCEND,
 };
 
 struct action {
@@ -51,9 +52,19 @@ struct condition {
 			int len;
 			char str[256 / 8 - sizeof(int)];
 		} cond_str;
+		struct {
+			int len;
+			char *str;
+		} cond_heredocend;
 	} u;
 	struct action a;
 	enum condition_type type;
+};
+
+struct heredoc_state {
+	struct state *state;
+	char *delim;
+	int len;
 };
 
 struct state {
@@ -63,7 +74,16 @@ struct state {
 	int visited;
 
 	struct action a;
-	int noeat;
+	enum {
+		STATE_EAT,
+		STATE_NOEAT,
+		STATE_HEREDOCBEGIN,
+	} type;
+
+	struct {
+		struct syntax *subsyntax;
+		struct ptr_array states;
+	} heredoc;
 };
 
 struct hash_str {
@@ -89,12 +109,16 @@ struct syntax {
 	struct ptr_array string_lists;
 	struct ptr_array default_colors;
 	int subsyntax;
+	int heredoc;
 };
 
 unsigned int buf_hash(const char *str, unsigned int size);
 struct string_list *find_string_list(struct syntax *syn, const char *name);
 struct state *find_state(struct syntax *syn, const char *name);
 void finalize_syntax(struct syntax *syn);
+
+struct syntax *find_any_syntax(const char *name);
+struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int len);
 
 struct syntax *find_syntax(const char *name);
 void update_syntax_colors(struct syntax *syn);

@@ -70,6 +70,10 @@ char [-bn] <characters> <destination> [emit-name]
 
 	-n Invert character bitmap.
 
+heredocend <destination>
+	Compare following characters to heredoc end delimiter and go to
+	destination state if comparison is true.
+
 inlist <list> <destination> [emit-name]
 	Test if buffered bytes are found in `list`. If found emit
 	`emit-name` and jump to destination state.
@@ -95,6 +99,11 @@ unconditional jump.
 eat <destination> [emit-name]
 	Consume byte, emit `emit-name` color and continue to destination
 	state.
+
+heredocbegin <subsyntax> <return-state>
+	Store buffered bytes as heredoc end delimiter and go to
+	subsyntax. Subsyntax is like any other subsyntax but it must
+	contain heredocend conditional.
 
 noeat <destination>
 	Continue to destination state without emitting color or

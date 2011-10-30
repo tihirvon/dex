@@ -462,7 +462,7 @@ void filetype_changed(void)
 
 void syntax_changed(void)
 {
-	const struct syntax *syn = NULL;
+	struct syntax *syn = NULL;
 
 	if (!buffer) {
 		// syntax option was changed in config file

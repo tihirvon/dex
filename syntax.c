@@ -53,7 +53,7 @@ static int has_destination(enum condition_type type)
 	}
 }
 
-static struct syntax *find_any_syntax(const char *name)
+struct syntax *find_any_syntax(const char *name)
 {
 	int i;
 
@@ -82,7 +82,7 @@ static void fix_action(struct syntax *syn, struct action *a, const char *prefix)
 		a->emit_name = xstrdup(a->emit_name);
 }
 
-static void fix_conditions(struct syntax *syn, struct state *s, struct state *rets, const char *prefix)
+static void fix_conditions(struct syntax *syn, struct state *s, struct state *rets, const char *prefix, const char *delim, int delim_len)
 {
 	int i;
 
@@ -91,6 +91,11 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 		fix_action(syn, &c->a, prefix);
 		if (!c->a.destination.state && has_destination(c->type))
 			c->a.destination.state = rets;
+
+		if (delim && c->type == COND_HEREDOCEND) {
+			c->u.cond_heredocend.str = xmemdup(delim, delim_len);
+			c->u.cond_heredocend.len = delim_len;
+		}
 	}
 
 	fix_action(syn, &s->a, prefix);
@@ -106,7 +111,9 @@ static const char *get_prefix(void)
 	return prefix;
 }
 
-static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct state *rets)
+static void update_state_colors(struct syntax *syn, struct state *s);
+
+static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int delim_len)
 {
 	// NOTE: string_lists is owned by struct syntax so there's no need to
 	// copy it.  Freeing struct condition does not free any string lists.
@@ -133,8 +140,11 @@ static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct sta
 			s->conds.ptrs[j] = xmemdup(s->conds.ptrs[j], sizeof(struct condition));
 	}
 
-	for (i = old_count; i < states->count; i++)
-		fix_conditions(syn, states->ptrs[i], rets, prefix);
+	for (i = old_count; i < states->count; i++) {
+		fix_conditions(syn, states->ptrs[i], rets, prefix, delim, delim_len);
+		if (delim)
+			update_state_colors(syn, states->ptrs[i]);
+	}
 
 	return states->ptrs[old_count];
 }
@@ -177,7 +187,7 @@ static int finish_action(struct syntax *syn, struct action *a)
 		}
 
 		if (subsyn && rs) {
-			a->destination.state = merge(syn, subsyn, rs);
+			a->destination.state = merge(syn, subsyn, rs, NULL, -1);
 		}
 	} else {
 		a->destination.state = find_state(syn, name);
@@ -327,6 +337,11 @@ void finalize_syntax(struct syntax *syn)
 	for (i = 0; i < count; i++)
 		errors += finish_state(syn, syn->states.ptrs[i]);
 
+	if (syn->heredoc && !syn->subsyntax) {
+		error_msg("heredocend can be used only in subsyntaxes");
+		errors++;
+	}
+
 	if (syn->subsyntax) {
 		if (syn->name[0] != '.') {
 			error_msg("Subsyntax name must begin with '.'");
@@ -359,6 +374,11 @@ void finalize_syntax(struct syntax *syn)
 	}
 
 	ptr_array_add(&syntaxes, syn);
+}
+
+struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int len)
+{
+	return merge(syn, subsyn, rets, delim, len);
 }
 
 struct syntax *find_syntax(const char *name)

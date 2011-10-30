@@ -87,6 +87,25 @@ static int in_hash(struct string_list *list, const char *str, int len)
 	return 0;
 }
 
+static struct state *handle_heredoc(struct state *state, const char *delim, int len)
+{
+	struct heredoc_state *s;
+	int i;
+
+	for (i = 0; i < state->heredoc.states.count; i++) {
+		s = state->heredoc.states.ptrs[i];
+		if (s->len == len && !memcmp(s->delim, delim, len))
+			return s->state;
+	}
+
+	s = xnew0(struct heredoc_state, 1);
+	s->state = add_heredoc_subsyntax(buffer->syn, state->heredoc.subsyntax, state->a.destination.state, delim, len);
+	s->delim = xmemdup(delim, len);
+	s->len = len;
+	ptr_array_add(&state->heredoc.states, s);
+	return s->state;
+}
+
 // line should be terminated with \n unless it's the last line
 static struct hl_color **highlight_line(struct state *state, const char *line, int len, struct state **ret)
 {
@@ -204,11 +223,29 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					goto top;
 				}
 				break;
+			case COND_HEREDOCEND: {
+				int slen = cond->u.cond_heredocend.len;
+				int end = i + slen;
+				if (len >= end && !memcmp(cond->u.cond_heredocend.str, line + i, slen)) {
+					while (i < end)
+						colors[i++] = a->emit_color;
+					sidx = -1;
+					state = a->destination.state;
+					goto top;
+				}
+				} break;
 			}
 		}
 
+		if (state->type == STATE_HEREDOCBEGIN) {
+			if (sidx < 0)
+				sidx = i;
+			state = handle_heredoc(state, line + sidx, i - sidx);
+			continue;
+		}
+
 		a = &state->a;
-		if (!state->noeat)
+		if (state->type == STATE_EAT)
 			colors[i++] = a->emit_color;
 		sidx = -1;
 		state = a->destination.state;
