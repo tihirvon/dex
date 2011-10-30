@@ -168,11 +168,10 @@ static int finish_action(struct syntax *syn, struct action *a)
 		const char *sub = name;
 		const char *ret = sep + 1;
 		struct syntax *subsyn;
-		struct state *rs;
+		struct state *rs = NULL;
 
 		*sep = 0;
 		subsyn = find_any_syntax(sub);
-		rs = find_state(syn, ret);
 		if (!subsyn) {
 			error_msg("No such syntax %s", sub);
 			errors++;
@@ -181,12 +180,21 @@ static int finish_action(struct syntax *syn, struct action *a)
 			errors++;
 			subsyn = NULL;
 		}
-		if (!rs) {
-			error_msg("No such state %s", ret);
-			errors++;
+
+		if (!strcmp(ret, "END")) {
+			// this makes syntax subsyntax
+			a->destination.state = NULL;
+			syn->subsyntax = 1;
+		} else {
+			rs = find_state(syn, ret);
+			if (!rs) {
+				error_msg("No such state %s", ret);
+				errors++;
+				return errors;
+			}
 		}
 
-		if (subsyn && rs) {
+		if (subsyn) {
 			a->destination.state = merge(syn, subsyn, rs, NULL, -1);
 		}
 	} else {
