@@ -405,23 +405,27 @@ static void update_action_color(struct syntax *syn, struct action *a)
 	a->emit_color = find_color(full);
 }
 
+static void update_state_colors(struct syntax *syn, struct state *s)
+{
+	int i;
+
+	for (i = 0; i < s->conds.count; i++) {
+		struct condition *c = s->conds.ptrs[i];
+		update_action_color(syn, &c->a);
+	}
+	update_action_color(syn, &s->a);
+}
+
 void update_syntax_colors(struct syntax *syn)
 {
-	int i, j;
+	int i;
 
 	if (syn->subsyntax) {
 		// no point to update colors of a sub-syntax
 		return;
 	}
-	for (i = 0; i < syn->states.count; i++) {
-		struct state *s = syn->states.ptrs[i];
-
-		for (j = 0; j < s->conds.count; j++) {
-			struct condition *c = s->conds.ptrs[j];
-			update_action_color(syn, &c->a);
-		}
-		update_action_color(syn, &s->a);
-	}
+	for (i = 0; i < syn->states.count; i++)
+		update_state_colors(syn, syn->states.ptrs[i]);
 }
 
 void update_all_syntax_colors(void)
