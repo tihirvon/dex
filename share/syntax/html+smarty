@@ -11,6 +11,12 @@ state smarty
 	char \} END smarty
 	eat smarty
 
+syntax .smarty-literal
+
+state literal
+	str "{/literal}" END literal
+	eat literal
+
 # copied from html syntax
 
 # sub-syntax. used in text and attribute values
@@ -103,6 +109,7 @@ state text
 	char "&" .html-entity:text
 	# smarty
 	str "{*" .smarty-comment:text
+	str "{literal}" .smarty-literal:text
 	char \{ .smarty-code:text
 	eat text
 
@@ -117,6 +124,7 @@ state tag-start special
 	char > text special
 	# smarty
 	str "{*" .smarty-comment:tag-start
+	str "{literal}" .smarty-literal:tag-start
 	char \{ .smarty-code:tag-start
 	eat tag-start error
 
@@ -220,3 +228,5 @@ default code tag-unknown
 default tag tag-frameset tag-transitional
 default error tag-deprecated
 default special entity
+
+default literal code

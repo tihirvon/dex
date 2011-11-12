@@ -2,6 +2,7 @@ syntax smarty
 
 state html
 	str "{*" comment
+	str "{literal}" literal
 	char \{ smarty
 	eat html
 
@@ -9,6 +10,12 @@ state comment
 	str "*}" html comment
 	eat comment
 
+state literal
+	str "{/literal}" html literal
+	eat literal
+
 state smarty
 	char \} html smarty
 	eat smarty
+
+default literal code
