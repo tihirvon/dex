@@ -128,11 +128,39 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 static int read_blocks(struct buffer *b, int fd)
 {
 	size_t size = b->st_size;
-	unsigned char *buf = xmmap(fd, 0, size);
-	int rc;
+	unsigned long map_size = 64 * 1024;
+	unsigned char *buf = NULL;
+	int mapped = 0;
+	ssize_t rc;
 
-	if (!buf)
-		return -1;
+	// st_size is zero for some files in /proc.
+	// Can't mmap files in /proc and /sys.
+	if (size >= map_size) {
+		buf = xmmap(fd, 0, size);
+		if (buf)
+			mapped = 1;
+	}
+	if (!mapped) {
+		ssize_t alloc = map_size;
+		ssize_t pos = 0;
+
+		buf = xnew(char, alloc);
+		while (1) {
+			rc = xread(fd, buf + pos, alloc - pos);
+			if (rc < 0) {
+				free(buf);
+				return -1;
+			}
+			if (rc == 0)
+				break;
+			pos += rc;
+			if (pos == alloc) {
+				alloc *= 2;
+				xrenew(buf, alloc);
+			}
+		}
+		size = pos;
+	}
 
 	if (b->encoding == NULL) {
 		const char *e = detect_encoding_from_bom(buf, size);
@@ -140,7 +168,11 @@ static int read_blocks(struct buffer *b, int fd)
 			b->encoding = xstrdup(e);
 	}
 	rc = decode_and_add_blocks(b, buf, size);
-	xmunmap(buf, size);
+	if (mapped) {
+		xmunmap(buf, size);
+	} else {
+		free(buf);
+	}
 	return rc;
 }
 
