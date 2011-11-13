@@ -349,6 +349,7 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 	const char *name = slash ? slash + 1 : filename;
 	const char *saved_config_file = config_file;
 	int saved_config_line = config_line;
+	struct syntax *syn;
 
 	if (do_read_config(syntax_commands, filename, must_exist)) {
 		config_file = saved_config_file;
@@ -359,5 +360,19 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 		finish_syntax();
 	config_file = saved_config_file;
 	config_line = saved_config_line;
-	return find_syntax(name);
+
+	syn = find_syntax(name);
+	if (syn && editor_status != EDITOR_INITIALIZING)
+		update_syntax_colors(syn);
+	return syn;
+}
+
+struct syntax *load_syntax_by_filetype(const char *filetype)
+{
+	struct syntax *syn;
+
+	syn = load_syntax_file(ssprintf("%s/.%s/syntax/%s", home_dir, program, filetype), 0);
+	if (!syn)
+		syn = load_syntax_file(ssprintf("%s/syntax/%s", pkgdatadir, filetype), 0);
+	return syn;
 }

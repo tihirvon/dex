@@ -10,6 +10,7 @@
 #include "spawn.h"
 #include "filetype.h"
 #include "color.h"
+#include "state.h"
 #include "syntax.h"
 #include "lock.h"
 #include "ptr-array.h"
@@ -410,7 +411,7 @@ static void cmd_load_syntax(const char *pf, char **args)
 		if (find_syntax(filetype)) {
 			error_msg("Syntax for filetype %s already loaded", filetype);
 		} else {
-			load_syntax_by_filename(filename);
+			load_syntax_file(filename, 1);
 		}
 	} else {
 		if (!find_syntax(filetype))

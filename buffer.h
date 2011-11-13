@@ -185,8 +185,6 @@ static inline void buffer_eof(struct block_iter *bi)
 }
 
 int guess_filetype(void);
-struct syntax *load_syntax_by_filename(const char *filename);
-struct syntax *load_syntax_by_filetype(const char *filetype);
 void syntax_changed(void);
 void filetype_changed(void);
 
