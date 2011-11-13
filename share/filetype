@@ -10,8 +10,8 @@ ft -c xml '^<\?xml(\s|$)'
 
 # regular expressions
 ft -f sh '/\.bash(rc|_profile|_logout)$'
-ft -f sh '/(PKGBUILD|\.INSTALL)$'
-ft -f sh '/var/lib/pacman/.*/install$'
+ft -f sh '/(PKGBUILD|\.INSTALL|install|rc\.conf(\.local)?)$'
+ft -f sh '/conf\.d/.*$'
 ft -f dex '/\.dex/(rc|filetype|syntax/.*)$'
 ft -f dex $PKGDATADIR'/.*'
 ft -f gitcommit '/COMMIT_EDITMSG$'
