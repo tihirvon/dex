@@ -23,7 +23,8 @@ state start code
 state zero numeric
 	char 0-9 int
 	char . float
-	char xX hex
+	# Only lowercase. Inconsistent with X'10ff'!
+	char x hex
 	noeat trailing
 
 state int numeric
@@ -36,7 +37,11 @@ state float numeric
 	noeat trailing
 
 state hex numeric
-	char 0-9a-fA-F hex
+	char 0-9a-fA-F hexdigit
+	eat start error
+
+state hexdigit numeric
+	char 0-9a-fA-F hexdigit
 	noeat trailing
 
 state x code
@@ -51,12 +56,12 @@ state hexstr
 state hexstreven special
 	char 0-9a-fA-F hexstrodd
 	char "\n'" start string
-	eat start error
+	eat hexstrodd error
 
 state hexstrodd special
 	char 0-9a-fA-F hexstreven
 	char "\n'" start error
-	eat start error
+	eat hexstreven error
 
 state word code
 	char -b a-zA-Z0-9_ word
