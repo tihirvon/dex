@@ -11,7 +11,7 @@ state start code
 	char '"' dq
 	char -b bB b
 	char -b xX x
-	char -b a-zA-Z_ word
+	char -b a-zA-Z_\$ word
 	char 0 zero
 	char 1-9 int
 	char . float
@@ -88,14 +88,14 @@ state hexstrodd special
 	eat hexstreven error
 
 state word code
-	char -b a-zA-Z0-9_ word
+	char -b a-zA-Z0-9_\$ word
 	inlist keyword start
 	inlist identifier start
 	char . column code
 	noeat start
 
 state column
-	char -b a-zA-Z0-9_ column
+	char -b a-zA-Z0-9_\$ column
 	noeat start
 
 state sq string
@@ -158,7 +158,7 @@ state star comment
 	noeat c-comment
 
 state trailing error
-	char a-zA-Z0-9_ trailing
+	char a-zA-Z0-9_\$ trailing
 	noeat start
 
 # FIXME: types should probably go to separate list
