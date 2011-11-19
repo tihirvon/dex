@@ -15,6 +15,7 @@ state start code
 	char 0 zero
 	char 1-9 int
 	char . float
+	char @ at
 	char ` backtick
 	char -- - dash
 	char # comment
@@ -96,6 +97,17 @@ state word code
 
 state column
 	char -b a-zA-Z0-9_\$ column
+	noeat start
+
+state at variable
+	char a-zA-Z0-9._\$ variable
+	char "'" sq
+	char '"' dq
+	char ` backtick
+	eat start error
+
+state variable
+	char a-zA-Z0-9._\$ variable
 	noeat start
 
 state sq string
