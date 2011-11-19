@@ -203,12 +203,12 @@ list constant \
 	false true iota nil
 
 list builtin \
-	append cap close closed complex copy imag len \
+	append cap close complex delete copy imag len \
 	make new panic print println real recover
 
 list type \
 	bool byte complex64 complex128 float32 float64 \
 	int8 int16 int32 int64 string uint8 uint16 uint32 uint64 \
-	int uint uintptr
+	int uint uintptr error rune
 
 default ident exported
