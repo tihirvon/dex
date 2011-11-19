@@ -9,6 +9,7 @@ syntax sql
 state start code
 	char "'" sq
 	char '"' dq
+	char -b bB b
 	char -b xX x
 	char -b a-zA-Z_ word
 	char 0 zero
@@ -24,6 +25,7 @@ state zero numeric
 	char 0-9 int
 	char . float
 	# Only lowercase. Inconsistent with X'10ff'!
+	char b bin
 	char x hex
 	noeat trailing
 
@@ -36,6 +38,14 @@ state float numeric
 	char 0-9 float
 	noeat trailing
 
+state bin numeric
+	char 01 bindigit
+	eat start error
+
+state bindigit numeric
+	char 01 bindigit
+	noeat trailing
+
 state hex numeric
 	char 0-9a-fA-F hexdigit
 	eat start error
@@ -43,6 +53,20 @@ state hex numeric
 state hexdigit numeric
 	char 0-9a-fA-F hexdigit
 	noeat trailing
+
+state b code
+	# single quote only
+	char \' bitstr
+	noeat -b word
+
+state bitstr
+	recolor string 2
+	noeat bitstrbit
+
+state bitstrbit special
+	char 01 bitstrbit
+	char "\n'" start string
+	eat bitstrbit error
 
 state x code
 	# single quote only
