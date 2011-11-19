@@ -1,19 +1,19 @@
 syntax .sql-esc
 
 state esc special
-	char "'\"bnrtZ\\%_" END special
+	char "0'\"bnrtZ\\%_" END special
 	noeat END
 
 syntax sql
 
 state start code
-	char -b a-zA-Z_ word
 	char "'" sq
 	char '"' dq
+	char -b xX x
+	char -b a-zA-Z_ word
 	char 0 zero
 	char 1-9 int
 	char . float
-#	char xX hexstr
 	char ` backtick
 	char -- - dash
 	char # comment
@@ -46,6 +46,25 @@ state hex numeric
 state error-ident error
 	char -b a-zA-Z0-9_ error-ident
 	noeat start
+
+state x code
+	# single quote only
+	char \' hexstr
+	noeat -b word
+
+state hexstr
+	recolor string 2
+	noeat hexstreven
+
+state hexstreven special
+	char 0-9a-fA-F hexstrodd
+	char "\n'" start string
+	eat start error
+
+state hexstrodd special
+	char 0-9a-fA-F hexstreven
+	char "\n'" start error
+	eat start error
 
 state word code
 	char -b a-zA-Z0-9_ word
