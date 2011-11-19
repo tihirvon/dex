@@ -77,6 +77,7 @@ struct state {
 	enum {
 		STATE_EAT,
 		STATE_NOEAT,
+		STATE_NOEAT_BUFFER,
 		STATE_HEREDOCBEGIN,
 	} type;
 

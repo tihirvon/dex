@@ -237,18 +237,23 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 			}
 		}
 
-		if (state->type == STATE_HEREDOCBEGIN) {
+		switch (state->type) {
+		case STATE_EAT:
+			colors[i++] = state->a.emit_color;
+			// fallthrough
+		case STATE_NOEAT:
+			sidx = -1;
+			// fallthrough
+		case STATE_NOEAT_BUFFER:
+			a = &state->a;
+			state = a->destination.state;
+			break;
+		case STATE_HEREDOCBEGIN:
 			if (sidx < 0)
 				sidx = i;
 			state = handle_heredoc(state, line + sidx, i - sidx);
-			continue;
+			break;
 		}
-
-		a = &state->a;
-		if (state->type == STATE_EAT)
-			colors[i++] = a->emit_color;
-		sidx = -1;
-		state = a->destination.state;
 	}
 
 	if (ret)

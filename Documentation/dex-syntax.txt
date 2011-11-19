@@ -105,9 +105,11 @@ heredocbegin <subsyntax> <return-state>
 	subsyntax. Subsyntax is like any other subsyntax but it must
 	contain heredocend conditional.
 
-noeat <destination>
+noeat [-b] <destination>
 	Continue to destination state without emitting color or
 	consuming byte.
+
+	-b Don't stop buffering.
 
 @h1 SUB-SYNTAXES
 

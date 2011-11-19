@@ -226,6 +226,8 @@ static void cmd_inlist(const char *pf, char **args)
 
 static void cmd_noeat(const char *pf, char **args)
 {
+	int type = *pf ? STATE_NOEAT_BUFFER : STATE_NOEAT;
+
 	if (no_state())
 		return;
 
@@ -236,7 +238,7 @@ static void cmd_noeat(const char *pf, char **args)
 
 	current_state->a.destination.name = xstrdup(args[0]);
 	current_state->a.emit_name = NULL;
-	current_state->type = STATE_NOEAT;
+	current_state->type = type;
 	current_state = NULL;
 }
 
@@ -335,7 +337,7 @@ static const struct command syntax_commands[] = {
 	{ "eat",	"",	1,  2, cmd_eat },
 	{ "inlist",	"",	2,  3, cmd_inlist },
 	{ "list",	"hi",	2, -1, cmd_list },
-	{ "noeat",	"",	1,  1, cmd_noeat },
+	{ "noeat",	"b",	1,  1, cmd_noeat },
 	{ "recolor",	"",	1,  2, cmd_recolor },
 	{ "state",	"",	1,  2, cmd_state },
 	{ "str",	"i",	2,  3, cmd_str },
