@@ -225,24 +225,22 @@ static char *build_replace(const char *line, const char *format, regmatch_t *m)
 
 	while (format[i]) {
 		int ch = format[i++];
-		int n = 0;
-		int count = 0;
 
-		if (ch != '\\') {
-			gbuf_add_ch(&buf, ch);
-			continue;
-		}
-		while (isdigit(format[i])) {
-			n *= 10;
-			n += format[i++] - '0';
-			count++;
-		}
-		if (!count) {
-			gbuf_add_ch(&buf, format[i++]);
-		} else if (n < MAX_SUBSTRINGS) {
-			int len = m[n].rm_eo - m[n].rm_so;
+		if (ch == '\\') {
+			if (format[i] >= '1' && format[i] <= '9') {
+				int n = format[i++] - '0';
+				int len = m[n].rm_eo - m[n].rm_so;
+				if (len > 0)
+					gbuf_add_buf(&buf, line + m[n].rm_so, len);
+			} else {
+				gbuf_add_ch(&buf, format[i++]);
+			}
+		} else if (ch == '&') {
+			int len = m[0].rm_eo - m[0].rm_so;
 			if (len > 0)
-				gbuf_add_buf(&buf, line + m[n].rm_so, len);
+				gbuf_add_buf(&buf, line + m[0].rm_so, len);
+		} else {
+			gbuf_add_ch(&buf, ch);
 		}
 	}
 	return gbuf_steal(&buf);
