@@ -98,11 +98,16 @@ state word code
 	noeat code
 
 state variable
-	char a-zA-Z_ variable2
+	char -b a-zA-Z_ variable2
 	noeat code
 
 state variable2 variable
-	char a-zA-Z_0-9 variable2
+	char -b a-zA-Z_0-9 variable2
+	bufis this this
+	noeat code
+
+state this
+	recolor this 5
 	noeat code
 
 state dq string
@@ -294,3 +299,4 @@ state tag-ver tag
 default special tag
 default keyword lang
 default special strvar
+default variable this
