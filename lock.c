@@ -10,12 +10,68 @@ static int process_exists(int pid)
 	return !kill(pid, 0);
 }
 
+static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, int lock)
+{
+	int filename_len = strlen(filename);
+	int my_pid = getpid();
+	int err = 0;
+	ssize_t size = *sizep;
+	ssize_t pos = 0;
+
+	while (pos < size) {
+		ssize_t next_bol, bol = pos;
+		int same, remove_line = 0;
+		int pid = 0;
+		char *nl;
+
+		while (pos < size && isdigit(buf[pos])) {
+			pid *= 10;
+			pid += buf[pos++] - '0';
+		}
+		while (pos < size && (buf[pos] == ' ' || buf[pos] == '\t'))
+			pos++;
+		nl = memchr(buf + pos, '\n', size - pos);
+		next_bol = nl - buf + 1;
+
+		same = filename_len == next_bol - 1 - pos && !memcmp(buf + pos, filename, filename_len);
+		if (pid == my_pid) {
+			if (same) {
+				// lock = 1 => pid conflict. lock must be stale
+				// lock = 0 => normal unlock case
+				remove_line = 1;
+			}
+		} else if (process_exists(pid)) {
+			if (same && lock) {
+				error_msg("File is locked (%s) by process %d", file_locks, pid);
+				err = -1;
+			}
+		} else {
+			// release lock from dead process
+			remove_line = 1;
+		}
+
+		if (remove_line) {
+			memmove(buf + bol, buf + next_bol, size - next_bol);
+			size -= next_bol - bol;
+			pos = bol;
+		} else {
+			pos = next_bol;
+		}
+	}
+	if (lock) {
+		sprintf(buf + size, "%d %s\n", my_pid, filename);
+		size += strlen(buf + size);
+	}
+	*sizep = size;
+	return err;
+}
+
 static int lock_or_unlock(const char *filename, int lock)
 {
 	int tries = 0;
-	int wfd, rfd, filename_len;
+	int wfd, rfd, err;
 	ssize_t size;
-	char *buf = NULL, *ptr, *end;
+	char *buf = NULL;
 
 	if (!file_locks) {
 		file_locks = xstrdup(editor_file("file-locks"));
@@ -50,7 +106,6 @@ static int lock_or_unlock(const char *filename, int lock)
 		}
 	}
 
-	filename_len = strlen(filename);
 	rfd = open(file_locks, O_RDONLY);
 	if (rfd < 0) {
 		if (errno != ENOENT) {
@@ -58,13 +113,13 @@ static int lock_or_unlock(const char *filename, int lock)
 			goto error;
 		}
 		size = 0;
-		buf = xmalloc(filename_len + 32);
+		buf = xmalloc(strlen(filename) + 32);
 	} else {
 		struct stat st;
 
 		fstat(rfd, &st);
 		size = st.st_size;
-		buf = xmalloc(size + filename_len + 32);
+		buf = xmalloc(size + strlen(filename) + 32);
 
 		if (size > 0)
 			size = xread(rfd, buf, size);
@@ -75,44 +130,10 @@ static int lock_or_unlock(const char *filename, int lock)
 		}
 	}
 
-	ptr = buf;
-	end = buf + size;
-	while (ptr < end) {
-		char *bol = ptr;
-		char *lf;
-		int pid = 0;
+	if (size && buf[size - 1] != '\n')
+		buf[size++] = '\n';
 
-		while (ptr < end && isdigit(*ptr)) {
-			pid *= 10;
-			pid += *ptr++ - '0';
-		}
-		while (ptr < end && (*ptr == ' ' || *ptr == '\t'))
-			ptr++;
-		lf = memchr(ptr, '\n', end - ptr);
-		if (!lf) {
-			lf = end;
-			*end++ = '\n';
-			size++;
-		}
-		if (filename_len == lf - ptr && !memcmp(ptr, filename, filename_len)) {
-			char *next_bol = lf + 1;
-
-			if (lock && process_exists(pid)) {
-				error_msg("File is locked (%s) by process %d", file_locks, pid);
-				goto error;
-			}
-			if (lock)
-				error_msg("Releasing lock from dead process %d", pid);
-			memmove(bol, next_bol, end - next_bol);
-			size -= next_bol - bol;
-			break;
-		}
-		ptr = lf + 1;
-	}
-	if (lock) {
-		sprintf(buf + size, "%d %s\n", getpid(), filename);
-		size += strlen(buf + size);
-	}
+	err = rewrite_lock_file(buf, &size, filename, lock);
 	if (xwrite(wfd, buf, size) < 0) {
 		error_msg("Error writing %s: %s", file_locks_lock, strerror(errno));
 		goto error;
@@ -123,7 +144,7 @@ static int lock_or_unlock(const char *filename, int lock)
 	}
 	free(buf);
 	close(wfd);
-	return 0;
+	return err;
 error:
 	unlink(file_locks_lock);
 	free(buf);
