@@ -95,14 +95,16 @@ static int lock_or_unlock(const char *filename, int lock)
 			size++;
 		}
 		if (filename_len == lf - ptr && !memcmp(ptr, filename, filename_len)) {
+			char *next_bol = lf + 1;
+
 			if (lock && process_exists(pid)) {
 				error_msg("File is locked (%s) by process %d", file_locks, pid);
 				goto error;
 			}
 			if (lock)
 				error_msg("Releasing lock from dead process %d", pid);
-			memmove(bol, lf + 1, end - lf - 1);
-			size -= lf + 1 - bol;
+			memmove(bol, next_bol, end - next_bol);
+			size -= next_bol - bol;
 			break;
 		}
 		ptr = lf + 1;
