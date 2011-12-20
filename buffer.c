@@ -13,6 +13,7 @@
 #include "lock.h"
 #include "regexp.h"
 #include "selection.h"
+#include "path.h"
 
 struct buffer *buffer;
 struct view *prev_view;
@@ -311,80 +312,6 @@ int guess_filetype(void)
 		return 1;
 	}
 	return 0;
-}
-
-static char *relative_filename(const char *f, const char *cwd)
-{
-	int i, tpos, tlen, dotdot, len, clen = 0;
-
-	// length of common path
-	while (cwd[clen] && cwd[clen] == f[clen])
-		clen++;
-
-	if (!cwd[clen] && f[clen] == '/') {
-		// cwd    = /home/user
-		// abs    = /home/user/project-a/file.c
-		// common = /home/user
-		return xstrdup(f + clen + 1);
-	}
-
-	// cwd    = /home/user/src/project
-	// abs    = /home/user/save/parse.c
-	// common = /home/user/s
-	// find "save/parse.c"
-	tpos = clen;
-	while (tpos && f[tpos] != '/')
-		tpos--;
-	if (f[tpos] == '/')
-		tpos++;
-
-	// number of "../" needed
-	dotdot = 1;
-	for (i = clen + 1; cwd[i]; i++) {
-		if (cwd[i] == '/')
-			dotdot++;
-	}
-
-	tlen = strlen(f + tpos);
-	len = dotdot * 3 + tlen;
-	if (dotdot < 3 && len < strlen(f)) {
-		char *filename = xnew(char, len + 1);
-		for (i = 0; i < dotdot; i++)
-			memcpy(filename + i * 3, "../", 3);
-		memcpy(filename + dotdot * 3, f + tpos, tlen + 1);
-		return filename;
-	}
-	return NULL;
-}
-
-static char *short_filename_cwd(const char *absolute, const char *cwd)
-{
-	int home_len = strlen(home_dir);
-	char *rel = relative_filename(absolute, cwd);
-
-	if (!memcmp(absolute, home_dir, home_len) && absolute[home_len] == '/') {
-		int abs_len = strlen(absolute);
-		int len = abs_len - home_len + 1;
-		if (!rel || len < strlen(rel)) {
-			char *filename = xnew(char, len + 1);
-			filename[0] = '~';
-			memcpy(filename + 1, absolute + home_len, len);
-			free(rel);
-			return filename;
-		}
-	}
-	if (rel)
-		return rel;
-	return xstrdup(absolute);
-}
-
-static char *short_filename(const char *absolute)
-{
-	char cwd[PATH_MAX];
-
-	if (getcwd(cwd, sizeof(cwd)))
-		return short_filename_cwd(absolute, cwd);
-	return xstrdup(absolute);
 }
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd)

@@ -26,6 +26,7 @@
 #include "load-save.h"
 #include "selection.h"
 #include "encoding.h"
+#include "path.h"
 
 static void cmd_alias(const char *pf, char **args)
 {

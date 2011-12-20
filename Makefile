@@ -122,6 +122,7 @@ OBJECTS	:= 			\
 	options.o		\
 	parse-args.o		\
 	parse-command.o		\
+	path.o			\
 	ptr-array.o		\
 	regexp.o		\
 	run.o			\
