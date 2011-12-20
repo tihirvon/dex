@@ -185,20 +185,28 @@ void free_buffer(struct buffer *b)
 	free(b);
 }
 
+static int same_file(struct stat *st, struct buffer *b)
+{
+	return st->st_dev == b->st_dev && st->st_ino == b->st_ino;
+}
+
 static struct view *find_view(const char *abs_filename)
 {
 	struct view *found = NULL;
-	int i, j;
+	struct stat st;
+	int i, j, st_ok;
 
+	st_ok = stat(abs_filename, &st) == 0;
 	for (i = 0; i < windows.count; i++) {
 		for (j = 0; j < WINDOW(i)->views.count; j++) {
 			struct view *v = VIEW(i, j);
 			const char *f = v->buffer->abs_filename;
-			if (f && !strcmp(f, abs_filename)) {
+			if (f == NULL)
+				continue;
+			if (!strcmp(f, abs_filename) || (st_ok && same_file(&st, v->buffer))) {
 				// found in current window?
 				if (v->window == window)
 					return v;
-
 				found = v;
 			}
 		}
@@ -408,6 +416,11 @@ struct view *open_buffer(const char *filename, int must_exist, const char *encod
 	// already open?
 	v = find_view(absolute);
 	if (v) {
+		if (strcmp(absolute, v->buffer->abs_filename)) {
+			char *s = short_filename(absolute);
+			info_msg("%s and %s are the same file", s, v->buffer->filename);
+			free(s);
+		}
 		free(absolute);
 		if (v->window != window) {
 			// open the buffer in other window to current window
