@@ -278,8 +278,14 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 			ren = 0;
 		} else if (buffer->st_mode) {
 			// Preserve ownership and mode of the original file if possible.
-			int ignore = fchown(fd, buffer->st_uid, buffer->st_gid);
-			ignore = ignore; // warning: unused variable 'ignore'
+
+			// "ignoring return value of 'fchown', declared with attribute warn_unused_result"
+			//
+			// Casting to void does not hide this warning when
+			// using GCC and clang does not like this:
+			//     int ignore = fchown(...); ignore = ignore;
+			if (fchown(fd, buffer->st_uid, buffer->st_gid)) {
+			}
 			fchmod(fd, buffer->st_mode);
 		} else {
 			// new file
