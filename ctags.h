@@ -2,6 +2,7 @@
 #define CTAGS_H
 
 #include <stdlib.h>
+#include <time.h>
 
 struct tag_file {
 	char *map;
