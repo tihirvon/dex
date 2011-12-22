@@ -17,6 +17,7 @@
 #include <regex.h>
 #include <time.h>
 #include <wctype.h>
+#include <signal.h>
 
 #include "ctype.h"
 

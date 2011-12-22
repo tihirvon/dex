@@ -13,7 +13,6 @@
 
 #include <locale.h>
 #include <langinfo.h>
-#include <signal.h>
 
 static const char *builtin_rc =
 // obvious bindings
