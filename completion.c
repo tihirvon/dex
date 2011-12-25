@@ -140,31 +140,31 @@ static void collect_files(int directories_only)
 			s[len + 1] = 0;
 			add_completion(s);
 			free(str);
-			return;
+		} else {
+			dirprefix = xstrndup(str, slash - str + 1);
+			fileprefix = xstrdup(slash + 1);
+			slash = strrchr(completion.parsed, '/');
+			dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
+			do_collect_files(dir, dirprefix, fileprefix, directories_only);
+			free(dirprefix);
+			free(fileprefix);
+			free(dir);
+			free(str);
 		}
-		dirprefix = xstrndup(str, slash - str + 1);
-		fileprefix = xstrdup(slash + 1);
+	} else {
 		slash = strrchr(completion.parsed, '/');
-		dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
-		do_collect_files(dir, dirprefix, fileprefix, directories_only);
-		free(dirprefix);
-		free(fileprefix);
-		free(dir);
-		free(str);
-		return;
+		if (!slash) {
+			do_collect_files("./", "", completion.parsed, directories_only);
+			free(str);
+		} else {
+			dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
+			fileprefix = xstrdup(slash + 1);
+			do_collect_files(dir, dir, fileprefix, directories_only);
+			free(fileprefix);
+			free(dir);
+			free(str);
+		}
 	}
-	slash = strrchr(completion.parsed, '/');
-	if (!slash) {
-		do_collect_files("./", "", completion.parsed, directories_only);
-		free(str);
-		return;
-	}
-	dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
-	fileprefix = xstrdup(slash + 1);
-	do_collect_files(dir, dir, fileprefix, directories_only);
-	free(fileprefix);
-	free(dir);
-	free(str);
 }
 
 static void collect_and_sort_files(int directories_only)
