@@ -310,10 +310,10 @@ paste
 	Paste.
 
 pgdown
-	Move cursor page down. See also *scroll-pagedown*.
+	Move cursor page down. See also *scroll-pgdown*.
 
 pgup
-	Move cursor page down. See also *scroll-pageup*.
+	Move cursor page down. See also *scroll-pgup*.
 
 prev
 	Display previous file.
