@@ -26,8 +26,6 @@ static struct {
 	int tilde_expanded;
 } completion;
 
-static int directories_only;
-
 static int strptrcmp(const void *ap, const void *bp)
 {
 	const char *a = *(const char **)ap;
@@ -61,7 +59,7 @@ static void collect_commands(const char *prefix)
 	collect_aliases(prefix);
 }
 
-static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix)
+static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix, int directories_only)
 {
 	char path[PATH_MAX];
 	int plen = strlen(dirname);
@@ -123,7 +121,7 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 	closedir(dir);
 }
 
-static void collect_files(void)
+static void collect_files(int directories_only)
 {
 	const char *slash;
 	char *dir, *dirprefix, *fileprefix;
@@ -148,7 +146,7 @@ static void collect_files(void)
 		fileprefix = xstrdup(slash + 1);
 		slash = strrchr(completion.parsed, '/');
 		dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
-		do_collect_files(dir, dirprefix, fileprefix);
+		do_collect_files(dir, dirprefix, fileprefix, directories_only);
 		free(dirprefix);
 		free(fileprefix);
 		free(dir);
@@ -157,21 +155,21 @@ static void collect_files(void)
 	}
 	slash = strrchr(completion.parsed, '/');
 	if (!slash) {
-		do_collect_files("./", "", completion.parsed);
+		do_collect_files("./", "", completion.parsed, directories_only);
 		free(str);
 		return;
 	}
 	dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
 	fileprefix = xstrdup(slash + 1);
-	do_collect_files(dir, dir, fileprefix);
+	do_collect_files(dir, dir, fileprefix, directories_only);
 	free(fileprefix);
 	free(dir);
 	free(str);
 }
 
-static void collect_and_sort_files(void)
+static void collect_and_sort_files(int directories_only)
 {
-	collect_files();
+	collect_files(directories_only);
 	if (completion.completions.count == 1) {
 		// if we have only one match we add space after completed
 		// string for files, not directories
@@ -218,13 +216,11 @@ static void collect_completions(char **args, int argc)
 	    !strcmp(cmd->name, "run") ||
 	    !strcmp(cmd->name, "pass-through") ||
 	    !strcmp(cmd->name, "include")) {
-		directories_only = 0;
-		collect_and_sort_files();
+		collect_and_sort_files(0);
 		return;
 	}
 	if (!strcmp(cmd->name, "cd")) {
-		directories_only = 1;
-		collect_and_sort_files();
+		collect_and_sort_files(1);
 		return;
 	}
 	if (!strcmp(cmd->name, "hi")) {
