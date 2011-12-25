@@ -162,17 +162,12 @@ static void collect_files(int directories_only)
 		}
 	}
 	free(str);
-}
 
-static void collect_and_sort_files(int directories_only)
-{
-	collect_files(directories_only);
 	if (completion.completions.count == 1) {
-		// if we have only one match we add space after completed
-		// string for files, not directories
-		const char *str = completion.completions.ptrs[0];
-		int len = strlen(str);
-		completion.add_space = str[len - 1] != '/';
+		// add space if completed string is not a directory
+		const char *s = completion.completions.ptrs[0];
+		int len = strlen(s);
+		completion.add_space = s[len - 1] != '/';
 	}
 }
 
@@ -213,11 +208,11 @@ static void collect_completions(char **args, int argc)
 	    !strcmp(cmd->name, "run") ||
 	    !strcmp(cmd->name, "pass-through") ||
 	    !strcmp(cmd->name, "include")) {
-		collect_and_sort_files(0);
+		collect_files(0);
 		return;
 	}
 	if (!strcmp(cmd->name, "cd")) {
-		collect_and_sort_files(1);
+		collect_files(1);
 		return;
 	}
 	if (!strcmp(cmd->name, "hi")) {
