@@ -73,6 +73,7 @@ syntax c
 state start code
 	char " \t" start
 	char # preproc
+	char -b a-zA-Z_ ident-label
 	noeat c
 
 state preproc
@@ -134,9 +135,25 @@ state c code
 	char "\"" string
 	char "'" char
 	char "\n" start
+	char ';' semicolon
 	str "/*" .c-comment:c
 	str "//" .cpp-comment:start
 	eat c
+
+state semicolon code
+	char " \t" semicolon
+	char -b a-zA-Z_ ident-label
+	noeat c
+
+state ident-label ident
+	char -b a-zA-Z0-9_ ident-label
+	char -b : label
+	# don't reset buffer (-b)
+	noeat -b ident
+
+state label
+	recolor label
+	noeat c
 
 state ident
 	char -b a-zA-Z0-9_ ident
