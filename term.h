@@ -105,6 +105,9 @@ struct term_color {
 
 extern struct term_cap term_cap;
 
+// control key
+#define CTRL(x) ((x) & ~0x40)
+
 int term_init(int use_terminfo, int use_termcap);
 
 void term_raw(void);
