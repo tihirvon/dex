@@ -18,6 +18,16 @@ static int is_command(const char *str, int len)
 	return 0;
 }
 
+// odd number of backslashes at end of line?
+static int has_line_continuation(const char *str, int len)
+{
+	int pos = len - 1;
+
+	while (pos >= 0 && str[pos] == '\\')
+		pos--;
+	return (len - 1 - pos) % 2;
+}
+
 void exec_config(const struct command *cmds, const char *buf, size_t size)
 {
 	const char *ptr = buf;
@@ -31,7 +41,7 @@ void exec_config(const struct command *cmds, const char *buf, size_t size)
 			n = end - ptr;
 
 		if (line.len || is_command(ptr, n)) {
-			if (n && ptr[n - 1] == '\\') {
+			if (has_line_continuation(ptr, n)) {
 				gbuf_add_buf(&line, ptr, n - 1);
 			} else {
 				gbuf_add_buf(&line, ptr, n);
