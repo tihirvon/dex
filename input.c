@@ -11,6 +11,14 @@
 #include "completion.h"
 #include "input-special.h"
 
+static int search_pos = -1;
+static char *search_text;
+
+static void reset_history_search(void)
+{
+	search_pos = -1;
+}
+
 static void insert_paste(void)
 {
 	unsigned int size;
@@ -35,8 +43,6 @@ static void cmdline_insert_paste(void)
 
 static int common_key(struct ptr_array *history, enum term_key_type type, unsigned int key)
 {
-	const char *str;
-
 	switch (type) {
 	case KEY_NORMAL:
 		switch (key) {
@@ -112,14 +118,23 @@ static int common_key(struct ptr_array *history, enum term_key_type type, unsign
 			cmdline_pos = strlen(cmdline.buffer);
 			return 1;
 		case SKEY_UP:
-			str = history_search_forward(history, cmdline.buffer);
-			if (str)
-				cmdline_set_text(str);
+			if (search_pos < 0) {
+				free(search_text);
+				search_text = xstrdup(cmdline.buffer);
+				search_pos = history->count;
+			}
+			if (history_search_forward(history, &search_pos, search_text))
+				cmdline_set_text(history->ptrs[search_pos]);
 			return 1;
 		case SKEY_DOWN:
-			str = history_search_backward(history);
-			if (str)
-				cmdline_set_text(str);
+			if (search_pos < 0)
+				return 1;
+			if (history_search_backward(history, &search_pos, search_text)) {
+				cmdline_set_text(history->ptrs[search_pos]);
+			} else {
+				cmdline_set_text(search_text);
+				search_pos = -1;
+			}
 			return 1;
 		default:
 			return 0;
@@ -129,7 +144,7 @@ static int common_key(struct ptr_array *history, enum term_key_type type, unsign
 		cmdline_insert_paste();
 		break;
 	}
-	history_reset_search();
+	reset_history_search();
 	return 1;
 }
 
@@ -177,7 +192,7 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_PASTE:
 		return;
 	}
-	history_reset_search();
+	reset_history_search();
 }
 
 static void search_mode_key(enum term_key_type type, unsigned int key)
@@ -200,7 +215,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 			cmdline_insert(key);
 			break;
 		}
-		history_reset_search();
+		reset_history_search();
 		break;
 	case KEY_META:
 		switch (key) {

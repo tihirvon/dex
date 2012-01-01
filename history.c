@@ -7,9 +7,6 @@
 PTR_ARRAY(search_history);
 PTR_ARRAY(command_history);
 
-static int search_pos = -1;
-static char *search_text;
-
 // add item to end of array
 void history_add(struct ptr_array *history, const char *text, int max_entries)
 {
@@ -31,49 +28,30 @@ void history_add(struct ptr_array *history, const char *text, int max_entries)
 	ptr_array_add(history, xstrdup(text));
 }
 
-void history_reset_search(void)
+int history_search_forward(struct ptr_array *history, int *pos, const char *text)
 {
-	free(search_text);
-	search_text = NULL;
-	search_pos = -1;
-}
+	int i = *pos;
 
-const char *history_search_forward(struct ptr_array *history, const char *text)
-{
-	int i = search_pos;
-
-	if (i < 0) {
-		// NOTE: not freed in history_search_backward()
-		free(search_text);
-
-		search_text = xstrdup(text);
-		i = history->count;
-	}
 	while (--i >= 0) {
-		if (str_has_prefix(history->ptrs[i], search_text)) {
-			search_pos = i;
-			return history->ptrs[i];
+		if (str_has_prefix(history->ptrs[i], text)) {
+			*pos = i;
+			return 1;
 		}
 	}
-	return NULL;
+	return 0;
 }
 
-const char *history_search_backward(struct ptr_array *history)
+int history_search_backward(struct ptr_array *history, int *pos, const char *text)
 {
-	int i = search_pos;
-
-	if (i < 0)
-		return NULL;
+	int i = *pos;
 
 	while (++i < history->count) {
-		if (str_has_prefix(history->ptrs[i], search_text)) {
-			search_pos = i;
-			return history->ptrs[i];
+		if (str_has_prefix(history->ptrs[i], text)) {
+			*pos = i;
+			return 1;
 		}
 	}
-	// NOTE: search_text is freed in history_search_forward()
-	search_pos = -1;
-	return search_text;
+	return 0;
 }
 
 void history_load(struct ptr_array *history, const char *filename, int max_entries)
