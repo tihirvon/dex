@@ -58,7 +58,7 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, in
 			pos = next_bol;
 		}
 	}
-	if (lock) {
+	if (lock && err == 0) {
 		sprintf(buf + size, "%d %s\n", my_pid, filename);
 		size += strlen(buf + size);
 	}
