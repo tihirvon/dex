@@ -90,10 +90,12 @@ static int common_key(struct ptr_array *history, enum term_key_type type, unsign
 			ui_end();
 			kill(0, SIGSTOP);
 			return 1;
-		case CTRL('J'): // '\n'
-			// not allowed
-			return 1;
 		default:
+			// don't insert control characters
+			if (key >= 0x20 && key != 0x7f) {
+				cmdline_insert(key);
+				return 1;
+			}
 			return 0;
 		}
 		break;
@@ -179,10 +181,6 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 		case '\t':
 			complete_command();
 			break;
-		default:
-			reset_completion();
-			cmdline_insert(key);
-			break;
 		}
 		break;
 	case KEY_META:
@@ -210,9 +208,6 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 			}
 			cmdline_clear();
 			input_mode = INPUT_NORMAL;
-			break;
-		default:
-			cmdline_insert(key);
 			break;
 		}
 		reset_history_search();

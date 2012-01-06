@@ -25,6 +25,8 @@ static void insert_special(const char *buf, int size)
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
+		// \n is not allowed in command line because
+		// command/search history file would break
 		if (buf[0] != '\n')
 			cmdline_insert_bytes(buf, size);
 		break;
