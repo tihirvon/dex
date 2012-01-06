@@ -411,19 +411,15 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	pid = fork_exec(args, fd);
 	if (pid < 0) {
 		error_msg("Error: %s", strerror(errno));
-		if (!quiet)
-			ui_start(0);
-		close(p[0]);
 		close(p[1]);
-		close(dev_null);
+		flags = 0; // don't prompt
 	} else {
 		int ret;
 
-		close(dev_null);
+		// Must close write end of the pipe before read_errors() or
+		// the read end never gets EOF!
 		close(p[1]);
 		read_errors(c, p[0], flags);
-		close(p[0]);
-
 		ret = wait_child(pid);
 		if (ret < 0) {
 			error_msg("waitpid: %s", strerror(errno));
@@ -432,17 +428,18 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		} else if (ret) {
 			error_msg("Child returned %d", ret);
 		}
-
-		if (!quiet) {
-			ui_start(flags & SPAWN_PROMPT);
-			child_controls_terminal = 0;
-		}
 	}
+	if (!quiet) {
+		ui_start(flags & SPAWN_PROMPT);
+		child_controls_terminal = 0;
+	}
+	close(p[0]);
+	close(dev_null);
 }
 
 void spawn(char **args, int fd[3], int prompt)
 {
-	int i, pid, ret, quiet, redir_count = 0;
+	int i, pid, quiet, redir_count = 0;
 	int dev_null = -1;
 
 	for (i = 0; i < 3; i++) {
@@ -470,25 +467,23 @@ void spawn(char **args, int fd[3], int prompt)
 	pid = fork_exec(args, fd);
 	if (pid < 0) {
 		error_msg("Error: %s", strerror(errno));
-		if (!quiet)
-			ui_start(0);
-		close(dev_null);
-		return;
-	}
-
-	close(dev_null);
-	ret = wait_child(pid);
-	if (ret < 0) {
-		error_msg("waitpid: %s", strerror(errno));
-	} else if (ret >= 256) {
-		error_msg("Child received signal %d", ret >> 8);
-	} else if (ret) {
-		error_msg("Child returned %d", ret);
+		prompt = 0;
+	} else {
+		int ret = wait_child(pid);
+		if (ret < 0) {
+			error_msg("waitpid: %s", strerror(errno));
+		} else if (ret >= 256) {
+			error_msg("Child received signal %d", ret >> 8);
+		} else if (ret) {
+			error_msg("Child returned %d", ret);
+		}
 	}
 	if (!quiet) {
 		ui_start(prompt);
 		child_controls_terminal = 0;
 	}
+	if (dev_null >= 0)
+		close(dev_null);
 }
 
 static struct compiler *add_compiler(const char *name)
