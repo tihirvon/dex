@@ -629,7 +629,7 @@ statusline-left [" %f%s%m%r%s%M"]
 	Position in percentage.
 
 	@li %E
-	Encoding (UTF-8 or 8-bit).
+	File encoding.
 
 	@li %M
 	Miscellaneous status information.
