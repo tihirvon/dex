@@ -24,9 +24,9 @@ option make indent-width 8 expand-tab false emulate-tab false
 
 option c,css,go,java,javascript,php brace-indent true
 
-option c      indent-regex '^\s*(case|do|else|for|if|while)\b'
-option java   indent-regex '^\s*(case|do|else|for|if|while)\b'
-option php    indent-regex '^\s*(case|do|else|for|foreach|if|while)\b'
+option c      indent-regex '^\s*(case|default|do|else|for|if|while)\b'
+option java   indent-regex '^\s*(case|default|do|else|for|if|while)\b'
+option php    indent-regex '^\s*(case|default|do|else|for|foreach|if|while)\b'
 option python indent-regex ':\s*(#.*)?$'
 option sh     indent-regex '((^\s*|;\s*)(do|else|then)|\{)(\s+#.*)?\s*$'
 
