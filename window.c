@@ -20,6 +20,7 @@ struct view *window_add_buffer(struct buffer *b)
 	v->buffer = b;
 	v->window = window;
 	ptr_array_add(&window->views, v);
+	window->update_tabbar = 1;
 	return v;
 }
 
