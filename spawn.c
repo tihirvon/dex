@@ -6,6 +6,7 @@
 #include "regexp.h"
 #include "gbuf.h"
 #include "msg.h"
+#include "term.h"
 
 static PTR_ARRAY(compilers);
 
@@ -430,7 +431,10 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		}
 	}
 	if (!quiet) {
-		ui_start(flags & SPAWN_PROMPT);
+		term_raw();
+		if (flags & SPAWN_PROMPT)
+			any_key();
+		resize();
 		child_controls_terminal = 0;
 	}
 	close(p[0]);
@@ -479,7 +483,10 @@ void spawn(char **args, int fd[3], int prompt)
 		}
 	}
 	if (!quiet) {
-		ui_start(prompt);
+		term_raw();
+		if (prompt)
+			any_key();
+		resize();
 		child_controls_terminal = 0;
 	}
 	if (dev_null >= 0)

@@ -257,17 +257,6 @@ void resize(void)
 	end_update();
 }
 
-void ui_start(int prompt)
-{
-	if (editor_status == EDITOR_INITIALIZING)
-		return;
-
-	term_raw();
-	if (prompt)
-		any_key();
-	resize();
-}
-
 void ui_end(void)
 {
 	struct term_color color = { -1, -1, 0 };

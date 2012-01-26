@@ -69,8 +69,10 @@ static void handle_sigtstp(int signum)
 
 static void handle_sigcont(int signum)
 {
-	if (!child_controls_terminal)
-		ui_start(0);
+	if (!child_controls_terminal && editor_status != EDITOR_INITIALIZING) {
+		term_raw();
+		resize();
+	}
 }
 
 static void handle_sigwinch(int signum)

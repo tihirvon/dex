@@ -56,7 +56,6 @@ char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 
 void discard_paste(void);
 void any_key(void);
 void resize(void);
-void ui_start(int prompt);
 void ui_end(void);
 void set_signal_handler(int signum, void (*handler)(int));
 void main_loop(void);
