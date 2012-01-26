@@ -127,7 +127,8 @@ void bug(const char *function, const char *fmt, ...)
 {
 	va_list ap;
 
-	ui_end();
+	if (!child_controls_terminal && editor_status != EDITOR_INITIALIZING)
+		ui_end();
 
 	fprintf(stderr, "\n *** BUG *** %s: ", function);
 	va_start(ap, fmt);

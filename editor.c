@@ -261,9 +261,6 @@ void ui_end(void)
 {
 	struct term_color color = { -1, -1, 0 };
 
-	if (editor_status == EDITOR_INITIALIZING)
-		return;
-
 	buf_set_color(&color);
 	buf_move_cursor(0, screen_h - 1);
 	buf_show_cursor();
