@@ -65,16 +65,8 @@ static int set_encoding(struct file_decoder *dec, const char *encoding);
 
 static int detect(struct file_decoder *dec, const unsigned char *line, ssize_t len)
 {
-	const unsigned long *lline = (const unsigned long *)line;
-	unsigned long mask = 0x8080808080808080UL;
-	ssize_t i, llen = len / sizeof(long);
+	ssize_t i = 0;
 
-	for (i = 0; i < llen; i++) {
-		if (lline[i] & mask)
-			break;
-	}
-
-	i *= sizeof(long);
 	for (; i < len; i++) {
 		if (line[i] >= 0x80) {
 			unsigned int idx = i;
