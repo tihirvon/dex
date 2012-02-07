@@ -21,16 +21,17 @@ void move_to_preferred_x(void)
 	fill_line_ref(&view->cursor, &lr);
 
 	if (buffer->options.emulate_tab && view->preferred_x < lr.size) {
-		while (i < view->preferred_x && lr.line[i] == ' ')
-			i++;
+		int iw = buffer->options.indent_width;
+		int ilevel = view->preferred_x / iw;
 
-		x = i;
-		if (i == view->preferred_x) {
-			// force cursor to beginning of the indentation level
-			int iw = buffer->options.indent_width;
-			view->cursor.offset += i / iw * iw;
-			return;
+		for (i = 0; i < lr.size && lr.line[i] == ' '; i++) {
+			if (i + 1 == (ilevel + 1) * iw) {
+				// force cursor to beginning of the indentation level
+				view->cursor.offset += ilevel * iw;
+				return;
+			}
 		}
+		i = 0;
 	}
 
 	while (x < view->preferred_x && i < lr.size) {
