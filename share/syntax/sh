@@ -134,6 +134,7 @@ state dq string
 	char '"' args string
 	char \\ dqescape
 	char \$ dqvariable
+	char '`' dqcmd
 	eat dq
 
 state dqescape special
@@ -163,6 +164,10 @@ state dqvarbracename variable
 state dqvarbraceend code
 	char '}' dq variable
 	noeat dq
+
+state dqcmd special
+	char '`' dq special
+	eat dqcmd
 
 state esc special
 	eat args special
