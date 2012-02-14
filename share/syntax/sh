@@ -146,6 +146,7 @@ state dqvariable variable
 	char '*@#?$!0-9-' dq variable
 	char a-zA-Z_ dqvarname
 	char '{' dqvarbrace
+	char '(' dqparen
 	noeat dq
 
 state dqvarname variable
@@ -164,6 +165,12 @@ state dqvarbracename variable
 state dqvarbraceend code
 	char '}' dq variable
 	noeat dq
+
+state dqparen special
+	char ')' dq special
+	# NOTE: recursion not supported
+	# FIXME: use subsyntax to hl quotes etc.
+	eat dqparen
 
 state dqcmd special
 	char '`' dq special
