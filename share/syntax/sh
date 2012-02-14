@@ -132,9 +132,13 @@ state sq string
 
 state dq string
 	char '"' args string
-	str '\\' dq special
-	str '\"' dq special
+	char \\ dqescape
 	char \$ dqvariable
+	eat dq
+
+state dqescape special
+	char '"$\`'"\n" dq special
+	recolor string 1
 	eat dq
 
 state dqvariable variable
