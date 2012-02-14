@@ -35,8 +35,13 @@ static void insert_paste(void)
 
 static void cmdline_insert_paste(void)
 {
-	unsigned int size;
+	unsigned int size, i;
 	char *text = term_read_paste(&size);
+
+	for (i = 0; i < size; i++) {
+		if (text[i] == '\n')
+			text[i] = ' ';
+	}
 	cmdline_insert_bytes(text, size);
 	free(text);
 }
