@@ -409,6 +409,8 @@ void syntax_changed(void)
 		s->ptrs[0] = syn->states.ptrs[0];
 		s->count = 1;
 	}
+
+	mark_all_lines_changed();
 }
 
 static void restore_cursor_from_history(void)
