@@ -4,6 +4,7 @@ ft -i sh sh bash
 ft -i python python
 ft -i perl perl
 ft -i php php
+ft -i awk awk gawk nawk
 
 # first line
 ft -c xml '^<\?xml(\s|$)'
@@ -25,6 +26,7 @@ ft -f make '[mM]akefile(\.[^/]*)?$'
 ft -f make '/Make\.[^/]*$'
 
 # extensions
+ft awk awk
 ft c c h
 ft c cpp hpp cc hh C H cxx hxx c++ moc inl pro
 ft css css
