@@ -165,6 +165,7 @@ config	:=			\
 	# end
 
 syntax	:=			\
+	syntax/awk		\
 	syntax/c		\
 	syntax/config		\
 	syntax/css		\
