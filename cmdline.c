@@ -74,6 +74,12 @@ void cmdline_delete_bol(void)
 	cmdline_pos = 0;
 }
 
+void cmdline_delete_eol(void)
+{
+	cmdline.buffer[cmdline_pos] = 0;
+	cmdline.len = cmdline_pos;
+}
+
 void cmdline_prev_char(void)
 {
 	if (cmdline_pos)

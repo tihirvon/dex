@@ -769,6 +769,8 @@ Delete.
 Go to end of command line.
 @li ^F
 Move right.
+@li ^K
+Delete to end of command line.
 @li ^U
 Delete to beginning of command line.
 @li ^V

@@ -61,6 +61,9 @@ static int common_key(struct ptr_array *history, enum term_key_type type, unsign
 		case CTRL('D'):
 			cmdline_delete();
 			break;
+		case CTRL('K'):
+			cmdline_delete_eol();
+			break;
 		case CTRL('H'):
 		case 0x7f: // ^?
 			if (cmdline.len) {
