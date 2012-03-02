@@ -37,7 +37,7 @@ ft java java
 ft javascript js
 ft make mk mak
 ft perl perl pl
-ft php php php3 php4
+ft php php php3 php4 inc
 ft python py
 ft sh sh bash
 ft sql sql
