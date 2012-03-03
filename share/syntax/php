@@ -16,6 +16,35 @@ state strvar
 	char \} END strvar
 	eat strvar
 
+# common escapes inside double quotes and heredocs
+syntax .php-esc
+
+state special
+	char x hex
+	# 1-3 octal digits, \777 (0x1ff) overflows to 0xff
+	char 0-7 oct1
+	recolor string 1
+	eat END
+
+state hex special
+	char 0-9a-fA-F hex2
+	# "\xq" is not an error, it's literal
+	recolor string 2
+	noeat END
+
+state hex2 special
+	char 0-9a-fA-F END special
+	# single hex digit is ok
+	noeat END
+
+state oct1 special
+	char 0-7 oct2
+	noeat END
+
+state oct2 special
+	char 0-7 END special
+	noeat END
+
 # common to <<<END and <<<"END"
 syntax .php-heredoc-common
 
@@ -25,9 +54,15 @@ state bol string
 
 state string
 	char "\n" bol
+	char \\ esc
 	char \$ .php-strvar:string strvar
 	str '{$' .php-strcurly:string strvar
 	eat string
+
+state esc special
+	# NOTE: \" is not special unlike in double quotes
+	char 'nrtvf\$' string special
+	noeat .php-esc:string
 
 state match special
 	char "\n" END
@@ -119,27 +154,7 @@ state dq string
 
 state dqesc special
 	char 'nrtvf\$"' dq special
-	char x dqhex
-	char 0-7 dqoct1
-	recolor string 1
-	eat dq
-
-state dqhex special
-	char 0-9a-fA-F dqhex2
-	recolor string 2
-	noeat dq
-
-state dqhex2 special
-	char 0-9a-fA-F dq special
-	noeat dq
-
-state dqoct1 special
-	char 0-7 dqoct2
-	noeat dq
-
-state dqoct2 special
-	char 0-7 dq special
-	noeat dq
+	noeat .php-esc:dq
 
 state sq string
 	char \' code string
