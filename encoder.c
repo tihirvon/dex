@@ -83,7 +83,7 @@ static ssize_t encode(struct file_encoder *enc, const unsigned char *buf, ssize_
 			case EILSEQ:
 			case EINVAL:
 				// can't convert this character
-				u_buf_get_char(ib, ic, &idx);
+				u_get_char(ib, ic, &idx);
 				ic -= idx;
 				ob[0] = '?';
 				oc--;

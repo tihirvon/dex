@@ -29,7 +29,7 @@ void cmdline_delete(void)
 
 	if (term_utf8) {
 		unsigned int pos = cmdline_pos;
-		u_buf_get_char(cmdline.buffer, cmdline.len, &pos);
+		u_get_char(cmdline.buffer, cmdline.len, &pos);
 		len = pos - cmdline_pos;
 	}
 	gbuf_remove(&cmdline, cmdline_pos, len);
@@ -89,7 +89,7 @@ void cmdline_prev_char(void)
 void cmdline_next_char(void)
 {
 	if (cmdline_pos < cmdline.len)
-		u_buf_get_char(cmdline.buffer, cmdline.len, &cmdline_pos);
+		u_get_char(cmdline.buffer, cmdline.len, &cmdline_pos);
 }
 
 void cmdline_clear(void)

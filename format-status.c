@@ -31,7 +31,7 @@ static void add_status_str(struct formatter *f, const char *str)
 	add_separator(f);
 	if (term_utf8) {
 		while (f->pos < f->size && str[idx]) {
-			unsigned int u = u_buf_get_char(str, idx + 4, &idx);
+			unsigned int u = u_get_char(str, idx + 4, &idx);
 			u_set_char(f->buf, &f->pos, u);
 		}
 	} else {

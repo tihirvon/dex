@@ -74,7 +74,7 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 	unsigned int u;
 
 	if (term_utf8) {
-		u = u_buf_get_char(buf, size, &i);
+		u = u_get_char(buf, size, &i);
 	} else {
 		u = buf[i++];
 	}
@@ -109,7 +109,7 @@ static void print_tab_title(struct view *v, int idx)
 	if (term_utf8) {
 		unsigned int si = 0;
 		while (filename[si])
-			buf_put_char(u_buf_get_char(filename, si + 4, &si));
+			buf_put_char(u_get_char(filename, si + 4, &si));
 	} else {
 		unsigned int si = 0;
 		while (filename[si])
@@ -193,7 +193,7 @@ void update_status_line(const char *misc_status)
 static int get_char_width(unsigned int *idx)
 {
 	if (term_utf8) {
-		return u_char_width(u_buf_get_char(cmdline.buffer, cmdline.len, idx));
+		return u_char_width(u_get_char(cmdline.buffer, cmdline.len, idx));
 	} else {
 		int i = *idx;
 		unsigned char ch = cmdline.buffer[i++];

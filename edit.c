@@ -674,7 +674,7 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 			word_width++;
 			i++;
 		} else {
-			word_width += u_char_width(u_buf_get_char(word, len, &i));
+			word_width += u_char_width(u_get_char(word, len, &i));
 		}
 	}
 
@@ -815,7 +815,7 @@ void change_case(int mode, int move_after)
 	src = buffer_get_bytes(text_len);
 	i = 0;
 	while (i < text_len) {
-		unsigned int u = u_buf_get_char(src, text_len, &i);
+		unsigned int u = u_get_char(src, text_len, &i);
 		unsigned int idx = 0;
 		char buf[4];
 

@@ -49,7 +49,7 @@ unsigned int u_str_width(const unsigned char *str, unsigned int size)
 	unsigned int idx = 0, w = 0;
 
 	while (idx < size)
-		w += u_char_width(u_buf_get_char(str, size, &idx));
+		w += u_char_width(u_get_char(str, size, &idx));
 	return w;
 }
 
@@ -101,7 +101,7 @@ invalid:
 	return -u;
 }
 
-unsigned int u_buf_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
+unsigned int u_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
 {
 	unsigned int i = *idx;
 	unsigned int u = buf[i];
@@ -241,7 +241,7 @@ unsigned int u_skip_chars(const char *str, int *width)
 	unsigned int idx = 0;
 
 	while (w > 0) {
-		unsigned int u = u_buf_get_char(str, idx + 4, &idx);
+		unsigned int u = u_get_char(str, idx + 4, &idx);
 		w -= u_char_width(u);
 	}
 	/* add 1..3 if skipped 'too much' (the last char was double width or invalid (<xx>)) */

@@ -9,7 +9,7 @@ static int filename_width(const char *filename)
 
 	if (term_utf8) {
 		while (filename[i])
-			w += u_char_width(u_buf_get_char(filename, i + 4, &i));
+			w += u_char_width(u_get_char(filename, i + 4, &i));
 	} else {
 		// latin1 is subset of unicode
 		while (filename[i])
