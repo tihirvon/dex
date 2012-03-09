@@ -351,38 +351,51 @@ static int is_non_text(unsigned int u)
 
 static int whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
 {
-	const char *line = info->line;
 	int flags = buffer->options.ws_error;
 
-	if (i < info->indent_size) {
-		if (u == '\t' && flags & WSE_TAB_INDENT)
-			return 1;
-		if (u == ' ') {
-			int count = 0, pos = i;
-
-			while (pos > 0 && line[pos - 1] == ' ')
-				pos--;
-			while (pos < info->size && line[pos] == ' ') {
-				pos++;
-				count++;
-			}
-
-			if (count < buffer->options.tab_width && pos < info->size && line[pos] != '\t') {
-				if (flags & WSE_SPACE_ALIGN)
-					return 1;
-			} else {
-				if (flags & WSE_SPACE_INDENT)
-					return 1;
-			}
-		}
-	} else if (u == '\t' && flags & WSE_TAB_AFTER_INDENT) {
-		return 1;
-	}
-
 	if (i >= info->trailing_ws_offset && flags & WSE_TRAILING) {
-		/* don't highlight trailing ws if cursor is at or after the ws */
+		// Trailing whitespace.
 		if (current_line != view->cy || view->cx < info->trailing_ws_offset)
 			return 1;
+		// Cursor is on this line and on the whitespace or at eol. It would
+		// be annoying if the line you are editing displays trailing
+		// whitespace as an error.
+	}
+
+	if (u == '\t') {
+		if (i < info->indent_size) {
+			// in indentation
+			if (flags & WSE_TAB_INDENT)
+				return 1;
+		} else {
+			if (flags & WSE_TAB_AFTER_INDENT)
+				return 1;
+		}
+	} else if (i < info->indent_size) {
+		// space in indentation
+		const char *line = info->line;
+		int count = 0, pos = i;
+
+		while (pos > 0 && line[pos - 1] == ' ')
+			pos--;
+		while (pos < info->size && line[pos] == ' ') {
+			pos++;
+			count++;
+		}
+
+		if (count >= buffer->options.tab_width) {
+			// spaces used instead of tab
+			if (flags & WSE_SPACE_INDENT)
+				return 1;
+		} else if (pos < info->size && line[pos] == '\t') {
+			// space before tab
+			if (flags & WSE_SPACE_INDENT)
+				return 1;
+		} else {
+			// less than tab width spaces at end of indentation
+			if (flags & WSE_SPACE_ALIGN)
+				return 1;
+		}
 	}
 	return 0;
 }
