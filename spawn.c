@@ -10,55 +10,38 @@
 
 static PTR_ARRAY(compilers);
 
-static char *format_msg(const char *msg)
+static void handle_error_msg(struct compiler *c, char *str)
 {
-	int i, len = strlen(msg);
-	char *buf = xnew(char, len + 1);
-
-	for (i = 0; i <= len; i++)
-		buf[i] = msg[i] == '\t' ? ' ' : msg[i];
-	return buf;
-}
-
-static void handle_error_msg(struct compiler *c, char *str, unsigned int flags)
-{
-	const struct error_format *p;
-	char *nl = strchr(str, '\n');
 	int i, len;
 
-	if (nl)
-		*nl = 0;
-	len = strlen(str);
-	if (flags & SPAWN_PRINT_ERRORS)
-		fprintf(stderr, "%s\n", str);
-
-	if (len == 0)
-		return;
-
 	for (i = 0; str[i]; i++) {
+		if (str[i] == '\n') {
+			str[i] = 0;
+			break;
+		}
 		if (str[i] == '\t')
 			str[i] = ' ';
 	}
-	for (i = 0; ; i++) {
-		if (i == c->error_formats.count) {
-			char *s = format_msg(str);
-			add_message(new_message(s));
-			free(s);
-			return;
-		}
-		p = c->error_formats.ptrs[i];
-		if (regexp_match(p->pattern, str, len))
-			break;
-	}
+	len = i;
+	if (len == 0)
+		return;
 
-	if (!p->ignore) {
-		struct message *m = new_message(regexp_matches[p->msg_idx]);
-		m->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
-		m->u.location.line = p->line_idx < 0 ? 0 : atoi(regexp_matches[p->line_idx]);
-		m->u.location.column= p->column_idx < 0 ? 0 : atoi(regexp_matches[p->column_idx]);
-		add_message(m);
+	for (i = 0; i < c->error_formats.count; i++) {
+		const struct error_format *p = c->error_formats.ptrs[i];
+
+		if (!regexp_match(p->pattern, str, len))
+			continue;
+		if (!p->ignore) {
+			struct message *m = new_message(regexp_matches[p->msg_idx]);
+			m->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
+			m->u.location.line = p->line_idx < 0 ? 0 : atoi(regexp_matches[p->line_idx]);
+			m->u.location.column = p->column_idx < 0 ? 0 : atoi(regexp_matches[p->column_idx]);
+			add_message(m);
+		}
+		free_regexp_matches();
+		return;
 	}
-	free_regexp_matches();
+	add_message(new_message(str));
 }
 
 static void read_errors(struct compiler *c, int fd, unsigned int flags)
@@ -71,8 +54,11 @@ static void read_errors(struct compiler *c, int fd, unsigned int flags)
 		return;
 	}
 
-	while (fgets(line, sizeof(line), f))
-		handle_error_msg(c, line, flags);
+	while (fgets(line, sizeof(line), f)) {
+		if (flags & SPAWN_PRINT_ERRORS)
+			fputs(line, stderr);
+		handle_error_msg(c, line);
+	}
 	fclose(f);
 }
 
