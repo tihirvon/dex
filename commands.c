@@ -1434,7 +1434,7 @@ const struct command commands[] = {
 	{ "erase",		"",	0,  0, cmd_erase },
 	{ "erase-bol",		"",	0,  0, cmd_erase_bol },
 	{ "erase-word",		"s",	0,  0, cmd_erase_word },
-	{ "errorfmt",		"i",	2, -1, cmd_errorfmt },
+	{ "errorfmt",		"i",	2,  6, cmd_errorfmt },
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
 	{ "ft",			"-cfi",	2, -1, cmd_ft },
