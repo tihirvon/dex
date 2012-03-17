@@ -91,6 +91,7 @@ OBJECTS	:= 			\
 	color.o			\
 	commands.o		\
 	common.o		\
+	compiler.o		\
 	completion.o		\
 	config.o		\
 	ctags.o			\
