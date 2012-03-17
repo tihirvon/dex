@@ -131,12 +131,26 @@ static void filter(int rfd, int wfd, struct filter_data *fdata)
 	}
 }
 
+static int handle_child_error(int pid)
+{
+	int ret = wait_child(pid);
+
+	if (ret < 0) {
+		error_msg("waitpid: %s", strerror(errno));
+	} else if (ret >= 256) {
+		error_msg("Child received signal %d", ret >> 8);
+	} else if (ret) {
+		error_msg("Child returned %d", ret);
+	}
+	return ret;
+}
+
 int spawn_filter(char **argv, struct filter_data *data)
 {
 	int p0[2] = { -1, -1 };
 	int p1[2] = { -1, -1 };
 	int dev_null = -1;
-	int fd[3], pid, ret;
+	int fd[3], pid;
 
 	data->out = NULL;
 	data->out_len = 0;
@@ -173,19 +187,8 @@ int spawn_filter(char **argv, struct filter_data *data)
 	close(p1[0]);
 	close(p0[1]);
 
-	ret = wait_child(pid);
-	if (ret < 0) {
-		error_msg("waitpid: %s", strerror(errno));
+	if (handle_child_error(pid))
 		return -1;
-	}
-	if (ret >= 256) {
-		error_msg("Child received signal %d", ret >> 8);
-		return -1;
-	}
-	if (ret) {
-		error_msg("Child returned %d", ret);
-		return -1;
-	}
 	return 0;
 error:
 	close(p0[0]);
@@ -251,20 +254,11 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		close(p[1]);
 		flags = 0; // don't prompt
 	} else {
-		int ret;
-
 		// Must close write end of the pipe before read_errors() or
 		// the read end never gets EOF!
 		close(p[1]);
 		read_errors(c, p[0], flags);
-		ret = wait_child(pid);
-		if (ret < 0) {
-			error_msg("waitpid: %s", strerror(errno));
-		} else if (ret >= 256) {
-			error_msg("Child received signal %d", ret >> 8);
-		} else if (ret) {
-			error_msg("Child returned %d", ret);
-		}
+		handle_child_error(pid);
 	}
 	if (!quiet) {
 		term_raw();
@@ -309,14 +303,7 @@ void spawn(char **args, int fd[3], int prompt)
 		error_msg("Error: %s", strerror(errno));
 		prompt = 0;
 	} else {
-		int ret = wait_child(pid);
-		if (ret < 0) {
-			error_msg("waitpid: %s", strerror(errno));
-		} else if (ret >= 256) {
-			error_msg("Child received signal %d", ret >> 8);
-		} else if (ret) {
-			error_msg("Child returned %d", ret);
-		}
+		handle_child_error(pid);
 	}
 	if (!quiet) {
 		term_raw();
