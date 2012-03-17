@@ -177,13 +177,12 @@ static int read_blocks(struct buffer *b, int fd)
 	return rc;
 }
 
-int load_buffer(struct buffer *b, int must_exist)
+int load_buffer(struct buffer *b, int must_exist, const char *filename)
 {
-	const char *filename = b->abs_filename;
 	int fd;
 
 	if (options.lock_files) {
-		if (lock_file(filename)) {
+		if (lock_file(b->abs_filename)) {
 			b->ro = 1;
 		} else {
 			b->locked = 1;

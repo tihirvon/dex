@@ -364,7 +364,10 @@ struct view *open_buffer(const char *filename, int must_exist, const char *encod
 	b->abs_filename = absolute;
 	update_short_filename(b);
 
-	if (load_buffer(b, must_exist)) {
+	// /proc/$PID/fd/ contains symbolic links to files that have been opened
+	// by process $PID. Some of the files may have been deleted but can still
+	// be opened using the symbolic link but not by using the absolute path.
+	if (load_buffer(b, must_exist, filename)) {
 		free_buffer(b);
 		return NULL;
 	}
