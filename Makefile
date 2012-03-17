@@ -105,6 +105,7 @@ OBJECTS	:= 			\
 	file-history.o		\
 	file-option.o		\
 	filetype.o		\
+	fork.o			\
 	format-status.o		\
 	frame.o			\
 	gbuf.o			\
