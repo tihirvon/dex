@@ -19,7 +19,7 @@
 struct buffer *buffer;
 struct view *prev_view;
 
-unsigned int update_flags;
+int everything_changed;
 
 /*
  * Mark line range min...max (inclusive) "changed". These lines will be

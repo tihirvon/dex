@@ -115,14 +115,12 @@ struct view {
 	unsigned int saved_cursor_offset;
 };
 
-#define UPDATE_ALL_WINDOWS	(1 << 3)
-
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
 extern struct buffer *buffer;
 extern struct view *prev_view;
 
-extern unsigned int update_flags;
+extern int everything_changed;
 
 static inline void mark_all_lines_changed(void)
 {
@@ -132,7 +130,7 @@ static inline void mark_all_lines_changed(void)
 
 static inline void mark_everything_changed(void)
 {
-	update_flags |= UPDATE_ALL_WINDOWS;
+	everything_changed = 1;
 }
 
 static inline int buffer_modified(struct buffer *b)

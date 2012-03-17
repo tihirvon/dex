@@ -152,7 +152,6 @@ static void end_update(void)
 	buf_show_cursor();
 	buf_flush();
 
-	update_flags = 0;
 	buffer->changed_line_min = INT_MAX;
 	buffer->changed_line_max = -1;
 	for (i = 0; i < windows.count; i++)
@@ -351,12 +350,13 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	keypress(type, key);
 	sanity_check();
 
-	if (update_flags & UPDATE_ALL_WINDOWS) {
+	if (everything_changed) {
 		start_update();
 		update_term_title();
 		update_all_windows();
 		update_command_line();
 		end_update();
+		everything_changed = 0;
 		return;
 	}
 
