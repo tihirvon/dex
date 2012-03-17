@@ -1,5 +1,6 @@
 #include "command.h"
 #include "editor.h"
+#include "error.h"
 #include "gbuf.h"
 #include "ptr-array.h"
 #include "env.h"

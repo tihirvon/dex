@@ -1,6 +1,6 @@
 #include "change.h"
-#include "editor.h"
 #include "buffer.h"
+#include "error.h"
 #include "block.h"
 
 struct change {

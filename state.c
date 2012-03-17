@@ -5,6 +5,7 @@
 #include "editor.h"
 #include "parse-args.h"
 #include "config.h"
+#include "error.h"
 #include "common.h"
 
 static void bitmap_set(unsigned char *bitmap, unsigned int idx)

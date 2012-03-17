@@ -1,8 +1,8 @@
 #include "history.h"
 #include "common.h"
-#include "editor.h"
 #include "wbuf.h"
 #include "ptr-array.h"
+#include "error.h"
 
 PTR_ARRAY(search_history);
 PTR_ARRAY(command_history);

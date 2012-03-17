@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "editor.h"
+#include "error.h"
 
 static PTR_ARRAY(compilers);
 

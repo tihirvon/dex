@@ -1,6 +1,6 @@
 #include "config.h"
-#include "editor.h"
 #include "command.h"
+#include "error.h"
 #include "gbuf.h"
 
 const char *config_file;

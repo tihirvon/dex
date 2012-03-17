@@ -2,7 +2,7 @@
 #include "state.h"
 #include "color.h"
 #include "ptr-array.h"
-#include "editor.h"
+#include "error.h"
 #include "common.h"
 
 static PTR_ARRAY(syntaxes);

@@ -2,6 +2,7 @@
 #include "buffer.h"
 #include "editor.h"
 #include "change.h"
+#include "error.h"
 #include "edit.h"
 #include "gbuf.h"
 #include "regexp.h"

@@ -1,6 +1,6 @@
 #include "bind.h"
 #include "common.h"
-#include "editor.h"
+#include "error.h"
 #include "command.h"
 #include "ptr-array.h"
 

@@ -3,7 +3,7 @@
 #include "ptr-array.h"
 #include "search.h"
 #include "move.h"
-#include "editor.h"
+#include "error.h"
 
 struct file_location {
 	char *filename;

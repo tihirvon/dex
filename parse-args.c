@@ -1,6 +1,6 @@
 #include "parse-args.h"
 #include "common.h"
-#include "editor.h"
+#include "error.h"
 
 /*
  * Flags and first "--" are removed.

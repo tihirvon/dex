@@ -10,6 +10,7 @@
 #include "history.h"
 #include "file-history.h"
 #include "search.h"
+#include "error.h"
 
 #include <locale.h>
 #include <langinfo.h>

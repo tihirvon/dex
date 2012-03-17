@@ -2,6 +2,7 @@
 #include "buffer.h"
 #include "window.h"
 #include "editor.h"
+#include "error.h"
 #include "change.h"
 #include "block.h"
 #include "move.h"

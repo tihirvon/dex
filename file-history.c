@@ -3,6 +3,7 @@
 #include "editor.h"
 #include "wbuf.h"
 #include "ptr-array.h"
+#include "error.h"
 
 struct history_entry {
 	int row, col;

@@ -102,6 +102,7 @@ OBJECTS	:= 			\
 	encoder.o		\
 	encoding.o		\
 	env.o			\
+	error.o			\
 	file-history.o		\
 	file-option.o		\
 	filetype.o		\

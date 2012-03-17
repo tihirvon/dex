@@ -1,5 +1,5 @@
 #include "command.h"
-#include "editor.h"
+#include "error.h"
 #include "alias.h"
 #include "parse-args.h"
 #include "change.h"

@@ -10,6 +10,7 @@
 #include "command.h"
 #include "completion.h"
 #include "input-special.h"
+#include "error.h"
 
 static int search_pos = -1;
 static char *search_text;

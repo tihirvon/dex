@@ -1,6 +1,7 @@
 #include "alias.h"
 #include "ptr-array.h"
 #include "common.h"
+#include "error.h"
 #include "editor.h"
 #include "completion.h"
 #include "command.h"

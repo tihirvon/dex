@@ -7,6 +7,7 @@
 #include "decoder.h"
 #include "encoder.h"
 #include "encoding.h"
+#include "error.h"
 
 static void update_stat(int fd, struct buffer *b)
 {
