@@ -279,12 +279,10 @@ void keypress(enum term_key_type type, unsigned int key)
 		} else {
 			command_mode_key(type, key);
 		}
-		mark_command_line_changed();
 		break;
 	case INPUT_SEARCH:
 		if (!common_key(&search_history, type, key))
 			search_mode_key(type, key);
-		mark_command_line_changed();
 		break;
 	}
 }

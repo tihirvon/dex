@@ -1,7 +1,6 @@
 #include "error.h"
 #include "editor.h"
 #include "config.h"
-#include "buffer.h"
 
 int msg_is_error;
 char error_buf[256];
@@ -32,7 +31,6 @@ void error_msg(const char *format, ...)
 	va_end(ap);
 
 	msg_is_error = 1;
-	mark_command_line_changed();
 	nr_errors++;
 
 	if (editor_status == EDITOR_INITIALIZING)
@@ -47,5 +45,4 @@ void info_msg(const char *format, ...)
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
 	msg_is_error = 0;
-	mark_command_line_changed();
 }

@@ -387,8 +387,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	if (window->update_tabbar)
 		update_term_title();
 	update_windows();
-	if (update_flags & UPDATE_COMMAND_LINE)
-		update_command_line();
+	update_command_line();
 	end_update();
 }
 
@@ -404,7 +403,6 @@ void main_loop(void)
 				/* clear possible error message */
 				if (error_buf[0]) {
 					clear_error();
-					mark_command_line_changed();
 				}
 				handle_key(type, key);
 			}

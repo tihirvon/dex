@@ -126,8 +126,6 @@ static void cmd_close(const char *pf, char **args)
 static void cmd_command(const char *pf, char **args)
 {
 	input_mode = INPUT_COMMAND;
-	mark_command_line_changed();
-
 	if (args[0])
 		cmdline_set_text(args[0]);
 }
@@ -995,7 +993,6 @@ static void cmd_search(const char *pf, char **args)
 	} else {
 		input_mode = INPUT_SEARCH;
 		search_set_direction(dir);
-		mark_command_line_changed();
 	}
 }
 

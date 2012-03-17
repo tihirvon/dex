@@ -115,7 +115,6 @@ struct view {
 	unsigned int saved_cursor_offset;
 };
 
-#define UPDATE_COMMAND_LINE	(1 << 2)
 #define UPDATE_ALL_WINDOWS	(1 << 3)
 
 // buffer = view->buffer = window->view->buffer
@@ -124,11 +123,6 @@ extern struct buffer *buffer;
 extern struct view *prev_view;
 
 extern unsigned int update_flags;
-
-static inline void mark_command_line_changed(void)
-{
-	update_flags |= UPDATE_COMMAND_LINE;
-}
 
 static inline void mark_all_lines_changed(void)
 {
