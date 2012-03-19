@@ -210,16 +210,21 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	int quiet = flags & SPAWN_QUIET;
 	int pid, dev_null, p[2], fd[3];
 
-	dev_null = open_dev_null(O_WRONLY);
-	if (dev_null < 0)
+	fd[0] = open_dev_null(O_RDONLY);
+	if (fd[0] < 0)
 		return;
+	dev_null = open_dev_null(O_WRONLY);
+	if (dev_null < 0) {
+		close(fd[0]);
+		return;
+	}
 	if (pipe_close_on_exec(p)) {
 		error_msg("pipe: %s", strerror(errno));
 		close(dev_null);
+		close(fd[0]);
 		return;
 	}
 
-	fd[0] = dev_null;
 	if (read_stdout) {
 		fd[1] = p[1];
 		fd[2] = quiet ? dev_null : 2;
@@ -254,23 +259,30 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	}
 	close(p[0]);
 	close(dev_null);
+	close(fd[0]);
 }
 
 void spawn(char **args, int fd[3], int prompt)
 {
-	int i, pid, quiet, redir_count = 0;
-	int dev_null = -1;
+	int pid, quiet, redir_count = 0;
+	int dev_null = open_dev_null(O_WRONLY);
 
-	for (i = 0; i < 3; i++) {
-		if (fd[i] >= 0)
-			continue;
-
-		if (dev_null < 0) {
-			dev_null = open_dev_null(O_WRONLY);
-			if (dev_null < 0)
-				return;
+	if (dev_null < 0)
+		return;
+	if (fd[0] < 0) {
+		fd[0] = open_dev_null(O_RDONLY);
+		if (fd[0] < 0) {
+			close(dev_null);
+			return;
 		}
-		fd[i] = dev_null;
+		redir_count++;
+	}
+	if (fd[1] < 0) {
+		fd[1] = dev_null;
+		redir_count++;
+	}
+	if (fd[2] < 0) {
+		fd[2] = dev_null;
 		redir_count++;
 	}
 	quiet = redir_count == 3;
