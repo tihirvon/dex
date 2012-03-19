@@ -132,6 +132,17 @@ static void filter(int rfd, int wfd, struct filter_data *fdata)
 	}
 }
 
+static int open_dev_null(int flags)
+{
+	int fd = open("/dev/null", flags);
+	if (fd < 0) {
+		error_msg("Error opening /dev/null: %s", strerror(errno));
+	} else {
+		close_on_exec(fd);
+	}
+	return fd;
+}
+
 static int handle_child_error(int pid)
 {
 	int ret = wait_child(pid);
@@ -160,12 +171,9 @@ int spawn_filter(char **argv, struct filter_data *data)
 		error_msg("pipe: %s", strerror(errno));
 		goto error;
 	}
-	dev_null = open("/dev/null", O_WRONLY);
-	if (dev_null < 0) {
-		error_msg("Error opening /dev/null: %s", strerror(errno));
+	dev_null = open_dev_null(O_WRONLY);
+	if (dev_null < 0)
 		goto error;
-	}
-	close_on_exec(dev_null);
 
 	fd[0] = p0[0];
 	fd[1] = p1[1];
@@ -202,11 +210,9 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	int quiet = flags & SPAWN_QUIET;
 	int pid, dev_null, p[2], fd[3];
 
-	dev_null = open("/dev/null", O_WRONLY);
-	if (dev_null < 0) {
-		error_msg("Error opening /dev/null: %s", strerror(errno));
+	dev_null = open_dev_null(O_WRONLY);
+	if (dev_null < 0)
 		return;
-	}
 	if (pipe_close_on_exec(p)) {
 		error_msg("pipe: %s", strerror(errno));
 		close(dev_null);
@@ -227,7 +233,6 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		ui_end();
 	}
 
-	close_on_exec(dev_null);
 	pid = fork_exec(args, fd);
 	if (pid < 0) {
 		error_msg("Error: %s", strerror(errno));
@@ -261,12 +266,9 @@ void spawn(char **args, int fd[3], int prompt)
 			continue;
 
 		if (dev_null < 0) {
-			dev_null = open("/dev/null", O_WRONLY);
-			if (dev_null < 0) {
-				error_msg("Error opening /dev/null: %s", strerror(errno));
+			dev_null = open_dev_null(O_WRONLY);
+			if (dev_null < 0)
 				return;
-			}
-			close_on_exec(dev_null);
 		}
 		fd[i] = dev_null;
 		redir_count++;
