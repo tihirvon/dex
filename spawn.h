@@ -6,12 +6,8 @@
 /* Errors are read from stderr by default. */
 #define SPAWN_READ_STDOUT	(1 << 0)
 
-/* Internal to spawn_compile(). */
-#define SPAWN_PRINT_ERRORS	(1 << 1)
-
 /* Redirect to /dev/null? */
-#define SPAWN_REDIRECT_STDOUT	(1 << 2)
-#define SPAWN_REDIRECT_STDERR	(1 << 3)
+#define SPAWN_QUIET		(1 << 2)
 
 /* Press any key to continue */
 #define SPAWN_PROMPT		(1 << 4)

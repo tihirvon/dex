@@ -42,7 +42,7 @@ static void handle_error_msg(struct compiler *c, char *str)
 	add_message(new_message(str));
 }
 
-static void read_errors(struct compiler *c, int fd, unsigned int flags)
+static void read_errors(struct compiler *c, int fd, int quiet)
 {
 	FILE *f = fdopen(fd, "r");
 	char line[4096];
@@ -53,7 +53,7 @@ static void read_errors(struct compiler *c, int fd, unsigned int flags)
 	}
 
 	while (fgets(line, sizeof(line), f)) {
-		if (flags & SPAWN_PRINT_ERRORS)
+		if (!quiet)
 			fputs(line, stderr);
 		handle_error_msg(c, line);
 	}
@@ -202,9 +202,10 @@ error:
 
 void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 {
-	unsigned int redir = SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
-	int pid, quiet;
-	int dev_null, p[2], fd[3];
+	int read_stdout = flags & SPAWN_READ_STDOUT;
+	int prompt = flags & SPAWN_PROMPT;
+	int quiet = flags & SPAWN_QUIET;
+	int pid, dev_null, p[2], fd[3];
 
 	dev_null = open("/dev/null", O_WRONLY);
 	if (dev_null < 0) {
@@ -218,29 +219,14 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	}
 
 	fd[0] = dev_null;
-	if (flags & SPAWN_READ_STDOUT) {
+	if (read_stdout) {
 		fd[1] = p[1];
-		fd[2] = 2;
+		fd[2] = quiet ? dev_null : 2;
 	} else {
-		fd[1] = 1;
+		fd[1] = quiet ? dev_null : 1;
 		fd[2] = p[1];
 	}
 
-	flags |= SPAWN_PRINT_ERRORS;
-	if (flags & SPAWN_REDIRECT_STDOUT) {
-		if (fd[1] == p[1])
-			flags &= ~SPAWN_PRINT_ERRORS;
-		else
-			fd[1] = dev_null;
-	}
-	if (flags & SPAWN_REDIRECT_STDERR) {
-		if (fd[2] == p[1])
-			flags &= ~SPAWN_PRINT_ERRORS;
-		else
-			fd[2] = dev_null;
-	}
-
-	quiet = !(flags & SPAWN_PRINT_ERRORS) && (flags & redir) == redir;
 	if (!quiet) {
 		child_controls_terminal = 1;
 		ui_end();
@@ -253,17 +239,17 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	if (pid < 0) {
 		error_msg("Error: %s", strerror(errno));
 		close(p[1]);
-		flags = 0; // don't prompt
+		prompt = 0;
 	} else {
 		// Must close write end of the pipe before read_errors() or
 		// the read end never gets EOF!
 		close(p[1]);
-		read_errors(c, p[0], flags);
+		read_errors(c, p[0], quiet);
 		handle_child_error(pid);
 	}
 	if (!quiet) {
 		term_raw();
-		if (flags & SPAWN_PROMPT)
+		if (prompt)
 			any_key();
 		resize();
 		child_controls_terminal = 0;

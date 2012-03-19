@@ -145,7 +145,7 @@ static void cmd_compile(const char *pf, char **args)
 			flags |= SPAWN_PROMPT;
 			break;
 		case 's':
-			flags |= SPAWN_REDIRECT_STDOUT | SPAWN_REDIRECT_STDERR;
+			flags |= SPAWN_QUIET;
 			break;
 		}
 		pf++;
