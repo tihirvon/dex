@@ -68,16 +68,23 @@ out:
 	exit(42);
 }
 
+int pipe_close_on_exec(int fd[2])
+{
+	int ret = pipe(fd);
+	if (ret == 0) {
+		close_on_exec(fd[0]);
+		close_on_exec(fd[1]);
+	}
+	return ret;
+}
+
 int fork_exec(char **argv, int fd[3])
 {
 	int pid, rc, status, error = 0;
 	int ep[2];
 
-	if (pipe(ep))
+	if (pipe_close_on_exec(ep))
 		return -1;
-
-	close_on_exec(ep[0]);
-	close_on_exec(ep[1]);
 
 	pid = fork();
 	if (pid < 0) {

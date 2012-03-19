@@ -156,7 +156,7 @@ int spawn_filter(char **argv, struct filter_data *data)
 	data->out = NULL;
 	data->out_len = 0;
 
-	if (pipe(p0) || pipe(p1)) {
+	if (pipe_close_on_exec(p0) || pipe_close_on_exec(p1)) {
 		error_msg("pipe: %s", strerror(errno));
 		goto error;
 	}
@@ -165,11 +165,6 @@ int spawn_filter(char **argv, struct filter_data *data)
 		error_msg("Error opening /dev/null: %s", strerror(errno));
 		goto error;
 	}
-
-	close_on_exec(p0[0]);
-	close_on_exec(p0[1]);
-	close_on_exec(p1[0]);
-	close_on_exec(p1[1]);
 	close_on_exec(dev_null);
 
 	fd[0] = p0[0];
@@ -212,7 +207,7 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		error_msg("Error opening /dev/null: %s", strerror(errno));
 		return;
 	}
-	if (pipe(p)) {
+	if (pipe_close_on_exec(p)) {
 		error_msg("pipe: %s", strerror(errno));
 		close(dev_null);
 		return;
@@ -232,8 +227,6 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		ui_end();
 	}
 
-	close_on_exec(p[0]);
-	close_on_exec(p[1]);
 	close_on_exec(dev_null);
 	pid = fork_exec(args, fd);
 	if (pid < 0) {
