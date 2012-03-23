@@ -9,8 +9,6 @@
 #include "config.h"
 #include "command.h"
 #include "input.h"
-#include "input-special.h"
-#include "selection.h"
 #include "error.h"
 
 enum editor_status editor_status;
@@ -59,30 +57,6 @@ void any_key(void)
 		discard_paste();
 }
 
-static const char *format_misc_status(void)
-{
-	static char misc_status[32];
-
-	if (input_special) {
-		format_input_special_misc_status(misc_status);
-	} else if (input_mode == INPUT_SEARCH) {
-		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
-			case_sensitive_search_enum[options.case_sensitive_search]);
-	} else if (selecting()) {
-		struct selection_info info;
-
-		init_selection(&info);
-		if (view->selection == SELECT_LINES) {
-			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
-		} else {
-			snprintf(misc_status, sizeof(misc_status), "[%d chars]", get_nr_selected_chars(&info));
-		}
-	} else {
-		misc_status[0] = 0;
-	}
-	return misc_status;
-}
-
 static void update_command_line(void)
 {
 	char prefix = ':';
@@ -121,7 +95,7 @@ static void update_current_window(void)
 	if (options.show_line_numbers)
 		update_line_numbers(window, 1);
 	update_range(view->vy, view->vy + window->edit_h);
-	update_status_line(format_misc_status());
+	update_status_line();
 }
 
 static void restore_cursor(void)
@@ -196,7 +170,7 @@ static void update_window(void)
 		y2 = view->vy + window->edit_h - 1;
 
 	update_range(y1, y2 + 1);
-	update_status_line(format_misc_status());
+	update_status_line();
 }
 
 // update all visible views containing current buffer

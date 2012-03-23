@@ -1,6 +1,9 @@
 #include "format-status.h"
 #include "window.h"
 #include "uchar.h"
+#include "editor.h"
+#include "input-special.h"
+#include "selection.h"
 
 struct formatter {
 	char *buf;
@@ -67,7 +70,31 @@ static void add_status_pos(struct formatter *f)
 	}
 }
 
-int format_status(char *buf, int size, const char *format, const char *misc_status)
+static const char *format_misc_status(void)
+{
+	static char misc_status[32];
+
+	if (input_special) {
+		format_input_special_misc_status(misc_status);
+	} else if (input_mode == INPUT_SEARCH) {
+		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
+			case_sensitive_search_enum[options.case_sensitive_search]);
+	} else if (selecting()) {
+		struct selection_info info;
+
+		init_selection(&info);
+		if (view->selection == SELECT_LINES) {
+			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
+		} else {
+			snprintf(misc_status, sizeof(misc_status), "[%d chars]", get_nr_selected_chars(&info));
+		}
+	} else {
+		misc_status[0] = 0;
+	}
+	return misc_status;
+}
+
+int format_status(char *buf, int size, const char *format)
 {
 	struct formatter f;
 	int got_char;
@@ -115,10 +142,12 @@ int format_status(char *buf, int size, const char *format, const char *misc_stat
 			case 'E':
 				add_status_str(&f, buffer->encoding);
 				break;
-			case 'M':
+			case 'M': {
+				const char *misc_status = format_misc_status();
 				if (misc_status[0])
 					add_status_str(&f, misc_status);
 				break;
+			}
 			case 'n':
 				switch (buffer->newline) {
 				case NEWLINE_UNIX:

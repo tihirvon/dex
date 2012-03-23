@@ -151,7 +151,7 @@ void print_tabbar(void)
 	}
 }
 
-void update_status_line(const char *misc_status)
+void update_status_line(void)
 {
 	char lbuf[256];
 	char rbuf[256];
@@ -160,8 +160,8 @@ void update_status_line(const char *misc_status)
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y + window->h - 1);
 	set_builtin_color(BC_STATUSLINE);
-	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left, misc_status);
-	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right, misc_status);
+	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
+	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
 	if (term_utf8) {
 		lw = u_str_width(lbuf, lw);
 		rw = u_str_width(rbuf, rw);
