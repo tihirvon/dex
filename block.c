@@ -211,17 +211,15 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 
 static unsigned int insert_bytes(const char *buf, unsigned int len)
 {
-	struct block *blk = view->cursor.blk;
-	unsigned int new_size = blk->size + len;
+	struct block *blk;
+	unsigned int new_size;
 
 	// blocks must contain whole lines
 	// last char of buf might not be newline
-	if (view->cursor.offset == blk->size && blk->node.next != &buffer->blocks) {
-		blk = BLOCK(blk->node.next);
-		view->cursor.blk = blk;
-		view->cursor.offset = 0;
-	}
+	block_iter_normalize(&view->cursor);
 
+	blk = view->cursor.blk;
+	new_size = blk->size + len;
 	if (new_size <= blk->alloc || new_size <= BLOCK_EDIT_SIZE)
 		return insert_to_current(buf, len);
 
