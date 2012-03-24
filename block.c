@@ -294,7 +294,7 @@ char *do_delete(unsigned int len)
 	}
 
 	if (saved_prev_node) {
-		// cursor was in beginning of a block which was deleted
+		// cursor was at beginning of a block that was possibly deleted
 		if (saved_prev_node->next == &buffer->blocks) {
 			view->cursor.blk = BLOCK(saved_prev_node);
 			view->cursor.offset = view->cursor.blk->size;
