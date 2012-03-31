@@ -1,21 +1,29 @@
 #ifndef CMDLINE_H
 #define CMDLINE_H
 
+#include "ptr-array.h"
 #include "gbuf.h"
+#include "term.h"
 
-extern struct gbuf cmdline;
-extern unsigned int cmdline_pos;
+struct cmdline {
+	struct gbuf buf;
+	unsigned int pos;
+	int search_pos;
+	char *search_text;
+};
 
-void cmdline_insert(unsigned int u);
-void cmdline_delete(void);
-void cmdline_backspace(void);
-void cmdline_erase_word(void);
-void cmdline_delete_bol(void);
-void cmdline_delete_eol(void);
-void cmdline_prev_char(void);
-void cmdline_next_char(void);
-void cmdline_clear(void);
-void cmdline_set_text(const char *text);
-void cmdline_insert_bytes(const char *buf, int size);
+enum {
+	CMDLINE_UNKNOWN_KEY,
+	CMDLINE_KEY_HANDLED,
+	CMDLINE_CANCEL,
+};
+
+#define CMDLINE(name) struct cmdline name = { GBUF_INIT, 0, -1, NULL }
+
+void cmdline_clear(struct cmdline *c);
+void cmdline_set_text(struct cmdline *c, const char *text);
+void cmdline_insert_bytes(struct cmdline *c, const char *buf, int size);
+void cmdline_reset_history_search(struct cmdline *c);
+int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_key_type type, unsigned int key);
 
 #endif

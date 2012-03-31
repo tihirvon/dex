@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "format-status.h"
 #include "window.h"
+#include "editor.h"
 #include "tabbar.h"
 #include "obuf.h"
 #include "cmdline.h"
@@ -193,10 +194,10 @@ void update_status_line(void)
 static int get_char_width(unsigned int *idx)
 {
 	if (term_utf8) {
-		return u_char_width(u_get_char(cmdline.buffer, cmdline.len, idx));
+		return u_char_width(u_get_char(cmdline.buf.buffer, cmdline.buf.len, idx));
 	} else {
 		int i = *idx;
-		unsigned char ch = cmdline.buffer[i++];
+		unsigned char ch = cmdline.buf.buffer[i++];
 
 		*idx = i;
 		if (u_is_ctrl(ch))
@@ -216,9 +217,9 @@ int print_command(char prefix)
 	// width of characters up to and including cursor position
 	w = 1; // ":" (prefix)
 	i = 0;
-	while (i <= cmdline_pos && cmdline.buffer[i])
+	while (i <= cmdline.pos && cmdline.buf.buffer[i])
 		w += get_char_width(&i);
-	if (!cmdline.buffer[cmdline_pos])
+	if (!cmdline.buf.buffer[cmdline.pos])
 		w++;
 
 	if (w > screen_w)
@@ -228,8 +229,8 @@ int print_command(char prefix)
 	i = 0;
 	if (obuf.x < obuf.scroll_x) {
 		buf_skip(prefix);
-		while (obuf.x < obuf.scroll_x && cmdline.buffer[i]) {
-			u = term_get_char(cmdline.buffer, cmdline.len, &i);
+		while (obuf.x < obuf.scroll_x && cmdline.buf.buffer[i]) {
+			u = term_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
 			buf_skip(u);
 		}
 	} else {
@@ -237,12 +238,12 @@ int print_command(char prefix)
 	}
 
 	x = obuf.x - obuf.scroll_x;
-	while (cmdline.buffer[i]) {
+	while (cmdline.buf.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		u = term_get_char(cmdline.buffer, cmdline.len, &i);
+		u = term_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
 		if (!buf_put_char(u))
 			break;
-		if (i <= cmdline_pos)
+		if (i <= cmdline.pos)
 			x = obuf.x - obuf.scroll_x;
 	}
 	return x;

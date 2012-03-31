@@ -127,7 +127,7 @@ static void cmd_command(const char *pf, char **args)
 {
 	input_mode = INPUT_COMMAND;
 	if (args[0])
-		cmdline_set_text(args[0]);
+		cmdline_set_text(&cmdline, args[0]);
 }
 
 static void cmd_compile(const char *pf, char **args)

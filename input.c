@@ -12,14 +12,6 @@
 #include "input-special.h"
 #include "error.h"
 
-static int search_pos = -1;
-static char *search_text;
-
-static void reset_history_search(void)
-{
-	search_pos = -1;
-}
-
 static void insert_paste(void)
 {
 	unsigned int size;
@@ -34,131 +26,6 @@ static void insert_paste(void)
 	free(text);
 }
 
-static void cmdline_insert_paste(void)
-{
-	unsigned int size, i;
-	char *text = term_read_paste(&size);
-
-	for (i = 0; i < size; i++) {
-		if (text[i] == '\n')
-			text[i] = ' ';
-	}
-	cmdline_insert_bytes(text, size);
-	free(text);
-}
-
-static int common_key(struct ptr_array *history, enum term_key_type type, unsigned int key)
-{
-	switch (type) {
-	case KEY_NORMAL:
-		switch (key) {
-		case CTRL('['): // ESC
-		case CTRL('C'):
-			cmdline_clear();
-			input_mode = INPUT_NORMAL;
-			// clear possible parse error
-			clear_error();
-			break;
-		case CTRL('D'):
-			cmdline_delete();
-			break;
-		case CTRL('K'):
-			cmdline_delete_eol();
-			break;
-		case CTRL('H'):
-		case 0x7f: // ^?
-			if (cmdline.len) {
-				cmdline_backspace();
-			} else {
-				input_mode = INPUT_NORMAL;
-			}
-			break;
-		case CTRL('U'):
-			cmdline_delete_bol();
-			break;
-		case CTRL('V'):
-			input_special = INPUT_SPECIAL_UNKNOWN;
-			break;
-		case CTRL('W'):
-			cmdline_erase_word();
-			break;
-
-		case CTRL('A'):
-			cmdline_pos = 0;
-			return 1;
-		case CTRL('B'):
-			cmdline_prev_char();
-			return 1;
-		case CTRL('E'):
-			cmdline_pos = strlen(cmdline.buffer);
-			return 1;
-		case CTRL('F'):
-			cmdline_next_char();
-			return 1;
-		case CTRL('Z'):
-			ui_end();
-			kill(0, SIGSTOP);
-			return 1;
-		default:
-			// don't insert control characters
-			if (key >= 0x20 && key != 0x7f) {
-				cmdline_insert(key);
-				return 1;
-			}
-			return 0;
-		}
-		break;
-	case KEY_META:
-		return 0;
-	case KEY_SPECIAL:
-		switch (key) {
-		case SKEY_DELETE:
-			cmdline_delete();
-			break;
-
-		case SKEY_LEFT:
-			cmdline_prev_char();
-			return 1;
-		case SKEY_RIGHT:
-			cmdline_next_char();
-			return 1;
-		case SKEY_HOME:
-			cmdline_pos = 0;
-			return 1;
-		case SKEY_END:
-			cmdline_pos = strlen(cmdline.buffer);
-			return 1;
-		case SKEY_UP:
-			if (search_pos < 0) {
-				free(search_text);
-				search_text = xstrdup(cmdline.buffer);
-				search_pos = history->count;
-			}
-			if (history_search_forward(history, &search_pos, search_text))
-				cmdline_set_text(history->ptrs[search_pos]);
-			return 1;
-		case SKEY_DOWN:
-			if (search_pos < 0)
-				return 1;
-			if (history_search_backward(history, &search_pos, search_text)) {
-				cmdline_set_text(history->ptrs[search_pos]);
-			} else {
-				cmdline_set_text(search_text);
-				search_pos = -1;
-			}
-			return 1;
-		default:
-			return 0;
-		}
-		break;
-	case KEY_PASTE:
-		cmdline_insert_paste();
-		break;
-	}
-	reset_history_search();
-	return 1;
-}
-
 static void command_line_enter(void)
 {
 	PTR_ARRAY(array);
@@ -166,13 +33,13 @@ static void command_line_enter(void)
 
 	reset_completion();
 	input_mode = INPUT_NORMAL;
-	ret = parse_commands(&array, cmdline.buffer);
+	ret = parse_commands(&array, cmdline.buf.buffer);
 
 	/* Need to do this before executing the command because
 	 * "command" can modify contents of command line.
 	 */
-	history_add(&command_history, cmdline.buffer, command_history_size);
-	cmdline_clear();
+	history_add(&command_history, cmdline.buf.buffer, command_history_size);
+	cmdline_clear(&cmdline);
 
 	if (!ret)
 		run_commands(commands, &array);
@@ -199,7 +66,7 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_PASTE:
 		return;
 	}
-	reset_history_search();
+	cmdline_reset_history_search(&cmdline);
 }
 
 static void search_mode_key(enum term_key_type type, unsigned int key)
@@ -208,18 +75,18 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_NORMAL:
 		switch (key) {
 		case '\r':
-			if (cmdline.buffer[0]) {
-				search_set_regexp(cmdline.buffer);
+			if (cmdline.buf.buffer[0]) {
+				search_set_regexp(cmdline.buf.buffer);
 				search_next();
-				history_add(&search_history, cmdline.buffer, search_history_size);
+				history_add(&search_history, cmdline.buf.buffer, search_history_size);
 			} else {
 				search_next();
 			}
-			cmdline_clear();
+			cmdline_clear(&cmdline);
 			input_mode = INPUT_NORMAL;
 			break;
 		}
-		reset_history_search();
+		cmdline_reset_history_search(&cmdline);
 		break;
 	case KEY_META:
 		switch (key) {
@@ -274,15 +141,31 @@ void keypress(enum term_key_type type, unsigned int key)
 		}
 		break;
 	case INPUT_COMMAND:
-		if (common_key(&command_history, type, key)) {
-			reset_completion();
-		} else {
+		switch (cmdline_handle_key(&cmdline, &command_history, type, key)) {
+		case CMDLINE_UNKNOWN_KEY:
 			command_mode_key(type, key);
+			break;
+		case CMDLINE_KEY_HANDLED:
+			reset_completion();
+			break;
+		case CMDLINE_CANCEL:
+			input_mode = INPUT_NORMAL;
+			// clear possible parse error
+			clear_error();
+			break;
 		}
 		break;
 	case INPUT_SEARCH:
-		if (!common_key(&search_history, type, key))
+		switch (cmdline_handle_key(&cmdline, &search_history, type, key)) {
+		case CMDLINE_UNKNOWN_KEY:
 			search_mode_key(type, key);
+			break;
+		case CMDLINE_KEY_HANDLED:
+			break;
+		case CMDLINE_CANCEL:
+			input_mode = INPUT_NORMAL;
+			break;
+		}
 		break;
 	}
 }

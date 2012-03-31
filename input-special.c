@@ -28,7 +28,7 @@ static void insert_special(const char *buf, int size)
 		// \n is not allowed in command line because
 		// command/search history file would break
 		if (buf[0] != '\n')
-			cmdline_insert_bytes(buf, size);
+			cmdline_insert_bytes(&cmdline, buf, size);
 		break;
 	}
 }

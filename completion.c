@@ -1,6 +1,7 @@
 #include "completion.h"
 #include "command.h"
 #include "cmdline.h"
+#include "editor.h"
 #include "options.h"
 #include "alias.h"
 #include "gbuf.h"
@@ -246,7 +247,7 @@ static void collect_completions(char **args, int argc)
 
 static void init_completion(void)
 {
-	const char *str, *cmd = cmdline.buffer;
+	const char *str, *cmd = cmdline.buf.buffer;
 	PTR_ARRAY(array);
 	int semicolon = -1;
 	int completion_pos = -1;
@@ -258,8 +259,8 @@ static void init_completion(void)
 		while (isspace(cmd[pos]))
 			pos++;
 
-		if (pos >= cmdline_pos) {
-			completion_pos = cmdline_pos;
+		if (pos >= cmdline.pos) {
+			completion_pos = cmdline.pos;
 			break;
 		}
 
@@ -274,7 +275,7 @@ static void init_completion(void)
 		}
 
 		end = pos;
-		if (find_end(cmd, &end) || end >= cmdline_pos) {
+		if (find_end(cmd, &end) || end >= cmdline.pos) {
 			completion_pos = pos;
 			break;
 		}
@@ -308,7 +309,7 @@ static void init_completion(void)
 	}
 
 	str = cmd + completion_pos;
-	len = cmdline_pos - completion_pos;
+	len = cmdline.pos - completion_pos;
 	if (len && str[0] == '$') {
 		int i, var = 1;
 		for (i = 1; i < len; i++) {
@@ -326,7 +327,7 @@ static void init_completion(void)
 			completion.escaped = NULL;
 			completion.parsed = NULL;
 			completion.head = xstrndup(cmd, completion_pos);
-			completion.tail = xstrdup(cmd + cmdline_pos);
+			completion.tail = xstrdup(cmd + cmdline.pos);
 			collect_env(str + 1, len - 1);
 			sort_completions();
 			ptr_array_free(&array);
@@ -337,7 +338,7 @@ static void init_completion(void)
 	completion.escaped = xstrndup(str, len);
 	completion.parsed = parse_command_arg(completion.escaped, 1);
 	completion.head = xstrndup(cmd, completion_pos);
-	completion.tail = xstrdup(cmd + cmdline_pos);
+	completion.tail = xstrdup(cmd + cmdline.pos);
 	completion.add_space = 1;
 
 	collect_completions((char **)array.ptrs + semicolon + 1, array.count - semicolon - 1);
@@ -403,8 +404,8 @@ void complete_command(void)
 	}
 	memcpy(str + head_len + middle_len, completion.tail, tail_len + 1);
 
-	cmdline_set_text(str);
-	cmdline_pos = head_len + middle_len;
+	cmdline_set_text(&cmdline, str);
+	cmdline.pos = head_len + middle_len;
 
 	free(middle);
 	free(str);

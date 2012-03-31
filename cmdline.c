@@ -1,115 +1,239 @@
 #include "cmdline.h"
 #include "gbuf.h"
+#include "history.h"
+#include "editor.h"
 #include "common.h"
 #include "uchar.h"
 
-GBUF(cmdline);
-unsigned int cmdline_pos;
-
-void cmdline_insert(unsigned int u)
+static void cmdline_insert(struct cmdline *c, unsigned int u)
 {
 	unsigned int len = 1;
 
 	if (term_utf8)
 		len = u_char_size(u);
-	gbuf_make_space(&cmdline, cmdline_pos, len);
+	gbuf_make_space(&c->buf, c->pos, len);
 	if (len > 1) {
-		u_set_char_raw(cmdline.buffer, &cmdline_pos, u);
+		u_set_char_raw(c->buf.buffer, &c->pos, u);
 	} else {
-		cmdline.buffer[cmdline_pos++] = u;
+		c->buf.buffer[c->pos++] = u;
 	}
 }
 
-void cmdline_delete(void)
+static void cmdline_delete(struct cmdline *c)
 {
 	int len = 1;
 
-	if (cmdline_pos == cmdline.len)
+	if (c->pos == c->buf.len)
 		return;
 
 	if (term_utf8) {
-		unsigned int pos = cmdline_pos;
-		u_get_char(cmdline.buffer, cmdline.len, &pos);
-		len = pos - cmdline_pos;
+		unsigned int pos = c->pos;
+		u_get_char(c->buf.buffer, c->buf.len, &pos);
+		len = pos - c->pos;
 	}
-	gbuf_remove(&cmdline, cmdline_pos, len);
+	gbuf_remove(&c->buf, c->pos, len);
 }
 
-void cmdline_backspace(void)
+static void cmdline_backspace(struct cmdline *c)
 {
-	if (cmdline_pos) {
-		u_prev_char(cmdline.buffer, &cmdline_pos);
-		cmdline_delete();
+	if (c->pos) {
+		u_prev_char(c->buf.buffer, &c->pos);
+		cmdline_delete(c);
 	}
 }
 
-void cmdline_erase_word(void)
+static void cmdline_erase_word(struct cmdline *c)
 {
-	int i = cmdline_pos;
+	int i = c->pos;
 
-	if (!cmdline_pos)
+	if (!c->pos)
 		return;
 
 	// open /path/to/file^W => open /path/to/
 
 	// erase whitespace
-	while (i && isspace(cmdline.buffer[i - 1]))
+	while (i && isspace(c->buf.buffer[i - 1]))
 		i--;
 
 	// erase non-word bytes
-	while (i && !is_word_byte(cmdline.buffer[i - 1]))
+	while (i && !is_word_byte(c->buf.buffer[i - 1]))
 		i--;
 
 	// erase word bytes
-	while (i && is_word_byte(cmdline.buffer[i - 1]))
+	while (i && is_word_byte(c->buf.buffer[i - 1]))
 		i--;
 
-	gbuf_remove(&cmdline, i, cmdline_pos - i);
-	cmdline_pos = i;
+	gbuf_remove(&c->buf, i, c->pos - i);
+	c->pos = i;
 }
 
-void cmdline_delete_bol(void)
+static void cmdline_delete_bol(struct cmdline *c)
 {
-	gbuf_remove(&cmdline, 0, cmdline_pos);
-	cmdline_pos = 0;
+	gbuf_remove(&c->buf, 0, c->pos);
+	c->pos = 0;
 }
 
-void cmdline_delete_eol(void)
+static void cmdline_delete_eol(struct cmdline *c)
 {
-	cmdline.buffer[cmdline_pos] = 0;
-	cmdline.len = cmdline_pos;
+	c->buf.buffer[c->pos] = 0;
+	c->buf.len = c->pos;
 }
 
-void cmdline_prev_char(void)
+static void cmdline_prev_char(struct cmdline *c)
 {
-	if (cmdline_pos)
-		u_prev_char(cmdline.buffer, &cmdline_pos);
+	if (c->pos)
+		u_prev_char(c->buf.buffer, &c->pos);
 }
 
-void cmdline_next_char(void)
+static void cmdline_next_char(struct cmdline *c)
 {
-	if (cmdline_pos < cmdline.len)
-		u_get_char(cmdline.buffer, cmdline.len, &cmdline_pos);
+	if (c->pos < c->buf.len)
+		u_get_char(c->buf.buffer, c->buf.len, &c->pos);
 }
 
-void cmdline_clear(void)
+static void cmdline_insert_paste(struct cmdline *c)
 {
-	gbuf_clear(&cmdline);
-	cmdline_pos = 0;
+	unsigned int size, i;
+	char *text = term_read_paste(&size);
+
+	for (i = 0; i < size; i++) {
+		if (text[i] == '\n')
+			text[i] = ' ';
+	}
+	cmdline_insert_bytes(c, text, size);
+	free(text);
 }
 
-void cmdline_set_text(const char *text)
+void cmdline_clear(struct cmdline *c)
 {
-	cmdline_clear();
-	gbuf_add_str(&cmdline, text);
-	cmdline_pos = strlen(text);
+	gbuf_clear(&c->buf);
+	c->pos = 0;
 }
 
-void cmdline_insert_bytes(const char *buf, int size)
+void cmdline_set_text(struct cmdline *c, const char *text)
+{
+	cmdline_clear(c);
+	gbuf_add_str(&c->buf, text);
+	c->pos = strlen(text);
+}
+
+void cmdline_insert_bytes(struct cmdline *c, const char *buf, int size)
 {
 	int i;
 
-	gbuf_make_space(&cmdline, cmdline_pos, size);
+	gbuf_make_space(&c->buf, c->pos, size);
 	for (i = 0; i < size; i++)
-		cmdline.buffer[cmdline_pos++] = buf[i];
+		c->buf.buffer[c->pos++] = buf[i];
+}
+
+void cmdline_reset_history_search(struct cmdline *c)
+{
+	c->search_pos = -1;
+}
+
+int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_key_type type, unsigned int key)
+{
+	switch (type) {
+	case KEY_NORMAL:
+		switch (key) {
+		case CTRL('['): // ESC
+		case CTRL('C'):
+			cmdline_clear(c);
+			return CMDLINE_CANCEL;
+		case CTRL('D'):
+			cmdline_delete(c);
+			break;
+		case CTRL('K'):
+			cmdline_delete_eol(c);
+			break;
+		case CTRL('H'):
+		case 0x7f: // ^?
+			if (c->buf.len == 0)
+				return CMDLINE_CANCEL;
+			cmdline_backspace(c);
+			break;
+		case CTRL('U'):
+			cmdline_delete_bol(c);
+			break;
+		case CTRL('V'):
+			input_special = INPUT_SPECIAL_UNKNOWN;
+			break;
+		case CTRL('W'):
+			cmdline_erase_word(c);
+			break;
+
+		case CTRL('A'):
+			c->pos = 0;
+			return 1;
+		case CTRL('B'):
+			cmdline_prev_char(c);
+			return 1;
+		case CTRL('E'):
+			c->pos = strlen(c->buf.buffer);
+			return 1;
+		case CTRL('F'):
+			cmdline_next_char(c);
+			return 1;
+		case CTRL('Z'):
+			ui_end();
+			kill(0, SIGSTOP);
+			return 1;
+		default:
+			// don't insert control characters
+			if (key >= 0x20 && key != 0x7f) {
+				cmdline_insert(c, key);
+				return 1;
+			}
+			return 0;
+		}
+		break;
+	case KEY_META:
+		return 0;
+	case KEY_SPECIAL:
+		switch (key) {
+		case SKEY_DELETE:
+			cmdline_delete(c);
+			break;
+
+		case SKEY_LEFT:
+			cmdline_prev_char(c);
+			return 1;
+		case SKEY_RIGHT:
+			cmdline_next_char(c);
+			return 1;
+		case SKEY_HOME:
+			c->pos = 0;
+			return 1;
+		case SKEY_END:
+			c->pos = strlen(c->buf.buffer);
+			return 1;
+		case SKEY_UP:
+			if (c->search_pos < 0) {
+				free(c->search_text);
+				c->search_text = xstrdup(c->buf.buffer);
+				c->search_pos = history->count;
+			}
+			if (history_search_forward(history, &c->search_pos, c->search_text))
+				cmdline_set_text(c, history->ptrs[c->search_pos]);
+			return 1;
+		case SKEY_DOWN:
+			if (c->search_pos < 0)
+				return 1;
+			if (history_search_backward(history, &c->search_pos, c->search_text)) {
+				cmdline_set_text(c, history->ptrs[c->search_pos]);
+			} else {
+				cmdline_set_text(c, c->search_text);
+				c->search_pos = -1;
+			}
+			return 1;
+		default:
+			return 0;
+		}
+		break;
+	case KEY_PASTE:
+		cmdline_insert_paste(c);
+		break;
+	}
+	cmdline_reset_history_search(c);
+	return 1;
 }
