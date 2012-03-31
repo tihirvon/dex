@@ -1,3 +1,25 @@
+# variables
+syntax .sh-variable
+
+state variable
+	char '*@#?$!0-9-' END variable
+	char a-zA-Z_ name
+	char '{' brace
+	char '(' paren
+	noeat END
+
+state name variable
+	char a-zA-Z_0-9 name
+	noeat END
+
+state brace variable
+	char -n "\n}" brace
+	eat END
+
+state paren special
+	char ')' END special
+	eat paren
+
 # common to <<"EOF" and <<'EOF'
 syntax .sh-heredoc-common
 
@@ -113,7 +135,7 @@ state args code
 	char ` command special
 	str "$((" args special
 	str "$(" command special
-	char \$ variable
+	char \$ .sh-variable:args
 	char "\n" start
 	# && is same as two &, same for |. does not matter
 	char ";&|" start special
@@ -133,7 +155,7 @@ state sq string
 state dq string
 	char '"' args string
 	char \\ dqescape
-	char \$ dqvariable
+	char \$ .sh-variable:dq
 	char '`' dqcmd
 	eat dq
 
@@ -142,65 +164,12 @@ state dqescape special
 	recolor string 1
 	eat dq
 
-state dqvariable variable
-	char '*@#?$!0-9-' dq variable
-	char a-zA-Z_ dqvarname
-	char '{' dqvarbrace
-	char '(' dqparen
-	noeat dq
-
-state dqvarname variable
-	char a-zA-Z_0-9 dqvarname
-	noeat dq
-
-state dqvarbrace variable
-	char '*@#?$!0-9-' dqvarbraceend
-	char a-zA-Z_ dqvarbracename
-	noeat dq
-
-state dqvarbracename variable
-	char a-zA-Z_0-9 dqvarbracename
-	noeat dqvarbraceend
-
-state dqvarbraceend code
-	char '}' dq variable
-	noeat dq
-
-state dqparen special
-	char ')' dq special
-	# NOTE: recursion not supported
-	# FIXME: use subsyntax to hl quotes etc.
-	eat dqparen
-
 state dqcmd special
 	char '`' dq special
 	eat dqcmd
 
 state esc special
 	eat args special
-
-state variable
-	char '*@#?$!0-9-' args variable
-	char a-zA-Z_ varname
-	char '{' varbrace
-	noeat args
-
-state varname variable
-	char a-zA-Z_0-9 varname
-	noeat args
-
-state varbrace variable
-	char '*@#?$!0-9-' varbraceend
-	char a-zA-Z_ varbracename
-	noeat args
-
-state varbracename variable
-	char a-zA-Z_0-9 varbracename
-	noeat varbraceend
-
-state varbraceend variable
-	char '}' args variable
-	noeat args
 
 state lt special
 	char < lt2
