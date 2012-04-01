@@ -78,14 +78,6 @@ static void update_command_line(void)
 	buf_clear_eol();
 }
 
-static void update_term_title(void)
-{
-	print_term_title(ssprintf("%s %c %s",
-		buffer_filename(buffer),
-		buffer_modified(buffer) ? '+' : '-',
-		program));
-}
-
 static void update_current_window(void)
 {
 	update_cursor_x();

@@ -276,11 +276,18 @@ static int term_title_supported(void)
 	return supported;
 }
 
-// title must not contain control characters
-void print_term_title(const char *title)
+void update_term_title(void)
 {
+	char title[1024];
+
 	if (!term_title_supported())
 		return;
+
+	// FIXME: title must not contain control characters
+	snprintf(title, sizeof(title), "%s %c %s",
+		buffer_filename(buffer),
+		buffer_modified(buffer) ? '+' : '-',
+		program);
 
 	buf_escape("\033]2;");
 	buf_escape(title);

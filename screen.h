@@ -7,7 +7,7 @@ void set_basic_colors(void);
 void print_tabbar(void);
 int print_command(char prefix);
 void print_message(const char *msg, int is_error);
-void print_term_title(const char *title);
+void update_term_title(void);
 void update_range(int y1, int y2);
 void update_separators(void);
 void update_status_line(void);
