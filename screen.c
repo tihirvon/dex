@@ -617,13 +617,6 @@ void update_separators(void)
 		print_separator(windows.ptrs[i]);
 }
 
-static const char *format_line_number(int line, int w)
-{
-	if (line > buffer->nl)
-		return ssprintf("%*s ", w - 1, "");
-	return ssprintf("%*d ", w - 1, line);
-}
-
 void update_line_numbers(struct window *win, int force)
 {
 	struct view *v = win->view;
@@ -645,7 +638,15 @@ void update_line_numbers(struct window *win, int force)
 	buf_reset(win->x, win->w, 0);
 	set_builtin_color(BC_LINENUMBER);
 	for (i = 0; i < win->edit_h; i++) {
-		const char *buf = format_line_number(v->vy + i + 1, win->line_numbers.width);
+		int line = v->vy + i + 1;
+		int w = win->line_numbers.width - 1;
+		char buf[32];
+
+		if (line > buffer->nl) {
+			snprintf(buf, sizeof(buf), "%*s ", w, "");
+		} else {
+			snprintf(buf, sizeof(buf), "%*d ", w, line);
+		}
 		buf_move_cursor(win->x, win->edit_y + i);
 		buf_add_bytes(buf, win->line_numbers.width);
 	}
