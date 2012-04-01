@@ -50,6 +50,18 @@ static void add_status_str(struct formatter *f, const char *str)
 	}
 }
 
+__FORMAT(2, 3)
+static void add_status_format(struct formatter *f, const char *format, ...)
+{
+	char buf[1024];
+	va_list ap;
+
+	va_start(ap, format);
+	vsnprintf(buf, sizeof(buf), format, ap);
+	va_end(ap);
+	add_status_str(f, buf);
+}
+
 static void add_status_pos(struct formatter *f)
 {
 	int h = window->edit_h;
@@ -66,7 +78,7 @@ static void add_status_pos(struct formatter *f)
 		add_status_str(f, "Bot");
 	} else {
 		int d = buffer->nl - (h - 1);
-		add_status_str(f, ssprintf("%2d%%", (pos * 100 + d / 2) / d));
+		add_status_format(f, "%2d%%", (pos * 100 + d / 2) / d);
 	}
 }
 
@@ -126,15 +138,15 @@ int format_status(char *buf, int size, const char *format)
 					add_status_str(&f, "RO");
 				break;
 			case 'y':
-				add_status_str(&f, ssprintf("%d", view->cy + 1));
+				add_status_format(&f, "%d", view->cy + 1);
 				break;
 			case 'x':
-				add_status_str(&f, ssprintf("%d", view->cx_display + 1));
+				add_status_format(&f, "%d", view->cx_display + 1);
 				break;
 			case 'X':
-				add_status_str(&f, ssprintf("%d", view->cx_char + 1));
+				add_status_format(&f, "%d", view->cx_char + 1);
 				if (view->cx_display != view->cx_char)
-					add_status_str(&f, ssprintf("-%d", view->cx_display + 1));
+					add_status_format(&f, "-%d", view->cx_display + 1);
 				break;
 			case 'p':
 				add_status_pos(&f);
@@ -167,7 +179,7 @@ int format_status(char *buf, int size, const char *format)
 			case 'u':
 				if (got_char) {
 					if (u_is_unicode(u)) {
-						add_status_str(&f, ssprintf("U+%04X", u));
+						add_status_format(&f, "U+%04X", u);
 					} else {
 						add_status_str(&f, "Invalid");
 					}
