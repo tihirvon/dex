@@ -76,8 +76,10 @@ void history_save(struct ptr_array *history, const char *filename)
 	int i;
 
 	buf.fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
-	if (buf.fd < 0)
+	if (buf.fd < 0) {
+		error_msg("Error creating %s: %s", filename, strerror(errno));
 		return;
+	}
 
 	for (i = 0; i < history->count; i++) {
 		wbuf_write_str(&buf, history->ptrs[i]);

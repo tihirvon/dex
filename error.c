@@ -33,7 +33,7 @@ void error_msg(const char *format, ...)
 	msg_is_error = 1;
 	nr_errors++;
 
-	if (editor_status == EDITOR_INITIALIZING)
+	if (editor_status != EDITOR_RUNNING)
 		fprintf(stderr, "%s\n", error_buf);
 }
 

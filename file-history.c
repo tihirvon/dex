@@ -87,6 +87,7 @@ void save_file_history(void)
 
 	buf.fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	if (buf.fd < 0) {
+		error_msg("Error creating %s: %s", filename, strerror(errno));
 		free(filename);
 		return;
 	}
