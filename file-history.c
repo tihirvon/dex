@@ -48,7 +48,7 @@ void add_file_history(int row, int col, const char *filename)
 
 void load_file_history(void)
 {
-	const char *filename = editor_file("file-history");
+	char *filename = editor_file("file-history");
 	ssize_t size, pos = 0;
 	char *buf;
 
@@ -56,6 +56,7 @@ void load_file_history(void)
 	if (size < 0) {
 		if (errno != ENOENT)
 			error_msg("Error reading %s: %s", filename, strerror(errno));
+		free(filename);
 		return;
 	}
 	while (pos < size) {
@@ -75,17 +76,20 @@ void load_file_history(void)
 			add_file_history(row, col, line);
 	}
 	free(buf);
+	free(filename);
 }
 
 void save_file_history(void)
 {
-	const char *filename = editor_file("file-history");
+	char *filename = editor_file("file-history");
 	WBUF(buf);
 	int i;
 
 	buf.fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
-	if (buf.fd < 0)
+	if (buf.fd < 0) {
+		free(filename);
 		return;
+	}
 	for (i = 0; i < history.count; i++) {
 		struct history_entry *e = history.ptrs[i];
 		char str[64];
@@ -96,6 +100,7 @@ void save_file_history(void)
 	}
 	wbuf_flush(&buf);
 	close(buf.fd);
+	free(filename);
 }
 
 int find_file_in_history(const char *filename, int *row, int *col)

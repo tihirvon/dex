@@ -147,7 +147,9 @@ void debug_print(const char *function, const char *fmt, ...)
 	va_list ap;
 
 	if (fd < 0) {
-		fd = open(editor_file("debug.log"), O_WRONLY | O_CREAT | O_APPEND, 0666);
+		char *filename = editor_file("debug.log");
+		fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0666);
+		free(filename);
 		BUG_ON(fd < 0);
 
 		// don't leak file descriptor to parent processes

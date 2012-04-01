@@ -108,6 +108,9 @@ int main(int argc, char *argv[])
 	const char *tag = NULL;
 	const char *rc = NULL;
 	const char *command = NULL;
+	char *command_history_filename;
+	char *search_history_filename;
+	char *editor_dir;
 	int use_terminfo = 1;
 	int use_termcap = 1;
 	int i, read_rc = 1;
@@ -155,7 +158,9 @@ int main(int argc, char *argv[])
 	}
 
 	// create this early. needed if lock-files is true
-	mkdir(editor_file(""), 0755);
+	editor_dir = editor_file("");
+	mkdir(editor_dir, 0755);
+	free(editor_dir);
 
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
@@ -177,8 +182,11 @@ int main(int argc, char *argv[])
 	if (read_rc) {
 		if (rc) {
 			read_config(commands, rc, 1);
-		} else if (read_config(commands, editor_file("rc"), 0)) {
-			read_config(commands, ssprintf("%s/rc", pkgdatadir), 1);
+		} else {
+			char *filename = editor_file("rc");
+			if (read_config(commands, filename, 0))
+				read_config(commands, ssprintf("%s/rc", pkgdatadir), 1);
+			free(filename);
 		}
 	}
 
@@ -202,8 +210,10 @@ int main(int argc, char *argv[])
 	obuf.buf = xmalloc(obuf.alloc);
 
 	load_file_history();
-	history_load(&command_history, editor_file("command-history"), command_history_size);
-	history_load(&search_history, editor_file("search-history"), search_history_size);
+	command_history_filename = editor_file("command-history");
+	search_history_filename = editor_file("search-history");
+	history_load(&command_history, command_history_filename, command_history_size);
+	history_load(&search_history, search_history_filename, search_history_size);
 	if (search_history.count)
 		search_set_regexp(search_history.ptrs[search_history.count - 1]);
 
@@ -238,8 +248,10 @@ int main(int argc, char *argv[])
 	resize();
 	main_loop();
 	ui_end();
-	history_save(&command_history, editor_file("command-history"));
-	history_save(&search_history, editor_file("search-history"));
+	history_save(&command_history, command_history_filename);
+	history_save(&search_history, search_history_filename);
+	free(command_history_filename);
+	free(search_history_filename);
 	close_all_views();
 	save_file_history();
 	return 0;

@@ -241,9 +241,11 @@ void ui_end(void)
 	term_cooked();
 }
 
-const char *editor_file(const char *name)
+char *editor_file(const char *name)
 {
-	return ssprintf("%s/.%s/%s", home_dir, program, name);
+	char buf[4096];
+	snprintf(buf, sizeof(buf), "%s/.%s/%s", home_dir, program, name);
+	return xstrdup(buf);
 }
 
 char get_confirmation(const char *choices, const char *format, ...)

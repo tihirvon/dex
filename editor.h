@@ -49,7 +49,7 @@ extern const char *program;
 extern const char *version;
 extern const char *pkgdatadir;
 
-const char *editor_file(const char *name);
+char *editor_file(const char *name);
 char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
 void discard_paste(void);
 void any_key(void);
