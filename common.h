@@ -85,7 +85,7 @@ static inline int str_has_prefix(const char *str, const char *prefix)
 
 int count_strings(char **strings);
 unsigned int number_width(unsigned int n);
-const char *ssprintf(const char *format, ...) __FORMAT(1, 2);
+char *xsprintf(const char *format, ...) __FORMAT(1, 2);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
 ssize_t read_file(const char *filename, char **bufp);

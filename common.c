@@ -26,14 +26,14 @@ unsigned int number_width(unsigned int n)
 	return width;
 }
 
-const char *ssprintf(const char *format, ...)
+char *xsprintf(const char *format, ...)
 {
-	static char buf[1024];
+	char buf[4096];
 	va_list ap;
 	va_start(ap, format);
 	vsnprintf(buf, sizeof(buf), format, ap);
 	va_end(ap);
-	return buf;
+	return xstrdup(buf);
 }
 
 ssize_t xread(int fd, void *buf, size_t count)

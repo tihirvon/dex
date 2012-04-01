@@ -184,8 +184,11 @@ int main(int argc, char *argv[])
 			read_config(commands, rc, 1);
 		} else {
 			char *filename = editor_file("rc");
-			if (read_config(commands, filename, 0))
-				read_config(commands, ssprintf("%s/rc", pkgdatadir), 1);
+			if (read_config(commands, filename, 0)) {
+				free(filename);
+				filename = xsprintf("%s/rc", pkgdatadir);
+				read_config(commands, filename, 1);
+			}
 			free(filename);
 		}
 	}

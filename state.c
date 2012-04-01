@@ -373,9 +373,14 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 struct syntax *load_syntax_by_filetype(const char *filetype)
 {
 	struct syntax *syn;
+	char *filename = xsprintf("%s/.%s/syntax/%s", home_dir, program, filetype);
 
-	syn = load_syntax_file(ssprintf("%s/.%s/syntax/%s", home_dir, program, filetype), 0);
-	if (!syn)
-		syn = load_syntax_file(ssprintf("%s/syntax/%s", pkgdatadir, filetype), 0);
+	syn = load_syntax_file(filename, 0);
+	free(filename);
+	if (!syn) {
+		filename = xsprintf("%s/syntax/%s", pkgdatadir, filetype);
+		syn = load_syntax_file(filename, 0);
+		free(filename);
+	}
 	return syn;
 }
