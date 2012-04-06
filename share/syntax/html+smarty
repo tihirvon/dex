@@ -119,7 +119,7 @@ state comment
 
 state tag-start special
 	char / close-tag
-	char -b a-zA-Z0-9 tag-name
+	char -b a-zA-Z0-9_ tag-name
 	char " \t\n" tag-start
 	char > text special
 	# smarty
@@ -129,7 +129,7 @@ state tag-start special
 	eat tag-start error
 
 state close-tag special
-	char -b a-zA-Z0-9 close-tag-name
+	char -b a-zA-Z0-9_ close-tag-name
 	char " \t\n" close-tag
 	# smarty
 	str "{*" .smarty-comment:close-tag
@@ -137,7 +137,7 @@ state close-tag special
 	eat text error
 
 state tag-name tag-unknown
-	char -b a-zA-Z0-9 tag-name
+	char -b a-zA-Z0-9_ tag-name
 	inlist tag attrs
 	inlist tag-frameset attrs
 	inlist tag-transitional attrs
@@ -145,7 +145,7 @@ state tag-name tag-unknown
 	noeat attrs
 
 state close-tag-name tag-unknown
-	char -b a-zA-Z0-9 close-tag-name
+	char -b a-zA-Z0-9_ close-tag-name
 	inlist tag close-tag-end
 	inlist tag-frameset close-tag-end
 	inlist tag-transitional close-tag-end
