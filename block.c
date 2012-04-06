@@ -17,7 +17,6 @@ static void sanity_check(void)
 	list_for_each_entry(blk, &buffer->blocks, node) {
 		BUG_ON(!blk->size && buffer->blocks.next->next != &buffer->blocks);
 		BUG_ON(blk->size > blk->alloc);
-		BUG_ON(blk == view->cursor.blk && view->cursor.offset > blk->size);
 		BUG_ON(blk->size && blk->data[blk->size - 1] != '\n');
 		if (blk == view->cursor.blk)
 			cursor_seen = 1;
