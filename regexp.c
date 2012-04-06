@@ -74,8 +74,8 @@ int regexp_compile(regex_t *regexp, const char *pattern, int flags)
 int buf_regexec(const regex_t *regexp, const char *buf,
 	unsigned int size, size_t nr_m, regmatch_t *m, int flags)
 {
-	BUG_ON(!nr_m);
 #ifdef REG_STARTEND
+	BUG_ON(!nr_m);
 	m[0].rm_so = 0;
 	m[0].rm_eo = size;
 	return regexec(regexp, buf, nr_m, m, flags | REG_STARTEND);
@@ -84,6 +84,7 @@ int buf_regexec(const regex_t *regexp, const char *buf,
 	char *tmp = xnew(char, size + 1);
 	int ret;
 
+	BUG_ON(!nr_m);
 	memcpy(tmp, buf, size);
 	tmp[size] = 0;
 	ret = regexec(regexp, tmp, nr_m, m, flags);
