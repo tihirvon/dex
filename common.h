@@ -2,6 +2,8 @@
 #define COMMON_H
 
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <stdio.h>
