@@ -477,9 +477,21 @@ static void cmd_next(const char *pf, char **args)
 	set_view(window->views.ptrs[new_view_idx(view_idx() + 1)]);
 }
 
+static int buffer_is_untouched(struct buffer *b)
+{
+	if (b->abs_filename != NULL)
+		return 0;
+	if (buffer->change_head.next != NULL || buffer->change_head.nr_prev > 0) {
+		// has been modified
+		return 0;
+	}
+	return 1;
+}
+
 static void cmd_open(const char *pf, char **args)
 {
 	struct view *old_view = view;
+	struct view *empty = NULL;
 	const char *enc = NULL;
 	char *encoding = NULL;
 	int i, first = 1;
@@ -510,6 +522,11 @@ static void cmd_open(const char *pf, char **args)
 		prev_view = old_view;
 		return;
 	}
+
+	// If window contains only one buffer and it is untouched then it can be closed.
+	if (window->views.count == 1 && buffer_is_untouched(buffer))
+		empty = view;
+
 	for (i = 0; args[i]; i++) {
 		struct view *v = open_buffer(args[i], 0, encoding);
 		if (v && first) {
@@ -518,6 +535,13 @@ static void cmd_open(const char *pf, char **args)
 			first = 0;
 		}
 	}
+	if (empty != NULL && view != empty) {
+		struct view *current = view;
+		set_view(empty);
+		remove_view();
+		set_view(current);
+	}
+
 	free(encoding);
 }
 
