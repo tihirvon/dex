@@ -37,19 +37,18 @@ void buf_add_bytes(const char *str, int count)
 void buf_set_bytes(char ch, int count)
 {
 	while (count) {
-		unsigned int avail = obuf.alloc - obuf.count;
-		if (count <= avail) {
-			memset(obuf.buf + obuf.count, ch, count);
-			obuf.count += count;
-			break;
-		} else {
-			if (avail) {
-				memset(obuf.buf + obuf.count, ch, avail);
-				obuf.count += avail;
-				count -= avail;
-			}
+		int avail, n = count;
+
+		if (obuf.count == obuf.alloc)
 			buf_flush();
-		}
+
+		avail = obuf.alloc - obuf.count;
+		if (n > avail)
+			n = avail;
+
+		memset(obuf.buf + obuf.count, ch, n);
+		obuf.count += n;
+		count -= n;
 	}
 }
 
