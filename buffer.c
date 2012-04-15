@@ -21,6 +21,12 @@ struct view *prev_view;
 
 int everything_changed;
 
+static void set_display_filename(struct buffer *b, char *name)
+{
+	free(b->display_filename);
+	b->display_filename = name;
+}
+
 /*
  * Mark line range min...max (inclusive) "changed". These lines will be
  * redrawn when screen is updated. This is called even when content has not
@@ -318,15 +324,18 @@ int guess_filetype(void)
 void update_short_filename_cwd(struct buffer *b, const char *cwd)
 {
 	if (b->abs_filename) {
-		free(b->display_filename);
-		b->display_filename = short_filename_cwd(b->abs_filename, cwd);
+		if (cwd) {
+			set_display_filename(b, short_filename_cwd(b->abs_filename, cwd));
+		} else {
+			// getcwd() failed
+			set_display_filename(b, xstrdup(b->abs_filename));
+		}
 	}
 }
 
 void update_short_filename(struct buffer *b)
 {
-	free(b->display_filename);
-	b->display_filename = short_filename(b->abs_filename);
+	set_display_filename(b, short_filename(b->abs_filename));
 }
 
 struct view *open_buffer(const char *filename, int must_exist, const char *encoding)

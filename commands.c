@@ -76,6 +76,7 @@ static void cmd_case(const char *pf, char **args)
 static void cmd_cd(const char *pf, char **args)
 {
 	char cwd[PATH_MAX];
+	char *cwdp = NULL;
 	int i, j, got_cwd;
 
 	got_cwd = !!getcwd(cwd, sizeof(cwd));
@@ -87,16 +88,14 @@ static void cmd_cd(const char *pf, char **args)
 	if (got_cwd)
 		setenv("OLDPWD", cwd, 1);
 	got_cwd = !!getcwd(cwd, sizeof(cwd));
-	if (got_cwd)
+	if (got_cwd) {
 		setenv("PWD", cwd, 1);
+		cwdp = cwd;
+	}
 
 	for (i = 0; i < windows.count; i++) {
 		for (j = 0; j < WINDOW(i)->views.count; j++) {
-			struct view *v = VIEW(i, j);
-			if (got_cwd)
-				update_short_filename_cwd(v->buffer, cwd);
-			else
-				v->buffer->display_filename = xstrdup(v->buffer->abs_filename);
+			update_short_filename_cwd(VIEW(i, j)->buffer, cwdp);
 		}
 	}
 
