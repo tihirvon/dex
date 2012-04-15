@@ -96,7 +96,7 @@ static void cmd_cd(const char *pf, char **args)
 			if (got_cwd)
 				update_short_filename_cwd(v->buffer, cwd);
 			else
-				v->buffer->filename = xstrdup(v->buffer->abs_filename);
+				v->buffer->display_filename = xstrdup(v->buffer->abs_filename);
 		}
 	}
 

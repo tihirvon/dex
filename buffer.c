@@ -46,7 +46,7 @@ void lines_changed(int min, int max)
 
 const char *buffer_filename(struct buffer *b)
 {
-	return b->filename ? b->filename : "(No name)";
+	return b->display_filename ? b->display_filename : "(No name)";
 }
 
 unsigned int count_nl(const char *buf, unsigned int size)
@@ -180,7 +180,7 @@ void free_buffer(struct buffer *b)
 	free_changes(&b->change_head);
 	free(b->line_start_states.ptrs);
 	free(b->views.ptrs);
-	free(b->filename);
+	free(b->display_filename);
 	free(b->abs_filename);
 	free(b->encoding);
 	free_local_options(&b->options);
@@ -318,15 +318,15 @@ int guess_filetype(void)
 void update_short_filename_cwd(struct buffer *b, const char *cwd)
 {
 	if (b->abs_filename) {
-		free(b->filename);
-		b->filename = short_filename_cwd(b->abs_filename, cwd);
+		free(b->display_filename);
+		b->display_filename = short_filename_cwd(b->abs_filename, cwd);
 	}
 }
 
 void update_short_filename(struct buffer *b)
 {
-	free(b->filename);
-	b->filename = short_filename(b->abs_filename);
+	free(b->display_filename);
+	b->display_filename = short_filename(b->abs_filename);
 }
 
 struct view *open_buffer(const char *filename, int must_exist, const char *encoding)
@@ -346,7 +346,7 @@ struct view *open_buffer(const char *filename, int must_exist, const char *encod
 	if (v) {
 		if (strcmp(absolute, v->buffer->abs_filename)) {
 			char *s = short_filename(absolute);
-			info_msg("%s and %s are the same file", s, v->buffer->filename);
+			info_msg("%s and %s are the same file", s, v->buffer->display_filename);
 			free(s);
 		}
 		free(absolute);

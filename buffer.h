@@ -38,7 +38,7 @@ struct buffer {
 	// views pointing to this buffer
 	struct ptr_array views;
 
-	char *filename;
+	char *display_filename;
 	char *abs_filename;
 
 	unsigned ro : 1;
