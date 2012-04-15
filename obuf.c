@@ -78,14 +78,6 @@ void buf_add_str(const char *str)
 	obuf.x += len;
 }
 
-// width of ch must be 1
-void buf_ch(char ch)
-{
-	if (obuf.x >= obuf.scroll_x && obuf.x < obuf.width + obuf.scroll_x)
-		buf_add_ch(ch);
-	obuf.x++;
-}
-
 void buf_hide_cursor(void)
 {
 	if (term_cap.strings[STR_CAP_CMD_vi])

@@ -117,9 +117,9 @@ static void print_tab_title(struct view *v, int idx)
 			buf_put_char(filename[si++]);
 	}
 	if (obuf.x == obuf.width - 1 && idx < window->views.count - 1)
-		buf_ch('>');
+		buf_put_char('>');
 	else
-		buf_ch(' ');
+		buf_put_char(' ');
 }
 
 void print_tabbar(void)
@@ -144,9 +144,9 @@ void print_tabbar(void)
 	set_builtin_color(BC_TABBAR);
 	if (idx != window->views.count) {
 		while (obuf.x < obuf.width - 1)
-			buf_ch(' ');
+			buf_put_char(' ');
 		if (obuf.x == obuf.width - 1)
-			buf_ch('>');
+			buf_put_char('>');
 	} else {
 		buf_clear_eol();
 	}
@@ -570,7 +570,7 @@ void update_range(int y1, int y2)
 	for (; i < y2; i++) {
 		obuf.x = 0;
 		buf_move_cursor(window->edit_x, window->edit_y + i);
-		buf_ch('~');
+		buf_put_char('~');
 		buf_clear_eol();
 	}
 }
