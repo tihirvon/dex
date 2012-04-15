@@ -12,6 +12,12 @@ static int obuf_avail(void)
 	return sizeof(obuf.buf) - obuf.count;
 }
 
+static void obuf_need_space(int count)
+{
+	if (obuf_avail() < count)
+		buf_flush();
+}
+
 void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
 {
 	obuf.x = 0;
@@ -40,13 +46,10 @@ void buf_add_bytes(const char *str, int count)
 void buf_set_bytes(char ch, int count)
 {
 	while (count) {
-		int avail = obuf_avail();
-		int n = count;
+		int avail, n = count;
 
-		if (avail == 0) {
-			buf_flush();
-			avail = obuf_avail();
-		}
+		obuf_need_space(1);
+		avail = obuf_avail();
 		if (n > avail)
 			n = avail;
 
@@ -59,8 +62,7 @@ void buf_set_bytes(char ch, int count)
 // does not update obuf.x
 void buf_add_ch(char ch)
 {
-	if (obuf_avail() == 0)
-		buf_flush();
+	obuf_need_space(1);
 	obuf.buf[obuf.count++] = ch;
 }
 
@@ -134,8 +136,7 @@ static void skipped_too_much(unsigned int u)
 {
 	int n = obuf.x - obuf.scroll_x;
 
-	if (obuf_avail() < 8)
-		buf_flush();
+	obuf_need_space(8);
 	if (u == '\t' && obuf.tab != TAB_CONTROL) {
 		char ch = ' ';
 		if (obuf.tab == TAB_SPECIAL)
@@ -201,9 +202,8 @@ int buf_put_char(unsigned int u)
 
 	if (!space)
 		return 0;
-	if (obuf_avail() < 8)
-		buf_flush();
 
+	obuf_need_space(8);
 	if (likely(u < 0x80)) {
 		if (likely(!u_is_ctrl(u))) {
 			obuf.buf[obuf.count++] = u;
