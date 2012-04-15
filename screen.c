@@ -227,16 +227,7 @@ int print_command(char prefix)
 
 	set_builtin_color(BC_COMMANDLINE);
 	i = 0;
-	if (obuf.x < obuf.scroll_x) {
-		buf_skip(prefix);
-		while (obuf.x < obuf.scroll_x && cmdline.buf.buffer[i]) {
-			u = term_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
-			buf_skip(u);
-		}
-	} else {
-		buf_put_char(prefix);
-	}
-
+	buf_put_char(prefix);
 	x = obuf.x - obuf.scroll_x;
 	while (cmdline.buf.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
@@ -489,26 +480,15 @@ static void print_line(struct line_info *info)
 {
 	unsigned int u;
 
-	/*
-	 * Skip most characters using screen_skip_char() which is much
-	 * faster than screen_next_char() which does color updating etc.
-	 */
+	// Screen might be scrolled horizontally. Skip most invisible
+	// characters using screen_skip_char() which is much faster than
+	// buf_skip(screen_next_char(info)).
+	//
+	// There can be a wide character (tab, control code etc.) which is
+	// partially visible and can't be skipped using screen_skip_char().
 	while (obuf.x + 8 < obuf.scroll_x && info->pos < info->size)
 		screen_skip_char(info);
 
-	/*
-	 * Skip rest. If a skipped character is wide (tab, control code
-	 * etc.) and we need to display part of it then we must update
-	 * color before calling buf_skip().
-	 */
-	while (obuf.x < obuf.scroll_x && info->pos < info->size) {
-		u = screen_next_char(info);
-		buf_skip(u);
-	}
-
-	/*
-	 * Fully visible characters (except possibly the last one).
-	 */
 	while (info->pos < info->size) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = screen_next_char(info);

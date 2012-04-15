@@ -158,7 +158,7 @@ static void skipped_too_much(unsigned int u)
 	}
 }
 
-void buf_skip(unsigned int u)
+static void buf_skip(unsigned int u)
 {
 	if (likely(u < 0x80)) {
 		if (likely(!u_is_ctrl(u))) {
@@ -199,6 +199,12 @@ int buf_put_char(unsigned int u)
 {
 	unsigned int space = obuf.scroll_x + obuf.width - obuf.x;
 	unsigned int width;
+
+	if (obuf.x < obuf.scroll_x) {
+		// scrolled, char (at least partially) invisible
+		buf_skip(u);
+		return 1;
+	}
 
 	if (!space)
 		return 0;

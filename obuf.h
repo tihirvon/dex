@@ -44,7 +44,6 @@ void buf_move_cursor(int x, int y);
 void buf_set_color(const struct term_color *color);
 void buf_clear_eol(void);
 void buf_flush(void);
-void buf_skip(unsigned int u);
 int buf_put_char(unsigned int u);
 
 #endif
