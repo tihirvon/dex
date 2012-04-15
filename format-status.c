@@ -32,22 +32,8 @@ static void add_status_str(struct formatter *f, const char *str)
 		return;
 
 	add_separator(f);
-	if (term_utf8) {
-		while (f->pos < f->size && str[idx]) {
-			unsigned int u = u_get_char(str, idx + 4, &idx);
-			u_set_char(f->buf, &f->pos, u);
-		}
-	} else {
-		while (f->pos < f->size && str[idx]) {
-			unsigned char ch = str[idx++];
-			if (ch <= 0x9f) {
-				// can be used for ASCII and unprintable 0x80 - 0x9f
-				u_set_char(f->buf, &f->pos, ch);
-			} else {
-				add_ch(f, ch);
-			}
-		}
-	}
+	while (f->pos < f->size && str[idx])
+		u_set_char(f->buf, &f->pos, u_get_char(str, idx + 4, &idx));
 }
 
 __FORMAT(2, 3)

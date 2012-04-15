@@ -24,7 +24,12 @@ int everything_changed;
 static void set_display_filename(struct buffer *b, char *name)
 {
 	free(b->display_filename);
-	b->display_filename = name;
+	if (term_utf8) {
+		b->display_filename = name;
+	} else {
+		b->display_filename = xstrdup(filename_to_utf8(name));
+		free(name);
+	}
 }
 
 /*
@@ -52,7 +57,7 @@ void lines_changed(int min, int max)
 
 const char *buffer_filename(struct buffer *b)
 {
-	return b->display_filename ? b->display_filename : "(No name)";
+	return b->display_filename;
 }
 
 unsigned int count_nl(const char *buf, unsigned int size)
@@ -164,6 +169,8 @@ struct view *open_empty_buffer(void)
 	v = window_add_buffer(b);
 	v->cursor.head = &v->buffer->blocks;
 	v->cursor.blk = BLOCK(v->buffer->blocks.next);
+
+	set_display_filename(b, xstrdup("(No name)"));
 	return v;
 }
 

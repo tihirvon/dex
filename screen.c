@@ -90,10 +90,7 @@ static void print_tab_title(struct view *v, int idx)
 	char buf[16];
 
 	if (skip > 0) {
-		if (term_utf8)
-			filename += u_skip_chars(filename, &skip);
-		else
-			filename += skip;
+		filename += u_skip_chars(filename, &skip);
 	}
 
 	snprintf(buf, sizeof(buf), "%c%d%s",
@@ -106,16 +103,7 @@ static void print_tab_title(struct view *v, int idx)
 	else
 		set_builtin_color(BC_INACTIVETAB);
 	buf_add_str(buf);
-
-	if (term_utf8) {
-		unsigned int si = 0;
-		while (filename[si])
-			buf_put_char(u_get_char(filename, si + 4, &si));
-	} else {
-		unsigned int si = 0;
-		while (filename[si])
-			buf_put_char(filename[si++]);
-	}
+	buf_add_str(filename);
 	if (obuf.x == obuf.width - 1 && idx < window->views.count - 1)
 		buf_put_char('>');
 	else
@@ -163,10 +151,8 @@ void update_status_line(void)
 	set_builtin_color(BC_STATUSLINE);
 	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
 	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
-	if (term_utf8) {
-		lw = u_str_width(lbuf, lw);
-		rw = u_str_width(rbuf, rw);
-	}
+	lw = u_str_width(lbuf, lw);
+	rw = u_str_width(rbuf, rw);
 	if (lw + rw <= window->w) {
 		// both fit
 		buf_add_str(lbuf);
@@ -280,8 +266,9 @@ void update_term_title(void)
 		buffer_modified(buffer) ? '+' : '-',
 		program);
 
+	buf_reset(0, 1024, 0);
 	buf_escape("\033]2;");
-	buf_escape(title);
+	buf_add_str(title);
 	buf_escape("\007");
 }
 

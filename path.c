@@ -245,3 +245,49 @@ char *short_filename(const char *absolute)
 		return short_filename_cwd(absolute, cwd);
 	return xstrdup(absolute);
 }
+
+const char *filename_to_utf8(const char *filename)
+{
+	static char buf[4096];
+	size_t ic, oc, ocsave;
+	char *ib, *ob;
+	iconv_t cd;
+
+	cd = iconv_open("UTF-8", charset);
+	if (cd == (iconv_t)-1) {
+		d_print("iconv_open() using charset %s failed: %s\n", charset, strerror(errno));
+		return filename;
+	}
+
+	ib = (char *)filename;
+	ic = strlen(filename);
+	ob = buf;
+	oc = sizeof(buf) - 1;
+
+	ocsave = oc;
+	while (ic > 0) {
+		size_t rc = iconv(cd, (void *)&ib, &ic, &ob, &oc);
+		if (rc == (size_t)-1) {
+			switch (errno) {
+			case EILSEQ:
+			case EINVAL:
+				// can't convert this byte
+				ob[0] = ib[0];
+				ic--;
+				oc--;
+
+				// reset
+				iconv(cd, NULL, NULL, NULL, NULL);
+				break;
+			case E2BIG:
+			default:
+				// FIXME
+				ic = 0;
+			}
+		}
+	}
+	iconv_close(cd);
+
+	buf[ocsave - oc] = 0;
+	return buf;
+}
