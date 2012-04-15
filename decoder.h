@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-#include <iconv.h>
-
 struct file_decoder {
 	char *encoding;
 	const unsigned char *ibuf;

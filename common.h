@@ -20,6 +20,7 @@
 #include <time.h>
 #include <wctype.h>
 #include <signal.h>
+#include <iconv.h>
 
 #include "ctype.h"
 

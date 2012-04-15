@@ -4,8 +4,6 @@
 #include "common.h"
 #include "options.h"
 
-#include <iconv.h>
-
 struct file_encoder {
 	unsigned char *ebuf;
 	unsigned char *nbuf;

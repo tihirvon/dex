@@ -1,8 +1,6 @@
 #include "encoding.h"
 #include "common.h"
 
-#include <iconv.h>
-
 struct encoding_alias {
 	const char *encoding;
 	const char *alias;
