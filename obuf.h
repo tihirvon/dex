@@ -4,8 +4,7 @@
 #include "term.h"
 
 struct output_buffer {
-	char *buf;
-	unsigned int alloc;
+	char buf[8192];
 	unsigned int count;
 
 	// number of characters scrolled (x direction)

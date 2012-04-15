@@ -6,7 +6,6 @@
 #include "screen.h"
 #include "syntax.h"
 #include "alias.h"
-#include "obuf.h"
 #include "history.h"
 #include "file-history.h"
 #include "search.h"
@@ -208,9 +207,6 @@ int main(int argc, char *argv[])
 
 	set_signal_handler(SIGCONT, handle_sigcont);
 	set_signal_handler(SIGWINCH, handle_sigwinch);
-
-	obuf.alloc = 8192;
-	obuf.buf = xmalloc(obuf.alloc);
 
 	load_file_history();
 	command_history_filename = editor_file("command-history");

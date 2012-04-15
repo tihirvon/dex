@@ -7,6 +7,11 @@ struct output_buffer obuf;
 int screen_w = 80;
 int screen_h = 24;
 
+static int obuf_avail(void)
+{
+	return sizeof(obuf.buf) - obuf.count;
+}
+
 void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
 {
 	obuf.x = 0;
@@ -20,11 +25,9 @@ void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
 // does not update obuf.x
 void buf_add_bytes(const char *str, int count)
 {
-	unsigned int avail = obuf.alloc - obuf.count;
-
-	if (count > avail) {
+	if (count > obuf_avail()) {
 		buf_flush();
-		if (count >= obuf.alloc) {
+		if (count >= sizeof(obuf.buf)) {
 			xwrite(1, str, count);
 			return;
 		}
@@ -37,12 +40,13 @@ void buf_add_bytes(const char *str, int count)
 void buf_set_bytes(char ch, int count)
 {
 	while (count) {
-		int avail, n = count;
+		int avail = obuf_avail();
+		int n = count;
 
-		if (obuf.count == obuf.alloc)
+		if (avail == 0) {
 			buf_flush();
-
-		avail = obuf.alloc - obuf.count;
+			avail = obuf_avail();
+		}
 		if (n > avail)
 			n = avail;
 
@@ -55,7 +59,7 @@ void buf_set_bytes(char ch, int count)
 // does not update obuf.x
 void buf_add_ch(char ch)
 {
-	if (obuf.count == obuf.alloc)
+	if (obuf_avail() == 0)
 		buf_flush();
 	obuf.buf[obuf.count++] = ch;
 }
@@ -130,7 +134,7 @@ static void skipped_too_much(unsigned int u)
 {
 	int n = obuf.x - obuf.scroll_x;
 
-	if (obuf.alloc - obuf.count < 8)
+	if (obuf_avail() < 8)
 		buf_flush();
 	if (u == '\t' && obuf.tab != TAB_CONTROL) {
 		char ch = ' ';
@@ -197,7 +201,7 @@ int buf_put_char(unsigned int u)
 
 	if (!space)
 		return 0;
-	if (obuf.alloc - obuf.count < 8)
+	if (obuf_avail() < 8)
 		buf_flush();
 
 	if (likely(u < 0x80)) {
