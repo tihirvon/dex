@@ -20,20 +20,17 @@ void buf_reset(unsigned int start_x, unsigned int width, unsigned int scroll_x)
 // does not update obuf.x
 void buf_add_bytes(const char *str, int count)
 {
-	while (count) {
-		unsigned int avail = obuf.alloc - obuf.count;
-		if (count <= avail) {
-			memcpy(obuf.buf + obuf.count, str, count);
-			obuf.count += count;
-			break;
-		} else {
-			buf_flush();
-			if (count >= obuf.alloc) {
-				xwrite(1, str, count);
-				break;
-			}
+	unsigned int avail = obuf.alloc - obuf.count;
+
+	if (count > avail) {
+		buf_flush();
+		if (count >= obuf.alloc) {
+			xwrite(1, str, count);
+			return;
 		}
 	}
+	memcpy(obuf.buf + obuf.count, str, count);
+	obuf.count += count;
 }
 
 // does not update obuf.x
