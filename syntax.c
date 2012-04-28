@@ -138,6 +138,12 @@ static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct sta
 		s->conds.ptrs = xmemdup(s->conds.ptrs, sizeof(void *) * s->conds.alloc);
 		for (j = 0; j < s->conds.count; j++)
 			s->conds.ptrs[j] = xmemdup(s->conds.ptrs[j], sizeof(struct condition));
+
+		// Mark unvisited so that state that is used only as a return state gets visited.
+		s->visited = 0;
+
+		// Don't complain about unvisited copied states.
+		s->copied = 1;
 	}
 
 	for (i = old_count; i < states->count; i++) {
@@ -372,7 +378,7 @@ void finalize_syntax(struct syntax *syn)
 	visit(syn->states.ptrs[0]);
 	for (i = 0; i < syn->states.count; i++) {
 		struct state *s = syn->states.ptrs[i];
-		if (!s->visited)
+		if (!s->visited && !s->copied)
 			error_msg("State %s is unreachable", s->name);
 	}
 	for (i = 0; i < syn->string_lists.count; i++) {

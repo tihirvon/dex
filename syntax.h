@@ -71,7 +71,9 @@ struct state {
 	char *name;
 	char *emit_name;
 	struct ptr_array conds;
-	int visited;
+
+	char visited;
+	char copied;
 
 	struct action a;
 	enum {
