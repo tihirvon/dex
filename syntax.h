@@ -75,13 +75,13 @@ struct state {
 	char visited;
 	char copied;
 
-	struct action a;
 	enum {
 		STATE_EAT,
 		STATE_NOEAT,
 		STATE_NOEAT_BUFFER,
 		STATE_HEREDOCBEGIN,
 	} type;
+	struct action a;
 
 	struct {
 		struct syntax *subsyntax;
