@@ -152,6 +152,7 @@ static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct sta
 			update_state_colors(syn, states->ptrs[i]);
 	}
 
+	subsyn->used = 1;
 	return states->ptrs[old_count];
 }
 
@@ -477,4 +478,16 @@ void update_all_syntax_colors(void)
 
 	for (i = 0; i < syntaxes.count; i++)
 		update_syntax_colors(syntaxes.ptrs[i]);
+}
+
+void find_unused_subsyntaxes(void)
+{
+	// don't complain multiple times about same unused subsyntaxes
+	static int i;
+
+	for (; i < syntaxes.count; i++) {
+		struct syntax *s = syntaxes.ptrs[i];
+		if (!s->used && s->subsyntax)
+			error_msg("Subsyntax %s is unused", s->name);
+	}
 }

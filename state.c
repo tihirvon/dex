@@ -159,6 +159,10 @@ static void cmd_heredocbegin(const char *pf, char **args)
 	current_state->type = STATE_HEREDOCBEGIN;
 	current_state->heredoc.subsyntax = subsyn;
 	current_state = NULL;
+
+	// Normally merge() marks subsyntax used but in case of heredocs merge()
+	// is not called when syntax file is loaded.
+	subsyn->used = 1;
 }
 
 static void cmd_heredocend(const char *pf, char **args)
@@ -359,8 +363,10 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 		config_line = saved_config_line;
 		return NULL;
 	}
-	if (current_syntax)
+	if (current_syntax) {
 		finish_syntax();
+		find_unused_subsyntaxes();
+	}
 	config_file = saved_config_file;
 	config_line = saved_config_line;
 

@@ -111,8 +111,9 @@ struct syntax {
 	struct ptr_array states;
 	struct ptr_array string_lists;
 	struct ptr_array default_colors;
-	int subsyntax;
-	int heredoc;
+	char subsyntax;
+	char heredoc;
+	char used;
 };
 
 unsigned int buf_hash(const char *str, unsigned int size);
@@ -126,5 +127,6 @@ struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, s
 struct syntax *find_syntax(const char *name);
 void update_syntax_colors(struct syntax *syn);
 void update_all_syntax_colors(void);
+void find_unused_subsyntaxes(void);
 
 #endif
