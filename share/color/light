@@ -50,7 +50,8 @@ hi variable blue
 # css
 hi css.id blue
 hi css.class blue
-hi css.pseudoclass blue
+hi css.pseudoclass magenta bold
+hi css.pseudoelement green bold
 
 # diff
 hi diff.header bold

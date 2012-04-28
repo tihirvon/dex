@@ -27,25 +27,52 @@ state start code
 
 state tag
 	char -b a-zA-Z0-9 tag
-	char : colon
 	char _- start-error
+	# temporary state needed state to stop buffering
+	noeat tmp
+
+state tmp
+	char -b : pseudo
 	noeat start
 
-state colon code
-	char -b a-zA-Z0-9- pseudo
+state pseudo code
+	char -b a-zA-Z0-9:- pseudo
+	inlist pseudoclass start
+	inlist exprpseudo nth pseudoclass
+	inlist pseudoelement start
+	bufis -i :lang complexpseudo
+	bufis -i :not complexpseudo
+	noeat start
+
+# lang(indetifier) { ... }
+# not(table) { ... }
+state complexpseudo pseudoclass
+	char ( complexexpr
 	eat start-error
 
-state pseudo code
-	char -b a-zA-Z0-9- pseudo
-	inlist pseudoclass start
+# nth-child(odd|even|an+b) etc.
+state nth
+	char ( nthexpr
+	eat start-error
+
+state nthexpr expr
+	char a-z0-9+- nthexpr
+	char ) start expr
+	eat start-error
+
+state complexexpr expr
+	char ) start expr
+	char -n "\n" complexexpr
 	noeat start
 
 state class
 	char a-zA-Z0-9_- class
+	char -b : pseudo
 	noeat start
 
 state id
 	char a-zA-Z0-9_- id
+	char -b : pseudo
 	noeat start
 
 state block code
@@ -189,9 +216,22 @@ list -i color \
 	aqua black blue fuchsia gray green lime maroon navy olive \
 	purple red silver teal white yellow
 
+# simple pseudo-classes
 list -i pseudoclass \
-	active first-letter first-line hover link visited \
-	after before first-child focus lang
+	:active :checked :disabled :empty :enabled :first-child \
+	:first-of-type :focus :hover :last-child :last-of-type :link \
+	:only-child :only-of-type :root :target :visited
+
+# nth-child(odd) etc.
+list -i exprpseudo :nth-child :nth-last-child :nth-last-of-type :nth-of-type
+
+# CSS1 and CSS2 pseudo-elements can be prefixed with single colon
+# CSS2.1 changed pseudo-elements start with a double colon
+# support only dobule colon for CSS3 pseudo-elements
+list -i pseudoelement \
+	:after :before :first-letter :first-line \
+	::after ::before ::first-letter ::first-line \
+	::selection
 
 list -i unit \
 	% cm em ex in mm pc pt px
@@ -200,5 +240,6 @@ list -i func \
 	attr clip counter rect rgb url
 
 default keyword property
-default type class id pseudoclass
+default type class id pseudoclass pseudoelement
+default special expr
 default constant value color
