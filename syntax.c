@@ -368,6 +368,15 @@ void finalize_syntax(struct syntax *syn)
 		}
 	}
 
+	for (i = 0; i < syntaxes.count; i++) {
+		struct syntax *s = syntaxes.ptrs[i];
+		if (!strcmp(syn->name, s->name)) {
+			error_msg("Syntax %s already exists", syn->name);
+			errors++;
+			break;
+		}
+	}
+
 	if (errors) {
 		free_syntax(syn);
 		syn = NULL;
