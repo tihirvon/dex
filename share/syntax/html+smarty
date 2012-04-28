@@ -17,10 +17,13 @@ state literal
 	str "{/literal}" END literal
 	eat literal
 
-# copied from html syntax
+# NOTE: Most of the following text has been copied from html syntax.
+#
+# Subsyntaxes have been renamed and smarty specific blocks have
+# been marked with a comment.
 
 # sub-syntax. used in text and attribute values
-syntax .html-entity
+syntax .smarty-entity
 
 state entity
 	char # hash
@@ -106,8 +109,8 @@ state text
 	str "<!--" comment
 	char < tag-start
 	char > start error
-	char "&" .html-entity:text
 	# smarty
+	char "&" .smarty-entity:text
 	str "{*" .smarty-comment:text
 	str "{literal}" .smarty-literal:text
 	char \{ .smarty-code:text
@@ -187,8 +190,8 @@ state attr-eq attr
 state dq string
 	char \" attrs string
 	char "\n" attrs
-	char "&" .html-entity:dq
 	# smarty
+	char "&" .smarty-entity:dq
 	str "{*" .smarty-comment:dq
 	char \{ .smarty-code:dq
 	eat dq
@@ -196,8 +199,8 @@ state dq string
 state sq string
 	char \' attrs string
 	char "\n" attrs
-	char "&" .html-entity:sq
 	# smarty
+	char "&" .smarty-entity:sq
 	str "{*" .smarty-comment:sq
 	char \{ .smarty-code:sq
 	eat sq
@@ -229,4 +232,5 @@ default tag tag-frameset tag-transitional
 default error tag-deprecated
 default special entity
 
+# smarty
 default literal code
