@@ -169,10 +169,10 @@ void paste(void)
 			block_iter_eat_line(&view->cursor);
 		replace(del_count, copy_buf, copy_len);
 		move_to_preferred_x();
-		update_preferred_x();
 	} else {
 		replace(del_count, copy_buf, copy_len);
 	}
+	update_preferred_x();
 }
 
 void delete_ch(void)

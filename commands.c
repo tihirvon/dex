@@ -182,8 +182,11 @@ static void cmd_cut(const char *pf, char **args)
 {
 	if (selecting()) {
 		cut(prepare_selection(), view->selection == SELECT_LINES);
-		if (view->selection == SELECT_LINES)
+		if (view->selection == SELECT_LINES) {
 			move_to_preferred_x();
+		} else {
+			update_preferred_x();
+		}
 		unselect();
 	} else {
 		struct block_iter tmp;
