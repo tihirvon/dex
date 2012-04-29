@@ -180,12 +180,12 @@ static void cmd_copy(const char *pf, char **args)
 
 static void cmd_cut(const char *pf, char **args)
 {
+	int x = get_preferred_x();
+
 	if (selecting()) {
 		cut(prepare_selection(), view->selection == SELECT_LINES);
 		if (view->selection == SELECT_LINES) {
-			move_to_preferred_x();
-		} else {
-			update_preferred_x();
+			move_to_preferred_x(x);
 		}
 		unselect();
 	} else {
@@ -193,7 +193,7 @@ static void cmd_cut(const char *pf, char **args)
 		block_iter_bol(&view->cursor);
 		tmp = view->cursor;
 		cut(block_iter_eat_line(&tmp), 1);
-		move_to_preferred_x();
+		move_to_preferred_x(x);
 	}
 }
 
@@ -206,7 +206,6 @@ static void cmd_delete_eol(const char *pf, char **args)
 {
 	struct block_iter bi = view->cursor;
 	delete(block_iter_eol(&bi), 0);
-	update_preferred_x();
 }
 
 static void cmd_delete_word(const char *pf, char **args)
@@ -215,7 +214,6 @@ static void cmd_delete_word(const char *pf, char **args)
 	struct block_iter bi = view->cursor;
 
 	delete(word_fwd(&bi, skip_non_word), 0);
-	update_preferred_x();
 }
 
 static void cmd_down(const char *pf, char **args)
@@ -241,14 +239,12 @@ static void cmd_erase(const char *pf, char **args)
 static void cmd_erase_bol(const char *pf, char **args)
 {
 	delete(block_iter_bol(&view->cursor), 1);
-	update_preferred_x();
 }
 
 static void cmd_erase_word(const char *pf, char **args)
 {
 	int skip_non_word = *pf == 's';
 	delete(word_bwd(&view->cursor, skip_non_word), 1);
-	update_preferred_x();
 }
 
 static void cmd_errorfmt(const char *pf, char **args)
@@ -373,7 +369,6 @@ static void cmd_insert(const char *pf, char **args)
 		replace(del_len, str, ins_len);
 		if (strchr(pf, 'm'))
 			block_iter_skip_bytes(&view->cursor, ins_len);
-		update_preferred_x();
 	}
 }
 
@@ -394,12 +389,13 @@ static void cmd_left(const char *pf, char **args)
 
 static void cmd_line(const char *pf, char **args)
 {
+	int x = get_preferred_x();
 	int line;
 
 	line = atoi(args[0]);
 	if (line > 0) {
 		move_to_line(line);
-		move_to_preferred_x();
+		move_to_preferred_x(x);
 	}
 }
 
@@ -614,7 +610,6 @@ static void cmd_pass_through(const char *pf, char **args)
 
 	if (move) {
 		block_iter_skip_bytes(&view->cursor, data.out_len);
-		update_preferred_x();
 	}
 }
 
@@ -672,7 +667,6 @@ static void cmd_redo(const char *pf, char **args)
 	}
 	if (redo(change_id)) {
 		unselect();
-		update_preferred_x();
 	}
 }
 
@@ -1197,7 +1191,6 @@ static void cmd_undo(const char *pf, char **args)
 {
 	if (undo()) {
 		unselect();
-		update_preferred_x();
 	}
 }
 
@@ -1304,14 +1297,14 @@ static void cmd_word_bwd(const char *pf, char **args)
 {
 	int skip_non_word = *pf == 's';
 	word_bwd(&view->cursor, skip_non_word);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 static void cmd_word_fwd(const char *pf, char **args)
 {
 	int skip_non_word = *pf == 's';
 	word_fwd(&view->cursor, skip_non_word);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 static void cmd_wprev(const char *pf, char **args)

@@ -182,6 +182,11 @@ void filetype_changed(void);
 
 void update_cursor_y(void);
 void update_cursor_x(void);
-void update_preferred_x(void);
+int get_preferred_x(void);
+
+static inline void reset_preferred_x(void)
+{
+	view->preferred_x = -1;
+}
 
 #endif

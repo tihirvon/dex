@@ -149,7 +149,6 @@ void insert_text(const char *text, unsigned int size)
 	}
 	replace(del_count, text, size);
 	block_iter_skip_bytes(&view->cursor, size);
-	update_preferred_x();
 }
 
 void paste(void)
@@ -165,14 +164,18 @@ void paste(void)
 	}
 
 	if (copy_is_lines) {
+		int x = get_preferred_x();
 		if (!del_count)
 			block_iter_eat_line(&view->cursor);
 		replace(del_count, copy_buf, copy_len);
-		move_to_preferred_x();
+
+		// try to keep cursor column
+		move_to_preferred_x(x);
+		// new preferred_x
+		reset_preferred_x();
 	} else {
 		replace(del_count, copy_buf, copy_len);
 	}
-	update_preferred_x();
 }
 
 void delete_ch(void)
@@ -190,7 +193,6 @@ void delete_ch(void)
 			size = buffer_get_char(&view->cursor, &u);
 	}
 	delete(size, 0);
-	update_preferred_x();
 }
 
 void erase(void)
@@ -210,7 +212,6 @@ void erase(void)
 			size = buffer_prev_char(&view->cursor, &u);
 	}
 	delete(size, 1);
-	update_preferred_x();
 }
 
 // goto beginning of whitespace (tabs and spaces) under cursor and
@@ -316,7 +317,6 @@ static void insert_nl(void)
 
 	// move after inserted text
 	block_iter_skip_bytes(&view->cursor, ins_count);
-	update_preferred_x();
 }
 
 void insert_ch(unsigned int ch)
@@ -377,7 +377,6 @@ void insert_ch(unsigned int ch)
 
 	// move after inserted text
 	block_iter_skip_bytes(&view->cursor, ins_count);
-	update_preferred_x();
 
 	free(ins);
 }
@@ -432,7 +431,6 @@ static void join_selection(void)
 		}
 	}
 	end_change_chain();
-	update_preferred_x();
 }
 
 void join_lines(void)
@@ -473,7 +471,6 @@ void join_lines(void)
 	} else {
 		replace(count, " ", 1);
 	}
-	update_preferred_x();
 }
 
 static void shift_right(int nr_lines, int count)
@@ -554,6 +551,10 @@ void shift_lines(int count)
 {
 	int nr_lines = 1;
 	struct selection_info info;
+	int x = get_preferred_x() + buffer->options.indent_width * count;
+
+	if (x < 0)
+		x = 0;
 
 	if (selecting()) {
 		view->selection = SELECT_LINES;
@@ -561,10 +562,6 @@ void shift_lines(int count)
 		view->cursor = info.si;
 		nr_lines = get_nr_selected_lines(&info);
 	}
-
-	view->preferred_x += buffer->options.indent_width * count;
-	if (view->preferred_x < 0)
-		view->preferred_x = 0;
 
 	begin_change_chain();
 	block_iter_bol(&view->cursor);
@@ -589,7 +586,7 @@ void shift_lines(int count)
 			view->cursor = save;
 		}
 	}
-	move_to_preferred_x();
+	move_to_preferred_x(x);
 }
 
 void clear_lines(void)
@@ -627,7 +624,6 @@ void clear_lines(void)
 		ins_count = strlen(indent);
 	replace(del_count, indent, ins_count);
 	block_iter_skip_bytes(&view->cursor, ins_count);
-	update_preferred_x();
 }
 
 void new_line(void)
@@ -659,7 +655,6 @@ void new_line(void)
 	}
 
 	block_iter_skip_bytes(&view->cursor, ins_count);
-	update_preferred_x();
 }
 
 static void add_word(struct paragraph_formatter *pf, const char *word, int len)
@@ -791,7 +786,6 @@ void format_paragraph(int text_width)
 	free(sel);
 
 	unselect();
-	update_preferred_x();
 }
 
 void change_case(int mode, int move_after)
@@ -845,5 +839,4 @@ void change_case(int mode, int move_after)
 		block_iter_skip_bytes(&view->cursor, dst.len);
 
 	gbuf_free(&dst);
-	update_preferred_x();
 }

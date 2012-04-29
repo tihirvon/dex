@@ -26,7 +26,7 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 			block_iter_skip_bytes(bi, match.rm_so);
 			view->cursor = *bi;
 			view->center_on_scroll = 1;
-			update_preferred_x();
+			reset_preferred_x();
 			return 1;
 		}
 		flags = 0;
@@ -69,7 +69,7 @@ static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx)
 			block_iter_skip_bytes(bi, offset);
 			view->cursor = *bi;
 			view->center_on_scroll = 1;
-			update_preferred_x();
+			reset_preferred_x();
 			return 1;
 		}
 next:
@@ -425,5 +425,4 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		block_iter_goto_offset(&view->cursor, view->sel_eo);
 		view->sel_eo = UINT_MAX;
 	}
-	update_preferred_x();
 }

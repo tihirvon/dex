@@ -50,8 +50,11 @@ void update_cursor_x(void)
 	view->cx_display = w;
 }
 
-void update_preferred_x(void)
+int get_preferred_x(void)
 {
-	update_cursor_x();
-	view->preferred_x = view->cx_display;
+	if (view->preferred_x < 0) {
+		update_cursor_x();
+		view->preferred_x = view->cx_display;
+	}
+	return view->preferred_x;
 }

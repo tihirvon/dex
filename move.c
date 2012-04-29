@@ -10,12 +10,14 @@ enum char_type {
 	CT_OTHER,
 };
 
-void move_to_preferred_x(void)
+void move_to_preferred_x(int preferred_x)
 {
 	unsigned int tw = buffer->options.tab_width;
 	struct lineref lr;
 	unsigned int i = 0;
 	unsigned int x = 0;
+
+	view->preferred_x = preferred_x;
 
 	block_iter_bol(&view->cursor);
 	fill_line_ref(&view->cursor, &lr);
@@ -71,13 +73,13 @@ void move_cursor_left(void)
 		int size = get_indent_level_bytes_left();
 		if (size) {
 			block_iter_back_bytes(&view->cursor, size);
-			update_preferred_x();
+			reset_preferred_x();
 			return;
 		}
 	}
 
 	buffer_prev_char(&view->cursor, &u);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 void move_cursor_right(void)
@@ -88,57 +90,61 @@ void move_cursor_right(void)
 		int size = get_indent_level_bytes_right();
 		if (size) {
 			block_iter_skip_bytes(&view->cursor, size);
-			update_preferred_x();
+			reset_preferred_x();
 			return;
 		}
 	}
 
 	buffer_next_char(&view->cursor, &u);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 void move_bol(void)
 {
 	block_iter_bol(&view->cursor);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 void move_eol(void)
 {
 	block_iter_eol(&view->cursor);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 void move_up(int count)
 {
+	int x = get_preferred_x();
+
 	while (count > 0) {
 		if (!block_iter_prev_line(&view->cursor))
 			break;
 		count--;
 	}
-	move_to_preferred_x();
+	move_to_preferred_x(x);
 }
 
 void move_down(int count)
 {
+	int x = get_preferred_x();
+
 	while (count > 0) {
 		if (!block_iter_eat_line(&view->cursor))
 			break;
 		count--;
 	}
-	move_to_preferred_x();
+	move_to_preferred_x(x);
 }
 
 void move_bof(void)
 {
 	buffer_bof(&view->cursor);
-	view->preferred_x = 0;
+	reset_preferred_x();
 }
 
 void move_eof(void)
 {
 	buffer_eof(&view->cursor);
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 void move_to_line(int line)
@@ -160,7 +166,7 @@ void move_to_column(int column)
 			break;
 		}
 	}
-	update_preferred_x();
+	reset_preferred_x();
 }
 
 static enum char_type get_char_type(char ch)

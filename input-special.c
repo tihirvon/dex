@@ -21,7 +21,6 @@ static void insert_special(const char *buf, int size)
 		insert(buf, size);
 		end_change();
 		block_iter_skip_bytes(&view->cursor, size);
-		update_preferred_x();
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
