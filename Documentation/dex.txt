@@ -235,6 +235,10 @@ hi <name> [fg-color [bg-color]]  [attribute]...
 
 	If you omit any color it is set to default (-1).
 
+	Unset fg/bg colors are inherited from highlight color "default".
+	If you don't set fg/bg for the highlight color "default" then
+	terminal's default fg/bg is used.
+
 include <filename>
 	Read commands from file.
 

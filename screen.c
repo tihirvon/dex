@@ -64,9 +64,21 @@ void set_basic_colors(void)
 		builtin_colors[i] = &find_color(builtin_color_names[i])->color;
 }
 
+static void set_color(struct term_color *color)
+{
+	struct term_color tmp = *color;
+
+	// NOTE: -2 (keep) is treated as -1 (default)
+	if (tmp.fg  < 0)
+		tmp.fg = builtin_colors[BC_DEFAULT]->fg;
+	if (tmp.bg  < 0)
+		tmp.bg = builtin_colors[BC_DEFAULT]->bg;
+	buf_set_color(&tmp);
+}
+
 static void set_builtin_color(enum builtin_color c)
 {
-	buf_set_color(builtin_colors[c]);
+	set_color(builtin_colors[c]);
 }
 
 static unsigned int term_get_char(const char *buf, unsigned int size, unsigned int *idx)
@@ -303,7 +315,7 @@ static void update_color(struct hl_color *hl_color, int nontext, int wserror)
 		mask_color(&color, builtin_colors[BC_SELECTION]);
 	else if (current_line == view->cy)
 		mask_color(&color, builtin_colors[BC_CURRENTLINE]);
-	buf_set_color(&color);
+	set_color(&color);
 }
 
 static void selection_init(void)
