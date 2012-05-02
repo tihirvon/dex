@@ -37,11 +37,12 @@ hi char magenta
 hi string magenta
 hi special bold red
 hi comment bold blue
-hi preproc blue
 hi error black yellow
 hi variable blue
 
 # Same syntax file is used for C and C++.
+hi c.preproc blue
+hi c.preproccond blue
 # To disable highlighting of C++ specific things uncomment these.
 #hi c.cpp-keyword
 #hi c.cpp-type

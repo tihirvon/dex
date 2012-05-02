@@ -84,6 +84,12 @@ state preproc
 state preproc-ident preproc
 	char -b a-zA-Z0-9_ preproc-ident
 	bufis "include" preproc-include
+	inlist preproccond preproccond
+	noeat preproc-misc
+
+state preproccond
+	# recolor to start of the line
+	recolor preproccond 100
 	noeat preproc-misc
 
 state preproc-misc preproc
@@ -256,6 +262,9 @@ list -h constant \
 	EINVAL ENFILE EMFILE ENOTTY ETXTBSY EFBIG ENOSPC ESPIPE EROFS EMLINK \
 	EPIPE EDOM ERANGE
 
+list -h preproccond \
+	else endif if ifdef ifndef
+
 list -i numeric-suffix \
 	ULL UL U LLU LU LL L
 
@@ -274,3 +283,4 @@ list cpp-constant \
 default keyword cpp-keyword
 default type cpp-type
 default constant cpp-constant
+default preproc preproccond
