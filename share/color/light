@@ -58,7 +58,6 @@ hi diff.header bold
 hi diff.chunk black gray
 hi diff.added blue
 hi diff.removed bold red
-hi diff.changed magenta
 hi diff.context keep keep
 
 # gitcommit
@@ -87,7 +86,6 @@ hi make.builtin bold
 
 # sh
 hi sh.builtin bold
-hi sh.operator bold
 
 # smarty
 hi smarty.smarty blue
