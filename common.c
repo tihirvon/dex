@@ -73,6 +73,16 @@ int str_to_long(const char *str, long *valp)
 	return parse_long(&str, valp) && *str == 0;
 }
 
+int str_to_int(const char *str, int *valp)
+{
+	long val;
+
+	if (!str_to_long(str, &val) || val < INT_MIN || val > INT_MAX)
+		return 0;
+	*valp = val;
+	return 1;
+}
+
 char *xsprintf(const char *format, ...)
 {
 	char buf[4096];

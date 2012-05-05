@@ -262,19 +262,9 @@ static inline char *global_ptr(const struct option_description *desc)
 	return (char *)&options + desc->offset;
 }
 
-static int parse_int(const char *value, int *ret)
-{
-	long val;
-
-	if (!str_to_long(value, &val))
-		return 0;
-	*ret = val;
-	return 1;
-}
-
 static int parse_int_opt(const struct option_description *desc, const char *value, int *val)
 {
-	if (!value || !parse_int(value, val)) {
+	if (!value || !str_to_int(value, val)) {
 		error_msg("Integer value for %s expected.", desc->name);
 		return 0;
 	}
@@ -294,7 +284,7 @@ static int parse_enum(const struct option_description *desc, const char *value)
 		if (!strcmp(desc->u.enum_opt.values[i], value))
 			return i;
 	}
-	if (!parse_int(value, &val) || val < 0 || val >= i) {
+	if (!str_to_int(value, &val) || val < 0 || val >= i) {
 		error_msg("Invalid value for %s.", desc->name);
 		return -1;
 	}
@@ -332,7 +322,7 @@ static int parse_flags(const struct option_description *desc, const char *value)
 		if (!values[i]) {
 			int val, max = (1 << i) - 1;
 
-			if (!parse_int(buf, &val) || val < 0 || val > max) {
+			if (!str_to_int(buf, &val) || val < 0 || val > max) {
 				error_msg("Invalid value for %s.", desc->name);
 				free(buf);
 				return -1;
