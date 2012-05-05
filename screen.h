@@ -3,7 +3,6 @@
 
 #include "window.h"
 
-void set_basic_colors(void);
 void print_tabbar(void);
 int print_command(char prefix);
 void print_message(const char *msg, int is_error);

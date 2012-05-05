@@ -4,6 +4,8 @@
 #include "completion.h"
 #include "error.h"
 
+struct term_color *builtin_colors[NR_BC];
+
 static const char * const color_names[] = {
 	"keep", "default",
 	"black", "red", "green", "yellow", "blue", "magenta", "cyan", "gray",
@@ -15,7 +17,30 @@ static const char * const attr_names[] = {
 	"bold", "lowintensity", "underline", "blink", "reverse", "invisible", "keep"
 };
 
+static const char * const builtin_color_names[NR_BC] = {
+	"default",
+	"nontext",
+	"wserror",
+	"selection",
+	"currentline",
+	"linenumber",
+	"statusline",
+	"commandline",
+	"errormsg",
+	"infomsg",
+	"tabbar",
+	"activetab",
+	"inactivetab",
+};
+
 static PTR_ARRAY(hl_colors);
+
+void fill_builtin_colors(void)
+{
+	int i;
+	for (i = 0; i < NR_BC; i++)
+		builtin_colors[i] = &find_color(builtin_color_names[i])->color;
+}
 
 struct hl_color *set_highlight_color(const char *name, const struct term_color *color)
 {

@@ -21,48 +21,7 @@ struct line_info {
 	struct hl_color **colors;
 };
 
-enum builtin_color {
-	BC_DEFAULT,
-	BC_NONTEXT,
-	BC_WSERROR,
-	BC_SELECTION,
-	BC_CURRENTLINE,
-	BC_LINENUMBER,
-	BC_STATUSLINE,
-	BC_COMMANDLINE,
-	BC_ERRORMSG,
-	BC_INFOMSG,
-	BC_TABBAR,
-	BC_ACTIVETAB,
-	BC_INACTIVETAB,
-	NR_BC
-};
-
-static const char * const builtin_color_names[NR_BC] = {
-	"default",
-	"nontext",
-	"wserror",
-	"selection",
-	"currentline",
-	"linenumber",
-	"statusline",
-	"commandline",
-	"errormsg",
-	"infomsg",
-	"tabbar",
-	"activetab",
-	"inactivetab",
-};
-
-static struct term_color *builtin_colors[NR_BC];
 static int current_line;
-
-void set_basic_colors(void)
-{
-	int i;
-	for (i = 0; i < NR_BC; i++)
-		builtin_colors[i] = &find_color(builtin_color_names[i])->color;
-}
 
 static void set_color(struct term_color *color)
 {

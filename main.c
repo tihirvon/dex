@@ -3,7 +3,7 @@
 #include "frame.h"
 #include "term.h"
 #include "config.h"
-#include "screen.h"
+#include "color.h"
 #include "syntax.h"
 #include "alias.h"
 #include "history.h"
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 
 	exec_config(commands, builtin_rc, strlen(builtin_rc));
 	config_line = 0;
-	set_basic_colors();
+	fill_builtin_colors();
 
 	root_frame = new_frame();
 	window = window_new();
