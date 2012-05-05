@@ -8,6 +8,9 @@
 #
 # For unknown highlight colors "default" is used.
 
+# reset colors
+hi
+
 # builtin colors
 #hi default
 #hi nontext blue keep
