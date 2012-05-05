@@ -86,3 +86,11 @@ int read_config(const struct command *cmds, const char *filename, int must_exist
 	config_line = saved_config_line;
 	return ret;
 }
+
+void exec_builtin_rc(const char *rc)
+{
+	// no need to change filename because there can't be any errors
+	int saved_config_line = config_line;
+	exec_config(commands, rc, strlen(rc));
+	config_line = saved_config_line;
+}

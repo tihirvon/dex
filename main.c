@@ -169,8 +169,7 @@ int main(int argc, char *argv[])
 	if (term_init(use_terminfo, use_termcap))
 		error_msg("No terminal entry found.");
 
-	exec_config(commands, builtin_rc, strlen(builtin_rc));
-	config_line = 0;
+	exec_builtin_rc(builtin_rc);
 	fill_builtin_colors();
 
 	root_frame = new_frame();
