@@ -60,20 +60,18 @@ void load_file_history(void)
 		return;
 	}
 	while (pos < size) {
-		char *line = buf_next_line(buf, &pos, size);
-		char *end;
+		const char *line = buf_next_line(buf, &pos, size);
 		long row, col;
 
-		row = strtol(line, &end, 10);
-		line = end;
+		if (!parse_long(&line, &row) || row <= 0)
+			continue;
 		while (isspace(*line))
 			line++;
-		col = strtol(line, &end, 10);
-		line = end;
+		if (!parse_long(&line, &col) || col <= 0)
+			continue;
 		while (isspace(*line))
 			line++;
-		if (row > 0 && col > 0)
-			add_file_history(row, col, line);
+		add_file_history(row, col, line);
 	}
 	free(buf);
 	free(filename);
