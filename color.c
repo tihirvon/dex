@@ -112,15 +112,25 @@ void remove_extra_colors(void)
 
 static int parse_color(const char *str, int *val)
 {
-	char *end;
-	long lval;
+	const char *ptr = str;
+	long r, g, b;
 	int i;
 
-	lval = strtol(str, &end, 10);
-	if (*str && !*end) {
-		if (lval < -2 || lval > 255)
+	if (parse_long(&ptr, &r)) {
+		if (*ptr == 0) {
+			if (r < -2 || r > 255)
+				return 0;
+			// color index -2..255
+			*val = r;
+			return 1;
+		}
+		if (r < 0 || r > 5 || *ptr++ != '/' || !parse_long(&ptr, &g) ||
+		    g < 0 || g > 5 || *ptr++ != '/' || !parse_long(&ptr, &b) ||
+		    b < 0 || b > 5 || *ptr)
 			return 0;
-		*val = lval;
+
+		// r/g/b to color index 16..231 (6x6x6 color cube)
+		*val = 16 + r * 36 + g * 6 + b;
 		return 1;
 	}
 	for (i = 0; i < ARRAY_COUNT(color_names); i++) {

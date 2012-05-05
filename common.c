@@ -26,6 +26,48 @@ unsigned int number_width(unsigned int n)
 	return width;
 }
 
+int buf_parse_long(const char *str, int size, int *posp, long *valp)
+{
+	int pos = *posp;
+	int sign = 1;
+	int count = 0;
+	long val = 0;
+
+	if (pos < size && str[pos] == '-') {
+		sign = -1;
+		pos++;
+	}
+	while (pos < size && isdigit(str[pos])) {
+		long old = val;
+
+		val *= 10;
+		val += str[pos++] - '0';
+		count++;
+		if (val < old) {
+			// overflow
+			return 0;
+		}
+	}
+	if (count == 0)
+		return 0;
+	*posp = pos;
+	*valp = sign * val;
+	return 1;
+}
+
+int parse_long(const char **strp, long *valp)
+{
+	const char *str = *strp;
+	int size = strlen(str);
+	int pos = 0;
+
+	if (buf_parse_long(str, size, &pos, valp)) {
+		*strp = str + pos;
+		return 1;
+	}
+	return 0;
+}
+
 char *xsprintf(const char *format, ...)
 {
 	char buf[4096];

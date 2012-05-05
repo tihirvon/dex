@@ -217,14 +217,24 @@ ft -i <filetype> <interpreter>...
 hi <name> [fg-color [bg-color]]  [attribute]...
 	Set highlight color.
 
-	Colors: keep (-2) default (-1) black (0) red green yellow blue
-	magenta cyan gray darkgray lightred lightgreen lightyellow
-	lightblue lightmagenta lightcyan white
+	Colors:
+		keep (-2) default (-1) black (0) red green yellow blue
+		magenta cyan gray darkgray lightred lightgreen lightyellow
+		lightblue lightmagenta lightcyan white
 
-	Color can be given as a number too (-2..255).
+	Color can be given as a numeric value too (-2..255).
 
-	Attributes: bold lowintensity underline blink reverse invisible
-	keep
+	Colors 16-255 are supported by modern xterm compatible terminal
+	emulators. There's a 6x6x6 color cube at indexes 16..231. For
+	these colors it is easiest to use the R/G/B syntax where R, G
+	and B are values between 0 and 5.
+
+	Indexes 232..255 contain 24 grayscale values which can be used
+	to specify grayscale value more accurately than using the R/G/B
+	syntax.
+
+	Attributes:
+		bold lowintensity underline blink reverse invisible keep
 
 	The color and attribute value "keep" is useful in selected text
 	to keep fg-color and attributes and change only bg-color.
