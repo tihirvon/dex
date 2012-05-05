@@ -11,6 +11,7 @@ struct hl_color {
 enum builtin_color {
 	BC_DEFAULT,
 	BC_NONTEXT,
+	BC_NOLINE,
 	BC_WSERROR,
 	BC_SELECTION,
 	BC_CURRENTLINE,

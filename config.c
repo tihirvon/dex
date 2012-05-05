@@ -9,6 +9,7 @@ int config_line;
 const char *reset_colors_rc =
 "hi default\n"
 "hi nontext blue keep\n"
+"hi noline blue\n"
 "hi wserror default yellow\n"
 "hi selection keep gray keep\n"
 "hi currentline keep keep keep\n"

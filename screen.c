@@ -524,7 +524,7 @@ void update_range(int y1, int y2)
 	}
 
 	if (i < y2)
-		set_builtin_color(BC_NONTEXT);
+		set_builtin_color(BC_NOLINE);
 	for (; i < y2; i++) {
 		obuf.x = 0;
 		buf_move_cursor(window->edit_x, window->edit_y + i);

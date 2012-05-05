@@ -20,6 +20,7 @@ static const char * const attr_names[] = {
 static const char * const builtin_color_names[NR_BC] = {
 	"default",
 	"nontext",
+	"noline",
 	"wserror",
 	"selection",
 	"currentline",
