@@ -36,7 +36,8 @@ void close_tag_file(struct tag_file *tf)
 static int parse_excmd(struct tag *t, const char *buf, int size)
 {
 	char ch = *buf;
-	int i, line;
+	long line;
+	int i;
 
 	if (ch == '/' || ch == '?') {
 		// the search pattern is not real regular expression
@@ -72,13 +73,8 @@ static int parse_excmd(struct tag *t, const char *buf, int size)
 		return 0;
 	}
 
-	line = 0;
-	for (i = 0; i < size && isdigit(buf[i]); i++) {
-		line *= 10;
-		line += buf[i] - '0';
-	}
-
-	if (!i)
+	i = 0;
+	if (!buf_parse_long(buf, size, &i, &line))
 		return 0;
 
 	if (i + 1 < size && buf[i] == ';' && buf[i + 1] == '"')
