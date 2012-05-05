@@ -332,15 +332,18 @@ static void cmd_hi(const char *pf, char **args)
 {
 	struct term_color color;
 
-	if (parse_term_color(&color, args + 1)) {
+	if (args[0] == NULL) {
+		exec_builtin_rc(reset_colors_rc);
+		remove_extra_colors();
+	} else if (parse_term_color(&color, args + 1)) {
 		set_highlight_color(args[0], &color);
+	}
 
-		// Don't call update_all_syntax_colors() needlessly.
-		// It is called right after config has been loaded.
-		if (editor_status != EDITOR_INITIALIZING) {
-			update_all_syntax_colors();
-			mark_everything_changed();
-		}
+	// Don't call update_all_syntax_colors() needlessly.
+	// It is called right after config has been loaded.
+	if (editor_status != EDITOR_INITIALIZING) {
+		update_all_syntax_colors();
+		mark_everything_changed();
 	}
 }
 
@@ -1455,7 +1458,7 @@ const struct command commands[] = {
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
 	{ "ft",			"-cfi",	2, -1, cmd_ft },
-	{ "hi",			"",	1, -1, cmd_hi },
+	{ "hi",			"-",	0, -1, cmd_hi },
 	{ "include",		"",	1,  1, cmd_include },
 	{ "insert",		"km",	1,  1, cmd_insert },
 	{ "insert-special",	"",	0,  0, cmd_insert_special },

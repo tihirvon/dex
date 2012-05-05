@@ -6,6 +6,21 @@
 const char *config_file;
 int config_line;
 
+const char *reset_colors_rc =
+"hi default\n"
+"hi nontext blue keep\n"
+"hi wserror default yellow\n"
+"hi selection keep gray keep\n"
+"hi currentline keep keep keep\n"
+"hi linenumber\n"
+"hi statusline black gray\n"
+"hi commandline\n"
+"hi errormsg bold red\n"
+"hi infomsg bold blue\n"
+"hi tabbar black gray\n"
+"hi activetab bold\n"
+"hi inactivetab black gray\n";
+
 static int is_command(const char *str, int len)
 {
 	int i;

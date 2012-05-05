@@ -30,6 +30,7 @@ extern struct term_color *builtin_colors[NR_BC];
 void fill_builtin_colors(void);
 struct hl_color *set_highlight_color(const char *name, const struct term_color *color);
 struct hl_color *find_color(const char *name);
+void remove_extra_colors(void);
 int parse_term_color(struct term_color *color, char **strs);
 void collect_hl_colors(const char *prefix);
 void collect_colors_and_attributes(const char *prefix);

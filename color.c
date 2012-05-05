@@ -87,6 +87,28 @@ struct hl_color *find_color(const char *name)
 	return NULL;
 }
 
+// NOTE: you have to call update_all_syntax_colors() after this
+void remove_extra_colors(void)
+{
+	int i;
+
+	BUG_ON(hl_colors.count < NR_BC);
+	for (i = NR_BC; i < hl_colors.count; i++) {
+		struct hl_color *c = hl_colors.ptrs[i];
+
+		// make possible use after free error easy to see
+		c->color.fg = COLOR_RED;
+		c->color.bg = COLOR_YELLOW;
+		c->color.attr = ATTR_BOLD;
+		free(c->name);
+		c->name = NULL;
+		free(c);
+
+		hl_colors.ptrs[i] = NULL;
+	}
+	hl_colors.count = NR_BC;
+}
+
 static int parse_color(const char *str, int *val)
 {
 	char *end;
