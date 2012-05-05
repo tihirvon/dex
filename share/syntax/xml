@@ -114,7 +114,7 @@ state short-close tag
 	eat text error
 
 state attr-name attr
-	char a-zA-Z:- attr-name
+	char a-zA-Z:_- attr-name
 	char = attr-eq
 	noeat attrs
 
