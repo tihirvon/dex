@@ -120,18 +120,18 @@ state comment
 	str -- --> text comment
 	eat comment
 
-state tag-start special
+state tag-start tag
 	char / close-tag
 	char -b a-zA-Z0-9_ tag-name
 	char " \t\n" tag-start
-	char > text special
+	char > text tag
 	# smarty
 	str "{*" .smarty-comment:tag-start
 	str "{literal}" .smarty-literal:tag-start
 	char \{ .smarty-code:tag-start
 	eat tag-start error
 
-state close-tag special
+state close-tag tag
 	char -b a-zA-Z0-9_ close-tag-name
 	char " \t\n" close-tag
 	# smarty
@@ -155,9 +155,9 @@ state close-tag-name tag-unknown
 	inlist tag-deprecated close-tag-end
 	noeat close-tag-end
 
-state close-tag-end special
+state close-tag-end tag
 	char " \t\n" close-tag-end
-	char > text special
+	char > text tag
 	# smarty
 	str "{*" .smarty-comment:close-tag-end
 	char \{ .smarty-code:close-tag-end
@@ -166,15 +166,15 @@ state close-tag-end special
 state attrs code
 	char " \t\n" attrs
 	char -b a-zA-Z attr-name
-	char > text special
+	char > text tag
 	char / short-close
 	# smarty
 	str "{*" .smarty-comment:attrs
 	char \{ .smarty-code:attrs
 	eat attrs error
 
-state short-close special
-	char > text special
+state short-close tag
+	char > text tag
 	eat text error
 
 state attr-name attr
