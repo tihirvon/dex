@@ -68,6 +68,11 @@ int parse_long(const char **strp, long *valp)
 	return 0;
 }
 
+int str_to_long(const char *str, long *valp)
+{
+	return parse_long(&str, valp) && *str == 0;
+}
+
 char *xsprintf(const char *format, ...)
 {
 	char buf[4096];

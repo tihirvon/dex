@@ -264,10 +264,9 @@ static inline char *global_ptr(const struct option_description *desc)
 
 static int parse_int(const char *value, int *ret)
 {
-	char *end;
-	long val = strtol(value, &end, 10);
+	long val;
 
-	if (!*value || *end)
+	if (!str_to_long(value, &val))
 		return 0;
 	*ret = val;
 	return 1;

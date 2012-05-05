@@ -430,9 +430,8 @@ static void cmd_move_tab(const char *pf, char **args)
 	} else if (!strcmp(str, "right")) {
 		j = new_view_idx(i + 1);
 	} else {
-		char *end;
-		long num = strtol(str, &end, 10);
-		if (!*str || *end || num < 1) {
+		long num;
+		if (!str_to_long(str, &num) || num < 1) {
 			error_msg("Invalid tab position %s", str);
 			return;
 		}

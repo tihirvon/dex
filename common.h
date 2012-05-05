@@ -90,6 +90,7 @@ int count_strings(char **strings);
 unsigned int number_width(unsigned int n);
 int buf_parse_long(const char *str, int size, int *posp, long *valp);
 int parse_long(const char **strp, long *valp);
+int str_to_long(const char *str, long *valp);
 char *xsprintf(const char *format, ...) __FORMAT(1, 2);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
