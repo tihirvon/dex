@@ -101,7 +101,14 @@ state command code
 	inlist keyword2 args keyword
 	inlist builtin args
 	bufis for for
+	char \( function
 	noeat args
+
+state function special
+	# don't try to validate syntax because there can be comments
+	# between "()" and "{"
+	char \) start special
+	eat start error
 
 state for keyword
 	char " \t" for
