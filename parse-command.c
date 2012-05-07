@@ -149,7 +149,7 @@ static void parse_var(const char *cmd, int *posp)
 	if (expand_builtin_env(&arg, var, len))
 		return;
 
-	name = xstrndup(var, len);
+	name = xstrslice(var, 0, len);
 	value = getenv(name);
 	if (value)
 		gbuf_add_str(&arg, value);

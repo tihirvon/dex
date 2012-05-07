@@ -284,7 +284,7 @@ static char *str_cap(const char *buf, int size, char *cap)
 	}
 
 	if (str_has_prefix(cap, "tc")) {
-		char *term = xstrndup(val, end - val);
+		char *term = xstrslice(val, 0, end - val);
 
 		process(buf, size, term);
 		free(term);

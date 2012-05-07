@@ -570,7 +570,7 @@ static void cmd_option(const char *pf, char **args)
 
 		comma = strchr(list, ',');
 		len = comma ? comma - list : strlen(list);
-		add_file_options(FILE_OPTIONS_FILETYPE, xstrndup(list, len), strs);
+		add_file_options(FILE_OPTIONS_FILETYPE, xstrslice(list, 0, len), strs);
 		list = comma + 1;
 	} while (comma);
 }

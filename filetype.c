@@ -79,7 +79,7 @@ static char *get_ext(const char *filename)
 			break;
 		}
 	}
-	return xstrndup(ext, ext_len);
+	return xstrslice(ext, 0, ext_len);
 }
 
 const char *find_ft(const char *filename, const char *interpreter,

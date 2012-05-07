@@ -19,7 +19,12 @@ void * __MALLOC xmalloc(size_t size);
 void * __MALLOC xcalloc(size_t size);
 void * __MALLOC xrealloc(void *ptr, size_t size);
 char * __MALLOC xstrdup(const char *str);
+char * __MALLOC xstrcut(const char *str, size_t size);
 void * __MALLOC xmemdup(const void *ptr, size_t size);
-char * __MALLOC xstrndup(const char *str, size_t n);
+
+static inline char *xstrslice(const char *str, size_t pos, size_t end)
+{
+	return xstrcut(str + pos, end - pos);
+}
 
 #endif

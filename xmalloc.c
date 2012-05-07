@@ -42,22 +42,17 @@ char *xstrdup(const char *str)
 	return s;
 }
 
+char *xstrcut(const char *str, size_t size)
+{
+	char *s = xmalloc(size + 1);
+	memcpy(s, str, size);
+	s[size] = 0;
+	return s;
+}
+
 void *xmemdup(const void *ptr, size_t size)
 {
 	void *buf = xmalloc(size);
 	memcpy(buf, ptr, size);
 	return buf;
-}
-
-char *xstrndup(const char *str, size_t n)
-{
-	int len;
-	char *s;
-
-	for (len = 0; len < n && str[len]; len++)
-		;
-	s = xmalloc(len + 1);
-	memcpy(s, str, len);
-	s[len] = 0;
-	return s;
 }

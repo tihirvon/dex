@@ -131,7 +131,7 @@ char *get_word_under_cursor(void)
 		si--;
 	while (ei + 1 < lr.size && is_word_byte(lr.line[ei + 1]))
 		ei++;
-	return xstrndup(lr.line + si, ei - si + 1);
+	return xstrslice(lr.line, si, ei + 1);
 }
 
 static struct buffer *buffer_new(const char *encoding)

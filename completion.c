@@ -141,10 +141,10 @@ static void collect_files(int directories_only)
 			add_completion(s);
 		} else {
 			char *dir;
-			char *dirprefix = xstrndup(str, slash - str + 1);
+			char *dirprefix = xstrslice(str, 0, slash - str + 1);
 			char *fileprefix = xstrdup(slash + 1);
 			slash = strrchr(completion.parsed, '/');
-			dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
+			dir = xstrslice(completion.parsed, 0, slash - completion.parsed + 1);
 			do_collect_files(dir, dirprefix, fileprefix, directories_only);
 			free(dirprefix);
 			free(fileprefix);
@@ -155,7 +155,7 @@ static void collect_files(int directories_only)
 		if (!slash) {
 			do_collect_files("./", "", completion.parsed, directories_only);
 		} else {
-			char *dir = xstrndup(completion.parsed, slash - completion.parsed + 1);
+			char *dir = xstrslice(completion.parsed, 0, slash - completion.parsed + 1);
 			char *fileprefix = xstrdup(slash + 1);
 			do_collect_files(dir, dir, fileprefix, directories_only);
 			free(fileprefix);
@@ -183,7 +183,7 @@ static void collect_env(const char *name, int len)
 		if (strncmp(e, name, len) == 0) {
 			const char *end = strchr(e, '=');
 			if (end)
-				add_completion(xstrndup(e, end - e));
+				add_completion(xstrslice(e, 0, end - e));
 		}
 	}
 	collect_builtin_env(name, len);
@@ -281,7 +281,7 @@ static void init_completion(void)
 		}
 
 		if (semicolon + 1 == array.count) {
-			char *name = xstrndup(cmd + pos, end - pos);
+			char *name = xstrslice(cmd, pos, end);
 			const char *value = find_alias(name);
 
 			if (value) {
@@ -326,7 +326,7 @@ static void init_completion(void)
 			completion_pos++;
 			completion.escaped = NULL;
 			completion.parsed = NULL;
-			completion.head = xstrndup(cmd, completion_pos);
+			completion.head = xstrslice(cmd, 0, completion_pos);
 			completion.tail = xstrdup(cmd + cmdline.pos);
 			collect_env(str + 1, len - 1);
 			sort_completions();
@@ -335,9 +335,9 @@ static void init_completion(void)
 		}
 	}
 
-	completion.escaped = xstrndup(str, len);
+	completion.escaped = xstrslice(str, 0, len);
 	completion.parsed = parse_command_arg(completion.escaped, 1);
-	completion.head = xstrndup(cmd, completion_pos);
+	completion.head = xstrslice(cmd, 0, completion_pos);
 	completion.tail = xstrdup(cmd + cmdline.pos);
 	completion.add_space = 1;
 

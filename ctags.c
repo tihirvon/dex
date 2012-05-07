@@ -95,7 +95,7 @@ static int parse_line(struct tag *t, const char *buf, int size)
 		goto error;
 
 	len = end - buf;
-	t->name = xstrndup(buf, len);
+	t->name = xstrslice(buf, 0, len);
 
 	si = len + 1;
 	if (si >= size)
@@ -103,7 +103,7 @@ static int parse_line(struct tag *t, const char *buf, int size)
 
 	end = memchr(buf + si, '\t', size - si);
 	len = end - buf - si;
-	t->filename = xstrndup(buf + si, len);
+	t->filename = xstrslice(buf, si, si + len);
 
 	si += len + 1;
 	if (si >= size)

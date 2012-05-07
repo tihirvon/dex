@@ -40,7 +40,7 @@ int regexp_match(const char *pattern, const char *buf, unsigned int len)
 		for (i = 0; i < REGEXP_SUBSTRINGS; i++) {
 			if (m[i].rm_so == -1)
 				break;
-			regexp_matches[i] = xstrndup(buf + m[i].rm_so, m[i].rm_eo - m[i].rm_so);
+			regexp_matches[i] = xstrslice(buf, m[i].rm_so, m[i].rm_eo);
 		}
 		regexp_matches[i] = NULL;
 		return i;
