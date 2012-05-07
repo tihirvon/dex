@@ -154,6 +154,7 @@ binding	:=	 		\
 	# end
 
 color	:=			\
+	color/darkgray		\
 	color/light		\
 	# end
 
