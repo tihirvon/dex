@@ -404,12 +404,9 @@ static char *flags_to_string(const char **values, int flags)
 
 static char *option_to_string(const struct option_description *desc, const char *ptr)
 {
-	char buf[32];
-
 	switch (desc->type) {
 	case OPT_INT:
-		snprintf(buf, sizeof(buf), "%d", *(int *)ptr);
-		return xstrdup(buf);
+		return xsprintf("%d", *(int *)ptr);
 	case OPT_STR:
 		return xstrdup(*(const char **)ptr);
 	case OPT_ENUM:

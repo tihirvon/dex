@@ -243,9 +243,7 @@ void ui_end(void)
 
 char *editor_file(const char *name)
 {
-	char buf[4096];
-	snprintf(buf, sizeof(buf), "%s/.%s/%s", home_dir, program, name);
-	return xstrdup(buf);
+	return xsprintf("%s/.%s/%s", home_dir, program, name);
 }
 
 char get_confirmation(const char *choices, const char *format, ...)
