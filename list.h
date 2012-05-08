@@ -2,7 +2,7 @@
 #ifndef _LINUX_LIST_H
 #define _LINUX_LIST_H
 
-#include <stdlib.h>
+#include <stddef.h>
 
 struct list_head {
 	struct list_head *next, *prev;
@@ -56,9 +56,6 @@ static inline int list_empty(const struct list_head *head)
 {
 	return head->next == head;
 }
-
-#undef offsetof
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 
 /**
  * container_of - cast a member of a structure out to the containing structure
