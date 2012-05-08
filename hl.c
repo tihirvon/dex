@@ -2,20 +2,22 @@
 #include "buffer.h"
 #include "syntax.h"
 
+#include <inttypes.h>
+
 static int state_is_valid(const struct state *st)
 {
-	return ((unsigned long)st & 1) == 0;
+	return ((uintptr_t)st & 1) == 0;
 }
 
 static void mark_state_invalid(void **ptrs, int idx)
 {
 	struct state *st = ptrs[idx];
-	ptrs[idx] = (struct state *)((unsigned long)st | 1);
+	ptrs[idx] = (struct state *)((uintptr_t)st | 1);
 }
 
 static int states_equal(void **ptrs, int idx, const struct state *b)
 {
-	struct state *a = (struct state *)((unsigned long)ptrs[idx] & ~1UL);
+	struct state *a = (struct state *)((uintptr_t)ptrs[idx] & ~(uintptr_t)1);
 	return a == b;
 }
 
