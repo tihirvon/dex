@@ -50,7 +50,7 @@ extern const char *version;
 extern const char *pkgdatadir;
 
 char *editor_file(const char *name);
-char get_confirmation(const char *choices, const char *format, ...) __FORMAT(2, 3);
+char get_confirmation(const char *choices, const char *format, ...) FORMAT(2, 3);
 void discard_paste(void);
 void any_key(void);
 void resize(void);

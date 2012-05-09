@@ -36,7 +36,7 @@ static void add_status_str(struct formatter *f, const char *str)
 		u_set_char(f->buf, &f->pos, u_get_char(str, idx + 4, &idx));
 }
 
-__FORMAT(2, 3)
+FORMAT(2, 3)
 static void add_status_format(struct formatter *f, const char *format, ...)
 {
 	char buf[1024];

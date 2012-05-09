@@ -1,7 +1,7 @@
 #include "xmalloc.h"
 #include "common.h"
 
-static void __NORETURN malloc_fail(unsigned long size)
+static void NORETURN malloc_fail(unsigned long size)
 {
 	fprintf(stderr, "out of memory: %lu\n", size);
 	abort();

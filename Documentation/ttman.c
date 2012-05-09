@@ -72,12 +72,12 @@ static const struct {
 #define BUG() die("BUG in %s\n", __FUNCTION__)
 
 #ifdef __GNUC__
-#define __NORETURN	__attribute__((__noreturn__))
+#define NORETURN __attribute__((__noreturn__))
 #else
-#define __NORETURN
+#define NORETURN
 #endif
 
-static __NORETURN void die(const char *format, ...)
+static NORETURN void die(const char *format, ...)
 {
 	va_list ap;
 
@@ -88,7 +88,7 @@ static __NORETURN void die(const char *format, ...)
 	exit(1);
 }
 
-static __NORETURN void syntax(int line, const char *format, ...)
+static NORETURN void syntax(int line, const char *format, ...)
 {
 	va_list ap;
 
