@@ -53,46 +53,47 @@ copy:
 
 static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, size_t size)
 {
+	const char *e = detect_encoding_from_bom(buf, size);
 	struct file_decoder *dec;
 	char *line;
 	ssize_t len;
 
-	if (b->encoding) {
-		// Detect endianness for UTF-16 and UTF-32.
-		const char *e = detect_encoding_from_bom(buf, size);
-
-		if (!strcmp(b->encoding, "UTF-16")) {
-			if (e && str_has_prefix(e, b->encoding)) {
-				free(b->encoding);
-				b->encoding = xstrdup(e);
-			} else {
-				// "open -e UTF-16" but incompatible or no BOM.
-				// Do what the user wants. Big-endian is default.
-				free(b->encoding);
-				b->encoding = xstrdup("UTF-16BE");
-			}
+	if (b->encoding == NULL) {
+		if (e) {
+			// UTF-16BE/LE or UTF-32BE/LE
+			b->encoding = xstrdup(e);
 		}
-
-		if (!strcmp(b->encoding, "UTF-32")) {
-			if (e && str_has_prefix(e, b->encoding)) {
-				free(b->encoding);
-				b->encoding = xstrdup(e);
-			} else {
-				// "open -e UTF-32" but incompatible or no BOM.
-				// Do what the user wants. Big-endian is default.
-				free(b->encoding);
-				b->encoding = xstrdup("UTF-32BE");
-			}
+	} else if (!strcmp(b->encoding, "UTF-16")) {
+		// BE or LE?
+		if (e && str_has_prefix(e, b->encoding)) {
+			free(b->encoding);
+			b->encoding = xstrdup(e);
+		} else {
+			// "open -e UTF-16" but incompatible or no BOM.
+			// Do what the user wants. Big-endian is default.
+			free(b->encoding);
+			b->encoding = xstrdup("UTF-16BE");
 		}
-
-		if (e && !strcmp(b->encoding, e)) {
-			// skip BOM
-			size_t bom_len = 2;
-			if (str_has_prefix(e, "UTF-32"))
-				bom_len = 4;
-			buf += bom_len;
-			size -= bom_len;
+	} else if (!strcmp(b->encoding, "UTF-32")) {
+		// BE or LE?
+		if (e && str_has_prefix(e, b->encoding)) {
+			free(b->encoding);
+			b->encoding = xstrdup(e);
+		} else {
+			// "open -e UTF-32" but incompatible or no BOM.
+			// Do what the user wants. Big-endian is default.
+			free(b->encoding);
+			b->encoding = xstrdup("UTF-32BE");
 		}
+	}
+
+	// Skip BOM only if it matches the specified file encoding.
+	if (b->encoding && e && !strcmp(b->encoding, e)) {
+		size_t bom_len = 2;
+		if (str_has_prefix(e, "UTF-32"))
+			bom_len = 4;
+		buf += bom_len;
+		size -= bom_len;
 	}
 
 	dec = new_file_decoder(b->encoding, buf, size);
@@ -117,7 +118,7 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 			add_block(b, blk);
 	}
 	if (b->encoding == NULL) {
-		const char *e = dec->encoding;
+		e = dec->encoding;
 		if (e == NULL)
 			e = charset;
 		b->encoding = xstrdup(e);
@@ -161,12 +162,6 @@ static int read_blocks(struct buffer *b, int fd)
 			}
 		}
 		size = pos;
-	}
-
-	if (b->encoding == NULL) {
-		const char *e = detect_encoding_from_bom(buf, size);
-		if (e)
-			b->encoding = xstrdup(e);
 	}
 	rc = decode_and_add_blocks(b, buf, size);
 	if (mapped) {
