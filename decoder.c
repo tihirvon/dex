@@ -200,6 +200,7 @@ struct file_decoder *new_file_decoder(const char *encoding, const unsigned char 
 	dec->ibuf = buf;
 	dec->isize = size;
 	dec->read_line = detect_and_read_line;
+	dec->cd = (iconv_t)-1;
 
 	if (encoding) {
 		if (set_encoding(dec, encoding)) {
@@ -212,7 +213,7 @@ struct file_decoder *new_file_decoder(const char *encoding, const unsigned char 
 
 void free_file_decoder(struct file_decoder *dec)
 {
-	if (dec->encoding && strcmp(dec->encoding, "UTF-8"))
+	if (dec->cd != (iconv_t)-1)
 		iconv_close(dec->cd);
 	free(dec->obuf);
 	free(dec->encoding);
