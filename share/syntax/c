@@ -107,7 +107,8 @@ state preproc-include preproc
 	char "\\" preproc-cont
 	char '"' local-include
 	char '<' system-include
-	noeat preproc-error
+	# not an error: #include DEFINE
+	noeat preproc-misc
 
 state preproc-cont preproc
 	char "\n" preproc-misc
