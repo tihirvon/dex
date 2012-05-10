@@ -71,18 +71,20 @@ static int detect(struct file_decoder *dec, const unsigned char *line, ssize_t l
 		if (line[i] >= 0x80) {
 			unsigned int idx = i;
 			unsigned int u = u_get_nonascii(line, len, &idx);
+			const char *encoding;
 
 			if (u_is_unicode(u)) {
-				set_encoding(dec, "UTF-8");
-				return 1;
-			}
-
-			if (!strcmp(charset, "UTF-8")) {
+				encoding = "UTF-8";
+			} else if (!strcmp(charset, "UTF-8")) {
 				// UTF-8 terminal, assuming latin1
-				set_encoding(dec, "ISO-8859-1");
+				encoding = "ISO-8859-1";
 			} else {
 				// assuming locale's encoding
-				set_encoding(dec, charset);
+				encoding = charset;
+			}
+			if (set_encoding(dec, encoding)) {
+				// FIXME: error message?
+				set_encoding(dec, "UTF-8");
 			}
 			return 1;
 		}
