@@ -174,22 +174,18 @@ static int detect_and_read_line(struct file_decoder *dec, char **linep, ssize_t 
 
 static int set_encoding(struct file_decoder *dec, const char *encoding)
 {
-	dec->encoding = xstrdup(encoding);
 	if (!strcmp(encoding, "UTF-8")) {
 		dec->read_line = read_utf8_line;
-		return 0;
+	} else {
+		dec->cd = iconv_open("UTF-8", encoding);
+		if (dec->cd == (iconv_t)-1) {
+			return -1;
+		}
+		dec->osize = 32 * 1024;
+		dec->obuf = xnew(unsigned char, dec->osize);
+		dec->read_line = decode_and_read_line;
 	}
-
-	dec->cd = iconv_open("UTF-8", encoding);
-	if (dec->cd == (iconv_t)-1) {
-		free(dec->encoding);
-		free(dec);
-		return -1;
-	}
-
-	dec->osize = 32 * 1024;
-	dec->obuf = xnew(unsigned char, dec->osize);
-	dec->read_line = decode_and_read_line;
+	dec->encoding = xstrdup(encoding);
 	return 0;
 }
 
