@@ -50,9 +50,7 @@ void set_signal_handler(int signum, void (*handler)(int))
 
 static void handle_sigtstp(int signum)
 {
-	if (!child_controls_terminal && editor_status != EDITOR_INITIALIZING)
-		ui_end();
-	kill(0, SIGSTOP);
+	suspend();
 }
 
 static void handle_sigcont(int signum)

@@ -1103,8 +1103,7 @@ static void cmd_shift(const char *pf, char **args)
 
 static void cmd_suspend(const char *pf, char **args)
 {
-	ui_end();
-	kill(0, SIGSTOP);
+	suspend();
 }
 
 static void cmd_tag(const char *pf, char **args)

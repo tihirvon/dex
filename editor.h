@@ -55,6 +55,7 @@ void discard_paste(void);
 void any_key(void);
 void resize(void);
 void ui_end(void);
+void suspend(void);
 void set_signal_handler(int signum, void (*handler)(int));
 void main_loop(void);
 

@@ -175,8 +175,7 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 			cmdline_next_char(c);
 			return 1;
 		case CTRL('Z'):
-			ui_end();
-			kill(0, SIGSTOP);
+			suspend();
 			return 1;
 		default:
 			// don't insert control characters

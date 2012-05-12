@@ -241,6 +241,13 @@ void ui_end(void)
 	term_cooked();
 }
 
+void suspend(void)
+{
+	if (!child_controls_terminal && editor_status != EDITOR_INITIALIZING)
+		ui_end();
+	kill(0, SIGSTOP);
+}
+
 char *editor_file(const char *name)
 {
 	return xsprintf("%s/.%s/%s", home_dir, program, name);
