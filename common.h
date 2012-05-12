@@ -16,7 +16,6 @@
 #include <limits.h>
 #include <dirent.h>
 #include <pwd.h>
-#include <regex.h>
 #include <time.h>
 #include <wctype.h>
 #include <signal.h>
