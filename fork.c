@@ -68,6 +68,11 @@ out:
 	exit(42);
 }
 
+void close_on_exec(int fd)
+{
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
+}
+
 int pipe_close_on_exec(int fd[2])
 {
 	int ret = pipe(fd);
