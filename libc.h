@@ -25,12 +25,12 @@
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
 #define NORETURN	__attribute__((__noreturn__))
-#define FORMAT(fmt_idx, first_idx) __attribute__((format(printf, (fmt_idx), (first_idx))))
+#define FORMAT(idx)	__attribute__((format(printf, (idx), (idx + 1))))
 #else
 #define likely(x)	(x)
 #define unlikely(x)	(x)
 #define NORETURN
-#define FORMAT(fmt_idx, first_idx)
+#define FORMAT(idx)
 #endif
 
 #define ARRAY_COUNT(x) ((unsigned long)sizeof(x) / sizeof(x[0]))
