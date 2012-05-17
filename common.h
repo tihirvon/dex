@@ -1,53 +1,12 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <strings.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <dirent.h>
-#include <pwd.h>
-#include <time.h>
-#include <wctype.h>
-#include <signal.h>
-#include <iconv.h>
-
+#include "libc.h"
 #include "ctype.h"
+#include "xmalloc.h"
 
 extern const char hex_tab[16];
 extern int term_utf8;
-
-#if defined(__GNUC__)
-
-#define likely(x)	__builtin_expect(!!(x), 1)
-#define unlikely(x)	__builtin_expect(!!(x), 0)
-
-#define NORETURN	__attribute__((__noreturn__))
-
-/* Argument at index @fmt_idx is printf compatible format string and
- * argument at index @first_idx is the first format argument */
-#define FORMAT(fmt_idx, first_idx) __attribute__((format(printf, (fmt_idx), (first_idx))))
-
-#else
-
-#define likely(x)	(x)
-#define unlikely(x)	(x)
-#define NORETURN
-#define FORMAT(fmt_idx, first_idx)
-
-#endif
-
-#define ARRAY_COUNT(x) ((unsigned long)sizeof(x) / sizeof(x[0]))
-#define clear(ptr) memset((ptr), 0, sizeof(*(ptr)))
 
 static inline size_t ROUND_UP(size_t x, size_t r)
 {
@@ -100,7 +59,5 @@ void bug(const char *function, const char *fmt, ...) FORMAT(2, 3) NORETURN;
 void debug_print(const char *function, const char *fmt, ...) FORMAT(2, 3);
 void *xmmap(int fd, off_t offset, size_t len);
 void xmunmap(void *start, size_t len);
-
-#include "xmalloc.h"
 
 #endif
