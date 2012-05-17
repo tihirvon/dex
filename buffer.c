@@ -102,17 +102,18 @@ char *buffer_get_bytes(unsigned int len)
 	return buf;
 }
 
-char *get_selection(void)
+char *get_selection(unsigned int *size)
 {
 	struct block_iter save = view->cursor;
-	char *str;
+	char *buf;
 
 	if (!selecting())
 		return NULL;
 
-	str = buffer_get_bytes(prepare_selection());
+	*size = prepare_selection();
+	buf = buffer_get_bytes(*size);
 	view->cursor = save;
-	return str;
+	return buf;
 }
 
 char *get_word_under_cursor(void)

@@ -22,14 +22,17 @@ static void expand_pkgdatadir(struct gbuf *buf)
 
 static void expand_word(struct gbuf *buf)
 {
-	char *str = get_selection();
+	unsigned int size;
+	char *str = get_selection(&size);
 
-	if (str == NULL)
-		str = get_word_under_cursor();
 	if (str) {
-		gbuf_add_str(buf, str);
-		free(str);
+		gbuf_add_buf(buf, str, size);
+	} else {
+		str = get_word_under_cursor();
+		if (str)
+			gbuf_add_str(buf, str);
 	}
+	free(str);
 }
 
 static const struct builtin_env builtin[] = {
