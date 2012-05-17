@@ -1,5 +1,6 @@
 #include "compiler.h"
 #include "error.h"
+#include "xmalloc.h"
 
 static PTR_ARRAY(compilers);
 

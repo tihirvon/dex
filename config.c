@@ -2,6 +2,7 @@
 #include "command.h"
 #include "error.h"
 #include "gbuf.h"
+#include "common.h"
 
 const char *config_file;
 int config_line;

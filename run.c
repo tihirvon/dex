@@ -4,6 +4,7 @@
 #include "parse-args.h"
 #include "change.h"
 #include "config.h"
+#include "xmalloc.h"
 
 // commands that are allowed in config files
 static const char *config_commands[] = {

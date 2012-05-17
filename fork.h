@@ -1,7 +1,7 @@
 #ifndef FORK_H
 #define FORK_H
 
-#include "common.h"
+#include "libc.h"
 
 static inline void close_on_exec(int fd)
 {

@@ -1,5 +1,6 @@
 #include "encoder.h"
 #include "uchar.h"
+#include "common.h"
 
 struct file_encoder *new_file_encoder(const char *encoding, enum newline_sequence nls, int fd)
 {

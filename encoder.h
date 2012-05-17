@@ -1,7 +1,7 @@
 #ifndef ENCODER_H
 #define ENCODER_H
 
-#include "common.h"
+#include "libc.h"
 #include "options.h"
 
 struct file_encoder {

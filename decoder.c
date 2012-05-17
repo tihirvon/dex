@@ -1,6 +1,7 @@
 #include "decoder.h"
 #include "editor.h"
 #include "uchar.h"
+#include "xmalloc.h"
 
 static int fill(struct file_decoder *dec)
 {

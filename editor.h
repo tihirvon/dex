@@ -1,7 +1,7 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-#include "common.h"
+#include "libc.h"
 
 enum editor_status {
 	EDITOR_INITIALIZING,

@@ -4,6 +4,7 @@
 #include "gbuf.h"
 #include "ptr-array.h"
 #include "env.h"
+#include "common.h"
 
 static GBUF(arg);
 

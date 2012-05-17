@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "path.h"
+#include "common.h"
 
 static int make_absolute(char *dst, const char *src)
 {

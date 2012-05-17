@@ -1,7 +1,7 @@
 #ifndef ENCODING_H
 #define ENCODING_H
 
-#include "common.h"
+#include "libc.h"
 
 struct byte_order_mark {
 	const char *encoding;

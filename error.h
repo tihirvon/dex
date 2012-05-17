@@ -1,7 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include "common.h"
+#include "libc.h"
 
 extern int msg_is_error;
 extern char error_buf[256];
