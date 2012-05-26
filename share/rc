@@ -10,7 +10,7 @@ alias q quit
 alias r replace
 alias s save
 alias t tag
-alias man "run -p man"
+alias man "run man"
 alias make "compile gcc make"
 alias read "pass-through cat"
 
@@ -34,3 +34,10 @@ option sh     indent-regex '((^\s*|;\s*)(do|else|then)|\{)(\s+#.*)?\s*$'
 #hi currentline keep gray keep
 
 errorfmt grep "^([^:]+):([0-9]+):(.*)" file line message
+
+# Remove possible "F" from $LESS so that less will always wait for
+# keypress and "run" can be used without -p.
+#
+#   R: allow ANSI colors
+#   S: chop long lines
+setenv LESS RS
