@@ -71,7 +71,7 @@ static struct state *handle_heredoc(struct state *state, const char *delim, int 
 	}
 
 	s = xnew0(struct heredoc_state, 1);
-	s->state = add_heredoc_subsyntax(buffer->syn, state->heredoc.subsyntax, state->a.destination.state, delim, len);
+	s->state = add_heredoc_subsyntax(buffer->syn, state->heredoc.subsyntax, state->a.destination, delim, len);
 	s->delim = xmemdup(delim, len);
 	s->len = len;
 	ptr_array_add(&state->heredoc.states, s);
@@ -109,7 +109,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				if (sidx < 0)
 					sidx = i;
 				colors[i++] = a->emit_color;
-				state = a->destination.state;
+				state = a->destination;
 				goto top;
 			case COND_BUFIS:
 				if (sidx >= 0 && is_buffered(cond, line + sidx, i - sidx)) {
@@ -117,7 +117,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					for (idx = sidx; idx < i; idx++)
 						colors[idx] = a->emit_color;
 					sidx = -1;
-					state = a->destination.state;
+					state = a->destination;
 					goto top;
 				}
 				break;
@@ -126,7 +126,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					break;
 				colors[i++] = a->emit_color;
 				sidx = -1;
-				state = a->destination.state;
+				state = a->destination;
 				goto top;
 			case COND_INLIST:
 				if (sidx >= 0 && in_hash(cond->u.cond_inlist.list, line + sidx, i - sidx)) {
@@ -134,7 +134,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					for (idx = sidx; idx < i; idx++)
 						colors[idx] = a->emit_color;
 					sidx = -1;
-					state = a->destination.state;
+					state = a->destination;
 					goto top;
 				}
 				break;
@@ -159,7 +159,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					while (i < end)
 						colors[i++] = a->emit_color;
 					sidx = -1;
-					state = a->destination.state;
+					state = a->destination;
 					goto top;
 				}
 				} break;
@@ -170,7 +170,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					while (i < end)
 						colors[i++] = a->emit_color;
 					sidx = -1;
-					state = a->destination.state;
+					state = a->destination;
 					goto top;
 				}
 				} break;
@@ -181,7 +181,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					colors[i++] = a->emit_color;
 					colors[i++] = a->emit_color;
 					sidx = -1;
-					state = a->destination.state;
+					state = a->destination;
 					goto top;
 				}
 				break;
@@ -192,7 +192,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 					while (i < end)
 						colors[i++] = a->emit_color;
 					sidx = -1;
-					state = a->destination.state;
+					state = a->destination;
 					goto top;
 				}
 				} break;
@@ -208,7 +208,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 			// fallthrough
 		case STATE_NOEAT_BUFFER:
 			a = &state->a;
-			state = a->destination.state;
+			state = a->destination;
 			break;
 		case STATE_HEREDOCBEGIN:
 			if (sidx < 0)

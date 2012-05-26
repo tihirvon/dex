@@ -74,9 +74,9 @@ static const char *fix_name(const char *name, const char *prefix)
 
 static void fix_action(struct syntax *syn, struct action *a, const char *prefix)
 {
-	if (a->destination.state) {
-		const char *name = fix_name(a->destination.state->name, prefix);
-		a->destination.state = find_state(syn, name);
+	if (a->destination) {
+		const char *name = fix_name(a->destination->name, prefix);
+		a->destination = find_state(syn, name);
 	}
 	if (a->emit_name)
 		a->emit_name = xstrdup(a->emit_name);
@@ -89,8 +89,8 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 	for (i = 0; i < s->conds.count; i++) {
 		struct condition *c = s->conds.ptrs[i];
 		fix_action(syn, &c->a, prefix);
-		if (!c->a.destination.state && has_destination(c->type))
-			c->a.destination.state = rets;
+		if (c->a.destination == NULL && has_destination(c->type))
+			c->a.destination = rets;
 
 		if (delim && c->type == COND_HEREDOCEND) {
 			c->u.cond_heredocend.str = xmemdup(delim, delim_len);
@@ -99,8 +99,8 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 	}
 
 	fix_action(syn, &s->a, prefix);
-	if (!s->a.destination.state)
-		s->a.destination.state = rets;
+	if (s->a.destination == NULL)
+		s->a.destination = rets;
 }
 
 static const char *get_prefix(void)
@@ -113,7 +113,7 @@ static const char *get_prefix(void)
 
 static void update_state_colors(struct syntax *syn, struct state *s);
 
-static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int delim_len)
+struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int delim_len)
 {
 	// NOTE: string_lists is owned by struct syntax so there's no need to
 	// copy it.  Freeing struct condition does not free any string lists.
@@ -156,85 +156,18 @@ static struct state *merge(struct syntax *syn, struct syntax *subsyn, struct sta
 	return states->ptrs[old_count];
 }
 
-static int finish_action(struct syntax *syn, struct action *a)
-{
-	char *sep, *name = a->destination.name;
-	int errors = 0;
-
-	if (!strcmp(name, "END")) {
-		// this makes syntax subsyntax
-		a->destination.state = NULL;
-		free(name);
-		syn->subsyntax = 1;
-		return errors;
-	}
-
-	sep = strchr(name, ':');
-	if (sep) {
-		// subsyntax:returnstate
-		const char *sub = name;
-		const char *ret = sep + 1;
-		struct syntax *subsyn;
-		struct state *rs = NULL;
-
-		*sep = 0;
-		subsyn = find_any_syntax(sub);
-		if (!subsyn) {
-			error_msg("No such syntax %s", sub);
-			errors++;
-		} else if (!subsyn->subsyntax) {
-			error_msg("Syntax %s is not subsyntax", sub);
-			errors++;
-			subsyn = NULL;
-		}
-
-		if (!strcmp(ret, "END")) {
-			// this makes syntax subsyntax
-			a->destination.state = NULL;
-			syn->subsyntax = 1;
-		} else {
-			rs = find_state(syn, ret);
-			if (!rs) {
-				error_msg("No such state %s", ret);
-				errors++;
-				return errors;
-			}
-		}
-
-		if (subsyn) {
-			a->destination.state = merge(syn, subsyn, rs, NULL, -1);
-		}
-	} else {
-		a->destination.state = find_state(syn, name);
-		if (a->destination.state == NULL) {
-			error_msg("No such state %s", name);
-			errors++;
-		}
-	}
-	free(name);
-	return errors;
-}
-
-static int finish_condition(struct syntax *syn, struct condition *cond)
-{
-	int errors = 0;
-
-	if (has_destination(cond->type))
-		errors += finish_action(syn, &cond->a);
-	return errors;
-}
-
 static int finish_state(struct syntax *syn, struct state *s)
 {
-	int i, errors = 0;
-
-	for (i = 0; i < s->conds.count; i++)
-		errors += finish_condition(syn, s->conds.ptrs[i]);
-	if (!s->a.destination.name) {
-		error_msg("No default action in state %s", s->name);
-		return ++errors;
+	if (!s->defined) {
+		// this state has been referenced but not defined
+		error_msg("No such state %s", s->name);
+		return 1;
 	}
-	return errors + finish_action(syn, &s->a);
+	if (s->type == -1) {
+		error_msg("No default action in state %s", s->name);
+		return 1;
+	}
+	return 0;
 }
 
 static void visit(struct state *s)
@@ -247,11 +180,11 @@ static void visit(struct state *s)
 	s->visited = 1;
 	for (i = 0; i < s->conds.count; i++) {
 		struct condition *cond = s->conds.ptrs[i];
-		if (cond->a.destination.state)
-			visit(cond->a.destination.state);
+		if (cond->a.destination)
+			visit(cond->a.destination);
 	}
-	if (s->a.destination.state)
-		visit(s->a.destination.state);
+	if (s->a.destination)
+		visit(s->a.destination);
 }
 
 static void free_condition(struct condition *cond)
@@ -385,7 +318,7 @@ void finalize_syntax(struct syntax *syn)
 
 struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int len)
 {
-	return merge(syn, subsyn, rets, delim, len);
+	return merge_syntax(syn, subsyn, rets, delim, len);
 }
 
 struct syntax *find_syntax(const char *name)
@@ -417,7 +350,7 @@ static void update_action_color(struct syntax *syn, struct action *a)
 	char full[64];
 
 	if (!name)
-		name = a->destination.state->emit_name;
+		name = a->destination->emit_name;
 
 	snprintf(full, sizeof(full), "%s.%s", syn->name, name);
 	a->emit_color = find_color(full);

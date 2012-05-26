@@ -52,15 +52,95 @@ static int no_state(void)
 	return 1;
 }
 
+static struct state *add_state(const char *name, int defined)
+{
+	struct state *st;
+
+	if (!strcmp(name, "END")) {
+		error_msg("%s is reserved state name", name);
+		return NULL;
+	}
+	st = find_state(current_syntax, name);
+	if (st == NULL) {
+		st = xnew0(struct state, 1);
+		st->name = xstrdup(name);
+		st->defined = defined;
+		st->type = -1;
+		ptr_array_add(&current_syntax->states, st);
+		return st;
+	}
+	if (!defined) {
+		// reference to already added (possibly undefined) state
+		return st;
+	}
+	if (!st->defined) {
+		// previously added undefined state will be defined now
+		st->defined = 1;
+		return st;
+	}
+	error_msg("State %s already exists.", name);
+	return NULL;
+
+}
+
+static int subsyntax_call(const char *name, const char *ret, struct state **dest)
+{
+	struct syntax *syn  = find_any_syntax(name);
+	struct state *rs = NULL;
+
+	if (!syn) {
+		error_msg("No such syntax %s", name);
+	} else if (!syn->subsyntax) {
+		error_msg("Syntax %s is not subsyntax", name);
+		syn = NULL;
+	}
+	if (!strcmp(ret, "END")) {
+		// this makes current_syntax a subsyntax
+		*dest = NULL;
+		current_syntax->subsyntax = 1;
+	} else {
+		rs = add_state(ret, 0);
+	}
+	if (syn == NULL)
+		return 0;
+	*dest = merge_syntax(current_syntax, syn, rs, NULL, -1);
+	return 1;
+}
+
+static int destination_state(const char *name, struct state **dest)
+{
+	char *sep = strchr(name, ':');
+
+	if (sep) {
+		// subsyntax:returnstate
+		char *sub = xstrslice(name, 0, sep - name);
+		int success = subsyntax_call(sub, sep + 1, dest);
+		free(sub);
+		return success;
+	}
+	if (!strcmp(name, "END")) {
+		// this makes current_syntax a subsyntax
+		*dest = NULL;
+		current_syntax->subsyntax = 1;
+		return 1;
+	}
+	*dest = add_state(name, 0);
+	return 1;
+}
+
 static struct condition *add_condition(enum condition_type type, const char *dest, const char *emit)
 {
 	struct condition *c;
+	struct state *d = NULL;
 
 	if (no_state())
 		return NULL;
 
+	if (dest && !destination_state(dest, &d))
+		return NULL;
+
 	c = xnew0(struct condition, 1);
-	c->a.destination.name = dest ? xstrdup(dest) : NULL;
+	c->a.destination = d;
 	c->a.emit_name = emit ? xstrdup(emit) : NULL;
 	c->type = type;
 	ptr_array_add(&current_state->conds, c);
@@ -129,7 +209,10 @@ static void cmd_eat(const char *pf, char **args)
 	if (no_state())
 		return;
 
-	current_state->a.destination.name = xstrdup(args[0]);
+	if (!destination_state(args[0], &current_state->a.destination))
+		return;
+
+	current_state->type = STATE_EAT;
 	current_state->a.emit_name = args[1] ? xstrdup(args[1]) : NULL;
 	current_state = NULL;
 }
@@ -154,7 +237,9 @@ static void cmd_heredocbegin(const char *pf, char **args)
 	}
 
 	// a.destination is used as the return state
-	current_state->a.destination.name = xstrdup(args[1]);
+	if (!destination_state(args[1], &current_state->a.destination))
+		return;
+
 	current_state->a.emit_name = NULL;
 	current_state->type = STATE_HEREDOCBEGIN;
 	current_state->heredoc.subsyntax = subsyn;
@@ -237,7 +322,9 @@ static void cmd_noeat(const char *pf, char **args)
 		return;
 	}
 
-	current_state->a.destination.name = xstrdup(args[0]);
+	if (!destination_state(args[0], &current_state->a.destination))
+		return;
+
 	current_state->a.emit_name = NULL;
 	current_state->type = type;
 	current_state = NULL;
@@ -272,22 +359,11 @@ static void cmd_state(const char *pf, char **args)
 	if (no_syntax())
 		return;
 
-	if (!strcmp(name, "END")) {
-		error_msg("%s is reserved state name", name);
-		return;
+	s = add_state(name, 1);
+	if (s) {
+		s->emit_name = xstrdup(emit);
+		current_state = s;
 	}
-
-	if (find_state(current_syntax, name)) {
-		error_msg("State %s already exists.", name);
-		return;
-	}
-
-	s = xnew0(struct state, 1);
-	s->name = xstrdup(name);
-	s->emit_name = xstrdup(emit);
-	ptr_array_add(&current_syntax->states, s);
-
-	current_state = s;
 }
 
 static void cmd_str(const char *pf, char **args)
