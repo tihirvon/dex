@@ -48,16 +48,6 @@ state not-ascii error
 	char "\x80-\xff" not-ascii
 	noeat END
 
-syntax .java-comment-word
-
-state comment
-	char -b a-zA-Z0-9_ comment
-	inlist notice END
-	noeat END
-
-list notice \
-	TODO FIXME XXX
-
 syntax java
 
 state code
@@ -73,11 +63,9 @@ state code
 
 state cpp-comment comment
 	char "\n" code
-	char -b a-zA-Z0-9_ .java-comment-word:cpp-comment
 	eat cpp-comment
 
 state c-comment comment
-	char -b a-zA-Z0-9_ .java-comment-word:c-comment
 	str "*/" code comment
 	eat c-comment
 

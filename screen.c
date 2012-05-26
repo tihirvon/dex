@@ -406,6 +406,59 @@ static void screen_skip_char(struct line_info *info)
 	}
 }
 
+static int is_notice(const char *word, int len)
+{
+	static const char * const words[] = { "fixme", "todo", "xxx" };
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(words); i++) {
+		const char *w = words[i];
+		if (strlen(w) == len && !strncasecmp(w, word, len))
+			return 1;
+	}
+	return 0;
+}
+
+// highlight certain words inside comments
+static void hl_words(struct line_info *info)
+{
+	struct hl_color *cc = find_color("comment");
+	struct hl_color *nc = find_color("notice");
+	int i, j, si, max;
+
+	if (info->colors == NULL || cc == NULL || nc == NULL)
+		return;
+
+	i = info->pos;
+	if (i >= info->size)
+		return;
+
+	// go to beginning of partially visible word inside comment
+	while (i > 0 && info->colors[i] == cc && is_word_byte(info->line[i]))
+		i--;
+
+	// This should be more than enough. I'm too lazy to iterate characters
+	// instead of bytes and calculate text width.
+	max = info->pos + screen_w * 4 + 8;
+
+	while (i < info->size) {
+		if (info->colors[i] != cc || !is_word_byte(info->line[i])) {
+			if (i > max)
+				break;
+			i++;
+		} else {
+			// beginning of a word inside comment
+			si = i++;
+			while (i < info->size && info->colors[i] == cc && is_word_byte(info->line[i]))
+				i++;
+			if (is_notice(info->line + si, i - si)) {
+				for (j = si; j < i; j++)
+					info->colors[j] = nc;
+			}
+		}
+	}
+}
+
 static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
 {
 	int i;
@@ -446,6 +499,8 @@ static void print_line(struct line_info *info)
 	// partially visible and can't be skipped using screen_skip_char().
 	while (obuf.x + 8 < obuf.scroll_x && info->pos < info->size)
 		screen_skip_char(info);
+
+	hl_words(info);
 
 	while (info->pos < info->size) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);

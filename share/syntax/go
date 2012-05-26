@@ -173,26 +173,11 @@ state raw-string string
 
 state cpp-comment comment
 	char "\n" go
-	char -b a-zA-Z0-9_ cpp-comment-word
 	eat cpp-comment
-
-state cpp-comment-word comment
-	char -b a-zA-Z0-9_ cpp-comment-word
-	inlist notice cpp-comment
-	noeat cpp-comment
 
 state c-comment comment
 	str "*/" go comment
-	char -b a-zA-Z0-9_ c-comment-word
 	eat c-comment
-
-state c-comment-word comment
-	char -b a-zA-Z0-9_ c-comment-word
-	inlist notice c-comment
-	noeat c-comment
-
-list notice \
-	TODO FIXME XXX
 
 list keyword \
 	break case chan const continue default defer else fallthrough \

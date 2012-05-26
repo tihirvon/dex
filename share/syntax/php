@@ -217,33 +217,15 @@ state qm tag
 
 state cpp-comment comment
 	char "\n" code
-	char -b a-zA-Z0-9_ cpp-comment-word
 	eat cpp-comment
-
-state cpp-comment-word comment
-	char -b a-zA-Z0-9_ cpp-comment-word
-	inlist notice cpp-comment
-	noeat cpp-comment
 
 state c-comment comment
 	str "*/" code comment
-	char -b a-zA-Z0-9_ c-comment-word
 	eat c-comment
-
-state c-comment-word comment
-	char -b a-zA-Z0-9_ c-comment-word
-	inlist notice c-comment
-	noeat c-comment
 
 state sh-comment comment
 	char "\n" code
-	char -b a-zA-Z0-9_ sh-comment-word
 	eat sh-comment
-
-state sh-comment-word comment
-	char -b a-zA-Z0-9_ sh-comment-word
-	inlist notice sh-comment
-	noeat sh-comment
 
 state heredoc special
 	char -b a-zA-Z_ heredoc-plain
@@ -270,9 +252,6 @@ state nowdoc-start special
 state nowdoc special
 	char -b a-zA-Z0-9_ nowdoc
 	heredocbegin .php-nowdoc code
-
-list notice \
-	TODO FIXME XXX
 
 list -h keyword \
 	abstract and array as break case catch cfunction class clone \

@@ -1,14 +1,3 @@
-# words in side comments
-syntax .js-comment-word
-
-state comment
-	char -b a-zA-Z0-9_ comment
-	inlist notice END
-	noeat END
-
-list notice \
-	TODO FIXME XXX
-
 # charater escapes
 syntax .js-esc
 
@@ -144,12 +133,10 @@ state ident
 
 state cpp-comment comment
 	char "\n" code
-	char -b a-zA-Z0-9_ .js-comment-word:cpp-comment
 	eat cpp-comment
 
 state c-comment comment
 	str "*/" code comment
-	char -b a-zA-Z0-9_ .js-comment-word:c-comment
 	eat c-comment
 
 state sq string

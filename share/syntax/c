@@ -33,20 +33,9 @@ state hex2 special
 	char 0-9a-fA-F END error
 	noeat END
 
-syntax .c-comment-word
-
-state comment
-	char -b a-zA-Z0-9_ comment
-	inlist notice END
-	noeat END
-
-list notice \
-	TODO FIXME XXX
-
 syntax .c-comment
 
 state comment
-	char -b a-zA-Z0-9_ .c-comment-word:comment
 	char "*" star
 	eat comment
 
@@ -58,7 +47,6 @@ syntax .cpp-comment
 
 state comment
 	char "\n" END
-	char -b a-zA-Z0-9_ .c-comment-word:comment
 	char \\ backslash
 	eat comment
 
