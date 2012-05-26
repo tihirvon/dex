@@ -18,6 +18,7 @@ static const char *config_commands[] = {
 	"load-syntax",
 	"option",
 	"set",
+	"setenv",
 };
 
 const struct command *current_command;

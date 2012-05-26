@@ -436,6 +436,9 @@ set [-gl] <option1> [value1] ...
 	In configuration files only global options can be set (no need
 	to give any flags).
 
+setenv <name> <value>
+	Set environment variable.
+
 shift <count>
 	Shift current or selected lines <count> indentation levels.
 	Count is usually -1 (decrease indent) or 1 (increase indent).

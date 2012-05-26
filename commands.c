@@ -1090,6 +1090,19 @@ static void cmd_set(const char *pf, char **args)
 		set_option(args[i], args[i + 1], flags);
 }
 
+static void cmd_setenv(const char *pf, char **args)
+{
+	if (setenv(args[0], args[1], 1) < 0) {
+		switch (errno) {
+		case EINVAL:
+			error_msg("Invalid environment variable name '%s'", args[0]);
+			break;
+		default:
+			error_msg("%s", strerror(errno));
+		}
+	}
+}
+
 static void cmd_shift(const char *pf, char **args)
 {
 	int count = atoi(args[0]);
@@ -1489,6 +1502,7 @@ const struct command commands[] = {
 	{ "search",		"Hnprw",0,  1, cmd_search },
 	{ "select",		"bl",	0,  0, cmd_select },
 	{ "set",		"gl",	1, -1, cmd_set },
+	{ "setenv",		"",	2,  2, cmd_setenv },
 	{ "shift",		"",	1,  1, cmd_shift },
 	{ "suspend",		"",	0,  0, cmd_suspend },
 	{ "tag",		"r",	0,  1, cmd_tag },
