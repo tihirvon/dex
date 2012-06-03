@@ -40,9 +40,8 @@ struct condition {
 		struct {
 			unsigned char bitmap[256 / 8];
 		} cond_char;
-		union {
-			char *list_name;		// set while parsing syntax file
-			struct string_list *list;	// set after parsed syntax file
+		struct {
+			struct string_list *list;
 		} cond_inlist;
 		struct {
 			int len;
@@ -99,6 +98,7 @@ struct string_list {
 	struct hash_str *hash[62];
 	unsigned int icase : 1;
 	unsigned int used : 1;
+	unsigned int defined : 1;
 };
 
 struct syntax {

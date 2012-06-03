@@ -180,13 +180,16 @@ static void cmd_list(const char *pf, char **args)
 	if (no_syntax())
 		return;
 
-	if (find_string_list(current_syntax, name)) {
+	list = find_string_list(current_syntax, name);
+	if (list == NULL) {
+		list = xnew0(struct string_list, 1);
+		list->name = xstrdup(name);
+		ptr_array_add(&current_syntax->string_lists, list);
+	} else if (list->defined) {
 		error_msg("List %s already exists.", name);
 		return;
 	}
-
-	list = xnew0(struct string_list, 1);
-	list->name = xstrdup(name);
+	list->defined = 1;
 	list->icase = !!*pf;
 
 	for (i = 1; args[i]; i++) {
@@ -199,18 +202,27 @@ static void cmd_list(const char *pf, char **args)
 		memcpy(h->str, str, len);
 		list->hash[idx] = h;
 	}
-	ptr_array_add(&current_syntax->string_lists, list);
-
 	current_state = NULL;
 }
 
 static void cmd_inlist(const char *pf, char **args)
 {
-	const char *emit = args[2] ? args[2] : args[0];
+	const char *name = args[0];
+	const char *emit = args[2] ? args[2] : name;
+	struct string_list *list = find_string_list(current_syntax, name);
 	struct condition *c = add_condition(COND_INLIST, args[1], emit);
 
-	if (c)
-		c->u.cond_inlist.list_name = xstrdup(args[0]);
+	if (c == NULL)
+		return;
+
+	if (list == NULL) {
+		// add undefined list
+		list = xnew0(struct string_list, 1);
+		list->name = xstrdup(name);
+		ptr_array_add(&current_syntax->string_lists, list);
+	}
+	list->used = 1;
+	c->u.cond_inlist.list = list;
 }
 
 static void cmd_noeat(const char *pf, char **args)

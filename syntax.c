@@ -219,17 +219,6 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 {
 	int errors = 0;
 
-	if (cond->type == COND_INLIST) {
-		char *name = cond->u.cond_inlist.list_name;
-		cond->u.cond_inlist.list = find_string_list(syn, name);
-		if (cond->u.cond_inlist.list == NULL) {
-			error_msg("No such list %s", name);
-			errors++;
-		} else {
-			cond->u.cond_inlist.list->used = 1;
-		}
-		free(name);
-	}
 	if (has_destination(cond->type))
 		errors += finish_action(syn, &cond->a);
 	return errors;
@@ -385,6 +374,8 @@ void finalize_syntax(struct syntax *syn)
 	}
 	for (i = 0; i < syn->string_lists.count; i++) {
 		struct string_list *list = syn->string_lists.ptrs[i];
+		if (!list->defined)
+			error_msg("No such list %s", list->name);
 		if (!list->used)
 			error_msg("List %s never used", list->name);
 	}
