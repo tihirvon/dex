@@ -37,7 +37,7 @@ state end error
 	eat END error
 
 # reserved characters, latin1 symbols, latin1 characters, math, greek, other
-list -h entity \
+list entity \
 	quot apos amp lt gt \
 \
 	nbsp iexcl cent pound curren yen brvbar sect uml copy ordf laquo not \
@@ -159,7 +159,7 @@ state sq string
 	eat sq
 
 # strict/transitional/frameset
-list -hi tag \
+list -i tag \
 	a abbr acronym address area b base bdo big blockquote body br \
 	button caption cite code col colgroup dd del dfn div dl dt em \
 	fieldset form h1 h2 h3 h4 h5 h6 head hr html i img input ins kbd \
@@ -177,7 +177,7 @@ list -i tag-transitional \
 
 # deprecated transitional/frameset
 # blink and marquee are non-standard
-list -hi tag-deprecated \
+list -i tag-deprecated \
 	applet basefont blink center dir font isindex marquee menu s strike u
 
 default code tag-unknown

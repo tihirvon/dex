@@ -148,7 +148,7 @@ state char-end char
 	char \' code char
 	eat code error
 
-list -h keyword \
+list keyword \
 	abstract assert boolean break byte case catch char class const \
 	continue default do double else enum extends final finally float \
 	for goto if implements import instanceof int interface long native \
@@ -156,7 +156,7 @@ list -h keyword \
 	super switch synchronized this throw throws transient try void \
 	volatile while
 
-list -h type \
+list type \
 	byte short int long float double boolean char
 
 list constant \

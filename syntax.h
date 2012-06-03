@@ -8,7 +8,6 @@ enum condition_type {
 	COND_CHAR,
 	COND_CHAR_BUFFER,
 	COND_INLIST,
-	COND_INLIST_HASH,
 	COND_RECOLOR,
 	COND_RECOLOR_BUFFER,
 	COND_STR,
@@ -97,12 +96,8 @@ struct hash_str {
 
 struct string_list {
 	char *name;
-	union {
-		char **strings;
-		struct hash_str *hash[62];
-	} u;
+	struct hash_str *hash[62];
 	unsigned int icase : 1;
-	unsigned int hash : 1;
 	unsigned int used : 1;
 };
 

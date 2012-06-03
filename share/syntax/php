@@ -253,7 +253,7 @@ state nowdoc special
 	char -b a-zA-Z0-9_ nowdoc
 	heredocbegin .php-nowdoc code
 
-list -h keyword \
+list keyword \
 	abstract and array as break case catch cfunction class clone \
 	const continue declare default do else elseif enddeclare \
 	endfor endforeach endif endswitch endwhile extends final for \
@@ -261,12 +261,12 @@ list -h keyword \
 	instanceof namespace new old_function or private protected \
 	public static switch throw try use var while xor self parent
 
-list -hi constant \
+list -i constant \
 	__CLASS__ __DIR__ __FILE__ __FUNCTION__ __METHOD__ __NAMESPACE__ \
 	false null true
 
 # language constructs
-list -h lang \
+list lang \
 	die echo empty exit eval include include_once isset list require \
 	require_once return print unset
 

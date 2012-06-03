@@ -174,8 +174,8 @@ static void cmd_heredocend(const char *pf, char **args)
 static void cmd_list(const char *pf, char **args)
 {
 	const char *name = args[0];
-	int argc = count_strings(++args);
 	struct string_list *list;
+	int i;
 
 	if (no_syntax())
 		return;
@@ -187,33 +187,17 @@ static void cmd_list(const char *pf, char **args)
 
 	list = xnew0(struct string_list, 1);
 	list->name = xstrdup(name);
+	list->icase = !!*pf;
 
-	while (*pf) {
-		switch (*pf) {
-		case 'h':
-			list->hash = 1;
-			break;
-		case 'i':
-			list->icase = 1;
-			break;
-		}
-		pf++;
-	}
-
-	if (list->hash) {
-		int i;
-		for (i = 0; i < argc; i++) {
-			const char *str = args[i];
-			int len = strlen(str);
-			unsigned int idx = buf_hash(str, len) % ARRAY_COUNT(list->u.hash);
-			struct hash_str *h = xmalloc(sizeof(struct hash_str *) + sizeof(int) + len);
-			h->next = list->u.hash[idx];
-			h->len = len;
-			memcpy(h->str, str, len);
-			list->u.hash[idx] = h;
-		}
-	} else {
-		list->u.strings = copy_string_array(args, argc);
+	for (i = 1; args[i]; i++) {
+		const char *str = args[i];
+		int len = strlen(str);
+		unsigned int idx = buf_hash(str, len) % ARRAY_COUNT(list->hash);
+		struct hash_str *h = xmalloc(sizeof(struct hash_str *) + sizeof(int) + len);
+		h->next = list->hash[idx];
+		h->len = len;
+		memcpy(h->str, str, len);
+		list->hash[idx] = h;
 	}
 	ptr_array_add(&current_syntax->string_lists, list);
 
@@ -341,7 +325,7 @@ static const struct command syntax_commands[] = {
 	{ "heredocend",	"",	1,  2, cmd_heredocend },
 	{ "eat",	"",	1,  2, cmd_eat },
 	{ "inlist",	"",	2,  3, cmd_inlist },
-	{ "list",	"hi",	2, -1, cmd_list },
+	{ "list",	"i",	2, -1, cmd_list },
 	{ "noeat",	"b",	1,  1, cmd_noeat },
 	{ "recolor",	"",	1,  2, cmd_recolor },
 	{ "state",	"",	1,  2, cmd_state },

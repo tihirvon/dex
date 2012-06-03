@@ -227,8 +227,6 @@ static int finish_condition(struct syntax *syn, struct condition *cond)
 			errors++;
 		} else {
 			cond->u.cond_inlist.list->used = 1;
-			if (cond->u.cond_inlist.list->hash)
-				cond->type = COND_INLIST_HASH;
 		}
 		free(name);
 	}
@@ -290,19 +288,13 @@ static void free_string_list(struct string_list *list)
 {
 	int i;
 
-	if (list->hash) {
-		for (i = 0; i < ARRAY_COUNT(list->u.hash); i++) {
-			struct hash_str *h = list->u.hash[i];
-			while (h) {
-				struct hash_str *next = h->next;
-				free(h);
-				h = next;
-			}
+	for (i = 0; i < ARRAY_COUNT(list->hash); i++) {
+		struct hash_str *h = list->hash[i];
+		while (h) {
+			struct hash_str *next = h->next;
+			free(h);
+			h = next;
 		}
-	} else {
-		for (i = 0; list->u.strings[i]; i++)
-			free(list->u.strings[i]);
-		free(list->u.strings);
 	}
 	free(list->name);
 	free(list);

@@ -39,7 +39,7 @@ default	<color> <name>...
 	If there is no color defined for oct, dec or hex then color
 	numeric is used instead.
 
-list [-hi] <name> <string>...
+list [-i] <name> <string>...
 	Define a list of strings.
 
 	Example:
@@ -47,8 +47,6 @@ list [-hi] <name> <string>...
 
 	Use conditional *inlist* to test if a buffered string is in a
 	list.
-
-	 -h Use hash table to store strings.
 
 	 -i Make list case-insensitive.
 

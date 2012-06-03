@@ -38,40 +38,10 @@ static int is_buffered(const struct condition *cond, const char *str, int len)
 	return !memcmp(cond->u.cond_bufis.str, str, len);
 }
 
-static int list_search(const char *str, int len, char **strings)
-{
-	int i;
-
-	for (i = 0; strings[i]; i++) {
-		const char *s = strings[i];
-		if (str[0] == s[0] && !strncmp(str + 1, s + 1, len - 1)) {
-			if (s[len] == 0)
-				return 1;
-		}
-	}
-	return 0;
-}
-
-static int in_list(struct string_list *list, const char *str, int len)
-{
-	char **strings = list->u.strings;
-	int i;
-
-	if (list->icase) {
-		for (i = 0; strings[i]; i++) {
-			if (!strncasecmp(str, strings[i], len) && strings[i][len] == 0)
-				return 1;
-		}
-	} else {
-		return list_search(str, len, strings);
-	}
-	return 0;
-}
-
 static int in_hash(struct string_list *list, const char *str, int len)
 {
 	unsigned int hash = buf_hash(str, len);
-	struct hash_str *h = list->u.hash[hash % ARRAY_COUNT(list->u.hash)];
+	struct hash_str *h = list->hash[hash % ARRAY_COUNT(list->hash)];
 
 	if (list->icase) {
 		while (h) {
@@ -159,16 +129,6 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 				state = a->destination.state;
 				goto top;
 			case COND_INLIST:
-				if (sidx >= 0 && in_list(cond->u.cond_inlist.list, line + sidx, i - sidx)) {
-					int idx;
-					for (idx = sidx; idx < i; idx++)
-						colors[idx] = a->emit_color;
-					sidx = -1;
-					state = a->destination.state;
-					goto top;
-				}
-				break;
-			case COND_INLIST_HASH:
 				if (sidx >= 0 && in_hash(cond->u.cond_inlist.list, line + sidx, i - sidx)) {
 					int idx;
 					for (idx = sidx; idx < i; idx++)

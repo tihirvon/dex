@@ -37,7 +37,7 @@ state end error
 	eat END error
 
 # reserved characters, latin1 symbols, latin1 characters, math, greek, other
-list -h entity \
+list entity \
 	quot apos amp lt gt
 
 # main syntax

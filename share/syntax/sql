@@ -174,7 +174,7 @@ state trailing error
 	noeat start
 
 # FIXME: types should probably go to separate list
-list -hi keyword \
+list -i keyword \
 	ACCESSIBLE \
 	ADD ALL ALTER ANALYZE AND AS ASC ASENSITIVE BEFORE BETWEEN \
 	BIGINT BINARY BLOB BOTH BY CALL CASCADE CASE CHANGE CHAR \

@@ -76,13 +76,13 @@ state ident
 
 # gawk reserved words are separated by an empty line
 
-list -h keyword \
+list keyword \
 	break continue delete do else exit for function getline if next \
 	print printf return while \
 \
 	func nextfile
 
-list -h builtin \
+list builtin \
 	atan2 close cos exp fflush gsub index int length log match rand sin \
 	split sprintf sqrt srand sub substr system \
 \
@@ -91,7 +91,7 @@ list -h builtin \
 
 list pattern BEGIN END
 
-list -h variable \
+list variable \
 	ARGC ARGV FILENAME FNR FS NF NR OFMT OFS ORS RLENGTH RS RSTART SUBSEP \
 \
 	ARGIND BINMODE CONVFMT ENVIRON ERRNO FIELDWIDTHS IGNORECASE LINT \

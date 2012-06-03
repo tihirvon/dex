@@ -151,38 +151,38 @@ state dq string
 	char "\\" .js-esc:dq
 	eat dq
 
-list -h keyword \
+list keyword \
 	break case catch continue debugger default delete do else finally for \
 	function if in instanceof new return switch this throw try typeof var \
 	void while with
 
-list -h reserved \
+list reserved \
 	class const enum export extends implements import interface let \
 	package private protected public static super yield
 
-list -h type \
+list type \
 	Array Boolean Date Function Number Object RegExp String
 
-list -h errortype \
+list errortype \
 	Error EvalError RangeError ReferenceError SyntaxError TypeError URIError
 
-list -h constant \
+list constant \
 	arguments \
 	Infinity Math NaN false null true undefined
 
-list -h function \
+list function \
 	decodeURI decodeURIComponent encodeURI encodeURIComponent eval \
 	isFinite isNaN parseFloat parseInt
 
 # builtin?
-list -h message \
+list message \
 	alert confirm prompt status
 
-list -h global \
+list global \
 	self window top parent
 
-list -h member \
+list member \
 	document event location
 
-list -h deprecated \
+list deprecated \
 	escape unescape

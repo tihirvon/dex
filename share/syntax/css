@@ -166,7 +166,7 @@ state value-error error
 	char a-zA-Z0-9_- value-error
 	noeat values
 
-list -hi property \
+list -i property \
 	background background-attachment background-color \
 	background-image background-position background-repeat \
 	border border-bottom border-bottom-width border-color \
