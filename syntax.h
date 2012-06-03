@@ -96,9 +96,9 @@ struct hash_str {
 struct string_list {
 	char *name;
 	struct hash_str *hash[62];
-	unsigned int icase : 1;
-	unsigned int used : 1;
-	unsigned int defined : 1;
+	char icase;
+	char used;
+	char defined;
 };
 
 struct syntax {
