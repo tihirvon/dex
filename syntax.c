@@ -252,18 +252,14 @@ static void free_syntax(struct syntax *syn)
 
 void finalize_syntax(struct syntax *syn)
 {
-	int i, count, errors = 0;
+	int i, errors = 0;
 
 	if (syn->states.count == 0) {
 		error_msg("Empty syntax");
 		errors++;
 	}
 
-	/*
-	 * NOTE: merge() changes syn->states
-	 */
-	count = syn->states.count;
-	for (i = 0; i < count; i++)
+	for (i = 0; i < syn->states.count; i++)
 		errors += finish_state(syn, syn->states.ptrs[i]);
 
 	if (syn->heredoc && !syn->subsyntax) {
@@ -290,7 +286,6 @@ void finalize_syntax(struct syntax *syn)
 
 	if (errors) {
 		free_syntax(syn);
-		syn = NULL;
 		return;
 	}
 
