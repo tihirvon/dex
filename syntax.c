@@ -262,6 +262,14 @@ void finalize_syntax(struct syntax *syn)
 	for (i = 0; i < syn->states.count; i++)
 		errors += finish_state(syn, syn->states.ptrs[i]);
 
+	for (i = 0; i < syn->string_lists.count; i++) {
+		struct string_list *list = syn->string_lists.ptrs[i];
+		if (!list->defined) {
+			error_msg("No such list %s", list->name);
+			errors++;
+		}
+	}
+
 	if (syn->heredoc && !syn->subsyntax) {
 		error_msg("heredocend can be used only in subsyntaxes");
 		errors++;
@@ -298,8 +306,6 @@ void finalize_syntax(struct syntax *syn)
 	}
 	for (i = 0; i < syn->string_lists.count; i++) {
 		struct string_list *list = syn->string_lists.ptrs[i];
-		if (!list->defined)
-			error_msg("No such list %s", list->name);
 		if (!list->used)
 			error_msg("List %s never used", list->name);
 	}
