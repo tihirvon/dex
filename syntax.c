@@ -156,18 +156,14 @@ struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct sta
 	return states->ptrs[old_count];
 }
 
-static int finish_state(struct syntax *syn, struct state *s)
+static void finish_state(struct syntax *syn, struct state *s)
 {
 	if (!s->defined) {
 		// this state has been referenced but not defined
 		error_msg("No such state %s", s->name);
-		return 1;
 	}
-	if (s->type == -1) {
+	if (s->type == -1)
 		error_msg("No default action in state %s", s->name);
-		return 1;
-	}
-	return 0;
 }
 
 static void visit(struct state *s)
@@ -250,49 +246,37 @@ static void free_syntax(struct syntax *syn)
 	free(syn);
 }
 
-void finalize_syntax(struct syntax *syn)
+void finalize_syntax(struct syntax *syn, int saved_nr_errors)
 {
-	int i, errors = 0;
+	int i;
 
-	if (syn->states.count == 0) {
+	if (syn->states.count == 0)
 		error_msg("Empty syntax");
-		errors++;
-	}
 
 	for (i = 0; i < syn->states.count; i++)
-		errors += finish_state(syn, syn->states.ptrs[i]);
+		finish_state(syn, syn->states.ptrs[i]);
 
 	for (i = 0; i < syn->string_lists.count; i++) {
 		struct string_list *list = syn->string_lists.ptrs[i];
-		if (!list->defined) {
+		if (!list->defined)
 			error_msg("No such list %s", list->name);
-			errors++;
-		}
 	}
 
-	if (syn->heredoc && !syn->subsyntax) {
+	if (syn->heredoc && !syn->subsyntax)
 		error_msg("heredocend can be used only in subsyntaxes");
-		errors++;
-	}
 
 	if (syn->subsyntax) {
-		if (syn->name[0] != '.') {
+		if (syn->name[0] != '.')
 			error_msg("Subsyntax name must begin with '.'");
-			errors++;
-		}
 	} else {
-		if (syn->name[0] == '.') {
+		if (syn->name[0] == '.')
 			error_msg("Only subsyntax name can begin with '.'");
-			errors++;
-		}
 	}
 
-	if (find_any_syntax(syn->name)) {
+	if (find_any_syntax(syn->name))
 		error_msg("Syntax %s already exists", syn->name);
-		errors++;
-	}
 
-	if (errors) {
+	if (nr_errors != saved_nr_errors) {
 		free_syntax(syn);
 		return;
 	}

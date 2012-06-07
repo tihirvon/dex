@@ -113,7 +113,7 @@ unsigned int buf_hash(const char *str, unsigned int size);
 struct string_list *find_string_list(struct syntax *syn, const char *name);
 struct state *find_state(struct syntax *syn, const char *name);
 struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int delim_len);
-void finalize_syntax(struct syntax *syn);
+void finalize_syntax(struct syntax *syn, int saved_nr_errors);
 
 struct syntax *find_any_syntax(const char *name);
 struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int len);

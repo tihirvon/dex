@@ -33,6 +33,7 @@ static void set_bits(unsigned char *bitmap, const unsigned char *pattern)
 
 static struct syntax *current_syntax;
 static struct state *current_state;
+static int saved_nr_errors; // used to check if nr_errors changed
 
 static int no_syntax(void)
 {
@@ -85,7 +86,7 @@ static struct state *add_state(const char *name, int defined)
 
 static int subsyntax_call(const char *name, const char *ret, struct state **dest)
 {
-	struct syntax *syn  = find_any_syntax(name);
+	struct syntax *syn = find_any_syntax(name);
 	struct state *rs = NULL;
 
 	if (!syn) {
@@ -391,7 +392,7 @@ static void cmd_str(const char *pf, char **args)
 
 static void finish_syntax(void)
 {
-	finalize_syntax(current_syntax);
+	finalize_syntax(current_syntax, saved_nr_errors);
 	current_syntax = NULL;
 }
 
@@ -403,6 +404,8 @@ static void cmd_syntax(const char *pf, char **args)
 	current_syntax = xnew0(struct syntax, 1);
 	current_syntax->name = xstrdup(args[0]);
 	current_state = NULL;
+
+	saved_nr_errors = nr_errors;
 }
 
 static const struct command syntax_commands[] = {
