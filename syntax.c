@@ -256,16 +256,8 @@ void finalize_syntax(struct syntax *syn, int saved_nr_errors)
 			error_msg("No such list %s", list->name);
 	}
 
-	if (syn->heredoc && !syn->subsyntax)
+	if (syn->heredoc && !is_subsyntax(syn))
 		error_msg("heredocend can be used only in subsyntaxes");
-
-	if (syn->subsyntax) {
-		if (syn->name[0] != '.')
-			error_msg("Subsyntax name must begin with '.'");
-	} else {
-		if (syn->name[0] == '.')
-			error_msg("Only subsyntax name can begin with '.'");
-	}
 
 	if (find_any_syntax(syn->name))
 		error_msg("Syntax %s already exists", syn->name);
@@ -299,7 +291,7 @@ struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, s
 struct syntax *find_syntax(const char *name)
 {
 	struct syntax *syn = find_any_syntax(name);
-	if (syn && syn->subsyntax)
+	if (syn && is_subsyntax(syn))
 		return NULL;
 	return syn;
 }
@@ -355,7 +347,7 @@ void update_syntax_colors(struct syntax *syn)
 {
 	int i;
 
-	if (syn->subsyntax) {
+	if (is_subsyntax(syn)) {
 		// no point to update colors of a sub-syntax
 		return;
 	}
@@ -378,7 +370,7 @@ void find_unused_subsyntaxes(void)
 
 	for (; i < syntaxes.count; i++) {
 		struct syntax *s = syntaxes.ptrs[i];
-		if (!s->used && s->subsyntax)
+		if (!s->used && is_subsyntax(s))
 			error_msg("Subsyntax %s is unused", s->name);
 	}
 }

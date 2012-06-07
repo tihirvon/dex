@@ -104,10 +104,14 @@ struct syntax {
 	struct ptr_array states;
 	struct ptr_array string_lists;
 	struct ptr_array default_colors;
-	char subsyntax;
 	char heredoc;
 	char used;
 };
+
+static inline int is_subsyntax(struct syntax *syn)
+{
+	return syn->name[0] == '.';
+}
 
 unsigned int buf_hash(const char *str, unsigned int size);
 struct string_list *find_string_list(struct syntax *syn, const char *name);

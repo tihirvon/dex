@@ -96,6 +96,14 @@ static struct state *add_state(const char *name, int defined)
 
 }
 
+static int not_subsyntax(void)
+{
+	if (is_subsyntax(current_syntax))
+		return 0;
+	error_msg("Destination state END allowed only in a subsyntax.");
+	return 1;
+}
+
 static int subsyntax_call(const char *name, const char *ret, struct state **dest)
 {
 	struct syntax *syn = find_any_syntax(name);
@@ -103,14 +111,13 @@ static int subsyntax_call(const char *name, const char *ret, struct state **dest
 
 	if (!syn) {
 		error_msg("No such syntax %s", name);
-	} else if (!syn->subsyntax) {
+	} else if (!is_subsyntax(syn)) {
 		error_msg("Syntax %s is not subsyntax", name);
 		syn = NULL;
 	}
 	if (!strcmp(ret, "END")) {
-		// this makes current_syntax a subsyntax
-		*dest = NULL;
-		current_syntax->subsyntax = 1;
+		if (not_subsyntax())
+			return 0;
 	} else {
 		rs = add_state(ret, 0);
 	}
@@ -132,9 +139,9 @@ static int destination_state(const char *name, struct state **dest)
 		return success;
 	}
 	if (!strcmp(name, "END")) {
-		// this makes current_syntax a subsyntax
+		if (not_subsyntax())
+			return 0;
 		*dest = NULL;
-		current_syntax->subsyntax = 1;
 		return 1;
 	}
 	*dest = add_state(name, 0);
@@ -245,7 +252,7 @@ static void cmd_heredocbegin(const char *pf, char **args)
 		error_msg("No such syntax %s", sub);
 		return;
 	}
-	if (!subsyn->subsyntax) {
+	if (!is_subsyntax(subsyn)) {
 		error_msg("Syntax %s is not subsyntax", sub);
 		return;
 	}
