@@ -19,7 +19,6 @@ char *home_dir;
 char *charset;
 int child_controls_terminal;
 int resized;
-int nr_errors;
 
 static int cmdline_x;
 

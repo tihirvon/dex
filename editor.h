@@ -43,7 +43,6 @@ extern char *home_dir;
 extern char *charset;
 extern int child_controls_terminal;
 extern int resized;
-extern int nr_errors;
 
 extern const char *program;
 extern const char *version;

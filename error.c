@@ -2,6 +2,7 @@
 #include "editor.h"
 #include "config.h"
 
+int nr_errors;
 int msg_is_error;
 char error_buf[256];
 
