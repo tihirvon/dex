@@ -156,16 +156,6 @@ struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct sta
 	return states->ptrs[old_count];
 }
 
-static void finish_state(struct syntax *syn, struct state *s)
-{
-	if (!s->defined) {
-		// this state has been referenced but not defined
-		error_msg("No such state %s", s->name);
-	}
-	if (s->type == -1)
-		error_msg("No default action in state %s", s->name);
-}
-
 static void visit(struct state *s)
 {
 	int i;
@@ -253,9 +243,13 @@ void finalize_syntax(struct syntax *syn, int saved_nr_errors)
 	if (syn->states.count == 0)
 		error_msg("Empty syntax");
 
-	for (i = 0; i < syn->states.count; i++)
-		finish_state(syn, syn->states.ptrs[i]);
-
+	for (i = 0; i < syn->states.count; i++) {
+		struct state *s = syn->states.ptrs[i];
+		if (!s->defined) {
+			// this state has been referenced but not defined
+			error_msg("No such state %s", s->name);
+		}
+	}
 	for (i = 0; i < syn->string_lists.count; i++) {
 		struct string_list *list = syn->string_lists.ptrs[i];
 		if (!list->defined)

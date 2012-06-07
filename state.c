@@ -53,6 +53,18 @@ static int no_state(void)
 	return 1;
 }
 
+static void close_state(void)
+{
+	if (current_state && current_state->type == -1) {
+		// command prefix in error message makes no sense
+		const struct command *save = current_command;
+		current_command = NULL;
+		error_msg("No default action in state %s", current_state->name);
+		current_command = save;
+	}
+	current_state = NULL;
+}
+
 static struct state *add_state(const char *name, int defined)
 {
 	struct state *st;
@@ -199,6 +211,7 @@ static void cmd_char(const char *pf, char **args)
 
 static void cmd_default(const char *pf, char **args)
 {
+	close_state();
 	if (no_syntax())
 		return;
 
@@ -263,6 +276,7 @@ static void cmd_list(const char *pf, char **args)
 	struct string_list *list;
 	int i;
 
+	close_state();
 	if (no_syntax())
 		return;
 
@@ -288,7 +302,6 @@ static void cmd_list(const char *pf, char **args)
 		memcpy(h->str, str, len);
 		list->hash[idx] = h;
 	}
-	current_state = NULL;
 }
 
 static void cmd_inlist(const char *pf, char **args)
@@ -357,6 +370,7 @@ static void cmd_state(const char *pf, char **args)
 	const char *emit = args[1] ? args[1] : args[0];
 	struct state *s;
 
+	close_state();
 	if (no_syntax())
 		return;
 
@@ -392,6 +406,7 @@ static void cmd_str(const char *pf, char **args)
 
 static void finish_syntax(void)
 {
+	close_state();
 	finalize_syntax(current_syntax, saved_nr_errors);
 	current_syntax = NULL;
 }
