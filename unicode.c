@@ -36,6 +36,12 @@ static inline int in_range(unsigned int u, const struct codepoint_range *range, 
 	return 0;
 }
 
+// FIXME: incomplete. use generated tables
+static int u_is_combining(unsigned int u)
+{
+	return u >= 0x0300 && u <= 0x036f;
+}
+
 int u_is_unprintable(unsigned int u)
 {
 	// Unprintable garbage inherited from latin1.
@@ -64,6 +70,10 @@ int u_char_width(unsigned int u)
 	/* unprintable characters (includes invalid bytes in unicode stream) are rendered "<xx>" */
 	if (u_is_unprintable(u))
 		return 4;
+
+	// FIXME: hack
+	if (u_is_combining(u))
+		return 0;
 
 	if (likely(u < 0x1100U))
 		return 1;
