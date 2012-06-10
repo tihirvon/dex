@@ -38,13 +38,6 @@ static void sanity_check(void)
 	BUG("cursor not seen\n");
 }
 
-void discard_paste(void)
-{
-	unsigned int size;
-	char *text = term_read_paste(&size);
-	free(text);
-}
-
 void any_key(void)
 {
 	unsigned int key;
@@ -54,7 +47,7 @@ void any_key(void)
 	while (!term_read_key(&key, &type))
 		;
 	if (type == KEY_PASTE)
-		discard_paste();
+		term_discard_paste();
 }
 
 static void update_command_line(void)
@@ -287,7 +280,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 
 		if (term_read_key(&key, &type)) {
 			if (type == KEY_PASTE)
-				discard_paste();
+				term_discard_paste();
 			if (type != KEY_NORMAL)
 				continue;
 

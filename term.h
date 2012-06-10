@@ -115,6 +115,7 @@ void term_cooked(void);
 
 int term_read_key(unsigned int *key, enum term_key_type *type);
 char *term_read_paste(unsigned int *size);
+void term_discard_paste(void);
 
 int term_get_size(int *w, int *h);
 

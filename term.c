@@ -424,6 +424,12 @@ char *term_read_paste(unsigned int *size)
 	return buf;
 }
 
+void term_discard_paste(void)
+{
+	unsigned int size;
+	free(term_read_paste(&size));
+}
+
 int term_get_size(int *w, int *h)
 {
 	struct winsize ws;

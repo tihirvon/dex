@@ -38,7 +38,7 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 
 	if (type != KEY_NORMAL) {
 		if (type == KEY_PASTE)
-			discard_paste();
+			term_discard_paste();
 		input_special = INPUT_SPECIAL_NONE;
 		return;
 	}
