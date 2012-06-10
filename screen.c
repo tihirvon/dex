@@ -247,11 +247,27 @@ void update_term_title(void)
 static unsigned int sel_so, sel_eo;
 static unsigned int cur_offset;
 
+static int is_default_bg_color(int color)
+{
+	return color == builtin_colors[BC_DEFAULT]->bg || color < 0;
+}
+
 static void mask_color(struct term_color *color, const struct term_color *over)
 {
 	if (over->fg != -2)
 		color->fg = over->fg;
 	if (over->bg != -2)
+		color->bg = over->bg;
+	if (!(over->attr & ATTR_KEEP))
+		color->attr = over->attr;
+}
+
+// like mask_color() but can change bg color only if it has not been changed yet
+static void mask_color2(struct term_color *color, const struct term_color *over)
+{
+	if (over->fg != -2)
+		color->fg = over->fg;
+	if (over->bg != -2 && is_default_bg_color(color->bg))
 		color->bg = over->bg;
 	if (!(over->attr & ATTR_KEEP))
 		color->attr = over->attr;
@@ -272,8 +288,9 @@ static void update_color(struct hl_color *hl_color, int nontext, int wserror)
 		mask_color(&color, builtin_colors[BC_WSERROR]);
 	if (selecting() && cur_offset >= sel_so && cur_offset < sel_eo)
 		mask_color(&color, builtin_colors[BC_SELECTION]);
-	else if (current_line == view->cy)
-		mask_color(&color, builtin_colors[BC_CURRENTLINE]);
+	else if (current_line == view->cy) {
+		mask_color2(&color, builtin_colors[BC_CURRENTLINE]);
+	}
 	set_color(&color);
 }
 
