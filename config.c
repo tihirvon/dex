@@ -78,11 +78,12 @@ int do_read_config(const struct command *cmds, const char *filename, int must_ex
 {
 	char *buf;
 	ssize_t size = read_file(filename, &buf);
+	int err = errno;
 
 	if (size < 0) {
-		if (errno != ENOENT || must_exist)
-			error_msg("Error reading %s: %s", filename, strerror(errno));
-		return -1;
+		if (err != ENOENT || must_exist)
+			error_msg("Error reading %s: %s", filename, strerror(err));
+		return err;
 	}
 
 	config_file = filename;

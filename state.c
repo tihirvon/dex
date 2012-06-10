@@ -447,7 +447,7 @@ static const struct command syntax_commands[] = {
 	{ NULL,		NULL,	0,  0, NULL }
 };
 
-struct syntax *load_syntax_file(const char *filename, int must_exist)
+struct syntax *load_syntax_file(const char *filename, int must_exist, int *err)
 {
 	const char *slash = strrchr(filename, '/');
 	const char *name = slash ? slash + 1 : filename;
@@ -455,7 +455,8 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 	int saved_config_line = config_line;
 	struct syntax *syn;
 
-	if (do_read_config(syntax_commands, filename, must_exist)) {
+	*err = do_read_config(syntax_commands, filename, must_exist);
+	if (*err) {
 		config_file = saved_config_file;
 		config_line = saved_config_line;
 		return NULL;
@@ -470,6 +471,8 @@ struct syntax *load_syntax_file(const char *filename, int must_exist)
 	syn = find_syntax(name);
 	if (syn && editor_status != EDITOR_INITIALIZING)
 		update_syntax_colors(syn);
+	if (syn == NULL)
+		*err = EINVAL;
 	return syn;
 }
 
@@ -477,13 +480,15 @@ struct syntax *load_syntax_by_filetype(const char *filetype)
 {
 	struct syntax *syn;
 	char *filename = xsprintf("%s/.%s/syntax/%s", home_dir, program, filetype);
+	int err;
 
-	syn = load_syntax_file(filename, 0);
+	syn = load_syntax_file(filename, 0, &err);
 	free(filename);
-	if (!syn) {
-		filename = xsprintf("%s/syntax/%s", pkgdatadir, filetype);
-		syn = load_syntax_file(filename, 0);
-		free(filename);
-	}
+	if (syn || err != ENOENT)
+		return syn;
+
+	filename = xsprintf("%s/syntax/%s", pkgdatadir, filetype);
+	syn = load_syntax_file(filename, 0, &err);
+	free(filename);
 	return syn;
 }

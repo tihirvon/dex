@@ -407,12 +407,13 @@ static void cmd_load_syntax(const char *pf, char **args)
 	const char *slash = strrchr(args[0], '/');
 	const char *filename = slash ? args[0] : NULL;
 	const char *filetype = slash ? slash + 1 : args[0];
+	int err;
 
 	if (filename) {
 		if (find_syntax(filetype)) {
 			error_msg("Syntax for filetype %s already loaded", filetype);
 		} else {
-			load_syntax_file(filename, 1);
+			load_syntax_file(filename, 1, &err);
 		}
 	} else {
 		if (!find_syntax(filetype))
