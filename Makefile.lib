@@ -1,13 +1,13 @@
 # build verbosity
 ifneq ($(findstring s,$(MAKEFLAGS)),)
 	# make -s
-	quiet = silent_
+	cmd = $(call cmd_$(1),$(2))
 else
 	ifeq ($(V),1)
 		# make V=1
-		quiet =
+		cmd = @echo "$(call cmd_$(1),$(2))"; $(call cmd_$(1),$(2))
 	else
-		quiet = quiet_
+		cmd = @echo "   $(quiet_cmd_$(1))"; $(call cmd_$(1),$(2))
 	endif
 endif
 
@@ -37,8 +37,6 @@ quiet_cmd_host_cc = HOSTCC $@
 
 quiet_cmd_host_ld = HOSTLD $@
       cmd_host_ld = $(HOST_LD) $(HOST_LDFLAGS) $(BASIC_HOST_LDFLAGS) -o $@ $^ $(1)
-
-cmd = @$(if $($(quiet)cmd_$(1)),echo '   $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
 
 try-run = $(shell if ($(1)) >/dev/null 2>&1; then echo "$(2)"; else echo "$(3)"; fi)
 cc-option = $(call try-run, $(CC) $(1) -c -x c /dev/null -o /dev/null,$(1),$(2))
