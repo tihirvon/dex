@@ -673,7 +673,7 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 		}
 	}
 
-	if (pf->cur_width + 1 + word_width > pf->text_width) {
+	if (pf->cur_width && pf->cur_width + 1 + word_width > pf->text_width) {
 		gbuf_add_ch(&pf->buf, '\n');
 		pf->cur_width = 0;
 		bol = 1;
