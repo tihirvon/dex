@@ -662,15 +662,8 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 	unsigned int i = 0;
 	int word_width = 0;
 
-	while (i < len) {
-		unsigned char ch = word[i];
-		if (ch < 0x80) {
-			word_width++;
-			i++;
-		} else {
-			word_width += u_char_width(u_get_char(word, len, &i));
-		}
-	}
+	while (i < len)
+		word_width += u_char_width(u_get_char(word, len, &i));
 
 	if (pf->cur_width && pf->cur_width + 1 + word_width > pf->text_width) {
 		gbuf_add_ch(&pf->buf, '\n');
@@ -760,16 +753,24 @@ void format_paragraph(int text_width)
 
 	i = 0;
 	while (1) {
-		unsigned int start;
+		unsigned int start, tmp;
 
-		while (i < len && isspace(sel[i]))
-			i++;
+		while (i < len) {
+			tmp = i;
+			if (!u_is_space(u_get_char(sel, len, &tmp)))
+				break;
+			i = tmp;
+		}
 		if (i == len)
 			break;
 
 		start = i;
-		while (i < len && !isspace(sel[i]))
-			i++;
+		while (i < len) {
+			tmp = i;
+			if (u_is_space(u_get_char(sel, len, &tmp)))
+				break;
+			i = tmp;
+		}
 
 		add_word(&pf, sel + start, i - start);
 	}
