@@ -661,7 +661,6 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 {
 	unsigned int i = 0;
 	int word_width = 0;
-	int bol = !pf->cur_width;
 
 	while (i < len) {
 		unsigned char ch = word[i];
@@ -676,10 +675,9 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 	if (pf->cur_width && pf->cur_width + 1 + word_width > pf->text_width) {
 		gbuf_add_ch(&pf->buf, '\n');
 		pf->cur_width = 0;
-		bol = 1;
 	}
 
-	if (bol) {
+	if (pf->cur_width == 0) {
 		gbuf_add_buf(&pf->buf, pf->indent, pf->indent_len);
 		pf->cur_width = pf->indent_width;
 	} else {
