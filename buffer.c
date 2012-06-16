@@ -15,6 +15,8 @@
 #include "regexp.h"
 #include "selection.h"
 #include "path.h"
+#include "unicode.h"
+#include "uchar.h"
 
 struct buffer *buffer;
 struct view *prev_view;
@@ -119,20 +121,31 @@ char *get_selection(unsigned int *size)
 char *get_word_under_cursor(void)
 {
 	struct lineref lr;
-	unsigned int ei, si = fetch_this_line(&view->cursor, &lr);
+	unsigned int i, ei, si = fetch_this_line(&view->cursor, &lr);
 
-	while (si < lr.size && !is_word_byte(lr.line[si]))
-		si++;
-
+	while (si < lr.size) {
+		i = si;
+		if (u_is_word_char(u_get_char(lr.line, lr.size, &i)))
+			break;
+		si = i;
+	}
 	if (si == lr.size)
 		return NULL;
 
 	ei = si;
-	while (si > 0 && is_word_byte(lr.line[si - 1]))
-		si--;
-	while (ei + 1 < lr.size && is_word_byte(lr.line[ei + 1]))
-		ei++;
-	return xstrslice(lr.line, si, ei + 1);
+	while (si > 0) {
+		i = si;
+		if (!u_is_word_char(u_prev_char(lr.line, &i)))
+			break;
+		si = i;
+	}
+	while (ei < lr.size) {
+		i = ei;
+		if (!u_is_word_char(u_get_char(lr.line, lr.size, &i)))
+			break;
+		ei = i;
+	}
+	return xstrslice(lr.line, si, ei);
 }
 
 static struct buffer *buffer_new(const char *encoding)

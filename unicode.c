@@ -42,6 +42,17 @@ static int u_is_combining(unsigned int u)
 	return u >= 0x0300 && u <= 0x036f;
 }
 
+int u_is_word_char(unsigned int u)
+{
+	if (u >= 'a' && u <= 'z')
+		return 1;
+	if (u >= 'A' && u <= 'Z')
+		return 1;
+	if (u >= '0' && u <= '9')
+		return 1;
+	return u == '_' || u > 0x7f;
+}
+
 int u_is_unprintable(unsigned int u)
 {
 	// Unprintable garbage inherited from latin1.
