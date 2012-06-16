@@ -369,7 +369,7 @@ void delete(unsigned int len, int move_after)
 		struct block_iter bi = view->cursor;
 		unsigned int u;
 
-		if (block_iter_prev_byte(&bi, &u) && u != '\n') {
+		if (buffer_prev_char(&bi, &u) && u != '\n') {
 			// no newline before cursor
 			if (--len == 0) {
 				begin_change(CHANGE_MERGE_NONE);

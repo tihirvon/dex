@@ -12,34 +12,6 @@ void block_iter_normalize(struct block_iter *bi)
 	}
 }
 
-// analogous to *ptr++
-unsigned int block_iter_next_byte(struct block_iter *i, unsigned int *byte)
-{
-	if (i->offset == i->blk->size) {
-		if (i->blk->node.next == i->head)
-			return 0;
-		i->blk = BLOCK(i->blk->node.next);
-		i->offset = 0;
-	}
-	*byte = i->blk->data[i->offset];
-	i->offset++;
-	return 1;
-}
-
-// analogous to *--ptr
-unsigned int block_iter_prev_byte(struct block_iter *i, unsigned int *byte)
-{
-	if (!i->offset) {
-		if (i->blk->node.prev == i->head)
-			return 0;
-		i->blk = BLOCK(i->blk->node.prev);
-		i->offset = i->blk->size;
-	}
-	i->offset--;
-	*byte = i->blk->data[i->offset];
-	return 1;
-}
-
 /*
  * Move after next newline (beginning of next line or end of file).
  * Returns number of bytes iterator advanced.

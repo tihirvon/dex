@@ -223,16 +223,16 @@ static unsigned int goto_beginning_of_whitespace(void)
 	unsigned int u;
 
 	// count spaces and tabs at or after cursor
-	while (block_iter_next_byte(&bi, &u)) {
+	while (buffer_next_char(&bi, &u)) {
 		if (u != '\t' && u != ' ')
 			break;
 		count++;
 	}
 
 	// count spaces and tabs before cursor
-	while (block_iter_prev_byte(&view->cursor, &u)) {
+	while (buffer_prev_char(&view->cursor, &u)) {
 		if (u != '\t' && u != ' ') {
-			block_iter_next_byte(&view->cursor, &u);
+			buffer_next_char(&view->cursor, &u);
 			break;
 		}
 		count++;
@@ -396,7 +396,7 @@ static void join_selection(void)
 		if (!len)
 			view->cursor = bi;
 
-		block_iter_next_byte(&bi, &ch);
+		buffer_next_char(&bi, &ch);
 		if (ch == '\t' || ch == ' ') {
 			len++;
 		} else if (ch == '\n') {
@@ -406,8 +406,8 @@ static void join_selection(void)
 			if (join) {
 				replace(len, " ", 1);
 				/* skip the space we inserted and the char we read last */
-				block_iter_next_byte(&view->cursor, &ch);
-				block_iter_next_byte(&view->cursor, &ch);
+				buffer_next_char(&view->cursor, &ch);
+				buffer_next_char(&view->cursor, &ch);
 				bi = view->cursor;
 			}
 			len = 0;
@@ -450,16 +450,16 @@ void join_lines(void)
 		return;
 
 	next = bi;
-	block_iter_prev_byte(&bi, &u);
+	buffer_prev_char(&bi, &u);
 	count = 1;
-	while (block_iter_prev_byte(&bi, &u)) {
+	while (buffer_prev_char(&bi, &u)) {
 		if (u != '\t' && u != ' ') {
-			block_iter_next_byte(&bi, &u);
+			buffer_next_char(&bi, &u);
 			break;
 		}
 		count++;
 	}
-	while (block_iter_next_byte(&next, &u)) {
+	while (buffer_next_char(&next, &u)) {
 		if (u != '\t' && u != ' ')
 			break;
 		count++;
