@@ -162,20 +162,20 @@ void move_to_column(int column)
 		if (!buffer_next_char(&view->cursor, &u))
 			break;
 		if (u == '\n') {
-			block_iter_prev_byte(&view->cursor, &u);
+			buffer_prev_char(&view->cursor, &u);
 			break;
 		}
 	}
 	reset_preferred_x();
 }
 
-static enum char_type get_char_type(char ch)
+static enum char_type get_char_type(unsigned int u)
 {
-	if (ch == '\n')
+	if (u == '\n')
 		return CT_NEWLINE;
-	if (isspace(ch))
+	if (u_is_space(u))
 		return CT_SPACE;
-	if (is_word_byte(ch))
+	if (u_is_word_char(u))
 		return CT_WORD;
 	return CT_OTHER;
 }
@@ -196,10 +196,10 @@ static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type typ
 	unsigned int count = 0;
 	unsigned int u;
 
-	while (block_iter_next_byte(bi, &u)) {
+	while (buffer_next_char(bi, &u)) {
 		if (get_char_type(u) != type) {
-			block_iter_prev_byte(bi, &u);
-			return count;
+			buffer_prev_char(bi, &u);
+			break;
 		}
 		count++;
 	}
@@ -211,10 +211,10 @@ static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type typ
 	unsigned int count = 0;
 	unsigned int u;
 
-	while (block_iter_prev_byte(bi, &u)) {
+	while (buffer_prev_char(bi, &u)) {
 		if (get_char_type(u) != type) {
-			block_iter_next_byte(bi, &u);
-			return count;
+			buffer_next_char(bi, &u);
+			break;
 		}
 		count++;
 	}
@@ -246,7 +246,7 @@ unsigned int word_bwd(struct block_iter *bi, int skip_non_word)
 
 	do {
 		count += skip_bwd_char_type(bi, CT_SPACE);
-		if (!block_iter_prev_byte(bi, &u))
+		if (!buffer_prev_char(bi, &u))
 			return count;
 
 		type = get_char_type(u);

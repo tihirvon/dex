@@ -42,6 +42,20 @@ static int u_is_combining(unsigned int u)
 	return u >= 0x0300 && u <= 0x036f;
 }
 
+int u_is_space(unsigned int u)
+{
+	switch (u) {
+	case '\t':
+	case '\n':
+	case '\v':
+	case '\f':
+	case '\r':
+	case ' ':
+		return 1;
+	}
+	return u_is_special_whitespace(u);
+}
+
 int u_is_word_char(unsigned int u)
 {
 	if (u >= 'a' && u <= 'z')
