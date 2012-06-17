@@ -267,6 +267,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	pos--;
 	error_buf[pos++] = ']';
 	error_buf[pos] = 0;
+	msg_is_error = 0;
 
 	start_update();
 	update_term_title();
