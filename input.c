@@ -105,74 +105,88 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	}
 }
 
-void keypress(enum term_key_type type, unsigned int key)
+static void normal_mode_keypress(enum term_key_type type, unsigned int key)
 {
 	char buf[4];
 	int count;
 
+	if (special_input_keypress(type, key, buf, &count)) {
+		if (count) {
+			begin_change(CHANGE_MERGE_NONE);
+			insert(buf, count);
+			end_change();
+			block_iter_skip_bytes(&view->cursor, count);
+		}
+		return;
+	}
 	if (nr_pressed_keys()) {
 		handle_binding(type, key);
 		return;
 	}
+	switch (type) {
+	case KEY_NORMAL:
+		if (key == '\t') {
+			insert_ch('\t');
+		} else if (key == '\r') {
+			insert_ch('\n');
+		} else if (key < 0x20 || key == 0x7f) {
+			handle_binding(type, key);
+		} else {
+			insert_ch(key);
+		}
+		break;
+	case KEY_META:
+	case KEY_SPECIAL:
+		handle_binding(type, key);
+		break;
+	case KEY_PASTE:
+		insert_paste();
+		break;
+	}
+}
 
+static void command_mode_keypress(enum term_key_type type, unsigned int key)
+{
+	switch (cmdline_handle_key(&cmdline, &command_history, type, key)) {
+	case CMDLINE_UNKNOWN_KEY:
+		command_mode_key(type, key);
+		break;
+	case CMDLINE_KEY_HANDLED:
+		reset_completion();
+		break;
+	case CMDLINE_CANCEL:
+		input_mode = INPUT_NORMAL;
+		// clear possible parse error
+		clear_error();
+		break;
+	}
+}
+
+static void search_mode_keypress(enum term_key_type type, unsigned int key)
+{
+	switch (cmdline_handle_key(&cmdline, &search_history, type, key)) {
+	case CMDLINE_UNKNOWN_KEY:
+		search_mode_key(type, key);
+		break;
+	case CMDLINE_KEY_HANDLED:
+		break;
+	case CMDLINE_CANCEL:
+		input_mode = INPUT_NORMAL;
+		break;
+	}
+}
+
+void keypress(enum term_key_type type, unsigned int key)
+{
 	switch (input_mode) {
 	case INPUT_NORMAL:
-		if (special_input_keypress(type, key, buf, &count)) {
-			if (count) {
-				begin_change(CHANGE_MERGE_NONE);
-				insert(buf, count);
-				end_change();
-				block_iter_skip_bytes(&view->cursor, count);
-			}
-			return;
-		}
-		switch (type) {
-		case KEY_NORMAL:
-			if (key == '\t') {
-				insert_ch('\t');
-			} else if (key == '\r') {
-				insert_ch('\n');
-			} else if (key < 0x20 || key == 0x7f) {
-				handle_binding(type, key);
-			} else {
-				insert_ch(key);
-			}
-			break;
-		case KEY_META:
-		case KEY_SPECIAL:
-			handle_binding(type, key);
-			break;
-		case KEY_PASTE:
-			insert_paste();
-			break;
-		}
+		normal_mode_keypress(type, key);
 		break;
 	case INPUT_COMMAND:
-		switch (cmdline_handle_key(&cmdline, &command_history, type, key)) {
-		case CMDLINE_UNKNOWN_KEY:
-			command_mode_key(type, key);
-			break;
-		case CMDLINE_KEY_HANDLED:
-			reset_completion();
-			break;
-		case CMDLINE_CANCEL:
-			input_mode = INPUT_NORMAL;
-			// clear possible parse error
-			clear_error();
-			break;
-		}
+		command_mode_keypress(type, key);
 		break;
 	case INPUT_SEARCH:
-		switch (cmdline_handle_key(&cmdline, &search_history, type, key)) {
-		case CMDLINE_UNKNOWN_KEY:
-			search_mode_key(type, key);
-			break;
-		case CMDLINE_KEY_HANDLED:
-			break;
-		case CMDLINE_CANCEL:
-			input_mode = INPUT_NORMAL;
-			break;
-		}
+		search_mode_keypress(type, key);
 		break;
 	}
 }
