@@ -28,6 +28,7 @@
 #include "encoding.h"
 #include "path.h"
 #include "error.h"
+#include "input-special.h"
 
 static void cmd_alias(const char *pf, char **args)
 {
@@ -377,7 +378,7 @@ static void cmd_insert(const char *pf, char **args)
 
 static void cmd_insert_special(const char *pf, char **args)
 {
-	input_special = INPUT_SPECIAL_UNKNOWN;
+	special_input_activate();
 }
 
 static void cmd_join(const char *pf, char **args)

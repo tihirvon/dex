@@ -4,6 +4,7 @@
 #include "editor.h"
 #include "common.h"
 #include "uchar.h"
+#include "input-special.h"
 
 static void cmdline_insert(struct cmdline *c, unsigned int u)
 {
@@ -133,6 +134,16 @@ void cmdline_reset_history_search(struct cmdline *c)
 
 int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_key_type type, unsigned int key)
 {
+	char buf[4];
+	int count;
+
+	if (special_input_keypress(type, key, buf, &count)) {
+		// \n is not allowed in command line because
+		// command/search history file would break
+		if (count && buf[0] != '\n')
+			cmdline_insert_bytes(&cmdline, buf, count);
+		return 1;
+	}
 	switch (type) {
 	case KEY_NORMAL:
 		switch (key) {
@@ -156,7 +167,7 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 			cmdline_delete_bol(c);
 			break;
 		case CTRL('V'):
-			input_special = INPUT_SPECIAL_UNKNOWN;
+			special_input_activate();
 			break;
 		case CTRL('W'):
 			cmdline_erase_word(c);

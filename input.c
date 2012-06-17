@@ -107,10 +107,8 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 
 void keypress(enum term_key_type type, unsigned int key)
 {
-	if (input_special) {
-		special_input_keypress(type, key);
-		return;
-	}
+	char buf[4];
+	int count;
 
 	if (nr_pressed_keys()) {
 		handle_binding(type, key);
@@ -119,6 +117,15 @@ void keypress(enum term_key_type type, unsigned int key)
 
 	switch (input_mode) {
 	case INPUT_NORMAL:
+		if (special_input_keypress(type, key, buf, &count)) {
+			if (count) {
+				begin_change(CHANGE_MERGE_NONE);
+				insert(buf, count);
+				end_change();
+				block_iter_skip_bytes(&view->cursor, count);
+			}
+			return;
+		}
 		switch (type) {
 		case KEY_NORMAL:
 			if (key == '\t') {

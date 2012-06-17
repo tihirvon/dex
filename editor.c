@@ -13,7 +13,6 @@
 
 enum editor_status editor_status;
 enum input_mode input_mode;
-enum input_special input_special;
 CMDLINE(cmdline);
 char *home_dir;
 char *charset;

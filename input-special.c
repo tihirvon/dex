@@ -1,11 +1,28 @@
 #include "input-special.h"
-#include "editor.h"
-#include "buffer.h"
-#include "change.h"
-#include "cmdline.h"
 #include "uchar.h"
-#include "edit.h"
+#include "common.h"
 
+enum input_special {
+	/* not inputting special characters */
+	INPUT_SPECIAL_NONE,
+
+	/* not known yet (just started by hitting ^V) */
+	INPUT_SPECIAL_UNKNOWN,
+
+	/* accept any value 0-255 (3 octal digits) */
+	INPUT_SPECIAL_OCT,
+
+	/* accept any value 0-255 (3 decimal digits) */
+	INPUT_SPECIAL_DEC,
+
+	/* accept any value 0-255 (2 hexadecimal digits) */
+	INPUT_SPECIAL_HEX,
+
+	/* accept any valid unicode value (6 hexadecimal digits) */
+	INPUT_SPECIAL_UNICODE,
+};
+
+static enum input_special input_special;
 static struct {
 	int base;
 	int max_chars;
@@ -13,34 +30,22 @@ static struct {
 	int nr;
 } raw_input;
 
-static void insert_special(const char *buf, int size)
+void special_input_activate(void)
 {
-	switch (input_mode) {
-	case INPUT_NORMAL:
-		begin_change(CHANGE_MERGE_NONE);
-		insert(buf, size);
-		end_change();
-		block_iter_skip_bytes(&view->cursor, size);
-		break;
-	case INPUT_COMMAND:
-	case INPUT_SEARCH:
-		// \n is not allowed in command line because
-		// command/search history file would break
-		if (buf[0] != '\n')
-			cmdline_insert_bytes(&cmdline, buf, size);
-		break;
-	}
+	input_special = INPUT_SPECIAL_UNKNOWN;
 }
 
-void special_input_keypress(enum term_key_type type, unsigned int key)
+int special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
 {
-	char buf[4];
+	*count = 0;
+	if (input_special == INPUT_SPECIAL_NONE)
+		return 0;
 
 	if (type != KEY_NORMAL) {
 		if (type == KEY_PASTE)
 			term_discard_paste();
 		input_special = INPUT_SPECIAL_NONE;
-		return;
+		return 1;
 	}
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		raw_input.value = 0;
@@ -68,10 +73,11 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 				break;
 			default:
 				buf[0] = key;
-				insert_special(buf, 1);
+				*count = 1;
 				input_special = INPUT_SPECIAL_NONE;
+				return 1;
 			}
-			return;
+			return 1;
 		}
 	}
 
@@ -80,7 +86,7 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 			raw_input.value /= raw_input.base;
 			raw_input.nr--;
 		}
-		return;
+		return 1;
 	}
 
 	if (key != '\r') {
@@ -88,35 +94,39 @@ void special_input_keypress(enum term_key_type type, unsigned int key)
 
 		if (n < 0 || n >= raw_input.base) {
 			input_special = INPUT_SPECIAL_NONE;
-			return;
+			return 1;
 		}
 		raw_input.value *= raw_input.base;
 		raw_input.value += n;
 		if (++raw_input.nr < raw_input.max_chars)
-			return;
+			return 1;
 	}
 
 	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
 		unsigned int idx = 0;
 		u_set_char_raw(buf, &idx, raw_input.value);
-		insert_special(buf, idx);
+		*count = idx;
 	}
 	if (input_special != INPUT_SPECIAL_UNICODE && raw_input.value <= 255) {
 		buf[0] = raw_input.value;
-		insert_special(buf, 1);
+		*count = 1;
 	}
 	input_special = INPUT_SPECIAL_NONE;
+	return 1;
 }
 
-void format_input_special_misc_status(char *status)
+int special_input_misc_status(char *status)
 {
 	int i, value = raw_input.value;
 	const char *str = "";
 	char buf[7];
 
+	if (input_special == INPUT_SPECIAL_NONE)
+		return 0;
+
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		strcpy(status, "[Insert special]");
-		return;
+		return 1;
 	}
 
 	for (i = 0; i < raw_input.nr; i++) {
@@ -147,4 +157,5 @@ void format_input_special_misc_status(char *status)
 	}
 
 	sprintf(status, "[%s <%s>]", str, buf);
+	return 1;
 }

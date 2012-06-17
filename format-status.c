@@ -72,9 +72,10 @@ static const char *format_misc_status(void)
 {
 	static char misc_status[32];
 
-	if (input_special) {
-		format_input_special_misc_status(misc_status);
-	} else if (input_mode == INPUT_SEARCH) {
+	if (special_input_misc_status(misc_status))
+		return misc_status;
+
+	if (input_mode == INPUT_SEARCH) {
 		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
 			case_sensitive_search_enum[options.case_sensitive_search]);
 	} else if (selecting()) {

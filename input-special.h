@@ -3,7 +3,8 @@
 
 #include "term.h"
 
-void special_input_keypress(enum term_key_type type, unsigned int key);
-void format_input_special_misc_status(char *status);
+void special_input_activate(void);
+int special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count);
+int special_input_misc_status(char *status);
 
 #endif
