@@ -5,6 +5,7 @@
 #include "ptr-array.h"
 #include "env.h"
 #include "common.h"
+#include "uchar.h"
 
 static GBUF(arg);
 
@@ -58,6 +59,26 @@ static void parse_sq(const char *cmd, int *posp)
 	*posp = pos;
 }
 
+static int unicode_escape(const char *str, int count)
+{
+	unsigned int u = 0;
+	int i;
+
+	for (i = 0; i < count && str[i]; i++) {
+		int x = hex_decode(str[i]);
+		if (x < 0)
+			break;
+		u = u << 4 | x;
+	}
+	if (u_is_unicode(u)) {
+		unsigned int idx = 0;
+		char buf[4];
+		u_set_char_raw(buf, &idx, u);
+		gbuf_add_buf(&arg, buf, idx);
+	}
+	return i;
+}
+
 static void parse_dq(const char *cmd, int *posp)
 {
 	int pos = *posp;
@@ -108,6 +129,12 @@ static void parse_dq(const char *cmd, int *posp)
 						}
 					}
 				}
+				break;
+			case 'u':
+				pos += unicode_escape(cmd + pos, 4);
+				break;
+			case 'U':
+				pos += unicode_escape(cmd + pos, 8);
 				break;
 			default:
 				gbuf_add_ch(&arg, '\\');
