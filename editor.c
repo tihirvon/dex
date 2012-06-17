@@ -8,7 +8,7 @@
 #include "screen.h"
 #include "config.h"
 #include "command.h"
-#include "input.h"
+#include "modes.h"
 #include "error.h"
 
 enum editor_status editor_status;
@@ -312,7 +312,7 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	int vx = view->vx;
 	int vy = view->vy;
 
-	keypress(type, key);
+	modes[input_mode].keypress(type, key);
 	sanity_check();
 
 	if (everything_changed) {

@@ -89,6 +89,7 @@ OBJECTS	:= 			\
 	change.o		\
 	cmdline.o		\
 	color.o			\
+	command-mode.o		\
 	commands.o		\
 	common.o		\
 	compiler.o		\
@@ -114,13 +115,14 @@ OBJECTS	:= 			\
 	hl.o			\
 	indent.o		\
 	input-special.o		\
-	input.o			\
 	iter.o			\
 	load-save.o		\
 	lock.o			\
 	main.o			\
+	modes.o			\
 	move.o			\
 	msg.o			\
+	normal-mode.o		\
 	obuf.o			\
 	options.o		\
 	parse-args.o		\
@@ -130,6 +132,7 @@ OBJECTS	:= 			\
 	regexp.o		\
 	run.o			\
 	screen.o		\
+	search-mode.o		\
 	search.o		\
 	selection.o		\
 	spawn.o			\
