@@ -212,24 +212,23 @@ void print_message(const char *msg, int is_error)
 	}
 }
 
-static int term_title_supported(void)
-{
-	static int supported = -1;
-
-	if (supported == -1) {
-		const char *term = getenv("TERM");
-
-		supported = term && (strstr(term, "xterm") || strstr(term, "rxvt"));
-	}
-	return supported;
-}
-
 void update_term_title(void)
 {
+	static int term_type = -1;
 	char title[1024];
 
-	if (!term_title_supported())
-		return;
+	if (term_type == -1) {
+		const char *term = getenv("TERM");
+
+		term_type = 0;
+		if (term) {
+			if (strstr(term, "xterm") || strstr(term, "rxvt")) {
+				term_type = 1;
+			} else if (!strcmp(term, "screen")) {
+				term_type = 2;
+			}
+		}
+	}
 
 	// FIXME: title must not contain control characters
 	snprintf(title, sizeof(title), "%s %c %s",
@@ -238,9 +237,21 @@ void update_term_title(void)
 		program);
 
 	buf_reset(0, 1024, 0);
-	buf_escape("\033]2;");
-	buf_add_str(title);
-	buf_escape("\007");
+	switch (term_type) {
+	case 1:
+		// xterm or compatible
+		buf_escape("\033]2;");
+		buf_add_str(title);
+		buf_escape("\007");
+		break;
+	case 2:
+		// tmux or screen
+		// NOTE: screen might need to be configured to get it working
+		buf_escape("\033_");
+		buf_add_str(title);
+		buf_escape("\033\\");
+		break;
+	}
 }
 
 // selection start / end buffer byte offsets
