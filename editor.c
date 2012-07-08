@@ -269,9 +269,17 @@ char get_confirmation(const char *choices, const char *format, ...)
 	error_buf[pos] = 0;
 	msg_is_error = 0;
 
+	// update_windows() assumes these have been called for the current view
+	update_cursor_x();
+	update_cursor_y();
+	update_view();
+
+	// set changed_line_min and changed_line_max before calling update_range()
+	mark_all_lines_changed();
+
 	start_update();
 	update_term_title();
-	update_current_window();
+	update_windows();
 	update_command_line();
 	end_update();
 
