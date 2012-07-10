@@ -201,7 +201,7 @@ static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type typ
 			buffer_prev_char(bi, &u);
 			break;
 		}
-		count++;
+		count += u_char_size(u);
 	}
 	return count;
 }
@@ -216,7 +216,7 @@ static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type typ
 			buffer_next_char(bi, &u);
 			break;
 		}
-		count++;
+		count += u_char_size(u);
 	}
 	return count;
 }
@@ -250,7 +250,7 @@ unsigned int word_bwd(struct block_iter *bi, int skip_non_word)
 			return count;
 
 		type = get_char_type(u);
-		count++;
+		count += u_char_size(u);
 		count += skip_bwd_char_type(bi, type);
 	} while (skip_non_word && type != CT_WORD);
 	return count;
