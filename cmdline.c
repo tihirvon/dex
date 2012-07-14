@@ -218,6 +218,8 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 			c->pos = strlen(c->buf.buffer);
 			return 1;
 		case SKEY_UP:
+			if (history == NULL)
+				return 0;
 			if (c->search_pos < 0) {
 				free(c->search_text);
 				c->search_text = xstrdup(c->buf.buffer);
@@ -227,6 +229,8 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 				cmdline_set_text(c, history->ptrs[c->search_pos]);
 			return 1;
 		case SKEY_DOWN:
+			if (history == NULL)
+				return 0;
 			if (c->search_pos < 0)
 				return 1;
 			if (history_search_backward(history, &c->search_pos, c->search_text)) {
