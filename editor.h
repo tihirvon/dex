@@ -13,6 +13,7 @@ enum input_mode {
 	INPUT_NORMAL,
 	INPUT_COMMAND,
 	INPUT_SEARCH,
+	INPUT_GIT_OPEN,
 };
 
 extern enum editor_status editor_status;
@@ -22,6 +23,7 @@ extern char *home_dir;
 extern char *charset;
 extern int child_controls_terminal;
 extern int resized;
+extern int cmdline_x;
 
 extern const char *program;
 extern const char *version;
@@ -30,6 +32,7 @@ extern const char *pkgdatadir;
 char *editor_file(const char *name);
 char get_confirmation(const char *choices, const char *format, ...) FORMAT(2);
 void any_key(void);
+void normal_update(void);
 void resize(void);
 void ui_end(void);
 void suspend(void);

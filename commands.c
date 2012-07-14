@@ -29,6 +29,7 @@
 #include "path.h"
 #include "error.h"
 #include "input-special.h"
+#include "git-open.h"
 
 static void cmd_alias(const char *pf, char **args)
 {
@@ -327,6 +328,12 @@ static void cmd_format_paragraph(const char *pf, char **args)
 		return;
 	}
 	format_paragraph(text_width);
+}
+
+static void cmd_git_open(const char *pf, char **args)
+{
+	input_mode = INPUT_GIT_OPEN;
+	git_open_reload();
 }
 
 static void cmd_hi(const char *pf, char **args)
@@ -1471,6 +1478,7 @@ const struct command commands[] = {
 	{ "filter",		"-",	1, -1, cmd_filter },
 	{ "format-paragraph",	"",	0,  1, cmd_format_paragraph },
 	{ "ft",			"-cfi",	2, -1, cmd_ft },
+	{ "git-open",		"",	0,  0, cmd_git_open },
 	{ "hi",			"-",	0, -1, cmd_hi },
 	{ "include",		"",	1,  1, cmd_include },
 	{ "insert",		"km",	1,  1, cmd_insert },

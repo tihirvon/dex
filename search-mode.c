@@ -41,7 +41,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	}
 }
 
-void search_mode_keypress(enum term_key_type type, unsigned int key)
+static void search_mode_keypress(enum term_key_type type, unsigned int key)
 {
 	switch (cmdline_handle_key(&cmdline, &search_history, type, key)) {
 	case CMDLINE_UNKNOWN_KEY:
@@ -54,3 +54,8 @@ void search_mode_keypress(enum term_key_type type, unsigned int key)
 		break;
 	}
 }
+
+const struct editor_mode_ops search_mode_ops = {
+	.keypress = search_mode_keypress,
+	.update = normal_update,
+};

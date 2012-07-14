@@ -1,7 +1,8 @@
 #include "modes.h"
 
-struct editor_mode_ops modes[] = {
-	{ normal_mode_keypress },
-	{ command_mode_keypress },
-	{ search_mode_keypress },
+const struct editor_mode_ops * const modes[] = {
+	&normal_mode_ops,
+	&command_mode_ops,
+	&search_mode_ops,
+	&git_open_ops,
 };

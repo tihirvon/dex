@@ -4,6 +4,7 @@
 #include "change.h"
 #include "bind.h"
 #include "input-special.h"
+#include "editor.h"
 
 static void insert_paste(void)
 {
@@ -19,7 +20,7 @@ static void insert_paste(void)
 	free(text);
 }
 
-void normal_mode_keypress(enum term_key_type type, unsigned int key)
+static void normal_mode_keypress(enum term_key_type type, unsigned int key)
 {
 	char buf[4];
 	int count;
@@ -58,3 +59,8 @@ void normal_mode_keypress(enum term_key_type type, unsigned int key)
 		break;
 	}
 }
+
+const struct editor_mode_ops normal_mode_ops = {
+	.keypress = normal_mode_keypress,
+	.update = normal_update,
+};

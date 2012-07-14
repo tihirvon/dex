@@ -12,6 +12,7 @@ void update_separators(void);
 void update_status_line(void);
 void update_window_sizes(void);
 void update_line_numbers(struct window *win, int force);
+void update_git_open(void);
 void update_screen_size(void);
 
 #endif

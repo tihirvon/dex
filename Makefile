@@ -111,6 +111,7 @@ OBJECTS	:= 			\
 	format-status.o		\
 	frame.o			\
 	gbuf.o			\
+	git-open.o		\
 	history.o		\
 	hl.o			\
 	indent.o		\

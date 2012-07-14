@@ -3,14 +3,15 @@
 
 #include "term.h"
 
-void normal_mode_keypress(enum term_key_type type, unsigned int key);
-void command_mode_keypress(enum term_key_type type, unsigned int key);
-void search_mode_keypress(enum term_key_type type, unsigned int key);
-
 struct editor_mode_ops {
 	void (*keypress)(enum term_key_type type, unsigned int key);
+	void (*update)(void);
 };
 
-extern struct editor_mode_ops modes[];
+extern const struct editor_mode_ops normal_mode_ops;
+extern const struct editor_mode_ops command_mode_ops;
+extern const struct editor_mode_ops search_mode_ops;
+extern const struct editor_mode_ops git_open_ops;
+extern const struct editor_mode_ops * const modes[];
 
 #endif

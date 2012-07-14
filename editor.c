@@ -18,8 +18,7 @@ char *home_dir;
 char *charset;
 int child_controls_terminal;
 int resized;
-
-static int cmdline_x;
+int cmdline_x;
 
 static void sanity_check(void)
 {
@@ -65,6 +64,8 @@ static void update_command_line(void)
 	case INPUT_COMMAND:
 		cmdline_x = print_command(prefix);
 		break;
+	case INPUT_GIT_OPEN:
+		break;
 	}
 	buf_clear_eol();
 }
@@ -93,6 +94,8 @@ static void restore_cursor(void)
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
 		buf_move_cursor(cmdline_x, screen_h - 1);
+		break;
+	case INPUT_GIT_OPEN:
 		break;
 	}
 }
@@ -190,6 +193,15 @@ static void update_windows(void)
 	window = view->window;
 }
 
+void normal_update(void)
+{
+	start_update();
+	update_term_title();
+	update_all_windows();
+	update_command_line();
+	end_update();
+}
+
 void resize(void)
 {
 	resized = 0;
@@ -205,11 +217,7 @@ void resize(void)
 		buf_escape(term_cap.strings[STR_CAP_CMD_ti]);
 	}
 
-	start_update();
-	update_term_title();
-	update_all_windows();
-	update_command_line();
-	end_update();
+	modes[input_mode]->update();
 }
 
 void ui_end(void)
@@ -333,11 +341,7 @@ static void save_state(struct screen_state *s)
 static void update_screen(struct screen_state *s)
 {
 	if (everything_changed) {
-		start_update();
-		update_term_title();
-		update_all_windows();
-		update_command_line();
-		end_update();
+		modes[input_mode]->update();
 		everything_changed = 0;
 		return;
 	}
@@ -385,9 +389,13 @@ void main_loop(void)
 				struct screen_state s;
 				clear_error();
 				save_state(&s);
-				modes[input_mode].keypress(type, key);
-				sanity_check();
-				update_screen(&s);
+				modes[input_mode]->keypress(type, key);
+				if (input_mode == INPUT_GIT_OPEN) {
+					modes[input_mode]->update();
+				} else {
+					sanity_check();
+					update_screen(&s);
+				}
 			}
 		}
 	}

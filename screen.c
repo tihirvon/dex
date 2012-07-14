@@ -11,6 +11,8 @@
 #include "hl.h"
 #include "frame.h"
 #include "selection.h"
+#include "git-open.h"
+#include "path.h"
 
 struct line_info {
 	const unsigned char *line;
@@ -670,6 +672,55 @@ void update_line_numbers(struct window *win, int force)
 		}
 		buf_move_cursor(win->x, win->edit_y + i);
 		buf_add_bytes(buf, win->line_numbers.width);
+	}
+}
+
+void update_git_open(void)
+{
+	int x = 0;
+	int y = 0;
+	int w = screen_w;
+	int h = screen_h - 1;
+	int max_y = git_open.scroll + h - 1;
+	int i;
+
+	if (h >= git_open.files.count)
+		git_open.scroll = 0;
+	if (git_open.scroll > git_open.selected)
+		git_open.scroll = git_open.selected;
+	if (git_open.selected > max_y)
+		git_open.scroll += git_open.selected - max_y;
+
+	buf_reset(x, w, 0);
+	buf_move_cursor(0, 0);
+	cmdline_x = print_command('/');
+	buf_clear_eol();
+	y++;
+
+	for (i = 0; i < h; i++) {
+		int file_idx = git_open.scroll + i;
+		char *file;
+		struct term_color color;
+
+		if (file_idx >= git_open.files.count)
+			break;
+
+		file = git_open.files.ptrs[file_idx];
+		obuf.x = 0;
+		buf_move_cursor(x, y + i);
+
+		color = *builtin_colors[BC_DEFAULT];
+		if (file_idx == git_open.selected)
+			mask_color(&color, builtin_colors[BC_SELECTION]);
+		buf_set_color(&color);
+		buf_add_str(display_filename(file));
+		buf_clear_eol();
+	}
+	set_builtin_color(BC_DEFAULT);
+	for (; i < h; i++) {
+		obuf.x = 0;
+		buf_move_cursor(x, y + i);
+		buf_clear_eol();
 	}
 }
 

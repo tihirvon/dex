@@ -292,3 +292,10 @@ const char *filename_to_utf8(const char *filename)
 	buf[ocsave - oc] = 0;
 	return buf;
 }
+
+const char *display_filename(const char *filename)
+{
+	if (term_utf8)
+		return filename;
+	return filename_to_utf8(filename);
+}

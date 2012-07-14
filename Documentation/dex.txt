@@ -214,6 +214,24 @@ ft -i <filetype> <interpreter>...
 	Connect interpreters to file type.  Interpreter is parsed
 	from the #! line in many scripts.
 
+git-open
+	Interactive file opener. Lists all files in GIT repository.
+
+	Same keys work as in command mode, but with these changes:
+
+	@li up
+	Move up in file list.
+	@li down
+	Move down in file list.
+	@li enter
+	Open file.
+	@li ^O
+	Open file but don't close git-open.
+	@li M-e
+	Go to end of file list.
+	@li M-t
+	Go to top of file list.
+
 hi <name> [fg-color [bg-color]]  [attribute]...
 	Set highlight color.
 

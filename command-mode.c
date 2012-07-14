@@ -49,7 +49,7 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	cmdline_reset_history_search(&cmdline);
 }
 
-void command_mode_keypress(enum term_key_type type, unsigned int key)
+static void command_mode_keypress(enum term_key_type type, unsigned int key)
 {
 	switch (cmdline_handle_key(&cmdline, &command_history, type, key)) {
 	case CMDLINE_UNKNOWN_KEY:
@@ -65,3 +65,8 @@ void command_mode_keypress(enum term_key_type type, unsigned int key)
 		break;
 	}
 }
+
+const struct editor_mode_ops command_mode_ops = {
+	.keypress = command_mode_keypress,
+	.update = normal_update,
+};
