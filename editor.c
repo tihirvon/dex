@@ -313,17 +313,25 @@ char get_confirmation(const char *choices, const char *format, ...)
 	return key;
 }
 
-static void handle_key(enum term_key_type type, unsigned int key)
+struct screen_state {
+	int is_modified;
+	int id;
+	int cy;
+	int vx;
+	int vy;
+};
+
+static void save_state(struct screen_state *s)
 {
-	int is_modified = buffer_modified(buffer);
-	int id = buffer->id;
-	int cy = view->cy;
-	int vx = view->vx;
-	int vy = view->vy;
+	s->is_modified = buffer_modified(buffer);
+	s->id = buffer->id;
+	s->cy = view->cy;
+	s->vx = view->vx;
+	s->vy = view->vy;
+}
 
-	modes[input_mode].keypress(type, key);
-	sanity_check();
-
+static void update_screen(struct screen_state *s)
+{
 	if (everything_changed) {
 		start_update();
 		update_term_title();
@@ -338,8 +346,8 @@ static void handle_key(enum term_key_type type, unsigned int key)
 	update_cursor_y();
 	update_view();
 
-	if (id == buffer->id) {
-		if (vx != view->vx || vy != view->vy) {
+	if (s->id == buffer->id) {
+		if (s->vx != view->vx || s->vy != view->vy) {
 			mark_all_lines_changed();
 		} else {
 			// Because of trailing whitespace highlighting and
@@ -348,9 +356,9 @@ static void handle_key(enum term_key_type type, unsigned int key)
 			// to be updated.
 			//
 			// Always update at least current line.
-			lines_changed(cy, view->cy);
+			lines_changed(s->cy, view->cy);
 		}
-		if (is_modified != buffer_modified(buffer))
+		if (s->is_modified != buffer_modified(buffer))
 			mark_buffer_tabbars_changed();
 	} else {
 		window->update_tabbar = 1;
@@ -374,11 +382,12 @@ void main_loop(void)
 			unsigned int key;
 			enum term_key_type type;
 			if (term_read_key(&key, &type)) {
-				/* clear possible error message */
-				if (error_buf[0]) {
-					clear_error();
-				}
-				handle_key(type, key);
+				struct screen_state s;
+				clear_error();
+				save_state(&s);
+				modes[input_mode].keypress(type, key);
+				sanity_check();
+				update_screen(&s);
 			}
 		}
 	}
