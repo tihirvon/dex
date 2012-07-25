@@ -73,7 +73,7 @@ void buf_escape(const char *str)
 
 void buf_add_str(const char *str)
 {
-	int i = 0;
+	unsigned int i = 0;
 	while (str[i]) {
 		unsigned int u = u_get_char(str, i + 4, &i);
 		if (!buf_put_char(u))
