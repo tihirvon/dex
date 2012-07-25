@@ -50,4 +50,6 @@ void u_set_hex(char *str, unsigned int *idx, unsigned int uch);
  */
 unsigned int u_skip_chars(const char *str, int *width);
 
+int u_str_index(const char *haystack, const char *needle_lcase);
+
 #endif

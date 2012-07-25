@@ -7,6 +7,7 @@
 #include "obuf.h"
 #include "modes.h"
 #include "screen.h"
+#include "uchar.h"
 
 struct git_open git_open;
 
@@ -60,9 +61,19 @@ static void git_open_load(void)
 	free(dir);
 }
 
-static void parse_command_line(struct ptr_array *words)
+static int contains_upper(const char *str)
 {
-	const char *str = cmdline.buf.buffer;
+	unsigned int i = 0;
+
+	while (str[i]) {
+		if (u_is_upper(u_get_char(str, i + 4, &i)))
+			return 1;
+	}
+	return 0;
+}
+
+static void split(struct ptr_array *words, const char *str)
+{
 	int s, i = 0;
 
 	while (str[i]) {
@@ -88,6 +99,17 @@ static int words_match(const char *name, struct ptr_array *words)
 	return 1;
 }
 
+static int words_match_icase(const char *name, struct ptr_array *words)
+{
+	int i;
+
+	for (i = 0; i < words->count; i++) {
+		if (u_str_index(name, words->ptrs[i]) < 0)
+			return 0;
+	}
+	return 1;
+}
+
 static const char *selected_file(void)
 {
 	if (git_open.files.count == 0)
@@ -97,17 +119,23 @@ static const char *selected_file(void)
 
 static void git_open_filter(void)
 {
+	char *str = cmdline.buf.buffer;
 	char *ptr = git_open.all_files;
 	char *end = git_open.all_files + git_open.size;
+	int (*match)(const char *, struct ptr_array *) = words_match_icase;
 	PTR_ARRAY(words);
 
-	parse_command_line(&words);
+	// NOTE: words_match_icase() requires str to be lowercase
+	if (contains_upper(str))
+		match = words_match;
+	split(&words, str);
+
 	git_open.files.count = 0;
 	while (ptr < end) {
 		char *zero = memchr(ptr, 0, end - ptr);
 		if (zero == NULL)
 			break;
-		if (words_match(ptr, &words))
+		if (match(ptr, &words))
 			ptr_array_add(&git_open.files, ptr);
 		ptr = zero + 1;
 	}

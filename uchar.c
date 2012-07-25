@@ -248,3 +248,32 @@ unsigned int u_skip_chars(const char *str, int *width)
 	*width -= w;
 	return idx;
 }
+
+static int has_prefix(const char *str, const char *prefix_lcase)
+{
+	unsigned int ni = 0;
+	unsigned int hi = 0;
+	unsigned int pc, sc;
+
+	while ((pc = u_get_char(prefix_lcase, ni + 4, &ni))) {
+		sc = u_get_char(str, hi + 4, &hi);
+		if (sc != pc && u_to_lower(sc) != pc)
+			return 0;
+	}
+	return 1;
+}
+
+int u_str_index(const char *haystack, const char *needle_lcase)
+{
+	unsigned int hi = 0;
+	unsigned int ni = 0;
+	unsigned int nc = u_get_char(needle_lcase, ni + 4, &ni);
+
+	while (haystack[hi]) {
+		unsigned int prev = hi;
+		unsigned int hc = u_get_char(haystack, hi + 4, &hi);
+		if ((hc == nc || u_to_lower(hc) == nc) && has_prefix(haystack + hi, needle_lcase + ni))
+			return prev;
+	}
+	return -1;
+}

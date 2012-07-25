@@ -42,6 +42,11 @@ static int u_is_combining(unsigned int u)
 	return u >= 0x0300 && u <= 0x036f;
 }
 
+int u_is_upper(unsigned int u)
+{
+	return u >= 'A' && u <= 'Z';
+}
+
 int u_is_space(unsigned int u)
 {
 	switch (u) {
@@ -159,4 +164,13 @@ narrow:
 	return 1;
 wide:
 	return 2;
+}
+
+int u_to_lower(unsigned int u)
+{
+	if (u < 'A')
+		return u;
+	if (u <= 'Z')
+		return u + 'a' - 'A';
+	return u;
 }
