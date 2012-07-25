@@ -3,6 +3,8 @@
 #include "editor.h"
 #include "options.h"
 
+#undef CTRL
+
 #include <sys/ioctl.h>
 #include <termios.h>
 
