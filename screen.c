@@ -85,25 +85,21 @@ static void print_tab_title(struct view *v, int idx)
 
 void print_tabbar(void)
 {
-	int idx;
+	int i;
 
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y);
 
 	calculate_tabbar(window);
-	for (idx = 0; idx < window->views.count; idx++) {
-		struct view *v = window->views.ptrs[idx];
-
-		if (idx < window->first_tab_idx)
-			continue;
+	for (i = window->first_tab_idx; i < window->views.count; i++) {
+		struct view *v = window->views.ptrs[i];
 
 		if (obuf.x + v->tt_truncated_width > window->w)
 			break;
-
-		print_tab_title(v, idx);
+		print_tab_title(v, i);
 	}
 	set_builtin_color(BC_TABBAR);
-	if (idx != window->views.count) {
+	if (i != window->views.count) {
 		while (obuf.x < obuf.width - 1)
 			buf_put_char(' ');
 		if (obuf.x == obuf.width - 1)
