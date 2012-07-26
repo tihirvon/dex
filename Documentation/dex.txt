@@ -634,9 +634,43 @@ indent-regex [""]
 
 @h2 Global only options
 
+case-sensitive-search [true]
+	false
+		Search is case-insensitive.
+	true
+		Search is case-sensitive.
+	auto
+		If search string contains a uppercase letter search is
+		case-sensitive, otherwise it is case-insensitive.
+
+display-special [false]
+	Display special characters.
+
+esc-timeout [100] 0...2000
+	When single escape is read from the terminal %PROGRAM% waits some
+	time before treating the escape as a single keypress. The
+	timeout value is in milliseconds.
+
+	Too long timeout makes escape key feel slow and too small
+	timeout can cause escape sequences of for example arrow keys to
+	be split and treated as multiple key presses.
+
+lock-files [true]
+	Lock files using ~/.%PROGRAM%/file-locks. Only protects from your
+	own mistakes (two processes editing same file).
+
 newline [unix]
 	Whether to use LF (`unix`) or CRLF (`dos`) line-endings. This is
 	just a default value for new files.
+
+scroll-margin [0]
+	Minimum number of lines to keep visible before and after cursor.
+
+show-line-numbers [false]
+	Show line numbers.
+
+show-tab-bar [true]
+	Show tab bar at top of screen.
 
 statusline-left [" %f%s%m%r%s%M"]
 	Format string for the left aligned part of status line.
@@ -686,40 +720,6 @@ statusline-left [" %f%s%m%r%s%M"]
 
 statusline-right [" %y,%X   %u   %E %n %t   %p "]
 	Format string for the right aligned part of status line.
-
-display-special [false]
-	Display special characters.
-
-esc-timeout [100] 0...2000
-	When single escape is read from the terminal %PROGRAM% waits some
-	time before treating the escape as a single keypress. The
-	timeout value is in milliseconds.
-
-	Too long timeout makes escape key feel slow and too small
-	timeout can cause escape sequences of for example arrow keys to
-	be split and treated as multiple key presses.
-
-show-line-numbers [false]
-	Show line numbers.
-
-show-tab-bar [true]
-	Show tab bar at top of screen.
-
-lock-files [true]
-	Lock files using ~/.%PROGRAM%/file-locks. Only protects from your
-	own mistakes (two processes editing same file).
-
-scroll-margin [0]
-	Minimum number of lines to keep visible before and after cursor.
-
-case-sensitive-search [true]
-	false
-		Search is case-insensitive.
-	true
-		Search is case-sensitive.
-	auto
-		If search string contains a uppercase letter search is
-		case-sensitive, otherwise it is case-insensitive.
 
 @h1 COMMAND SYNTAX
 
