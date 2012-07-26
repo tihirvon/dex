@@ -15,7 +15,7 @@ hi errormsg 5/3/0
 hi infomsg 0/4/5
 hi tabbar 250 237
 hi activetab 255
-hi inactivetab 250 239
+hi inactivetab 250 237
 
 # common to many syntax files
 hi text
