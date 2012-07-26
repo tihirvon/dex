@@ -238,19 +238,18 @@ void update_term_title(void)
 		buffer_modified(buffer) ? '+' : '-',
 		program);
 
-	buf_reset(0, 1024, 0);
 	switch (term_type) {
 	case 1:
 		// xterm or compatible
 		buf_escape("\033]2;");
-		buf_add_str(title);
+		buf_escape(title);
 		buf_escape("\007");
 		break;
 	case 2:
 		// tmux or screen
 		// NOTE: screen might need to be configured to get it working
 		buf_escape("\033_");
-		buf_add_str(title);
+		buf_escape(title);
 		buf_escape("\033\\");
 		break;
 	}
