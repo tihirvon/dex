@@ -56,7 +56,7 @@ static unsigned int term_get_char(const char *buf, unsigned int size, unsigned i
 	return u;
 }
 
-static void print_tab_title(struct view *v, int idx)
+static void print_horizontal_tab_title(struct view *v, int idx)
 {
 	int skip = v->tt_width - v->tt_truncated_width;
 	const char *filename = buffer_filename(v->buffer);
@@ -83,7 +83,7 @@ static void print_tab_title(struct view *v, int idx)
 		buf_put_char(' ');
 }
 
-void print_tabbar(void)
+static void print_horizontal_tabbar(void)
 {
 	int i;
 
@@ -96,7 +96,7 @@ void print_tabbar(void)
 
 		if (obuf.x + v->tt_truncated_width > window->w)
 			break;
-		print_tab_title(v, i);
+		print_horizontal_tab_title(v, i);
 	}
 	set_builtin_color(BC_TABBAR);
 	if (i != window->views.count) {
@@ -106,6 +106,72 @@ void print_tabbar(void)
 			buf_put_char('>');
 	} else {
 		buf_clear_eol();
+	}
+}
+
+static void print_vertical_tab_title(struct view *v, int idx)
+{
+	const char *filename = buffer_filename(v->buffer);
+	char buf[16];
+
+	snprintf(buf, sizeof(buf), "%2d%s", idx + 1, buffer_modified(v->buffer) ? "+" : " ");
+
+	if (v == view)
+		set_builtin_color(BC_ACTIVETAB);
+	else
+		set_builtin_color(BC_INACTIVETAB);
+	buf_add_str(buf);
+	buf_add_str(filename);
+	buf_clear_eol();
+}
+
+static void print_vertical_tabbar(void)
+{
+	int h = window->edit_h;
+	int i, n, cur_idx = 0;
+
+	for (i = 0; i < window->views.count; i++) {
+		if (view == window->views.ptrs[i]) {
+			cur_idx = i;
+			break;
+		}
+	}
+	if (window->views.count <= h) {
+		// all tabs fit
+		window->first_tab_idx = 0;
+	} else {
+		int max_y = window->first_tab_idx + h - 1;
+
+		if (window->first_tab_idx > cur_idx)
+			window->first_tab_idx = cur_idx;
+		if (cur_idx > max_y)
+			window->first_tab_idx += cur_idx - max_y;
+	}
+
+	buf_reset(window->x, vertical_tabbar_width(window), 0);
+	n = h;
+	if (n + window->first_tab_idx > window->views.count)
+		n = window->views.count - window->first_tab_idx;
+	for (i = 0; i < n; i++) {
+		int idx = window->first_tab_idx + i;
+		obuf.x = 0;
+		buf_move_cursor(window->x, window->y + i);
+		print_vertical_tab_title(window->views.ptrs[idx], idx);
+	}
+	set_builtin_color(BC_TABBAR);
+	for (; i < h; i++) {
+		obuf.x = 0;
+		buf_move_cursor(window->x, window->y + i);
+		buf_clear_eol();
+	}
+}
+
+void print_tabbar(void)
+{
+	if (options.vertical_tab_bar) {
+		print_vertical_tabbar();
+	} else {
+		print_horizontal_tabbar();
 	}
 }
 
@@ -639,6 +705,7 @@ void update_line_numbers(struct window *win, int force)
 {
 	struct view *v = win->view;
 	int i, first, last;
+	int x = win->x + vertical_tabbar_width(win);
 
 	calculate_line_numbers(win);
 
@@ -665,7 +732,7 @@ void update_line_numbers(struct window *win, int force)
 		} else {
 			snprintf(buf, sizeof(buf), "%*d ", w, line);
 		}
-		buf_move_cursor(win->x, win->edit_y + i);
+		buf_move_cursor(x, win->edit_y + i);
 		buf_add_bytes(buf, win->line_numbers.width);
 	}
 }

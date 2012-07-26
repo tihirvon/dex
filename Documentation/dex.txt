@@ -670,7 +670,7 @@ show-line-numbers [false]
 	Show line numbers.
 
 show-tab-bar [true]
-	Show tab bar at top of screen.
+	Show tab bar. See also the *tab-bar-width* and *vertical-tab-bar* options.
 
 statusline-left [" %f%s%m%r%s%M"]
 	Format string for the left aligned part of status line.
@@ -720,6 +720,17 @@ statusline-left [" %f%s%m%r%s%M"]
 
 statusline-right [" %y,%X   %u   %E %n %t   %p "]
 	Format string for the right aligned part of status line.
+
+tab-bar-width [25]
+	Width of vertical tab bar. Note that width of tab bar is
+	automatically reduced to keep editing area at least 80
+	characters wide. Tab bar will be hidden completely if it would
+	become too narrow.
+
+vertical-tab-bar [false]
+	Show tab bar on the left side instead of on top of the screen.
+	Note that tab bar isn't shown if there's not enought space. See
+	also the *tab-bar-width* option.
 
 @h1 COMMAND SYNTAX
 

@@ -86,6 +86,8 @@ struct global_options {
 	int show_tab_bar;
 	char *statusline_left;
 	char *statusline_right;
+	int tab_bar_width;
+	int vertical_tab_bar;
 };
 
 extern struct global_options options;
@@ -93,6 +95,8 @@ extern const char *case_sensitive_search_enum[];
 
 #define OPT_LOCAL	(1 << 0)
 #define OPT_GLOBAL	(1 << 1)
+
+#define TAB_BAR_MIN_WIDTH 12
 
 void set_option(const char *name, const char *value, unsigned int flags);
 void toggle_option(const char *name, int global, int verbose);

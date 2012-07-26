@@ -157,7 +157,22 @@ void update_view(void)
 	view->center_on_scroll = 0;
 }
 
-void calculate_line_numbers(struct window *win)
+int vertical_tabbar_width(struct window *win)
+{
+	// line numbers are included in min_edit_w
+	int min_edit_w = 80;
+	int w = 0;
+
+	if (options.show_tab_bar && options.vertical_tab_bar)
+		w = options.tab_bar_width;
+	if (win->w - w < min_edit_w)
+		w = win->w - min_edit_w;
+	if (w < TAB_BAR_MIN_WIDTH)
+		w = 0;
+	return w;
+}
+
+static int line_numbers_width(struct window *win)
 {
 	int w = 0, min_w = 5;
 
@@ -166,31 +181,55 @@ void calculate_line_numbers(struct window *win)
 		if (w < min_w)
 			w = min_w;
 	}
+	return w;
+}
+
+static int edit_x_offset(struct window *win)
+{
+	return line_numbers_width(win) + vertical_tabbar_width(win);
+}
+
+static int edit_y_offset(struct window *win)
+{
+	if (options.show_tab_bar && !options.vertical_tab_bar)
+		return 1;
+	return 0;
+}
+
+static void set_edit_size(struct window *win)
+{
+	int xo = edit_x_offset(win);
+	int yo = edit_y_offset(win);
+
+	win->edit_w = win->w - xo;
+	win->edit_h = win->h - yo - 1; // statusline
+	win->edit_x = win->x + xo;
+}
+
+void calculate_line_numbers(struct window *win)
+{
+	int w = line_numbers_width(win);
+
 	if (w != win->line_numbers.width) {
 		win->line_numbers.width = w;
 		win->line_numbers.first = 0;
 		win->line_numbers.last = 0;
 		mark_all_lines_changed();
 	}
-
-	win->edit_x = win->x + w;
-	win->edit_w = win->w - w;
+	set_edit_size(win);
 }
 
 void set_window_coordinates(struct window *win, int x, int y)
 {
 	win->x = x;
 	win->y = y;
-	win->edit_x = x;
-	win->edit_y = y + options.show_tab_bar;
+	win->edit_x = x + edit_x_offset(win);
+	win->edit_y = y + edit_y_offset(win);
 }
 
 void set_window_size(struct window *win, int w, int h)
 {
 	win->w = w;
 	win->h = h;
-	win->edit_w = w;
-	win->edit_h = h - options.show_tab_bar - 1;
-
 	calculate_line_numbers(win);
 }
