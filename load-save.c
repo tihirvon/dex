@@ -260,7 +260,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		ren = 0;
 
 	len = strlen(filename);
-	if (len + 8 > PATH_MAX)
+	if (len + 8 > sizeof(tmp))
 		ren = 0;
 	if (ren) {
 		memcpy(tmp, filename, len);

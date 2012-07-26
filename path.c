@@ -2,18 +2,18 @@
 #include "path.h"
 #include "common.h"
 
-static int make_absolute(char *dst, const char *src)
+static int make_absolute(char *dst, int size, const char *src)
 {
 	int len = strlen(src);
 	int pos = 0;
 
 	if (src[0] != '/') {
-		if (!getcwd(dst, PATH_MAX - 1))
+		if (!getcwd(dst, size - 1))
 			return 0;
 		pos = strlen(dst);
 		dst[pos++] = '/';
 	}
-	if (pos + len + 1 > PATH_MAX) {
+	if (pos + len + 1 > size) {
 		errno = ENAMETOOLONG;
 		return 0;
 	}
@@ -49,7 +49,7 @@ char *path_absolute(const char *filename)
 	char buf[PATH_MAX];
 	char *sp;
 
-	if (!make_absolute(buf, filename))
+	if (!make_absolute(buf, sizeof(buf), filename))
 		return NULL;
 
 	remove_double_slashes(buf);
@@ -132,7 +132,7 @@ char *path_absolute(const char *filename)
 			total_len += target_len;
 			if (rest)
 				total_len += 1 + rest_len;
-			if (total_len >= PATH_MAX) {
+			if (total_len + 1 > sizeof(tmp)) {
 				errno = ENAMETOOLONG;
 				return NULL;
 			}
