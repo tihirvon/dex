@@ -250,7 +250,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 	/* try to use temporary file first, safer */
 	int ren = 1;
 	struct block *blk;
-	char tmp[PATH_MAX];
+	char tmp[8192];
 	int fd, len;
 	unsigned int size;
 	struct file_encoder *enc;

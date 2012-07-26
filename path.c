@@ -46,7 +46,7 @@ static int remove_double_slashes(char *str)
 char *path_absolute(const char *filename)
 {
 	int depth = 0;
-	char buf[PATH_MAX];
+	char buf[8192];
 	char *sp;
 
 	if (!make_absolute(buf, sizeof(buf), filename))
@@ -100,8 +100,8 @@ char *path_absolute(const char *filename)
 		}
 
 		if (S_ISLNK(st.st_mode)) {
-			char target[PATH_MAX];
-			char tmp[PATH_MAX];
+			char target[8192];
+			char tmp[8192];
 			int target_len;
 			int total_len = 0;
 			int buf_len = sp - 1 - buf;
@@ -240,7 +240,7 @@ char *short_filename_cwd(const char *absolute, const char *cwd)
 
 char *short_filename(const char *absolute)
 {
-	char cwd[PATH_MAX];
+	char cwd[8192];
 
 	if (getcwd(cwd, sizeof(cwd)))
 		return short_filename_cwd(absolute, cwd);

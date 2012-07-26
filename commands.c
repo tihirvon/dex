@@ -77,7 +77,7 @@ static void cmd_case(const char *pf, char **args)
 
 static void cmd_cd(const char *pf, char **args)
 {
-	char cwd[PATH_MAX];
+	char cwd[8192];
 	char *cwdp = NULL;
 	int i, j, got_cwd;
 

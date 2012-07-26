@@ -62,7 +62,7 @@ static void collect_commands(const char *prefix)
 
 static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix, int directories_only)
 {
-	char path[PATH_MAX];
+	char path[8192];
 	int plen = strlen(dirname);
 	int dlen = strlen(dirprefix);
 	int flen = strlen(fileprefix);
