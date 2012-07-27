@@ -280,6 +280,9 @@ int u_str_index(const char *haystack, const char *needle_lcase)
 	unsigned int ni = 0;
 	unsigned int nc = u_str_get_char(needle_lcase, &ni);
 
+	if (!nc)
+		return 0;
+
 	while (haystack[hi]) {
 		unsigned int prev = hi;
 		unsigned int hc = u_str_get_char(haystack, &hi);
