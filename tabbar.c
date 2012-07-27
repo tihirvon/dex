@@ -2,19 +2,9 @@
 #include "window.h"
 #include "uchar.h"
 
-static int filename_width(const char *filename)
-{
-	unsigned int i = 0;
-	int w = 0;
-
-	while (filename[i])
-		w += u_char_width(u_get_char(filename, i + 4, &i));
-	return w;
-}
-
 static int tab_title_width(int number, const char *filename)
 {
-	return 3 + number_width(number) + filename_width(filename);
+	return 3 + number_width(number) + u_str_width(filename);
 }
 
 static void update_tab_title_width(struct view *v, int tab_number)
