@@ -49,7 +49,7 @@ unsigned int u_str_width(const unsigned char *str)
 	unsigned int i = 0, w = 0;
 
 	while (str[i])
-		w += u_char_width(u_get_char(str, i + 4, &i));
+		w += u_char_width(u_str_get_char(str, &i));
 	return w;
 }
 
@@ -99,6 +99,18 @@ invalid:
 	*idx = *idx - 1;
 	u = buf[*idx];
 	return -u;
+}
+
+unsigned int u_str_get_char(const unsigned char *str, unsigned int *idx)
+{
+	unsigned int i = *idx;
+	unsigned int u = str[i];
+
+	if (likely(u < 0x80)) {
+		*idx = i + 1;
+		return u;
+	}
+	return u_get_nonascii(str, i + 4, idx);
 }
 
 unsigned int u_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
@@ -240,10 +252,9 @@ unsigned int u_skip_chars(const char *str, int *width)
 	int w = *width;
 	unsigned int idx = 0;
 
-	while (w > 0) {
-		unsigned int u = u_get_char(str, idx + 4, &idx);
-		w -= u_char_width(u);
-	}
+	while (w > 0)
+		w -= u_char_width(u_str_get_char(str, &idx));
+
 	/* add 1..3 if skipped 'too much' (the last char was double width or invalid (<xx>)) */
 	*width -= w;
 	return idx;
@@ -255,8 +266,8 @@ static int has_prefix(const char *str, const char *prefix_lcase)
 	unsigned int hi = 0;
 	unsigned int pc, sc;
 
-	while ((pc = u_get_char(prefix_lcase, ni + 4, &ni))) {
-		sc = u_get_char(str, hi + 4, &hi);
+	while ((pc = u_str_get_char(prefix_lcase, &ni))) {
+		sc = u_str_get_char(str, &hi);
 		if (sc != pc && u_to_lower(sc) != pc)
 			return 0;
 	}
@@ -267,11 +278,11 @@ int u_str_index(const char *haystack, const char *needle_lcase)
 {
 	unsigned int hi = 0;
 	unsigned int ni = 0;
-	unsigned int nc = u_get_char(needle_lcase, ni + 4, &ni);
+	unsigned int nc = u_str_get_char(needle_lcase, &ni);
 
 	while (haystack[hi]) {
 		unsigned int prev = hi;
-		unsigned int hc = u_get_char(haystack, hi + 4, &hi);
+		unsigned int hc = u_str_get_char(haystack, &hi);
 		if ((hc == nc || u_to_lower(hc) == nc) && has_prefix(haystack + hi, needle_lcase + ni))
 			return prev;
 	}

@@ -32,6 +32,7 @@ static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
 unsigned int u_str_width(const unsigned char *str);
 
 unsigned int u_prev_char(const unsigned char *buf, unsigned int *idx);
+unsigned int u_str_get_char(const unsigned char *str, unsigned int *idx);
 unsigned int u_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx);
 unsigned int u_get_nonascii(const unsigned char *buf, unsigned int size, unsigned int *idx);
 

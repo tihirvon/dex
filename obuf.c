@@ -75,8 +75,7 @@ void buf_add_str(const char *str)
 {
 	unsigned int i = 0;
 	while (str[i]) {
-		unsigned int u = u_get_char(str, i + 4, &i);
-		if (!buf_put_char(u))
+		if (!buf_put_char(u_str_get_char(str, &i)))
 			break;
 	}
 }

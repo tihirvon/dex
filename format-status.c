@@ -33,7 +33,7 @@ static void add_status_str(struct formatter *f, const char *str)
 
 	add_separator(f);
 	while (f->pos < f->size && str[idx])
-		u_set_char(f->buf, &f->pos, u_get_char(str, idx + 4, &idx));
+		u_set_char(f->buf, &f->pos, u_str_get_char(str, &idx));
 }
 
 FORMAT(2)

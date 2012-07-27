@@ -66,7 +66,7 @@ static int contains_upper(const char *str)
 	unsigned int i = 0;
 
 	while (str[i]) {
-		if (u_is_upper(u_get_char(str, i + 4, &i)))
+		if (u_is_upper(u_str_get_char(str, &i)))
 			return 1;
 	}
 	return 0;
