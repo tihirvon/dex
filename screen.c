@@ -184,10 +184,10 @@ void update_status_line(void)
 	buf_reset(window->x, window->w, 0);
 	buf_move_cursor(window->x, window->y + window->h - 1);
 	set_builtin_color(BC_STATUSLINE);
-	lw = format_status(lbuf, sizeof(lbuf), options.statusline_left);
-	rw = format_status(rbuf, sizeof(rbuf), options.statusline_right);
-	lw = u_str_width(lbuf, lw);
-	rw = u_str_width(rbuf, rw);
+	format_status(lbuf, sizeof(lbuf), options.statusline_left);
+	format_status(rbuf, sizeof(rbuf), options.statusline_right);
+	lw = u_str_width(lbuf);
+	rw = u_str_width(rbuf);
 	if (lw + rw <= window->w) {
 		// both fit
 		buf_add_str(lbuf);

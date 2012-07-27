@@ -44,12 +44,12 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 	return (1U << 7U >> len) - 1U;
 }
 
-unsigned int u_str_width(const unsigned char *str, unsigned int size)
+unsigned int u_str_width(const unsigned char *str)
 {
-	unsigned int idx = 0, w = 0;
+	unsigned int i = 0, w = 0;
 
-	while (idx < size)
-		w += u_char_width(u_get_char(str, size, &idx));
+	while (str[i])
+		w += u_char_width(u_get_char(str, i + 4, &i));
 	return w;
 }
 
