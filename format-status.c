@@ -93,7 +93,7 @@ static const char *format_misc_status(void)
 	return misc_status;
 }
 
-int format_status(char *buf, int size, const char *format)
+void format_status(char *buf, int size, const char *format)
 {
 	struct formatter f;
 	int got_char;
@@ -180,5 +180,4 @@ int format_status(char *buf, int size, const char *format)
 		}
 	}
 	f.buf[f.pos] = 0;
-	return f.pos;
 }
