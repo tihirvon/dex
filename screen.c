@@ -109,12 +109,16 @@ static void print_horizontal_tabbar(void)
 	}
 }
 
-static void print_vertical_tab_title(struct view *v, int idx)
+static void print_vertical_tab_title(struct view *v, int idx, int width)
 {
 	const char *filename = buffer_filename(v->buffer);
 	char buf[16];
+	int skip;
 
 	snprintf(buf, sizeof(buf), "%2d%s", idx + 1, buffer_modified(v->buffer) ? "+" : " ");
+	skip = strlen(buf) + u_str_width(filename) - width + 1;
+	if (skip > 0)
+		filename += u_skip_chars(filename, &skip);
 
 	if (v == view)
 		set_builtin_color(BC_ACTIVETAB);
@@ -127,6 +131,7 @@ static void print_vertical_tab_title(struct view *v, int idx)
 
 static void print_vertical_tabbar(void)
 {
+	int width = vertical_tabbar_width(window);
 	int h = window->edit_h;
 	int i, n, cur_idx = 0;
 
@@ -148,7 +153,7 @@ static void print_vertical_tabbar(void)
 			window->first_tab_idx += cur_idx - max_y;
 	}
 
-	buf_reset(window->x, vertical_tabbar_width(window), 0);
+	buf_reset(window->x, width, 0);
 	n = h;
 	if (n + window->first_tab_idx > window->views.count)
 		n = window->views.count - window->first_tab_idx;
@@ -156,7 +161,7 @@ static void print_vertical_tabbar(void)
 		int idx = window->first_tab_idx + i;
 		obuf.x = 0;
 		buf_move_cursor(window->x, window->y + i);
-		print_vertical_tab_title(window->views.ptrs[idx], idx);
+		print_vertical_tab_title(window->views.ptrs[idx], idx, width);
 	}
 	set_builtin_color(BC_TABBAR);
 	for (; i < h; i++) {
