@@ -252,7 +252,7 @@ unsigned int u_skip_chars(const char *str, int *width)
 	int w = *width;
 	unsigned int idx = 0;
 
-	while (w > 0)
+	while (str[idx] && w > 0)
 		w -= u_char_width(u_str_get_char(str, &idx));
 
 	/* add 1..3 if skipped 'too much' (the last char was double width or invalid (<xx>)) */
