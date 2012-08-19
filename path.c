@@ -177,6 +177,13 @@ static char *relative_filename(const char *f, const char *cwd)
 {
 	int i, tpos, tlen, dotdot, len, clen = 0;
 
+	// annoying special case
+	if (cwd[1] == 0) {
+		if (f[1] == 0)
+			return xstrdup(f);
+		return xstrdup(f + 1);
+	}
+
 	// length of common path
 	while (cwd[clen] && cwd[clen] == f[clen])
 		clen++;
