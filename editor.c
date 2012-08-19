@@ -377,6 +377,16 @@ static void update_screen(struct screen_state *s)
 	end_update();
 }
 
+void set_signal_handler(int signum, void (*handler)(int))
+{
+	struct sigaction act;
+
+	clear(&act);
+	sigemptyset(&act.sa_mask);
+	act.sa_handler = handler;
+	sigaction(signum, &act, NULL);
+}
+
 void main_loop(void)
 {
 	while (editor_status == EDITOR_RUNNING) {

@@ -78,9 +78,9 @@ endif
 # all good names have been taken. make it easy to change
 PROGRAM = dex
 
-all: $(PROGRAM)$(X) man
+all: $(PROGRAM)$(X) test man
 
-OBJECTS	:= 			\
+dex_objects :=	 		\
 	alias.o			\
 	bind.o			\
 	block.o			\
@@ -153,6 +153,10 @@ OBJECTS	:= 			\
 	xmalloc.o		\
 	# end
 
+test_objects :=			\
+	test-main.o		\
+	# end
+
 binding	:=	 		\
 	binding/default		\
 	# end
@@ -202,6 +206,8 @@ compiler:= $(addprefix share/,$(compiler))
 config	:= $(addprefix share/,$(config))
 syntax	:= $(addprefix share/,$(syntax))
 
+OBJECTS := $(dex_objects) $(test_objects)
+
 -include Config.mk
 include Makefile.lib
 
@@ -246,7 +252,11 @@ vars.o: BASIC_CFLAGS += -DPROGRAM=\"$(PROGRAM)\" -DVERSION=\"$(VERSION)\" -DPKGD
 	@./update-option "PROGRAM=$(PROGRAM) VERSION=$(VERSION) PKGDATADIR=$(PKGDATADIR)" $@
 
 clean += *.o $(PROGRAM)$(X)
-$(PROGRAM)$(X): $(OBJECTS)
+$(PROGRAM)$(X): $(dex_objects)
+	$(call cmd,ld,$(LIBS))
+
+clean += test
+test: $(filter-out main.o,$(dex_objects)) $(test_objects)
 	$(call cmd,ld,$(LIBS))
 
 man	:=					\

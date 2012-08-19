@@ -38,16 +38,6 @@ static const char *builtin_rc =
 "set statusline-left \" %f%s%m%r%s%M\"\n"
 "set statusline-right \" %y,%X   %u   %E %n %t   %p \"\n";
 
-void set_signal_handler(int signum, void (*handler)(int))
-{
-	struct sigaction act;
-
-	clear(&act);
-	sigemptyset(&act.sa_mask);
-	act.sa_handler = handler;
-	sigaction(signum, &act, NULL);
-}
-
 static void handle_sigtstp(int signum)
 {
 	suspend();

@@ -178,7 +178,7 @@ static int path_component(const char *path, int pos)
 	return path[pos] == 0 || pos == 0 || path[pos - 1] == '/';
 }
 
-static char *relative_filename(const char *f, const char *cwd)
+char *relative_filename(const char *f, const char *cwd)
 {
 	int i, tlen, dotdot, len, clen = 0;
 	char *filename;
