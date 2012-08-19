@@ -173,9 +173,15 @@ char *path_absolute(const char *filename)
 	return xstrdup(buf);
 }
 
+static int path_component(const char *path, int pos)
+{
+	return path[pos] == 0 || pos == 0 || path[pos - 1] == '/';
+}
+
 static char *relative_filename(const char *f, const char *cwd)
 {
-	int i, tpos, tlen, dotdot, len, clen = 0;
+	int i, tlen, dotdot, len, clen = 0;
+	char *filename;
 
 	// annoying special case
 	if (cwd[1] == 0) {
@@ -195,15 +201,11 @@ static char *relative_filename(const char *f, const char *cwd)
 		return xstrdup(f + clen + 1);
 	}
 
-	// cwd    = /home/user/src/project
-	// abs    = /home/user/save/parse.c
-	// common = /home/user/s
-	// find "save/parse.c"
-	tpos = clen;
-	while (tpos && f[tpos] != '/')
-		tpos--;
-	if (f[tpos] == '/')
-		tpos++;
+	// common path components
+	if (!path_component(cwd, clen) || !path_component(f, clen)) {
+		while (clen > 0 && f[clen - 1] != '/')
+			clen--;
+	}
 
 	// number of "../" needed
 	dotdot = 1;
@@ -211,38 +213,44 @@ static char *relative_filename(const char *f, const char *cwd)
 		if (cwd[i] == '/')
 			dotdot++;
 	}
+	if (dotdot > 2)
+		return xstrdup(f);
 
-	tlen = strlen(f + tpos);
+	tlen = strlen(f + clen);
 	len = dotdot * 3 + tlen;
-	if (dotdot < 3 && len < strlen(f)) {
-		char *filename = xnew(char, len + 1);
-		for (i = 0; i < dotdot; i++)
-			memcpy(filename + i * 3, "../", 3);
-		memcpy(filename + dotdot * 3, f + tpos, tlen + 1);
-		return filename;
-	}
-	return NULL;
+
+	filename = xnew(char, len + 1);
+	for (i = 0; i < dotdot; i++)
+		memcpy(filename + i * 3, "../", 3);
+	memcpy(filename + dotdot * 3, f + clen, tlen + 1);
+	return filename;
 }
 
 char *short_filename_cwd(const char *absolute, const char *cwd)
 {
+	char *f = relative_filename(absolute, cwd);
 	int home_len = strlen(home_dir);
-	char *rel = relative_filename(absolute, cwd);
+	int abs_len = strlen(absolute);
+	int f_len = strlen(f);
 
-	if (!memcmp(absolute, home_dir, home_len) && absolute[home_len] == '/') {
-		int abs_len = strlen(absolute);
+	if (f_len >= abs_len) {
+		// prefer absolute if relative isn't shorter
+		free(f);
+		f = xstrdup(absolute);
+		f_len = abs_len;
+	}
+
+	if (abs_len > home_len && !memcmp(absolute, home_dir, home_len) && absolute[home_len] == '/') {
 		int len = abs_len - home_len + 1;
-		if (!rel || len < strlen(rel)) {
+		if (len < f_len) {
 			char *filename = xnew(char, len + 1);
 			filename[0] = '~';
 			memcpy(filename + 1, absolute + home_len, len);
-			free(rel);
+			free(f);
 			return filename;
 		}
 	}
-	if (rel)
-		return rel;
-	return xstrdup(absolute);
+	return f;
 }
 
 char *short_filename(const char *absolute)
