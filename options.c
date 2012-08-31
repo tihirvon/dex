@@ -249,7 +249,7 @@ static const struct option_description option_desc[] = {
 	G_STR("statusline-left", statusline_left, statusline_set),
 	G_STR("statusline-right", statusline_right, statusline_set),
 	C_BOOL("syntax", syntax, syntax_set),
-	G_INT("tab-bar-width", tab_bar_width, TAB_BAR_MIN_WIDTH, 40, default_int_set),
+	G_INT("tab-bar-width", tab_bar_width, TAB_BAR_MIN_WIDTH, 100, default_int_set),
 	C_INT("tab-width", tab_width, 1, 8, default_int_set),
 	C_INT("text-width", text_width, 1, 1000, default_int_set),
 	G_BOOL("vertical-tab-bar", vertical_tab_bar, default_int_set),
