@@ -21,14 +21,7 @@ struct buffer {
 	// used to determine if buffer is modified
 	struct change_head *save_change_head;
 
-	// struct stat is 144 bytes on x86-64
-	off_t st_size;
-	dev_t st_dev;
-	ino_t st_ino;
-	time_t _st_mtime; // st_mtime is a macro in GarbageLIBC
-	uid_t st_uid;
-	gid_t st_gid;
-	mode_t st_mode;
+	struct stat st;
 
 	// needed for identifying buffers whose filename is NULL
 	unsigned int id;

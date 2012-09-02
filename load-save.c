@@ -9,19 +9,6 @@
 #include "encoding.h"
 #include "error.h"
 
-static void update_stat(int fd, struct buffer *b)
-{
-	struct stat st;
-	fstat(fd, &st);
-	b->st_size = st.st_size;
-	b->st_dev = st.st_dev;
-	b->st_ino = st.st_ino;
-	b->_st_mtime = st.st_mtime;
-	b->st_uid = st.st_uid;
-	b->st_gid = st.st_gid;
-	b->st_mode = st.st_mode;
-}
-
 static void add_block(struct buffer *b, struct block *blk)
 {
 	b->nl += blk->nl;
@@ -129,7 +116,7 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 
 static int read_blocks(struct buffer *b, int fd)
 {
-	size_t size = b->st_size;
+	size_t size = b->st.st_size;
 	unsigned long map_size = 64 * 1024;
 	unsigned char *buf = NULL;
 	int mapped = 0;
@@ -195,8 +182,8 @@ int load_buffer(struct buffer *b, int must_exist, const char *filename)
 			return -1;
 		}
 	} else {
-		update_stat(fd, b);
-		if (!S_ISREG(b->st_mode)) {
+		fstat(fd, &b->st);
+		if (!S_ISREG(b->st.st_mode)) {
 			error_msg("Not a regular file %s", filename);
 			close(fd);
 			return -1;
@@ -277,7 +264,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 			// No write permission to the directory?
 			free(tmp);
 			tmp = NULL;
-		} else if (buffer->st_mode) {
+		} else if (buffer->st.st_mode) {
 			// Preserve ownership and mode of the original file if possible.
 
 			// "ignoring return value of 'fchown', declared with attribute warn_unused_result"
@@ -285,9 +272,9 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 			// Casting to void does not hide this warning when
 			// using GCC and clang does not like this:
 			//     int ignore = fchown(...); ignore = ignore;
-			if (fchown(fd, buffer->st_uid, buffer->st_gid)) {
+			if (fchown(fd, buffer->st.st_uid, buffer->st.st_gid)) {
 			}
-			fchmod(fd, buffer->st_mode);
+			fchmod(fd, buffer->st.st_mode);
 		} else {
 			// new file
 			fchmod(fd, 0666 & ~get_umask());
@@ -296,7 +283,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 	if (tmp == NULL) {
 		// Overwrite the original file (if exists) directly.
 		// Ownership is preserved automatically if the file exists.
-		mode_t mode = buffer->st_mode;
+		mode_t mode = buffer->st.st_mode;
 		if (mode == 0) {
 			// New file.
 			mode = 0666 & ~get_umask();
@@ -350,7 +337,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		free(tmp);
 		return -1;
 	}
-	update_stat(fd, buffer);
+	fstat(fd, &buffer->st);
 	close(fd);
 	free(tmp);
 	return 0;

@@ -214,9 +214,9 @@ void free_buffer(struct buffer *b)
 	free(b);
 }
 
-static int same_file(struct stat *st, struct buffer *b)
+static int same_file(const struct stat *a, const struct stat *b)
 {
-	return st->st_dev == b->st_dev && st->st_ino == b->st_ino;
+	return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
 }
 
 static struct view *find_view(const char *abs_filename)
@@ -232,7 +232,7 @@ static struct view *find_view(const char *abs_filename)
 			const char *f = v->buffer->abs_filename;
 			if (f == NULL)
 				continue;
-			if (!strcmp(f, abs_filename) || (st_ok && same_file(&st, v->buffer))) {
+			if (!strcmp(f, abs_filename) || (st_ok && same_file(&st, &v->buffer->st))) {
 				// found in current window?
 				if (v->window == window)
 					return v;
