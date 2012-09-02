@@ -120,8 +120,6 @@ struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct sta
 void finalize_syntax(struct syntax *syn, int saved_nr_errors);
 
 struct syntax *find_any_syntax(const char *name);
-struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int len);
-
 struct syntax *find_syntax(const char *name);
 void update_syntax_colors(struct syntax *syn);
 void update_all_syntax_colors(void);

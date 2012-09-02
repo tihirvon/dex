@@ -71,7 +71,7 @@ static struct state *handle_heredoc(struct state *state, const char *delim, int 
 	}
 
 	s = xnew0(struct heredoc_state, 1);
-	s->state = add_heredoc_subsyntax(buffer->syn, state->heredoc.subsyntax, state->a.destination, delim, len);
+	s->state = merge_syntax(buffer->syn, state->heredoc.subsyntax, state->a.destination, delim, len);
 	s->delim = xmemdup(delim, len);
 	s->len = len;
 	ptr_array_add(&state->heredoc.states, s);

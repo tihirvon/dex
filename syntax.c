@@ -283,11 +283,6 @@ void finalize_syntax(struct syntax *syn, int saved_nr_errors)
 	ptr_array_add(&syntaxes, syn);
 }
 
-struct state *add_heredoc_subsyntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int len)
-{
-	return merge_syntax(syn, subsyn, rets, delim, len);
-}
-
 struct syntax *find_syntax(const char *name)
 {
 	struct syntax *syn = find_any_syntax(name);
