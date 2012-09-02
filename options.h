@@ -86,6 +86,7 @@ struct global_options {
 	int show_tab_bar;
 	char *statusline_left;
 	char *statusline_right;
+	int tab_bar_max_components;
 	int tab_bar_width;
 	int vertical_tab_bar;
 };

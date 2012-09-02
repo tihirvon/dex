@@ -111,14 +111,50 @@ static void print_horizontal_tabbar(void)
 
 static void print_vertical_tab_title(struct view *v, int idx, int width)
 {
-	const char *filename = buffer_filename(v->buffer);
+	const char *orig_filename = buffer_filename(v->buffer);
+	const char *filename = orig_filename;
+	int max = options.tab_bar_max_components;
 	char buf[16];
 	int skip;
 
 	snprintf(buf, sizeof(buf), "%2d%s", idx + 1, buffer_modified(v->buffer) ? "+" : " ");
-	skip = strlen(buf) + u_str_width(filename) - width + 1;
-	if (skip > 0)
-		filename += u_skip_chars(filename, &skip);
+	if (max) {
+		int i, count = 1;
+
+		for (i = 0; filename[i]; i++) {
+			if (filename[i] == '/')
+				count++;
+		}
+		// ignore first slash because it does not separate components
+		if (filename[0] == '/')
+			count--;
+
+		if (count > max) {
+			// skip possible first slash
+			for (i = 1; ; i++) {
+				if (filename[i] == '/' && --count == max) {
+					i++;
+					break;
+				}
+			}
+			filename += i;
+		}
+	} else {
+		skip = strlen(buf) + u_str_width(filename) - width + 1;
+		if (skip > 0)
+			filename += u_skip_chars(filename, &skip);
+	}
+	if (filename != orig_filename) {
+		// filename was shortened. add "<<" symbol
+		int i = strlen(buf);
+		int c = 0xab;
+		if (term_utf8) {
+			u_set_char(buf, &i, c);
+		} else {
+			buf[i++] = c;
+		}
+		buf[i] = 0;
+	}
 
 	if (v == view)
 		set_builtin_color(BC_ACTIVETAB);

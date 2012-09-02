@@ -721,6 +721,10 @@ statusline-left [" %f%s%m%r%s%M"]
 statusline-right [" %y,%X   %u   %E %n %t   %p "]
 	Format string for the right aligned part of status line.
 
+tab-bar-max-components [0]
+	Maximum number of path components displayed in vertical tab bar.
+	Set to 0 to disable.
+
 tab-bar-width [25]
 	Width of vertical tab bar. Note that width of tab bar is
 	automatically reduced to keep editing area at least 80
