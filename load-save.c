@@ -237,6 +237,22 @@ int load_buffer(struct buffer *b, int must_exist, const char *filename)
 	return 0;
 }
 
+static char *tmp_filename(const char *filename)
+{
+	int len = strlen(filename);
+	char *tmp;
+
+	if (str_has_prefix(filename, "/tmp/"))
+		return NULL;
+
+	tmp = xmalloc(len + 8);
+	memcpy(tmp, filename, len);
+	tmp[len] = '.';
+	memset(tmp + len + 1, 'X', 6);
+	tmp[len + 7] = 0;
+	return tmp;
+}
+
 static mode_t get_umask(void)
 {
 	// Wonderful get-and-set API
@@ -247,30 +263,20 @@ static mode_t get_umask(void)
 
 int save_buffer(const char *filename, const char *encoding, enum newline_sequence newline)
 {
-	/* try to use temporary file first, safer */
-	int ren = 1;
+	// try to use temporary file first, safer
+	char *tmp = tmp_filename(filename);
 	struct block *blk;
-	char tmp[8192];
-	int fd, len;
+	int fd;
 	unsigned int size;
 	struct file_encoder *enc;
 	const struct byte_order_mark *bom;
 
-	if (str_has_prefix(filename, "/tmp/"))
-		ren = 0;
-
-	len = strlen(filename);
-	if (len + 8 > sizeof(tmp))
-		ren = 0;
-	if (ren) {
-		memcpy(tmp, filename, len);
-		tmp[len] = '.';
-		memset(tmp + len + 1, 'X', 6);
-		tmp[len + 7] = 0;
+	if (tmp != NULL) {
 		fd = mkstemp(tmp);
 		if (fd < 0) {
 			// No write permission to the directory?
-			ren = 0;
+			free(tmp);
+			tmp = NULL;
 		} else if (buffer->st_mode) {
 			// Preserve ownership and mode of the original file if possible.
 
@@ -287,7 +293,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 			fchmod(fd, 0666 & ~get_umask());
 		}
 	}
-	if (!ren) {
+	if (tmp == NULL) {
 		// Overwrite the original file (if exists) directly.
 		// Ownership is preserved automatically if the file exists.
 		mode_t mode = buffer->st_mode;
@@ -307,6 +313,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		// this should never happen because encoding is validated early
 		error_msg("iconv_open: %s", strerror(errno));
 		close(fd);
+		free(tmp);
 		return -1;
 	}
 	size = 0;
@@ -330,25 +337,29 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		error_msg("Warning: %d nonreversible character conversions. File saved.", enc->errors);
 	}
 	free_file_encoder(enc);
-	if (!ren && ftruncate(fd, size)) {
+	if (tmp == NULL && ftruncate(fd, size)) {
 		error_msg("Truncate failed: %s", strerror(errno));
 		close(fd);
+		free(tmp);
 		return -1;
 	}
-	if (ren && rename(tmp, filename)) {
+	if (tmp != NULL && rename(tmp, filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
 		unlink(tmp);
 		close(fd);
+		free(tmp);
 		return -1;
 	}
 	update_stat(fd, buffer);
 	close(fd);
+	free(tmp);
 	return 0;
 write_error:
 	error_msg("Write error: %s", strerror(errno));
 	free_file_encoder(enc);
-	if (ren)
+	if (tmp != NULL)
 		unlink(tmp);
 	close(fd);
+	free(tmp);
 	return -1;
 }
