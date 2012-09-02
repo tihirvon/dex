@@ -108,23 +108,24 @@ static int subsyntax_call(const char *name, const char *ret, struct state **dest
 {
 	struct syntax *syn = find_any_syntax(name);
 	struct state *rs = NULL;
+	int ok = 1;
 
 	if (!syn) {
 		error_msg("No such syntax %s", name);
+		ok = 0;
 	} else if (!is_subsyntax(syn)) {
 		error_msg("Syntax %s is not subsyntax", name);
-		syn = NULL;
+		ok = 0;
 	}
 	if (!strcmp(ret, "END")) {
 		if (not_subsyntax())
-			return 0;
-	} else {
+			ok = 0;
+	} else if (ok) {
 		rs = add_state(ret, 0);
 	}
-	if (syn == NULL)
-		return 0;
-	*dest = merge_syntax(current_syntax, syn, rs, NULL, -1);
-	return 1;
+	if (ok)
+		*dest = merge_syntax(current_syntax, syn, rs, NULL, -1);
+	return ok;
 }
 
 static int destination_state(const char *name, struct state **dest)
