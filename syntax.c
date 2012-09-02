@@ -82,7 +82,7 @@ static void fix_action(struct syntax *syn, struct action *a, const char *prefix)
 		a->emit_name = xstrdup(a->emit_name);
 }
 
-static void fix_conditions(struct syntax *syn, struct state *s, struct state *rets, const char *prefix, const char *delim, int delim_len)
+static void fix_conditions(struct syntax *syn, struct state *s, struct syntax_merge *m, const char *prefix)
 {
 	int i;
 
@@ -90,17 +90,17 @@ static void fix_conditions(struct syntax *syn, struct state *s, struct state *re
 		struct condition *c = s->conds.ptrs[i];
 		fix_action(syn, &c->a, prefix);
 		if (c->a.destination == NULL && has_destination(c->type))
-			c->a.destination = rets;
+			c->a.destination = m->return_state;
 
-		if (delim && c->type == COND_HEREDOCEND) {
-			c->u.cond_heredocend.str = xmemdup(delim, delim_len);
-			c->u.cond_heredocend.len = delim_len;
+		if (m->delim && c->type == COND_HEREDOCEND) {
+			c->u.cond_heredocend.str = xmemdup(m->delim, m->delim_len);
+			c->u.cond_heredocend.len = m->delim_len;
 		}
 	}
 
 	fix_action(syn, &s->a, prefix);
 	if (s->a.destination == NULL)
-		s->a.destination = rets;
+		s->a.destination = m->return_state;
 }
 
 static const char *get_prefix(void)
@@ -113,7 +113,7 @@ static const char *get_prefix(void)
 
 static void update_state_colors(struct syntax *syn, struct state *s);
 
-struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int delim_len)
+struct state *merge_syntax(struct syntax *syn, struct syntax_merge *m)
 {
 	// NOTE: string_lists is owned by struct syntax so there's no need to
 	// copy it.  Freeing struct condition does not free any string lists.
@@ -121,12 +121,12 @@ struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct sta
 	struct ptr_array *states = &syn->states;
 	int i, old_count = states->count;
 
-	states->count += subsyn->states.count;
+	states->count += m->subsyn->states.count;
 	if (states->count > states->alloc) {
 		states->alloc = states->count;
 		xrenew(states->ptrs, states->alloc);
 	}
-	memcpy(states->ptrs + old_count, subsyn->states.ptrs, sizeof(*states->ptrs) * subsyn->states.count);
+	memcpy(states->ptrs + old_count, m->subsyn->states.ptrs, sizeof(*states->ptrs) * m->subsyn->states.count);
 
 	for (i = old_count; i < states->count; i++) {
 		struct state *s = xmemdup(states->ptrs[i], sizeof(struct state));
@@ -147,12 +147,12 @@ struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct sta
 	}
 
 	for (i = old_count; i < states->count; i++) {
-		fix_conditions(syn, states->ptrs[i], rets, prefix, delim, delim_len);
-		if (delim)
+		fix_conditions(syn, states->ptrs[i], m, prefix);
+		if (m->delim)
 			update_state_colors(syn, states->ptrs[i]);
 	}
 
-	subsyn->used = 1;
+	m->subsyn->used = 1;
 	return states->ptrs[old_count];
 }
 

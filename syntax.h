@@ -108,6 +108,13 @@ struct syntax {
 	char used;
 };
 
+struct syntax_merge {
+	struct syntax *subsyn;
+	struct state *return_state;
+	const char *delim;
+	int delim_len;
+};
+
 static inline int is_subsyntax(struct syntax *syn)
 {
 	return syn->name[0] == '.';
@@ -116,7 +123,7 @@ static inline int is_subsyntax(struct syntax *syn)
 unsigned int buf_hash(const char *str, unsigned int size);
 struct string_list *find_string_list(struct syntax *syn, const char *name);
 struct state *find_state(struct syntax *syn, const char *name);
-struct state *merge_syntax(struct syntax *syn, struct syntax *subsyn, struct state *rets, const char *delim, int delim_len);
+struct state *merge_syntax(struct syntax *syn, struct syntax_merge *m);
 void finalize_syntax(struct syntax *syn, int saved_nr_errors);
 
 struct syntax *find_any_syntax(const char *name);

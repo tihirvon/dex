@@ -62,6 +62,7 @@ static int in_hash(struct string_list *list, const char *str, int len)
 static struct state *handle_heredoc(struct state *state, const char *delim, int len)
 {
 	struct heredoc_state *s;
+	struct syntax_merge m;
 	int i;
 
 	for (i = 0; i < state->heredoc.states.count; i++) {
@@ -70,8 +71,13 @@ static struct state *handle_heredoc(struct state *state, const char *delim, int 
 			return s->state;
 	}
 
+	m.subsyn = state->heredoc.subsyntax;
+	m.return_state = state->a.destination;
+	m.delim = delim;
+	m.delim_len = len;
+
 	s = xnew0(struct heredoc_state, 1);
-	s->state = merge_syntax(buffer->syn, state->heredoc.subsyntax, state->a.destination, delim, len);
+	s->state = merge_syntax(buffer->syn, &m);
 	s->delim = xmemdup(delim, len);
 	s->len = len;
 	ptr_array_add(&state->heredoc.states, s);

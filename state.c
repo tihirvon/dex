@@ -106,14 +106,18 @@ static int not_subsyntax(void)
 
 static int subsyntax_call(const char *name, const char *ret, struct state **dest)
 {
-	struct syntax *syn = find_any_syntax(name);
-	struct state *rs = NULL;
+	struct syntax_merge m = {
+		.subsyn = find_any_syntax(name),
+		.return_state = NULL,
+		.delim = NULL,
+		.delim_len = -1,
+	};
 	int ok = 1;
 
-	if (!syn) {
+	if (!m.subsyn) {
 		error_msg("No such syntax %s", name);
 		ok = 0;
-	} else if (!is_subsyntax(syn)) {
+	} else if (!is_subsyntax(m.subsyn)) {
 		error_msg("Syntax %s is not subsyntax", name);
 		ok = 0;
 	}
@@ -121,10 +125,10 @@ static int subsyntax_call(const char *name, const char *ret, struct state **dest
 		if (not_subsyntax())
 			ok = 0;
 	} else if (ok) {
-		rs = add_state(ret, 0);
+		m.return_state = add_state(ret, 0);
 	}
 	if (ok)
-		*dest = merge_syntax(current_syntax, syn, rs, NULL, -1);
+		*dest = merge_syntax(current_syntax, &m);
 	return ok;
 }
 
