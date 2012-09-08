@@ -248,15 +248,45 @@ static mode_t get_umask(void)
 	return old;
 }
 
+static int write_buffer(struct file_encoder *enc, const struct byte_order_mark *bom)
+{
+	ssize_t size = 0;
+	struct block *blk;
+
+	if (bom) {
+		size = bom->len;
+		if (xwrite(enc->fd, bom->bytes, size) < 0)
+			goto write_error;
+	}
+	list_for_each_entry(blk, &buffer->blocks, node) {
+		ssize_t rc = file_encoder_write(enc, blk->data, blk->size);
+
+		if (rc < 0)
+			goto write_error;
+		size += rc;
+	}
+	if (enc->errors) {
+		// any real error hides this message
+		error_msg("Warning: %d nonreversible character conversions. File saved.", enc->errors);
+	}
+
+	// need to truncate if writing to existing file
+	if (ftruncate(enc->fd, size)) {
+		error_msg("Truncate failed: %s", strerror(errno));
+		return -1;
+	}
+	return 0;
+write_error:
+	error_msg("Write error: %s", strerror(errno));
+	return -1;
+}
+
 int save_buffer(const char *filename, const char *encoding, enum newline_sequence newline)
 {
 	// try to use temporary file first, safer
 	char *tmp = tmp_filename(filename);
-	struct block *blk;
-	int fd;
-	unsigned int size;
 	struct file_encoder *enc;
-	const struct byte_order_mark *bom;
+	int fd;
 
 	if (tmp != NULL) {
 		fd = mkstemp(tmp);
@@ -300,59 +330,35 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		// this should never happen because encoding is validated early
 		error_msg("iconv_open: %s", strerror(errno));
 		close(fd);
-		free(tmp);
-		return -1;
+		goto error;
 	}
-	size = 0;
-
-	bom = get_bom_for_encoding(encoding);
-	if (bom) {
-		size = bom->len;
-		if (xwrite(fd, bom->bytes, size) < 0)
-			goto write_error;
-	}
-
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		ssize_t rc = file_encoder_write(enc, blk->data, blk->size);
-
-		if (rc < 0)
-			goto write_error;
-		size += rc;
-	}
-	if (enc->errors) {
-		// any real error hides this message
-		error_msg("Warning: %d nonreversible character conversions. File saved.", enc->errors);
-	}
-	free_file_encoder(enc);
-	if (tmp == NULL && ftruncate(fd, size)) {
-		error_msg("Truncate failed: %s", strerror(errno));
+	if (write_buffer(enc, get_bom_for_encoding(encoding))) {
 		close(fd);
-		free(tmp);
-		return -1;
+		goto error;
 	}
-	// NOTE: must update buffer->st even if close() fails
-	fstat(fd, &buffer->st);
 	if (close(fd)) {
 		error_msg("Close failed: %s", strerror(errno));
-		if (tmp != NULL)
-			unlink(tmp);
-		free(tmp);
-		return -1;
+		goto error;
 	}
 	if (tmp != NULL && rename(tmp, filename)) {
 		error_msg("Rename failed: %s", strerror(errno));
+		goto error;
+	}
+	free_file_encoder(enc);
+	free(tmp);
+	stat(filename, &buffer->st);
+	return 0;
+error:
+	if (enc != NULL)
+		free_file_encoder(enc);
+	if (tmp != NULL) {
 		unlink(tmp);
 		free(tmp);
-		return -1;
+	} else {
+		// Not using temporary file therefore mtime may have changed.
+		// Update stat to avoid "File has been modified by someone else"
+		// error later when saving the file again.
+		stat(filename, &buffer->st);
 	}
-	free(tmp);
-	return 0;
-write_error:
-	error_msg("Write error: %s", strerror(errno));
-	free_file_encoder(enc);
-	if (tmp != NULL)
-		unlink(tmp);
-	close(fd);
-	free(tmp);
 	return -1;
 }
