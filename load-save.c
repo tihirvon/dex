@@ -330,15 +330,21 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		free(tmp);
 		return -1;
 	}
-	if (tmp != NULL && rename(tmp, filename)) {
-		error_msg("Rename failed: %s", strerror(errno));
-		unlink(tmp);
-		close(fd);
+	// NOTE: must update buffer->st even if close() fails
+	fstat(fd, &buffer->st);
+	if (close(fd)) {
+		error_msg("Close failed: %s", strerror(errno));
+		if (tmp != NULL)
+			unlink(tmp);
 		free(tmp);
 		return -1;
 	}
-	fstat(fd, &buffer->st);
-	close(fd);
+	if (tmp != NULL && rename(tmp, filename)) {
+		error_msg("Rename failed: %s", strerror(errno));
+		unlink(tmp);
+		free(tmp);
+		return -1;
+	}
 	free(tmp);
 	return 0;
 write_error:
