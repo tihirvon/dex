@@ -117,7 +117,10 @@ static void filter(int rfd, int wfd, struct filter_data *fdata)
 			}
 			wlen += rc;
 			if (wlen == fdata->in_len) {
-				close(wfd);
+				if (close(wfd)) {
+					error_msg("close: %s", strerror(errno));
+					break;
+				}
 				wfd = -1;
 			}
 		}
