@@ -139,12 +139,15 @@ static int lock_or_unlock(const char *filename, int lock)
 		error_msg("Error writing %s: %s", file_locks_lock, strerror(errno));
 		goto error;
 	}
+	if (close(wfd)) {
+		error_msg("Error closing %s: %s", file_locks_lock, strerror(errno));
+		goto error;
+	}
 	if (rename(file_locks_lock, file_locks)) {
 		error_msg("Renaming %s to %s: %s", file_locks_lock, file_locks, strerror(errno));
 		goto error;
 	}
 	free(buf);
-	close(wfd);
 	return err;
 error:
 	unlink(file_locks_lock);
