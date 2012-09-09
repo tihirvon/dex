@@ -242,6 +242,10 @@ void ui_end(void)
 
 void suspend(void)
 {
+	if (getpid() == getsid(0)) {
+		// session leader can't suspend
+		return;
+	}
 	if (!child_controls_terminal && editor_status != EDITOR_INITIALIZING)
 		ui_end();
 	kill(0, SIGSTOP);
