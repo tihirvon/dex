@@ -10,7 +10,7 @@
 
 #define MAX_SUBSTRINGS 32
 
-static int do_search_fwd(regex_t *regex, struct block_iter *bi)
+static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
 {
 	int flags = block_iter_is_bol(bi) ? 0 : REG_NOTBOL;
 
@@ -23,6 +23,18 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi)
 
 		fill_line_ref(bi, &lr);
 		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, flags)) {
+			if (skip && match.rm_so == 0) {
+				// ignore match at current cursor position
+				unsigned int count = match.rm_eo;
+				if (count == 0) {
+					// it is safe to skip one byte because every line
+					// has one extra byte (newline) that is not in lr.line
+					count = 1;
+				}
+				block_iter_skip_bytes(bi, count);
+				return do_search_fwd(regex, bi, 0);
+			}
+
 			block_iter_skip_bytes(bi, match.rm_so);
 			view->cursor = *bi;
 			view->center_on_scroll = 1;
@@ -49,18 +61,17 @@ static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx)
 		fill_line_ref(bi, &lr);
 		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, flags)) {
 			flags = REG_NOTBOL;
-			pos += match.rm_so;
-			if (cx >= 0 && pos >= cx) {
-				/* match at or after cursor */
+			if (cx >= 0 && pos + match.rm_so >= cx) {
+				// ignore match at or after cursor
 				break;
 			}
 
-			/* this might be what we want (last match before cursor) */
-			offset = pos;
-			pos++;
+			// this might be what we want (last match before cursor)
+			offset = pos + match.rm_so;
+			pos += match.rm_eo;
 
 			if (match.rm_so == match.rm_eo) {
-				/* zero length match */
+				// zero length match
 				break;
 			}
 		}
@@ -87,7 +98,7 @@ void search_tag(const char *pattern)
 		return;
 
 	buffer_bof(&bi);
-	if (do_search_fwd(&regex, &bi)) {
+	if (do_search_fwd(&regex, &bi, 0)) {
 		view->center_on_scroll = 1;
 	} else {
 		error_msg("Tag not found.");
@@ -183,16 +194,11 @@ void search_next(void)
 	if (!update_regex())
 		return;
 	if (current_search.direction == SEARCH_FWD) {
-		unsigned int tmp;
-
-		// skip character under cursor
-		buffer_next_char(&bi, &tmp);
-
-		if (do_search_fwd(&current_search.regex, &bi))
+		if (do_search_fwd(&current_search.regex, &bi, 1))
 			return;
 
 		buffer_bof(&bi);
-		if (do_search_fwd(&current_search.regex, &bi)) {
+		if (do_search_fwd(&current_search.regex, &bi, 0)) {
 			info_msg("Continuing at top.");
 		} else {
 			info_msg("Pattern '%s' not found.", current_search.pattern);
