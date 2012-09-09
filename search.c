@@ -46,7 +46,7 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
 	return 0;
 }
 
-static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx)
+static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, int skip)
 {
 	if (block_iter_is_eof(bi))
 		goto next;
@@ -61,9 +61,15 @@ static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx)
 		fill_line_ref(bi, &lr);
 		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, flags)) {
 			flags = REG_NOTBOL;
-			if (cx >= 0 && pos + match.rm_so >= cx) {
-				// ignore match at or after cursor
-				break;
+			if (cx >= 0) {
+				if (pos + match.rm_so >= cx) {
+					// ignore match at or after cursor
+					break;
+				}
+				if (skip && pos + match.rm_eo > cx) {
+					// search -rw should not find word under cursor
+					break;
+				}
 			}
 
 			// this might be what we want (last match before cursor)
@@ -183,7 +189,7 @@ void search_set_regexp(const char *pattern)
 	current_search.pattern = xstrdup(pattern);
 }
 
-void search_next(void)
+static void do_search_next(int skip)
 {
 	struct block_iter bi = view->cursor;
 
@@ -206,11 +212,11 @@ void search_next(void)
 	} else {
 		int cursor_x = block_iter_bol(&bi);
 
-		if (do_search_bwd(&current_search.regex, &bi, cursor_x))
+		if (do_search_bwd(&current_search.regex, &bi, cursor_x, skip))
 			return;
 
 		buffer_eof(&bi);
-		if (do_search_bwd(&current_search.regex, &bi, -1)) {
+		if (do_search_bwd(&current_search.regex, &bi, -1, 0)) {
 			info_msg("Continuing at bottom.");
 		} else {
 			info_msg("Pattern '%s' not found.", current_search.pattern);
@@ -223,6 +229,16 @@ void search_prev(void)
 	current_search.direction ^= 1;
 	search_next();
 	current_search.direction ^= 1;
+}
+
+void search_next(void)
+{
+	do_search_next(0);
+}
+
+void search_next_word(void)
+{
+	do_search_next(1);
 }
 
 static char *build_replace(const char *line, const char *format, regmatch_t *m)

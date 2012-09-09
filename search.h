@@ -21,6 +21,7 @@ enum search_direction current_search_direction(void);
 void search_set_regexp(const char *pattern);
 void search_prev(void);
 void search_next(void);
+void search_next_word(void);
 
 void reg_replace(const char *pattern, const char *format, unsigned int flags);
 

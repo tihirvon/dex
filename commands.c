@@ -971,8 +971,8 @@ static void cmd_search(const char *pf, char **args)
 {
 	int history = 1;
 	int cmd = 0;
+	int w = 0;
 	enum search_direction dir = SEARCH_FWD;
-	char *word = NULL;
 	char *pattern = args[0];
 
 	while (*pf) {
@@ -988,13 +988,9 @@ static void cmd_search(const char *pf, char **args)
 			dir = SEARCH_BWD;
 			break;
 		case 'w':
+			w = 1;
 			if (pattern) {
 				error_msg("Flag -w can't be used with search pattern.");
-				return;
-			}
-			word = get_word_under_cursor();
-			if (!word) {
-				// error message would not be very useful here
 				return;
 			}
 			break;
@@ -1002,7 +998,12 @@ static void cmd_search(const char *pf, char **args)
 		pf++;
 	}
 
-	if (word) {
+	if (w) {
+		char *word = get_word_under_cursor();
+		if (word == NULL) {
+			// error message would not be very useful here
+			return;
+		}
 		pattern = xnew(char, strlen(word) + 5);
 		sprintf(pattern, "\\<%s\\>", word);
 		free(word);
@@ -1011,7 +1012,11 @@ static void cmd_search(const char *pf, char **args)
 	if (pattern) {
 		search_set_direction(dir);
 		search_set_regexp(pattern);
-		search_next();
+		if (w) {
+			search_next_word();
+		} else {
+			search_next();
+		}
 		if (history)
 			history_add(&search_history, pattern, search_history_size);
 
