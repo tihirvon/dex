@@ -146,7 +146,7 @@ static void print_vertical_tab_title(struct view *v, int idx, int width)
 	}
 	if (filename != orig_filename) {
 		// filename was shortened. add "<<" symbol
-		int i = strlen(buf);
+		unsigned int i = strlen(buf);
 		int c = 0xab;
 		if (term_utf8) {
 			u_set_char(buf, &i, c);
