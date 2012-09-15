@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 	set_signal_handler(SIGPIPE, SIG_IGN);
 
 	/* Terminal does not generate signal for ^Z but someone can send
-	 * us SIGSTOP or SIGTSTP nevertheless.
+	 * us SIGTSTP nevertheless. SIGSTOP can't be caught.
 	 */
 	set_signal_handler(SIGTSTP, handle_sigtstp);
 
