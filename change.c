@@ -294,9 +294,8 @@ int redo(unsigned int change_id)
 	return 1;
 }
 
-void free_changes(void *head)
+void free_changes(struct change_head *ch)
 {
-	struct change_head *ch = head;
 top:
 	while (ch->nr_prev)
 		ch = ch->prev[ch->nr_prev - 1];
