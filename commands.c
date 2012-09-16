@@ -490,11 +490,7 @@ static int buffer_is_untouched(struct buffer *b)
 {
 	if (b->abs_filename != NULL)
 		return 0;
-	if (buffer->change_head.next != NULL || buffer->change_head.nr_prev > 0) {
-		// has been modified
-		return 0;
-	}
-	return 1;
+	return buffer->change_head.nr_prev == 0;
 }
 
 static void cmd_open(const char *pf, char **args)
