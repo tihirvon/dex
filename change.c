@@ -208,20 +208,17 @@ static void reverse_change(struct change *change)
 
 int undo(void)
 {
-	struct change *head = buffer->cur_change_head;
-	struct change *change;
+	struct change *change = buffer->cur_change_head;
 
 	reset_preferred_x();
-	if (!head->next)
+	if (!change->next)
 		return 0;
 
-	change = head;
 	if (is_change_chain_barrier(change)) {
 		int count = 0;
 
 		while (1) {
-			head = head->next;
-			change = head;
+			change = change->next;
 			if (is_change_chain_barrier(change))
 				break;
 			reverse_change(change);
@@ -232,17 +229,16 @@ int undo(void)
 	} else {
 		reverse_change(change);
 	}
-	buffer->cur_change_head = head->next;
+	buffer->cur_change_head = change->next;
 	return 1;
 }
 
 int redo(unsigned int change_id)
 {
-	struct change *head = buffer->cur_change_head;
-	struct change *change;
+	struct change *change = buffer->cur_change_head;
 
 	reset_preferred_x();
-	if (!head->prev) {
+	if (!change->prev) {
 		/* don't complain if change_id is 0 */
 		if (change_id)
 			error_msg("Nothing to redo.");
@@ -250,25 +246,23 @@ int redo(unsigned int change_id)
 	}
 
 	if (change_id) {
-		if (--change_id >= head->nr_prev) {
-			error_msg("There are only %d possible changes to redo.", head->nr_prev);
+		if (--change_id >= change->nr_prev) {
+			error_msg("There are only %d possible changes to redo.", change->nr_prev);
 			return 0;
 		}
 	} else {
 		/* default to newest change  */
-		change_id = head->nr_prev - 1;
-		if (head->nr_prev > 1)
-			info_msg("Redoing newest (%d) of %d possible changes.", change_id + 1, head->nr_prev);
+		change_id = change->nr_prev - 1;
+		if (change->nr_prev > 1)
+			info_msg("Redoing newest (%d) of %d possible changes.", change_id + 1, change->nr_prev);
 	}
 
-	head = head->prev[change_id];
-	change = head;
+	change = change->prev[change_id];
 	if (is_change_chain_barrier(change)) {
 		int count = 0;
 
 		while (1) {
-			head = head->prev[head->nr_prev - 1];
-			change = head;
+			change = change->prev[change->nr_prev - 1];
 			if (is_change_chain_barrier(change))
 				break;
 			reverse_change(change);
@@ -279,7 +273,7 @@ int redo(unsigned int change_id)
 	} else {
 		reverse_change(change);
 	}
-	buffer->cur_change_head = head;
+	buffer->cur_change_head = change;
 	return 1;
 }
 
