@@ -22,6 +22,11 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
 			return 0;
 
 		fill_line_ref(bi, &lr);
+
+		// NOTE: If this is the first iteration then lr.line contains
+		// partial line (text starting from the cursor position) and
+		// if match.rm_so is 0 then match is at beginning of the text
+		// which is same as the cursor position.
 		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, flags)) {
 			if (skip && match.rm_so == 0) {
 				// ignore match at current cursor position
@@ -41,6 +46,7 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
 			reset_preferred_x();
 			return 1;
 		}
+		skip = 0; // not at cursor position anymore
 		flags = 0;
 	} while (block_iter_next_line(bi));
 	return 0;
