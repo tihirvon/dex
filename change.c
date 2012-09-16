@@ -13,13 +13,13 @@ static struct change *alloc_change(void)
 
 static void add_change(struct change *change)
 {
-	struct change *head = buffer->cur_change_head;
+	struct change *head = buffer->cur_change;
 
 	change->next = head;
 	xrenew(head->prev, head->nr_prev + 1);
 	head->prev[head->nr_prev++] = change;
 
-	buffer->cur_change_head = change;
+	buffer->cur_change = change;
 }
 
 /* This doesn't need to be local to buffer because commands are atomic. */
@@ -60,7 +60,7 @@ static unsigned int buffer_offset(void)
 
 static void record_insert(unsigned int len)
 {
-	struct change *change = buffer->cur_change_head;
+	struct change *change = buffer->cur_change;
 
 	BUG_ON(!len);
 	if (change_merge == prev_change_merge && change_merge == CHANGE_MERGE_INSERT) {
@@ -76,7 +76,7 @@ static void record_insert(unsigned int len)
 
 static void record_delete(char *buf, unsigned int len, int move_after)
 {
-	struct change *change = buffer->cur_change_head;
+	struct change *change = buffer->cur_change;
 
 	BUG_ON(!len);
 	BUG_ON(!buf);
@@ -208,7 +208,7 @@ static void reverse_change(struct change *change)
 
 int undo(void)
 {
-	struct change *change = buffer->cur_change_head;
+	struct change *change = buffer->cur_change;
 
 	reset_preferred_x();
 	if (!change->next)
@@ -229,13 +229,13 @@ int undo(void)
 	} else {
 		reverse_change(change);
 	}
-	buffer->cur_change_head = change->next;
+	buffer->cur_change = change->next;
 	return 1;
 }
 
 int redo(unsigned int change_id)
 {
-	struct change *change = buffer->cur_change_head;
+	struct change *change = buffer->cur_change;
 
 	reset_preferred_x();
 	if (!change->prev) {
@@ -273,7 +273,7 @@ int redo(unsigned int change_id)
 	} else {
 		reverse_change(change);
 	}
-	buffer->cur_change_head = change;
+	buffer->cur_change = change;
 	return 1;
 }
 

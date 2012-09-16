@@ -155,8 +155,8 @@ static struct buffer *buffer_new(const char *encoding)
 
 	b = xnew0(struct buffer, 1);
 	list_init(&b->blocks);
-	b->cur_change_head = &b->change_head;
-	b->save_change_head = &b->change_head;
+	b->cur_change = &b->change_head;
+	b->saved_change = &b->change_head;
 	b->id = ++id;
 	if (encoding)
 		b->encoding = xstrdup(encoding);

@@ -23,10 +23,10 @@ struct change {
 struct buffer {
 	struct list_head blocks;
 	struct change change_head;
-	struct change *cur_change_head;
+	struct change *cur_change;
 
 	// used to determine if buffer is modified
-	struct change *save_change_head;
+	struct change *saved_change;
 
 	struct stat st;
 
@@ -135,7 +135,7 @@ static inline void mark_everything_changed(void)
 
 static inline int buffer_modified(struct buffer *b)
 {
-	return b->save_change_head != b->cur_change_head;
+	return b->saved_change != b->cur_change;
 }
 
 static inline int selecting(void)

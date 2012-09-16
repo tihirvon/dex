@@ -889,7 +889,7 @@ static void cmd_save(const char *pf, char **args)
 	if (save_buffer(absolute, encoding, newline))
 		goto error;
 
-	buffer->save_change_head = buffer->cur_change_head;
+	buffer->saved_change = buffer->cur_change;
 	buffer->ro = 0;
 	buffer->newline = newline;
 	if (encoding != buffer->encoding) {
