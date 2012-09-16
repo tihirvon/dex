@@ -13,9 +13,9 @@ struct change {
 	unsigned int nr_prev;
 	unsigned int offset;
 	unsigned int del_count;
-	unsigned ins_count : 31;
+	unsigned int ins_count;
 	// after undoing backspace move after the text
-	unsigned move_after : 1;
+	int move_after;
 	// deleted bytes (inserted bytes need not to be saved)
 	char *buf;
 };
