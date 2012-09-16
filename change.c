@@ -3,17 +3,6 @@
 #include "error.h"
 #include "block.h"
 
-struct change {
-	struct change_head head;
-	unsigned int offset;
-	unsigned int del_count;
-	unsigned ins_count : 31;
-	// after undoing backspace move after the text
-	unsigned move_after : 1;
-	// deleted bytes (inserted bytes need not to be saved)
-	char *buf;
-};
-
 static enum change_merge change_merge;
 static enum change_merge prev_change_merge;
 
@@ -24,13 +13,13 @@ static struct change *alloc_change(void)
 
 static void add_change(struct change *change)
 {
-	struct change_head *head = buffer->cur_change_head;
+	struct change *head = buffer->cur_change_head;
 
-	change->head.next = head;
+	change->next = head;
 	xrenew(head->prev, head->nr_prev + 1);
-	head->prev[head->nr_prev++] = &change->head;
+	head->prev[head->nr_prev++] = change;
 
-	buffer->cur_change_head = &change->head;
+	buffer->cur_change_head = change;
 }
 
 /* This doesn't need to be local to buffer because commands are atomic. */
@@ -71,7 +60,7 @@ static unsigned int buffer_offset(void)
 
 static void record_insert(unsigned int len)
 {
-	struct change *change = (struct change *)buffer->cur_change_head;
+	struct change *change = buffer->cur_change_head;
 
 	BUG_ON(!len);
 	if (change_merge == prev_change_merge && change_merge == CHANGE_MERGE_INSERT) {
@@ -87,7 +76,7 @@ static void record_insert(unsigned int len)
 
 static void record_delete(char *buf, unsigned int len, int move_after)
 {
-	struct change *change = (struct change *)buffer->cur_change_head;
+	struct change *change = buffer->cur_change_head;
 
 	BUG_ON(!len);
 	BUG_ON(!buf);
@@ -219,20 +208,20 @@ static void reverse_change(struct change *change)
 
 int undo(void)
 {
-	struct change_head *head = buffer->cur_change_head;
+	struct change *head = buffer->cur_change_head;
 	struct change *change;
 
 	reset_preferred_x();
 	if (!head->next)
 		return 0;
 
-	change = (struct change *)head;
+	change = head;
 	if (is_change_chain_barrier(change)) {
 		int count = 0;
 
 		while (1) {
 			head = head->next;
-			change = (struct change *)head;
+			change = head;
 			if (is_change_chain_barrier(change))
 				break;
 			reverse_change(change);
@@ -249,7 +238,7 @@ int undo(void)
 
 int redo(unsigned int change_id)
 {
-	struct change_head *head = buffer->cur_change_head;
+	struct change *head = buffer->cur_change_head;
 	struct change *change;
 
 	reset_preferred_x();
@@ -273,13 +262,13 @@ int redo(unsigned int change_id)
 	}
 
 	head = head->prev[change_id];
-	change = (struct change *)head;
+	change = head;
 	if (is_change_chain_barrier(change)) {
 		int count = 0;
 
 		while (1) {
 			head = head->prev[head->nr_prev - 1];
-			change = (struct change *)head;
+			change = head;
 			if (is_change_chain_barrier(change))
 				break;
 			reverse_change(change);
@@ -294,7 +283,7 @@ int redo(unsigned int change_id)
 	return 1;
 }
 
-void free_changes(struct change_head *ch)
+void free_changes(struct change *ch)
 {
 top:
 	while (ch->nr_prev)
@@ -302,9 +291,9 @@ top:
 
 	// ch is leaf now
 	while (ch->next) {
-		struct change_head *next = ch->next;
+		struct change *next = ch->next;
 
-		free(((struct change *)ch)->buf);
+		free(ch->buf);
 		free(ch);
 
 		ch = next;

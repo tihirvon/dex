@@ -7,19 +7,26 @@
 #include "common.h"
 #include "ptr-array.h"
 
-struct change_head {
-	struct change_head *next;
-	struct change_head **prev;
+struct change {
+	struct change *next;
+	struct change **prev;
 	unsigned int nr_prev;
+	unsigned int offset;
+	unsigned int del_count;
+	unsigned ins_count : 31;
+	// after undoing backspace move after the text
+	unsigned move_after : 1;
+	// deleted bytes (inserted bytes need not to be saved)
+	char *buf;
 };
 
 struct buffer {
 	struct list_head blocks;
-	struct change_head change_head;
-	struct change_head *cur_change_head;
+	struct change change_head;
+	struct change *cur_change_head;
 
 	// used to determine if buffer is modified
-	struct change_head *save_change_head;
+	struct change *save_change_head;
 
 	struct stat st;
 
