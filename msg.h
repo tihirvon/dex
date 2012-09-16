@@ -11,7 +11,7 @@ struct message {
 			int column;
 		} location;
 	} u;
-	unsigned int pattern_is_set : 1;
+	int pattern_is_set;
 };
 
 void pop_location(void);
