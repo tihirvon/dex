@@ -42,9 +42,22 @@ void buf_add_bytes(const char *str, int count)
 	obuf.count += count;
 }
 
-// does not update obuf.x
 void buf_set_bytes(char ch, int count)
 {
+	int skip;
+
+	if (obuf.x + count > obuf.scroll_x + obuf.width)
+		count = obuf.scroll_x + obuf.width - obuf.x;
+
+	skip = obuf.scroll_x - obuf.x;
+	if (skip > 0) {
+		if (skip > count)
+			skip = count;
+		obuf.x += skip;
+		count -= skip;
+	}
+
+	obuf.x += count;
 	while (count) {
 		int avail, n = count;
 
@@ -111,10 +124,10 @@ void buf_clear_eol(void)
 	if (obuf.x < obuf.scroll_x + obuf.width) {
 		if (obuf.can_clear && term_cap.strings[STR_CAP_CMD_ce] && (obuf.color.bg < 0 || term_cap.ut)) {
 			buf_escape(term_cap.strings[STR_CAP_CMD_ce]);
+			obuf.x = obuf.scroll_x + obuf.width;
 		} else {
 			buf_set_bytes(' ', obuf.scroll_x + obuf.width - obuf.x);
 		}
-		obuf.x = obuf.scroll_x + obuf.width;
 	}
 }
 
