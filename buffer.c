@@ -29,7 +29,7 @@ static void set_display_filename(struct buffer *b, char *name)
 	if (term_utf8) {
 		b->display_filename = name;
 	} else {
-		b->display_filename = xstrdup(filename_to_utf8(name));
+		b->display_filename = filename_to_utf8(name);
 		free(name);
 	}
 }

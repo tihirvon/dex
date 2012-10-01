@@ -1,6 +1,7 @@
 #include "editor.h"
 #include "path.h"
 #include "common.h"
+#include "cconv.h"
 
 static int make_absolute(char *dst, int size, const char *src)
 {
@@ -262,55 +263,21 @@ char *short_filename(const char *absolute)
 	return xstrdup(absolute);
 }
 
-const char *filename_to_utf8(const char *filename)
+char *filename_to_utf8(const char *filename)
 {
-	static char buf[4096];
-	size_t ic, oc, ocsave;
-	char *ib, *ob;
-	iconv_t cd;
+	struct cconv *c = cconv_to_utf8(charset);
+	const unsigned char *buf;
+	size_t len;
+	char *str;
 
-	cd = iconv_open("UTF-8", charset);
-	if (cd == (iconv_t)-1) {
+	if (c == NULL) {
 		d_print("iconv_open() using charset %s failed: %s\n", charset, strerror(errno));
-		return filename;
+		return xstrdup(filename);
 	}
-
-	ib = (char *)filename;
-	ic = strlen(filename);
-	ob = buf;
-	oc = sizeof(buf) - 1;
-
-	ocsave = oc;
-	while (ic > 0) {
-		size_t rc = iconv(cd, (void *)&ib, &ic, &ob, &oc);
-		if (rc == (size_t)-1) {
-			switch (errno) {
-			case EILSEQ:
-			case EINVAL:
-				// can't convert this byte
-				ob[0] = ib[0];
-				ic--;
-				oc--;
-
-				// reset
-				iconv(cd, NULL, NULL, NULL, NULL);
-				break;
-			case E2BIG:
-			default:
-				// FIXME
-				ic = 0;
-			}
-		}
-	}
-	iconv_close(cd);
-
-	buf[ocsave - oc] = 0;
-	return buf;
-}
-
-const char *display_filename(const char *filename)
-{
-	if (term_utf8)
-		return filename;
-	return filename_to_utf8(filename);
+	cconv_process(c, filename, strlen(filename));
+	cconv_flush(c);
+	buf = cconv_consume_all(c, &len);
+	str = xstrslice(buf, 0, len);
+	cconv_free(c);
+	return str;
 }

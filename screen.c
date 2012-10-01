@@ -816,7 +816,13 @@ void update_git_open(void)
 		if (file_idx == git_open.selected)
 			mask_color(&color, builtin_colors[BC_SELECTION]);
 		buf_set_color(&color);
-		buf_add_str(display_filename(file));
+		if (term_utf8) {
+			buf_add_str(file);
+		} else {
+			char *tmp = filename_to_utf8(file);
+			buf_add_str(tmp);
+			free(tmp);
+		}
 		buf_clear_eol();
 	}
 	set_builtin_color(BC_DEFAULT);
