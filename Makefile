@@ -86,6 +86,7 @@ dex_objects :=	 		\
 	block.o			\
 	buffer-iter.o		\
 	buffer.o		\
+	cconv.o			\
 	change.o		\
 	cmdline.o		\
 	color.o			\
