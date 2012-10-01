@@ -2,63 +2,25 @@
 #include "editor.h"
 #include "uchar.h"
 #include "xmalloc.h"
+#include "cconv.h"
 
 static int fill(struct file_decoder *dec)
 {
-	ssize_t ofree;
-	size_t ic, oc, icsave, ocsave, rc;
-	char *ib, *ob;
+	size_t icount = dec->isize - dec->ipos;
+	size_t max = 7 * 1024; // smaller than cconv.obuf to make realloc less likely
+
+	if (icount > max)
+		icount = max;
 
 	if (dec->ipos == dec->isize)
 		return 0;
 
-	memmove(dec->obuf, dec->obuf + dec->opos, dec->ofill - dec->opos);
-	dec->ofill -= dec->opos;
-	dec->opos = 0;
-
-	ofree = dec->osize - dec->ofill;
-	if (ofree < 128) {
-		dec->osize *= 2;
-		xrenew(dec->obuf, dec->osize);
-		ofree = dec->osize - dec->ofill;
+	cconv_process(dec->cconv, dec->ibuf + dec->ipos, icount);
+	dec->ipos += icount;
+	if (dec->ipos == dec->isize) {
+		// must be flushed after all input has been fed
+		cconv_flush(dec->cconv);
 	}
-
-	ib = (char *)dec->ibuf + dec->ipos;
-	ic = dec->isize - dec->ipos;
-	ob = dec->obuf + dec->ofill;
-	oc = ofree;
-
-	if (ic > oc / 4)
-		ic = oc / 4;
-
-	icsave = ic;
-	ocsave = oc;
-
-	rc = iconv(dec->cd, (void *)&ib, &ic, &ob, &oc);
-	if (rc == (size_t)-1) {
-		switch (errno) {
-		case EILSEQ:
-		case EINVAL:
-			// can't convert this byte
-			ob[0] = ib[0];
-			ic--;
-			oc--;
-
-			// reset
-			iconv(dec->cd, NULL, NULL, NULL, NULL);
-			break;
-		case E2BIG:
-		default:
-			// FIXME
-			return 0;
-		}
-	}
-
-	ic = icsave - ic;
-	oc = ocsave - oc;
-
-	dec->ipos += ic;
-	dec->ofill += oc;
 	return 1;
 }
 
@@ -97,28 +59,25 @@ static int detect(struct file_decoder *dec, const unsigned char *line, ssize_t l
 
 static int decode_and_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
 {
-	const char *nl;
 	char *line;
 	ssize_t len;
 
 	while (1) {
-		nl = memchr(dec->obuf + dec->opos, '\n', dec->ofill - dec->opos);
-		if (nl)
+		line = cconv_consume_line(dec->cconv, &len);
+		if (line)
 			break;
 
 		if (!fill(dec))
 			break;
 	}
 
-	line = dec->obuf + dec->opos;
-	if (nl) {
-		len = nl - line;
-		dec->opos += len + 1;
+	if (line) {
+		// newline not wanted
+		len--;
 	} else {
-		len = dec->ofill - dec->opos;
+		line = cconv_consume_all(dec->cconv, &len);
 		if (len == 0)
 			return 0;
-		dec->opos += len;
 	}
 
 	*linep = line;
@@ -180,12 +139,10 @@ static int set_encoding(struct file_decoder *dec, const char *encoding)
 	if (!strcmp(encoding, "UTF-8")) {
 		dec->read_line = read_utf8_line;
 	} else {
-		dec->cd = iconv_open("UTF-8", encoding);
-		if (dec->cd == (iconv_t)-1) {
+		dec->cconv = cconv_to_utf8(encoding);
+		if (dec->cconv == NULL) {
 			return -1;
 		}
-		dec->osize = 32 * 1024;
-		dec->obuf = xnew(unsigned char, dec->osize);
 		dec->read_line = decode_and_read_line;
 	}
 	dec->encoding = xstrdup(encoding);
@@ -199,7 +156,6 @@ struct file_decoder *new_file_decoder(const char *encoding, const unsigned char 
 	dec->ibuf = buf;
 	dec->isize = size;
 	dec->read_line = detect_and_read_line;
-	dec->cd = (iconv_t)-1;
 
 	if (encoding) {
 		if (set_encoding(dec, encoding)) {
@@ -212,9 +168,8 @@ struct file_decoder *new_file_decoder(const char *encoding, const unsigned char 
 
 void free_file_decoder(struct file_decoder *dec)
 {
-	if (dec->cd != (iconv_t)-1)
-		iconv_close(dec->cd);
-	free(dec->obuf);
+	if (dec->cconv != NULL)
+		cconv_free(dec->cconv);
 	free(dec->encoding);
 	free(dec);
 }

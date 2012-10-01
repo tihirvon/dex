@@ -6,10 +6,8 @@
 struct file_decoder {
 	char *encoding;
 	const unsigned char *ibuf;
-	unsigned char *obuf;
 	ssize_t ipos, isize;
-	ssize_t opos, osize, ofill;
-	iconv_t cd;
+	struct cconv *cconv;
 
 	int (*read_line)(struct file_decoder *dec, char **linep, ssize_t *lenp);
 };
