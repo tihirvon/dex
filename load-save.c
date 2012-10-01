@@ -8,6 +8,7 @@
 #include "encoder.h"
 #include "encoding.h"
 #include "error.h"
+#include "cconv.h"
 
 static void add_block(struct buffer *b, struct block *blk)
 {
@@ -265,9 +266,9 @@ static int write_buffer(struct file_encoder *enc, const struct byte_order_mark *
 			goto write_error;
 		size += rc;
 	}
-	if (enc->errors) {
+	if (enc->cconv != NULL && cconv_nr_errors(enc->cconv)) {
 		// any real error hides this message
-		error_msg("Warning: %d nonreversible character conversions. File saved.", enc->errors);
+		error_msg("Warning: %d nonreversible character conversions. File saved.", cconv_nr_errors(enc->cconv));
 	}
 
 	// need to truncate if writing to existing file
