@@ -1,7 +1,11 @@
 #include "cconv.h"
 #include "common.h"
+#include "uchar.h"
 
 #include <iconv.h>
+
+// U+00BF
+static unsigned char replacement[2] = "\xc2\xbf";
 
 struct cconv {
 	iconv_t cd;
@@ -16,6 +20,13 @@ struct cconv {
 	// temporary input buffer
 	char tbuf[16];
 	size_t tcount;
+
+	// replacement character 0xBF (inverted question mark)
+	char rbuf[4];
+	int rcount;
+
+	// input character size in bytes. zero for UTF-8
+	int char_size;
 };
 
 static struct cconv *create(iconv_t cd)
@@ -27,16 +38,62 @@ static struct cconv *create(iconv_t cd)
 	return c;
 }
 
+static int encoding_char_size(const char *encoding)
+{
+	if (str_has_prefix(encoding, "UTF-16"))
+		return 2;
+	if (str_has_prefix(encoding, "UTF-32"))
+		return 2;
+	return 1;
+}
+
+static void encode_replacement(struct cconv *c)
+{
+	char *ib = replacement;
+	char *ob = c->rbuf;
+	size_t ic = sizeof(replacement);
+	size_t oc = sizeof(c->rbuf);
+	size_t rc = iconv(c->cd, &ib, &ic, &ob, &oc);
+
+	if (rc == (size_t)-1) {
+		c->rbuf[0] = 0xbf;
+		c->rcount = 1;
+	} else {
+		c->rcount = ob - c->rbuf;
+	}
+}
+
 static void resize_obuf(struct cconv *c)
 {
 	c->osize *= 2;
 	xrenew(c->obuf, c->osize);
 }
 
-static void handle_invalid(struct cconv *c, const char *buf, size_t count)
+static void add_replacement(struct cconv *c)
 {
-	memcpy(c->obuf + c->opos, buf, count);
-	c->opos += count;
+	if (c->osize - c->opos < 4)
+		resize_obuf(c);
+
+	memcpy(c->obuf + c->opos, c->rbuf, c->rcount);
+	c->opos += c->rcount;
+}
+
+static size_t handle_invalid(struct cconv *c, const char *buf, size_t count)
+{
+	d_print("%d %ld\n", c->char_size, count);
+	add_replacement(c);
+	if (c->char_size == 0) {
+		// converting from UTF-8
+		unsigned int idx = 0;
+		unsigned int u = u_get_char(buf, count, &idx);
+		d_print("U+%04X\n", u);
+		return idx;
+	}
+	if (c->char_size > count) {
+		// wtf
+		return 1;
+	}
+	return c->char_size;
 }
 
 static int xiconv(struct cconv *c, char **ib, size_t *ic)
@@ -74,6 +131,7 @@ static size_t convert_incomplete(struct cconv *c, const char *input, size_t len)
 	char *ib;
 
 	while (c->tcount < sizeof(c->tbuf) && ipos < len) {
+		size_t skip;
 		int rc;
 
 		c->tbuf[c->tcount++] = input[ipos++];
@@ -93,12 +151,18 @@ static size_t convert_incomplete(struct cconv *c, const char *input, size_t len)
 			continue;
 		case EILSEQ:
 			// Invalid multibyte sequence.
-			handle_invalid(c, c->tbuf, c->tcount);
-			c->tcount = 0;
+			skip = handle_invalid(c, c->tbuf, c->tcount);
+			c->tcount -= skip;
+			if (c->tcount > 0) {
+				d_print("tcount=%ld, skip=%ld\n", c->tcount, skip);
+				memmove(c->tbuf, c->tbuf + skip, c->tcount);
+				continue;
+			}
 			return ipos;
 		}
 		break;
 	}
+	d_print("%lu %lu\n", ipos, c->tcount);
 	return ipos;
 }
 
@@ -123,6 +187,8 @@ void cconv_process(struct cconv *c, const char *input, size_t len)
 	ib = (char *)input;
 	ic = len;
 	while (ic > 0) {
+		size_t skip;
+
 		switch (xiconv(c, &ib, &ic)) {
 		case EINVAL:
 			// Incomplete character at end of input buffer.
@@ -136,9 +202,9 @@ void cconv_process(struct cconv *c, const char *input, size_t len)
 			break;
 		case EILSEQ:
 			// Invalid multibyte sequence.
-			handle_invalid(c, ib, 1);
-			ic--;
-			ib++;
+			skip = handle_invalid(c, ib, ic);
+			ic -= skip;
+			ib += skip;
 			break;
 		}
 	}
@@ -146,33 +212,46 @@ void cconv_process(struct cconv *c, const char *input, size_t len)
 
 struct cconv *cconv_to_utf8(const char *encoding)
 {
+	struct cconv *c;
 	iconv_t cd;
 
 	cd = iconv_open("UTF-8", encoding);
 	if (cd == (iconv_t)-1)
 		return NULL;
-	return create(cd);
+	c = create(cd);
+	memcpy(c->rbuf, replacement, sizeof(replacement));
+	c->rcount = sizeof(replacement);
+	c->char_size = encoding_char_size(encoding);
+	return c;
 }
 
 struct cconv *cconv_from_utf8(const char *encoding)
 {
-	iconv_t cd;
-	char buf[128];
+	struct cconv *c;
+	iconv_t cd = (iconv_t)-1;
 
-	// Enable transliteration if supported.
-	snprintf(buf, sizeof(buf), "%s//TRANSLIT", encoding);
-	cd = iconv_open(buf, "UTF-8");
+	// FIXME: enable transliteration?
+	if (0) {
+		// Enable transliteration if supported.
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s//TRANSLIT", encoding);
+		cd = iconv_open(buf, "UTF-8");
+	}
 	if (cd == (iconv_t)-1)
 		cd = iconv_open(encoding, "UTF-8");
 	if (cd == (iconv_t)-1)
 		return NULL;
-	return create(cd);
+	c = create(cd);
+	encode_replacement(c);
+	return c;
 }
 
 void cconv_flush(struct cconv *c)
 {
 	if (c->tcount > 0) {
-		handle_invalid(c, c->tbuf, c->tcount);
+		// Replace incomplete character at end of input buffer.
+		d_print("incomplete character at EOF\n");
+		add_replacement(c);
 		c->tcount = 0;
 	}
 }
