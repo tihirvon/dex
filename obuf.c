@@ -235,11 +235,27 @@ int buf_put_char(unsigned int u)
 				obuf.x--;
 			}
 		}
-	} else if (term_utf8) {
+	} else {
 		width = u_char_width(u);
 		if (width <= space) {
-			u_set_char(obuf.buf, &obuf.count, u);
 			obuf.x += width;
+			if (term_utf8) {
+				u_set_char(obuf.buf, &obuf.count, u);
+			} else {
+				// terminal character set is assumed to be latin1
+				if (u_is_unprintable(u)) {
+					BUG_ON(u == 0xab);
+					u_set_hex(obuf.buf, &obuf.count, u);
+				} else if (u <= 0xff) {
+					obuf.buf[obuf.count++] = u;
+				} else {
+					// character can't be displayed
+					while (width--) {
+						// inverted question mark
+						obuf.buf[obuf.count++] = 0xbf;
+					}
+				}
+			}
 		} else if (u_is_unprintable(u)) {
 			// <xx> would not fit
 			// there's enough space in the buffer so render all 4 characters
@@ -251,24 +267,6 @@ int buf_put_char(unsigned int u)
 		} else {
 			obuf.buf[obuf.count++] = '>';
 			obuf.x++;
-		}
-	} else {
-		// terminal character set is assumed to be latin1
-		if (u > 0x9f) {
-			// 0xa0 - 0xff
-			obuf.buf[obuf.count++] = u;
-			obuf.x++;
-		} else {
-			// 0x80 - 0x9f
-			if (space >= 4) {
-				u_set_hex(obuf.buf, &obuf.count, u);
-				obuf.x += 4;
-			} else {
-				unsigned int idx = obuf.count;
-				u_set_hex(obuf.buf, &idx, u);
-				obuf.count += space;
-				obuf.x += space;
-			}
 		}
 	}
 	return 1;
