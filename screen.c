@@ -15,6 +15,11 @@
 #include "path.h"
 
 struct line_info {
+	long line_nr;
+	long offset;
+	long sel_so;
+	long sel_eo;
+
 	const unsigned char *line;
 	unsigned int size;
 	unsigned int pos;
@@ -22,8 +27,6 @@ struct line_info {
 	unsigned int trailing_ws_offset;
 	struct hl_color **colors;
 };
-
-static int current_line;
 
 static void set_color(struct term_color *color)
 {
@@ -353,10 +356,6 @@ void update_term_title(void)
 	}
 }
 
-// selection start / end buffer byte offsets
-static unsigned int sel_so, sel_eo;
-static unsigned int cur_offset;
-
 static int is_default_bg_color(int color)
 {
 	return color == builtin_colors[BC_DEFAULT]->bg || color < 0;
@@ -383,33 +382,13 @@ static void mask_color2(struct term_color *color, const struct term_color *over)
 		color->attr = over->attr;
 }
 
-static void mask_selection_and_current_line(struct term_color *color)
+static void mask_selection_and_current_line(struct line_info *info, struct term_color *color)
 {
-	if (selecting() && cur_offset >= sel_so && cur_offset < sel_eo) {
+	if (info->offset >= info->sel_so && info->offset < info->sel_eo) {
 		mask_color(color, builtin_colors[BC_SELECTION]);
-	} else if (current_line == view->cy) {
+	} else if (info->line_nr == view->cy) {
 		mask_color2(color, builtin_colors[BC_CURRENTLINE]);
 	}
-}
-
-static void selection_init(void)
-{
-	struct selection_info info;
-
-	if (!selecting())
-		return;
-
-	if (view->sel_eo != UINT_MAX) {
-		/* already calculated */
-		sel_so = view->sel_so;
-		sel_eo = view->sel_eo;
-		BUG_ON(sel_so > sel_eo);
-		return;
-	}
-
-	init_selection(&info);
-	sel_so = info.so;
-	sel_eo = info.eo;
 }
 
 static int is_non_text(unsigned int u)
@@ -427,7 +406,7 @@ static int whitespace_error(struct line_info *info, unsigned int u, unsigned int
 
 	if (i >= info->trailing_ws_offset && flags & WSE_TRAILING) {
 		// Trailing whitespace.
-		if (current_line != view->cy || view->cx < info->trailing_ws_offset)
+		if (info->line_nr != view->cy || view->cx < info->trailing_ws_offset)
 			return 1;
 		// Cursor is on this line and on the whitespace or at eol. It would
 		// be annoying if the line you are editing displays trailing
@@ -502,10 +481,10 @@ static unsigned int screen_next_char(struct line_info *info)
 		mask_color(&color, builtin_colors[BC_NONTEXT]);
 	if (ws_error)
 		mask_color(&color, builtin_colors[BC_WSERROR]);
-	mask_selection_and_current_line(&color);
+	mask_selection_and_current_line(info, &color);
 	set_color(&color);
 
-	cur_offset += count;
+	info->offset += count;
 	return u;
 }
 
@@ -513,7 +492,7 @@ static void screen_skip_char(struct line_info *info)
 {
 	unsigned int u = info->line[info->pos++];
 
-	cur_offset++;
+	info->offset++;
 	if (likely(u < 0x80)) {
 		if (likely(!u_is_ctrl(u))) {
 			obuf.x++;
@@ -529,7 +508,7 @@ static void screen_skip_char(struct line_info *info)
 		info->pos--;
 		u = u_get_nonascii(info->line, info->size, &info->pos);
 		obuf.x += u_char_width(u);
-		cur_offset += info->pos - pos;
+		info->offset += info->pos - pos;
 	}
 }
 
@@ -586,7 +565,30 @@ static void hl_words(struct line_info *info)
 	}
 }
 
-static void init_line_info(struct line_info *info, struct lineref *lr, struct hl_color **colors)
+static void line_info_init(struct line_info *info, struct block_iter *bi, long line_nr)
+{
+	memset(info, 0, sizeof(*info));
+	info->line_nr = line_nr;
+	info->offset = block_iter_get_offset(bi);
+
+	if (!selecting()) {
+		info->sel_so = -1;
+		info->sel_eo = -1;
+	} else if (view->sel_eo != UINT_MAX) {
+		/* already calculated */
+		info->sel_so = view->sel_so;
+		info->sel_eo = view->sel_eo;
+		BUG_ON(info->sel_so > info->sel_eo);
+	} else {
+		struct selection_info sel;
+
+		init_selection(&sel);
+		info->sel_so = sel.so;
+		info->sel_eo = sel.eo;
+	}
+}
+
+static void line_info_set_line(struct line_info *info, struct lineref *lr, struct hl_color **colors)
 {
 	int i;
 
@@ -635,7 +637,7 @@ static void print_line(struct line_info *info)
 		u = screen_next_char(info);
 		if (!buf_put_char(u)) {
 			// +1 for newline
-			cur_offset += info->size - info->pos + 1;
+			info->offset += info->size - info->pos + 1;
 			return;
 		}
 	}
@@ -644,20 +646,21 @@ static void print_line(struct line_info *info)
 		// syntax highlighter highlights \n but use default color anyway
 		color = *builtin_colors[BC_DEFAULT];
 		mask_color(&color, builtin_colors[BC_NONTEXT]);
-		mask_selection_and_current_line(&color);
+		mask_selection_and_current_line(info, &color);
 		set_color(&color);
 		buf_put_char('$');
 	}
 
 	color = *builtin_colors[BC_DEFAULT];
-	mask_selection_and_current_line(&color);
+	mask_selection_and_current_line(info, &color);
 	set_color(&color);
-	cur_offset++;
+	info->offset++;
 	buf_clear_eol();
 }
 
 void update_range(int y1, int y2)
 {
+	struct line_info info;
 	struct block_iter bi = view->cursor;
 	int i, got_line;
 
@@ -671,17 +674,14 @@ void update_range(int y1, int y2)
 		block_iter_eat_line(&bi);
 	block_iter_bol(&bi);
 
-	current_line = y1;
+	line_info_init(&info, &bi, y1);
+
 	y1 -= view->vy;
 	y2 -= view->vy;
 
-	cur_offset = block_iter_get_offset(&bi);
-	selection_init();
-
 	got_line = !block_iter_is_eof(&bi);
-	hl_fill_start_states(current_line);
+	hl_fill_start_states(info.line_nr);
 	for (i = y1; got_line && i < y2; i++) {
-		struct line_info info;
 		struct lineref lr;
 		struct hl_color **colors;
 		int next_changed;
@@ -690,12 +690,12 @@ void update_range(int y1, int y2)
 		buf_move_cursor(window->edit_x, window->edit_y + i);
 
 		fill_line_nl_ref(&bi, &lr);
-		colors = hl_line(lr.line, lr.size, current_line, &next_changed);
-		init_line_info(&info, &lr, colors);
+		colors = hl_line(lr.line, lr.size, info.line_nr, &next_changed);
+		line_info_set_line(&info, &lr, colors);
 		print_line(&info);
 
 		got_line = block_iter_next_line(&bi);
-		current_line++;
+		info.line_nr++;
 
 		if (next_changed && i + 1 == y2 && y2 < window->edit_h) {
 			// more lines need to be updated not because their
@@ -705,7 +705,7 @@ void update_range(int y1, int y2)
 		}
 	}
 
-	if (i < y2 && current_line == view->cy) {
+	if (i < y2 && info.line_nr == view->cy) {
 		// dummy empty line is shown only if cursor is on it
 		struct term_color color = *builtin_colors[BC_DEFAULT];
 
