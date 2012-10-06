@@ -383,25 +383,13 @@ static void mask_color2(struct term_color *color, const struct term_color *over)
 		color->attr = over->attr;
 }
 
-static void update_color(struct hl_color *hl_color, int nontext, int wserror)
+static void mask_selection_and_current_line(struct term_color *color)
 {
-	struct term_color color;
-
-	if (hl_color)
-		color = hl_color->color;
-	else
-		color = *builtin_colors[BC_DEFAULT];
-
-	if (nontext)
-		mask_color(&color, builtin_colors[BC_NONTEXT]);
-	if (wserror)
-		mask_color(&color, builtin_colors[BC_WSERROR]);
-	if (selecting() && cur_offset >= sel_so && cur_offset < sel_eo)
-		mask_color(&color, builtin_colors[BC_SELECTION]);
-	else if (current_line == view->cy) {
-		mask_color2(&color, builtin_colors[BC_CURRENTLINE]);
+	if (selecting() && cur_offset >= sel_so && cur_offset < sel_eo) {
+		mask_color(color, builtin_colors[BC_SELECTION]);
+	} else if (current_line == view->cy) {
+		mask_color2(color, builtin_colors[BC_CURRENTLINE]);
 	}
-	set_color(&color);
 }
 
 static void selection_init(void)
@@ -488,6 +476,7 @@ static unsigned int screen_next_char(struct line_info *info)
 {
 	unsigned int count, pos = info->pos;
 	unsigned int u = info->line[pos];
+	struct term_color color;
 	int ws_error = 0;
 
 	if (likely(u < 0x80)) {
@@ -504,7 +493,18 @@ static unsigned int screen_next_char(struct line_info *info)
 			ws_error = 1;
 	}
 
-	update_color(info->colors ? info->colors[pos] : NULL, is_non_text(u), ws_error);
+	if (info->colors && info->colors[pos]) {
+		color = info->colors[pos]->color;
+	} else {
+		color = *builtin_colors[BC_DEFAULT];
+	}
+	if (is_non_text(u))
+		mask_color(&color, builtin_colors[BC_NONTEXT]);
+	if (ws_error)
+		mask_color(&color, builtin_colors[BC_WSERROR]);
+	mask_selection_and_current_line(&color);
+	set_color(&color);
+
 	cur_offset += count;
 	return u;
 }
@@ -616,6 +616,7 @@ static void init_line_info(struct line_info *info, struct lineref *lr, struct hl
 
 static void print_line(struct line_info *info)
 {
+	struct term_color color;
 	unsigned int u;
 
 	// Screen might be scrolled horizontally. Skip most invisible
@@ -640,11 +641,18 @@ static void print_line(struct line_info *info)
 	}
 
 	if (options.display_special && obuf.x >= obuf.scroll_x) {
-		update_color(info->colors ? info->colors[info->pos] : NULL, 1, 0);
+		// syntax highlighter highlights \n but use default color anyway
+		color = *builtin_colors[BC_DEFAULT];
+		mask_color(&color, builtin_colors[BC_NONTEXT]);
+		mask_selection_and_current_line(&color);
+		set_color(&color);
 		buf_put_char('$');
 	}
-	update_color(NULL, 0, 0);
-	cur_offset++; // must be after update_color()
+
+	color = *builtin_colors[BC_DEFAULT];
+	mask_selection_and_current_line(&color);
+	set_color(&color);
+	cur_offset++;
 	buf_clear_eol();
 }
 
@@ -698,9 +706,13 @@ void update_range(int y1, int y2)
 	}
 
 	if (i < y2 && current_line == view->cy) {
-		// dummy empty line
+		// dummy empty line is shown only if cursor is on it
+		struct term_color color = *builtin_colors[BC_DEFAULT];
+
 		obuf.x = 0;
-		update_color(NULL, 0, 0);
+		mask_color2(&color, builtin_colors[BC_CURRENTLINE]);
+		set_color(&color);
+
 		buf_move_cursor(window->edit_x, window->edit_y + i++);
 		buf_clear_eol();
 	}
