@@ -1,9 +1,3 @@
-# @charset at-rule at very beginning of file
-# @import at-rule before any other rules, and precede rule sets in a style sheet
-# @namespace at-rule must follow @charset and @import rules, and precede all other at-rules and rule sets in a style sheet
-#
-# other at-rules: @media @page @font-face
-
 # comment
 syntax .css-comment
 
@@ -137,15 +131,8 @@ state must code
 list -i mediatype \
 	all braille embossed handheld print projection screen speech tty tv
 
-# import statements
-syntax .css-imports
-
-state imports code
-	char "\t\n " imports
-	char / .css-comment:imports
-	# @import { URI | string } [ media type, ...];
-	str -i "@import" import
-	noeat END
+# import statement
+syntax .css-import
 
 state import atkeyword
 	char "\t\n " arg
@@ -162,21 +149,14 @@ state medialist
 	noeat .css-medialist:mediaend
 
 state mediaend
-	char \; imports
+	char \; END code
 	noeat error
 
 state error
-	noeat .css-statementerror:imports
+	noeat .css-statementerror:END
 
-# namespace statements
-syntax .css-namespaces
-
-state namespaces code
-	char "\t\n " namespaces
-	char / .css-comment:namespaces
-	# @namespace [prefix] { URI | string };
-	str -i "@namespace" namespace
-	noeat END
+# namespace statement
+syntax .css-namespace
 
 state namespace atkeyword
 	char "\t\n " arg1
@@ -202,34 +182,28 @@ state arg2 code
 
 state end
 	char "\t\n " end
-	char \; namespaces
+	char \; END code
 	noeat error
 
 state error
-	noeat .css-statementerror:namespaces
+	noeat .css-statementerror:END
 
 # main syntax
 syntax css
 
 state verybeginning
-	# these 9 bytes exactly + double quote
+	# these 9 chars exactly + double quote
 	str -i '@charset ' charset
-	noeat imports
+	noeat start
 
 state charset atkeyword
 	char \" .css-dq:atend
-	eat .css-statementerror:imports
+	eat .css-statementerror:start
 
 state atend code
 	char "\t\n " atend
-	char \; imports
-	eat .css-statementerror:imports
-
-state imports code
-	noeat .css-imports:namespaces
-
-state namespaces code
-	noeat .css-namespaces:start
+	char \; start
+	eat .css-statementerror:start
 
 state start code
 	char " \t\n" start
@@ -296,7 +270,12 @@ state id
 
 state atrule code
 	char -b a-zA-Z0-9_- atrule
+	# selectors
 	inlist atkeyword start
+	# @import { URI | string } [ media type, ...];
+	bufis -i "@import" .css-import:start atkeyword
+	# @namespace [prefix] { URI | string };
+	bufis -i "@namespace" .css-namespace:start atkeyword
 	# FIXME: @media not allowed inside @media
 	bufis -i @media mediatypes atkeyword
 	noeat start
