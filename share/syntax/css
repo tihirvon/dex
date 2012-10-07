@@ -236,6 +236,7 @@ state start code
 	char \{ block
 	char 0-9_- .css-selectorerror:start
 	char / .css-comment:start
+	char -b @ atrule
 	eat start
 
 state tag
@@ -253,6 +254,7 @@ state pseudo code
 	inlist pseudoclass start
 	inlist exprpseudo nth pseudoclass
 	inlist pseudoelement start
+	inlist pagepseudoclass start pseudoclass
 	bufis -i :lang complexpseudo
 	bufis -i :not complexpseudo
 	noeat start
@@ -288,6 +290,11 @@ state id
 	char -b : pseudo
 	noeat start
 
+state atrule code
+	char -b a-zA-Z0-9_- atrule
+	inlist atkeyword start
+	noeat start
+
 state block code
 	char " \t\n;" block
 	char -b a-zA-Z- property
@@ -300,6 +307,7 @@ state property code
 	char -b a-zA-Z- property
 	char 0-9_ property-error
 	inlist property property-end
+	inlist fontfaceproperty property-end property
 	# could be unknown property
 	noeat property-end
 
@@ -445,11 +453,22 @@ list -i pseudoelement \
 	::after ::before ::first-letter ::first-line \
 	::selection
 
+# @page
+list -i pagepseudoclass \
+	:left :right :first
+
+# @font-face
+list -i fontfaceproperty \
+	font-family font-stretch font-style font-weight src unicode-range
+
 list -i unit \
 	% cm em ex in mm pc pt px
 
 list -i func \
 	attr clip counter rect rgb
+
+# at-rules that work as selectors
+list -i atkeyword @page @font-face
 
 default keyword property
 default type class id pseudoclass pseudoelement
