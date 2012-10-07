@@ -1,3 +1,10 @@
+# @charset at-rule at very beginning of file
+# @import at-rule before any other rules
+# @namespace at-rule must follow @charset and @import rules, and precede all other at-rules
+#
+# other at-rules: @media @page @font-face
+
+# comment
 syntax .css-comment
 
 state start comment
@@ -13,7 +20,67 @@ state star comment
 	char / END comment
 	noeat comment
 
+# hex escape: \[0-9a-fA-F]{1-6}
+# one hex digit already eaten
+# can be terminated with whitespace character which is skipped
+syntax .css-hex
+
+state hex1 special
+	char 0-9a-fA-F hex2
+	noeat end
+
+state hex2 special
+	char 0-9a-fA-F hex3
+	noeat end
+
+state hex3 special
+	char 0-9a-fA-F hex4
+	noeat end
+
+state hex4 special
+	char 0-9a-fA-F hex5
+	noeat end
+
+state hex5 special
+	char 0-9a-fA-F end special
+	noeat end
+
+state end
+	# whitespace is always skipped, even if there are 6 hex digits!
+	char "\t\n\r " END special
+	noeat END
+
+# double quote
+syntax .css-dq
+
+state string
+	char \" END string
+	char \\ esc
+	char "\n" END error
+	eat string
+
+state esc special
+	# \\ + \n -> continue to next line
+	char "\n\\\"" string special
+	char 0-9a-fA-F .css-hex:string
+	eat string error
+
+# main syntax
 syntax css
+
+state verybeginning
+	# these 9 bytes exactly + double quote
+	str '@charset ' charset
+	noeat start
+
+state charset atkeyword
+	char \" .css-dq:atend
+	eat start error
+
+state atend code
+	char "\t\n " atend
+	char \; start
+	eat start-error
 
 state start code
 	char " \t\n" start
@@ -243,3 +310,4 @@ default keyword property
 default type class id pseudoclass pseudoelement
 default special expr
 default constant value color
+default special atkeyword
