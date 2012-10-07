@@ -111,22 +111,78 @@ state end
 	char ) END url
 	eat END error
 
+# list of words
+syntax .css-list
+
+state list code
+	char "\t\n " list
+	char a-zA-Z0-9_- name
+	noeat END
+
+state name code
+	char a-zA-Z0-9_ name
+	noeat next
+
+state next code
+	char "\t\n " next
+	char , must
+	noeat END
+
+state must code
+	char "\t\n " must
+	char a-zA-Z0-9_ name
+	eat END error
+
+# import statements
+syntax .css-imports
+
+state imports code
+	char "\t\n " imports
+	char / .css-comment:imports
+	# @import { URI | string } [ media type, ...];
+	str "@import" import
+	noeat END
+
+state import atkeyword
+	char "\t\n " arg
+	noeat error
+
+state arg code
+	char "\t\n " arg
+	char \" .css-dq:medialist
+	char \' .css-sq:medialist
+	str "url(" .css-url:medialist
+	noeat error
+
+state medialist
+	noeat .css-list:mediaend
+
+state mediaend
+	char \; imports
+	noeat error
+
+state error
+	noeat .css-statementerror:imports
+
 # main syntax
 syntax css
 
 state verybeginning
 	# these 9 bytes exactly + double quote
 	str '@charset ' charset
-	noeat start
+	noeat imports
 
 state charset atkeyword
 	char \" .css-dq:atend
-	eat .css-statementerror:start
+	eat .css-statementerror:imports
 
 state atend code
 	char "\t\n " atend
-	char \; start
-	eat .css-statementerror:start
+	char \; imports
+	eat .css-statementerror:imports
+
+state imports code
+	noeat .css-imports:start
 
 state start code
 	char " \t\n" start
