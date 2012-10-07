@@ -65,6 +65,21 @@ state esc special
 	char 0-9a-fA-F .css-hex:string
 	eat string error
 
+# single quote
+syntax .css-sq
+
+state string
+	char \' END string
+	char \\ esc
+	char "\n" END error
+	eat string
+
+state esc special
+	# \\ + \n -> continue to next line
+	char "\n\\'" string special
+	char 0-9a-fA-F .css-hex:string
+	eat string error
+
 # main syntax
 syntax css
 
@@ -171,6 +186,8 @@ state values code
 	char -b a-zA-Z_ value
 	char # hexcolor
 	char ";" block
+	char \" .css-dq:values
+	char \' .css-sq:values
 	char } start
 	eat values
 
