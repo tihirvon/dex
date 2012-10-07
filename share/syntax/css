@@ -297,7 +297,17 @@ state id
 state atrule code
 	char -b a-zA-Z0-9_- atrule
 	inlist atkeyword start
+	# FIXME: @media not allowed inside @media
+	bufis -i @media mediatypes atkeyword
 	noeat start
+
+state mediatypes
+	noeat .css-medialist:mediablock
+
+state mediablock code
+	char "\t\n " mediablock
+	char \{ start
+	eat start error
 
 state block code
 	char " \t\n;" block
