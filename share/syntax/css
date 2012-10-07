@@ -80,6 +80,23 @@ state esc special
 	char 0-9a-fA-F .css-hex:string
 	eat string error
 
+# url(...)
+syntax .css-url
+
+state url
+	char \" .css-dq:end
+	char \' .css-sq:end
+	noeat plain
+
+state plain code
+	char ) END url
+	char "\n" END error
+	eat plain
+
+state end
+	char ) END url
+	eat END error
+
 # main syntax
 syntax css
 
@@ -183,11 +200,12 @@ state values code
 	char " \t\n" values
 	char 0-9 int
 	char -- - minus
-	char -b a-zA-Z_ value
 	char # hexcolor
 	char ";" block
 	char \" .css-dq:values
 	char \' .css-sq:values
+	str "url(" .css-url:values
+	char -b a-zA-Z_ value
 	char } start
 	eat values
 
@@ -321,10 +339,10 @@ list -i unit \
 	% cm em ex in mm pc pt px
 
 list -i func \
-	attr clip counter rect rgb url
+	attr clip counter rect rgb
 
 default keyword property
 default type class id pseudoclass pseudoelement
 default special expr
-default constant value color
+default constant value color url
 default special atkeyword
