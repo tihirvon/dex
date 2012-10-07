@@ -20,6 +20,20 @@ state star comment
 	char / END comment
 	noeat comment
 
+# eat erroneous statement. stop at ; or \n
+syntax .css-statementerror
+
+state error
+	char ";\n" END code
+	eat error
+
+# eat erroneous selector. stop at whitespace or {
+syntax .css-selectorerror
+
+state error
+	char -n "\t\n\r {" error
+	noeat END
+
 # hex escape: \[0-9a-fA-F]{1-6}
 # one hex digit already eaten
 # can be terminated with whitespace character which is skipped
@@ -107,12 +121,12 @@ state verybeginning
 
 state charset atkeyword
 	char \" .css-dq:atend
-	eat start error
+	eat .css-statementerror:start
 
 state atend code
 	char "\t\n " atend
 	char \; start
-	eat start-error
+	eat .css-statementerror:start
 
 state start code
 	char " \t\n" start
@@ -121,13 +135,13 @@ state start code
 	char # id
 	char -b : pseudo
 	char \{ block
-	char 0-9_- start-error
+	char 0-9_- .css-selectorerror:start
 	char / .css-comment:start
 	eat start
 
 state tag
 	char -b a-zA-Z0-9 tag
-	char _- start-error
+	char _- .css-selectorerror:start
 	# temporary state needed state to stop buffering
 	noeat tmp
 
@@ -148,17 +162,17 @@ state pseudo code
 # not(table) { ... }
 state complexpseudo pseudoclass
 	char ( complexexpr
-	eat start-error
+	eat .css-selectorerror:start
 
 # nth-child(odd|even|an+b) etc.
 state nth
 	char ( nthexpr
-	eat start-error
+	eat .css-selectorerror:start
 
 state nthexpr expr
 	char a-z0-9+- nthexpr
 	char ) start expr
-	eat start-error
+	eat .css-selectorerror:start
 
 state complexexpr expr
 	char ) start expr
@@ -256,10 +270,6 @@ state params code
 	char ";" block
 	char } start
 	eat params
-
-state start-error error
-	char a-zA-Z0-9_- start-error
-	noeat start
 
 state property-error error
 	char a-zA-Z0-9_- property-error
