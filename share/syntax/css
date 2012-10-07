@@ -88,6 +88,40 @@ state esc special
 	char 0-9a-fA-F .css-hex:string
 	eat string error
 
+# identifier
+syntax .css-ident
+
+state ident
+	char "a-zA-Z0-9\xa1-\xff_-" ident
+	noeat END
+
+# attribute selector [x=y], [x|=y], [x~=y]
+syntax .css-attributeselector
+
+state attributeselector code
+	char -b a-zA-Z attribute
+	noeat end
+
+state attribute
+	char -b a-zA-Z attribute
+	char "|~" op
+	char = value code
+	noeat end
+
+state op code
+	char = value code
+	eat END error
+
+state value
+	char \" .css-dq:end
+	char \' .css-sq:end
+	char a-zA-Z_- .css-ident:end
+	noeat end
+
+state end
+	char ] END code
+	eat END error
+
 # url(...)
 syntax .css-url
 
@@ -211,6 +245,7 @@ state start code
 	char . class
 	char # id
 	char -b : pseudo
+	char \[ .css-attributeselector:start
 	char \{ block
 	char 0-9_- .css-selectorerror:start
 	char / .css-comment:start
@@ -457,7 +492,7 @@ list -i func \
 list -i atkeyword @page @font-face
 
 default keyword property
-default type class id pseudoclass pseudoelement
+default type class id pseudoclass pseudoelement attribute
 default special expr
 default constant value color url mediatype
 default special atkeyword
