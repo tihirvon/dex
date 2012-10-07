@@ -112,15 +112,16 @@ state end
 	eat END error
 
 # list of words
-syntax .css-list
+syntax .css-medialist
 
 state list code
 	char "\t\n " list
-	char a-zA-Z0-9_- name
+	char -b a-zA-Z0-9_- name
 	noeat END
 
 state name code
-	char a-zA-Z0-9_ name
+	char -b a-zA-Z0-9_ name
+	inlist mediatype next
 	noeat next
 
 state next code
@@ -130,8 +131,11 @@ state next code
 
 state must code
 	char "\t\n " must
-	char a-zA-Z0-9_ name
+	char -b a-zA-Z0-9_ name
 	eat END error
+
+list -i mediatype \
+	all braille embossed handheld print projection screen speech tty tv
 
 # import statements
 syntax .css-imports
@@ -155,7 +159,7 @@ state arg code
 	noeat error
 
 state medialist
-	noeat .css-list:mediaend
+	noeat .css-medialist:mediaend
 
 state mediaend
 	char \; imports
@@ -473,5 +477,5 @@ list -i atkeyword @page @font-face
 default keyword property
 default type class id pseudoclass pseudoelement
 default special expr
-default constant value color url
+default constant value color url mediatype
 default special atkeyword
