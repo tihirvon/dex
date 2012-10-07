@@ -1,6 +1,6 @@
 # @charset at-rule at very beginning of file
-# @import at-rule before any other rules
-# @namespace at-rule must follow @charset and @import rules, and precede all other at-rules
+# @import at-rule before any other rules, and precede rule sets in a style sheet
+# @namespace at-rule must follow @charset and @import rules, and precede all other at-rules and rule sets in a style sheet
 #
 # other at-rules: @media @page @font-face
 
@@ -164,6 +164,46 @@ state mediaend
 state error
 	noeat .css-statementerror:imports
 
+# namespace statements
+syntax .css-namespaces
+
+state namespaces code
+	char "\t\n " namespaces
+	char / .css-comment:namespaces
+	# @namespace [prefix] { URI | string };
+	str "@namespace" namespace
+	noeat END
+
+state namespace atkeyword
+	char "\t\n " arg1
+	noeat error
+
+state arg1 code
+	char "\t\n " arg1
+	str "url(" .css-url:end
+	char a-zA-Z prefix
+	noeat arg2
+
+state prefix code
+	char a-zA-Z0-9- prefix
+	char "\t\n " arg2
+	noeat error
+
+state arg2 code
+	char "\t\n " arg2
+	char \" .css-dq:end
+	char \' .css-sq:end
+	str "url(" .css-url:end
+	noeat error
+
+state end
+	char "\t\n " end
+	char \; namespaces
+	noeat error
+
+state error
+	noeat .css-statementerror:namespaces
+
 # main syntax
 syntax css
 
@@ -182,7 +222,10 @@ state atend code
 	eat .css-statementerror:imports
 
 state imports code
-	noeat .css-imports:start
+	noeat .css-imports:namespaces
+
+state namespaces code
+	noeat .css-namespaces:start
 
 state start code
 	char " \t\n" start
