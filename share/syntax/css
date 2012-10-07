@@ -220,11 +220,6 @@ state start code
 state tag
 	char -b a-zA-Z0-9 tag
 	char _- .css-selectorerror:start
-	# temporary state needed state to stop buffering
-	noeat tmp
-
-state tmp
-	char -b : pseudo
 	noeat start
 
 state pseudo code
@@ -260,12 +255,10 @@ state complexexpr expr
 
 state class
 	char a-zA-Z0-9_- class
-	char -b : pseudo
 	noeat start
 
 state id
 	char a-zA-Z0-9_- id
-	char -b : pseudo
 	noeat start
 
 state atrule code
