@@ -144,7 +144,7 @@ state imports code
 	char "\t\n " imports
 	char / .css-comment:imports
 	# @import { URI | string } [ media type, ...];
-	str "@import" import
+	str -i "@import" import
 	noeat END
 
 state import atkeyword
@@ -155,7 +155,7 @@ state arg code
 	char "\t\n " arg
 	char \" .css-dq:medialist
 	char \' .css-sq:medialist
-	str "url(" .css-url:medialist
+	str -i "url(" .css-url:medialist
 	noeat error
 
 state medialist
@@ -175,7 +175,7 @@ state namespaces code
 	char "\t\n " namespaces
 	char / .css-comment:namespaces
 	# @namespace [prefix] { URI | string };
-	str "@namespace" namespace
+	str -i "@namespace" namespace
 	noeat END
 
 state namespace atkeyword
@@ -184,7 +184,7 @@ state namespace atkeyword
 
 state arg1 code
 	char "\t\n " arg1
-	str "url(" .css-url:end
+	str -i "url(" .css-url:end
 	char a-zA-Z prefix
 	noeat arg2
 
@@ -197,7 +197,7 @@ state arg2 code
 	char "\t\n " arg2
 	char \" .css-dq:end
 	char \' .css-sq:end
-	str "url(" .css-url:end
+	str -i "url(" .css-url:end
 	noeat error
 
 state end
@@ -213,7 +213,7 @@ syntax css
 
 state verybeginning
 	# these 9 bytes exactly + double quote
-	str '@charset ' charset
+	str -i '@charset ' charset
 	noeat imports
 
 state charset atkeyword
@@ -340,7 +340,7 @@ state values code
 	char ";" block
 	char \" .css-dq:values
 	char \' .css-sq:values
-	str "url(" .css-url:values
+	str -i "url(" .css-url:values
 	char -b a-zA-Z_ value
 	char } start
 	eat values
