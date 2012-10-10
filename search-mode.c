@@ -22,7 +22,6 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 			input_mode = INPUT_NORMAL;
 			break;
 		}
-		cmdline_reset_history_search(&cmdline);
 		break;
 	case KEY_META:
 		switch (key) {

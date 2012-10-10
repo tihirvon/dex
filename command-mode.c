@@ -46,7 +46,6 @@ static void command_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_PASTE:
 		return;
 	}
-	cmdline_reset_history_search(&cmdline);
 }
 
 static void command_mode_keypress(enum term_key_type type, unsigned int key)

@@ -114,21 +114,23 @@ static void cmdline_insert_paste(struct cmdline *c)
 	free(text);
 }
 
-void cmdline_clear(struct cmdline *c)
+static void set_text(struct cmdline *c, const char *text)
 {
 	gbuf_clear(&c->buf);
-	c->pos = 0;
-}
-
-void cmdline_set_text(struct cmdline *c, const char *text)
-{
-	cmdline_clear(c);
 	gbuf_add_str(&c->buf, text);
 	c->pos = strlen(text);
 }
 
-void cmdline_reset_history_search(struct cmdline *c)
+void cmdline_clear(struct cmdline *c)
 {
+	gbuf_clear(&c->buf);
+	c->pos = 0;
+	c->search_pos = -1;
+}
+
+void cmdline_set_text(struct cmdline *c, const char *text)
+{
+	set_text(c, text);
 	c->search_pos = -1;
 }
 
@@ -142,6 +144,7 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 		// command/search history file would break
 		if (count && buf[0] != '\n')
 			cmdline_insert_bytes(&cmdline, buf, count);
+		c->search_pos = -1;
 		return 1;
 	}
 	switch (type) {
@@ -226,7 +229,7 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 				c->search_pos = history->count;
 			}
 			if (history_search_forward(history, &c->search_pos, c->search_text))
-				cmdline_set_text(c, history->ptrs[c->search_pos]);
+				set_text(c, history->ptrs[c->search_pos]);
 			return 1;
 		case SKEY_DOWN:
 			if (history == NULL)
@@ -234,9 +237,9 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 			if (c->search_pos < 0)
 				return 1;
 			if (history_search_backward(history, &c->search_pos, c->search_text)) {
-				cmdline_set_text(c, history->ptrs[c->search_pos]);
+				set_text(c, history->ptrs[c->search_pos]);
 			} else {
-				cmdline_set_text(c, c->search_text);
+				set_text(c, c->search_text);
 				c->search_pos = -1;
 			}
 			return 1;
@@ -248,6 +251,6 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 		cmdline_insert_paste(c);
 		break;
 	}
-	cmdline_reset_history_search(c);
+	c->search_pos = -1;
 	return 1;
 }
