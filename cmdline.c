@@ -92,6 +92,15 @@ static void cmdline_next_char(struct cmdline *c)
 		u_get_char(c->buf.buffer, c->buf.len, &c->pos);
 }
 
+static void cmdline_insert_bytes(struct cmdline *c, const char *buf, int size)
+{
+	int i;
+
+	gbuf_make_space(&c->buf, c->pos, size);
+	for (i = 0; i < size; i++)
+		c->buf.buffer[c->pos++] = buf[i];
+}
+
 static void cmdline_insert_paste(struct cmdline *c)
 {
 	unsigned int size, i;
@@ -116,15 +125,6 @@ void cmdline_set_text(struct cmdline *c, const char *text)
 	cmdline_clear(c);
 	gbuf_add_str(&c->buf, text);
 	c->pos = strlen(text);
-}
-
-void cmdline_insert_bytes(struct cmdline *c, const char *buf, int size)
-{
-	int i;
-
-	gbuf_make_space(&c->buf, c->pos, size);
-	for (i = 0; i < size; i++)
-		c->buf.buffer[c->pos++] = buf[i];
 }
 
 void cmdline_reset_history_search(struct cmdline *c)

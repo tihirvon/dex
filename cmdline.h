@@ -22,7 +22,6 @@ enum {
 
 void cmdline_clear(struct cmdline *c);
 void cmdline_set_text(struct cmdline *c, const char *text);
-void cmdline_insert_bytes(struct cmdline *c, const char *buf, int size);
 void cmdline_reset_history_search(struct cmdline *c);
 int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_key_type type, unsigned int key);
 
