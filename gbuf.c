@@ -37,13 +37,7 @@ void gbuf_add_ch(struct gbuf *buf, char ch)
 
 void gbuf_add_str(struct gbuf *buf, const char *str)
 {
-	int len = strlen(str);
-
-	if (!len)
-		return;
-	gbuf_grow(buf, len);
-	memcpy(buf->buffer + buf->len, str, len + 1);
-	buf->len += len;
+	gbuf_add_buf(buf, str, strlen(str));
 }
 
 void gbuf_add_buf(struct gbuf *buf, const char *ptr, size_t len)
