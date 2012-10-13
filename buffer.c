@@ -19,8 +19,6 @@
 #include "uchar.h"
 
 struct buffer *buffer;
-struct view *prev_view;
-
 int everything_changed;
 
 static void set_display_filename(struct buffer *b, char *name)

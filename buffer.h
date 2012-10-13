@@ -118,8 +118,6 @@ struct view {
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
 extern struct buffer *buffer;
-extern struct view *prev_view;
-
 extern int everything_changed;
 
 static inline void mark_all_lines_changed(void)

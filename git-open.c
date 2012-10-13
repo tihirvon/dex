@@ -161,17 +161,8 @@ static void down(int count)
 static void open_selected(void)
 {
 	const char *sel = selected_file();
-	struct view *v;
-
-	if (sel == NULL)
-		return;
-
-	v = open_buffer(sel, 0, NULL);
-	if (v) {
-		struct view *old_view = view;
-		set_view(v);
-		prev_view = old_view;
-	}
+	if (sel)
+		open_file(sel, NULL);
 }
 
 static void git_open_key(enum term_key_type type, unsigned int key)

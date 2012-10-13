@@ -486,20 +486,10 @@ static void cmd_next(const char *pf, char **args)
 	set_view(window->views.ptrs[new_view_idx(view_idx() + 1)]);
 }
 
-static int buffer_is_untouched(struct buffer *b)
-{
-	if (b->abs_filename != NULL)
-		return 0;
-	return buffer->change_head.nr_prev == 0;
-}
-
 static void cmd_open(const char *pf, char **args)
 {
-	struct view *old_view = view;
-	struct view *empty = NULL;
 	const char *enc = NULL;
 	char *encoding = NULL;
-	int i, first = 1;
 
 	while (*pf) {
 		switch (*pf) {
@@ -519,34 +509,20 @@ static void cmd_open(const char *pf, char **args)
 	}
 
 	if (!args[0]) {
-		set_view(open_empty_buffer());
+		open_new_file();
 		if (encoding) {
 			free(buffer->encoding);
 			buffer->encoding = encoding;
 		}
-		prev_view = old_view;
 		return;
 	}
-
-	// If window contains only one buffer and it is untouched then it can be closed.
-	if (window->views.count == 1 && buffer_is_untouched(buffer))
-		empty = view;
-
-	for (i = 0; args[i]; i++) {
-		struct view *v = open_buffer(args[i], 0, encoding);
-		if (v && first) {
-			set_view(v);
-			prev_view = old_view;
-			first = 0;
-		}
+	if (!args[1]) {
+		// previous view is remembered when opening single file
+		open_file(args[0], encoding);
+	} else {
+		// it makes no sense to remember previous view when opening multiple files
+		open_files(args, encoding);
 	}
-	if (empty != NULL && view != empty) {
-		struct view *current = view;
-		set_view(empty);
-		remove_view();
-		set_view(current);
-	}
-
 	free(encoding);
 }
 
@@ -1275,7 +1251,6 @@ static void cmd_wclose(const char *pf, char **args)
 	window->views.count = 0;
 	view = NULL;
 	buffer = NULL;
-	prev_view = NULL;
 
 	if (windows.count == 1) {
 		// don't close last window

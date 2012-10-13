@@ -4,6 +4,8 @@
 PTR_ARRAY(windows);
 struct window *window;
 
+static struct view *prev_view;
+
 struct window *window_new(void)
 {
 	struct window *w = xnew0(struct window, 1);
@@ -94,6 +96,73 @@ void set_view(struct view *v)
 			v->saved_cursor_offset = block_iter_get_offset(&v->cursor);
 			v->restore_cursor = 1;
 		}
+	}
+}
+
+struct view *open_new_file(void)
+{
+	struct view *prev = view;
+	struct view *v = open_empty_buffer();
+
+	set_view(v);
+	prev_view = prev;
+	return v;
+}
+
+/*
+If window contains only one buffer and it is untouched then it will be
+closed after opening another file. This is done because closing last
+buffer causes an empty buffer to be opened (window must contain at least
+one buffer).
+*/
+static struct view *useless_empty_view(void)
+{
+	if (window->views.count != 1)
+		return NULL;
+	// touched?
+	if (buffer->abs_filename != NULL || buffer->change_head.nr_prev != 0)
+		return NULL;
+	return view;
+}
+
+struct view *open_file(const char *filename, const char *encoding)
+{
+	struct view *empty = useless_empty_view();
+	struct view *prev = view;
+	struct view *v = open_buffer(filename, 0, encoding);
+
+	if (v == NULL)
+		return NULL;
+
+	set_view(v);
+	if (empty != NULL) {
+		struct view *current = view;
+		set_view(empty);
+		remove_view();
+		set_view(current);
+	} else {
+		prev_view = prev;
+	}
+	return v;
+}
+
+void open_files(char **filenames, const char *encoding)
+{
+	struct view *empty = useless_empty_view();
+	int i, first = 1;
+
+	for (i = 0; filenames[i]; i++) {
+		struct view *v = open_buffer(filenames[i], 0, encoding);
+		if (v && first) {
+			set_view(v);
+			first = 0;
+		}
+	}
+	if (empty != NULL && view != empty) {
+		struct view *current = view;
+		set_view(empty);
+		remove_view();
+		set_view(current);
 	}
 }
 
