@@ -121,7 +121,7 @@ static void cmd_close(const char *pf, char **args)
 		error_msg("The buffer is modified. Save or run 'close -f' to close without saving.");
 		return;
 	}
-	remove_view();
+	close_current_view();
 }
 
 static void cmd_command(const char *pf, char **args)

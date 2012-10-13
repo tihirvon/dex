@@ -43,12 +43,17 @@ void view_delete(struct view *v)
 	free(v);
 }
 
-void remove_view(void)
+static void remove_view(struct view *v)
+{
+	ptr_array_remove(&window->views, ptr_array_idx(&window->views, v));
+	view_delete(v);
+}
+
+void close_current_view(void)
 {
 	int idx = view_idx();
 
-	ptr_array_remove(&window->views, idx);
-	view_delete(view);
+	remove_view(view);
 	view = NULL;
 
 	if (prev_view) {
@@ -136,10 +141,7 @@ struct view *open_file(const char *filename, const char *encoding)
 
 	set_view(v);
 	if (empty != NULL) {
-		struct view *current = view;
-		set_view(empty);
-		remove_view();
-		set_view(current);
+		remove_view(empty);
 	} else {
 		prev_view = prev;
 	}
@@ -159,10 +161,7 @@ void open_files(char **filenames, const char *encoding)
 		}
 	}
 	if (empty != NULL && view != empty) {
-		struct view *current = view;
-		set_view(empty);
-		remove_view();
-		set_view(current);
+		remove_view(empty);
 	}
 }
 
