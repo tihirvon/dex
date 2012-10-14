@@ -682,28 +682,45 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 	pf->cur_width += word_width;
 }
 
+static int is_paragraph_separator(const char *line, long size)
+{
+	return regexp_match_nosub("^\\s*(/\\*|\\*/)?\\s*$", line, size);
+}
+
+static int get_indent_width(const char *line, long size)
+{
+	struct indent_info info;
+
+	get_indent_info(line, size, &info);
+	return info.width;
+}
+
+static int in_paragraph(const char *line, long size, int indent_width)
+{
+	if (get_indent_width(line, size) != indent_width)
+		return 0;
+	return !is_paragraph_separator(line, size);
+}
+
 static unsigned int paragraph_size(void)
 {
 	struct block_iter bi = view->cursor;
 	struct lineref lr;
-	struct indent_info ii;
-	struct indent_info info;
 	unsigned int size;
+	int indent_width;
 
 	block_iter_bol(&bi);
 	fill_line_ref(&bi, &lr);
-	get_indent_info(lr.line, lr.size, &info);
-	if (info.wsonly) {
+	if (is_paragraph_separator(lr.line, lr.size)) {
 		// not in paragraph
 		return 0;
 	}
+	indent_width = get_indent_width(lr.line, lr.size);
 
 	// goto beginning of paragraph
 	while (block_iter_prev_line(&bi)) {
 		fill_line_ref(&bi, &lr);
-		get_indent_info(lr.line, lr.size, &ii);
-		if (ii.wsonly || ii.width != info.width) {
-			// empty line or indent changed
+		if (!in_paragraph(lr.line, lr.size, indent_width)) {
 			block_iter_eat_line(&bi);
 			break;
 		}
@@ -720,16 +737,15 @@ static unsigned int paragraph_size(void)
 
 		size += bytes;
 		fill_line_ref(&bi, &lr);
-		get_indent_info(lr.line, lr.size, &ii);
-	} while (!ii.wsonly && ii.width == info.width);
+	} while (in_paragraph(lr.line, lr.size, indent_width));
 	return size;
 }
 
 void format_paragraph(int text_width)
 {
 	struct paragraph_formatter pf;
-	struct indent_info info;
 	unsigned int len, i;
+	int indent_width;
 	char *sel;
 
 	if (selecting()) {
@@ -742,12 +758,12 @@ void format_paragraph(int text_width)
 		return;
 
 	sel = buffer_get_bytes(len);
-	get_indent_info(sel, len, &info);
+	indent_width = get_indent_width(sel, len);
 
 	gbuf_init(&pf.buf);
-	pf.indent = make_indent(info.width);
+	pf.indent = make_indent(indent_width);
 	pf.indent_len = pf.indent ? strlen(pf.indent) : 0;
-	pf.indent_width = info.width;
+	pf.indent_width = indent_width;
 	pf.cur_width = 0;
 	pf.text_width = text_width;
 
