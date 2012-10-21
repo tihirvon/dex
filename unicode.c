@@ -166,7 +166,7 @@ wide:
 	return 2;
 }
 
-int u_to_lower(unsigned int u)
+unsigned int u_to_lower(unsigned int u)
 {
 	if (u < 'A')
 		return u;
