@@ -37,10 +37,8 @@ hi variable 0/4/5
 # Same syntax file is used for C and C++.
 hi c.preproc 0/3/5
 hi c.preproccond 27
-# To disable highlighting of C++ specific things uncomment these.
+# To disable highlighting of C++ specific keywords uncomment this.
 #hi c.cpp-keyword
-#hi c.cpp-type
-#hi c.cpp-constant
 
 # css
 hi css.id 0/2/5

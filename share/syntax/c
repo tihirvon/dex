@@ -179,8 +179,6 @@ state ident
 	inlist type c
 	inlist constant c
 	inlist cpp-keyword c
-	inlist cpp-type c
-	inlist cpp-constant c
 	noeat c
 
 state zero numeric
@@ -246,10 +244,11 @@ list keyword \
 
 list type \
 	struct union enum void char short int long float double signed \
-	unsigned size_t ssize_t off_t ptrdiff_t time_t va_list FILE DIR
+	unsigned size_t ssize_t off_t ptrdiff_t time_t va_list wchar_t \
+	bool FILE DIR
 
 list constant \
-	NULL stdin stdout stderr \
+	NULL stdin stdout stderr false true \
 	EPERM ENOENT ESRCH EINTR EIO ENXIO E2BIG ENOEXEC EBADF ECHILD EAGAIN \
 	ENOMEM EACCES EFAULT ENOTBLK EBUSY EEXIST EXDEV ENODEV ENOTDIR EISDIR \
 	EINVAL ENFILE EMFILE ENOTTY ETXTBSY EFBIG ENOSPC ESPIPE EROFS EMLINK \
@@ -267,13 +266,5 @@ list cpp-keyword \
 	reinterpret_cast static_cast template this throw try typeid \
 	typeof typename using virtual
 
-list cpp-type \
-	bool wchar_t
-
-list cpp-constant \
-	false true
-
 default keyword cpp-keyword
-default type cpp-type
-default constant cpp-constant
 default preproc preproccond

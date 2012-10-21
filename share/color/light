@@ -46,10 +46,8 @@ hi variable blue
 # Same syntax file is used for C and C++.
 hi c.preproc blue
 hi c.preproccond blue
-# To disable highlighting of C++ specific things uncomment these.
+# To disable highlighting of C++ specific keywords uncomment this.
 #hi c.cpp-keyword
-#hi c.cpp-type
-#hi c.cpp-constant
 
 # css
 hi css.id blue
