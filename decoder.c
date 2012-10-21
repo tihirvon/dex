@@ -4,7 +4,7 @@
 #include "xmalloc.h"
 #include "cconv.h"
 
-static int fill(struct file_decoder *dec)
+static bool fill(struct file_decoder *dec)
 {
 	size_t icount = dec->isize - dec->ipos;
 	size_t max = 7 * 1024; // smaller than cconv.obuf to make realloc less likely
@@ -13,7 +13,7 @@ static int fill(struct file_decoder *dec)
 		icount = max;
 
 	if (dec->ipos == dec->isize)
-		return 0;
+		return false;
 
 	cconv_process(dec->cconv, dec->ibuf + dec->ipos, icount);
 	dec->ipos += icount;
@@ -21,12 +21,12 @@ static int fill(struct file_decoder *dec)
 		// must be flushed after all input has been fed
 		cconv_flush(dec->cconv);
 	}
-	return 1;
+	return true;
 }
 
 static int set_encoding(struct file_decoder *dec, const char *encoding);
 
-static int detect(struct file_decoder *dec, const unsigned char *line, ssize_t len)
+static bool detect(struct file_decoder *dec, const unsigned char *line, ssize_t len)
 {
 	ssize_t i = 0;
 
@@ -49,15 +49,15 @@ static int detect(struct file_decoder *dec, const unsigned char *line, ssize_t l
 				// FIXME: error message?
 				set_encoding(dec, "UTF-8");
 			}
-			return 1;
+			return true;
 		}
 	}
 
 	// ASCII
-	return 0;
+	return false;
 }
 
-static int decode_and_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
+static bool decode_and_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
 {
 	char *line;
 	ssize_t len;
@@ -77,15 +77,15 @@ static int decode_and_read_line(struct file_decoder *dec, char **linep, ssize_t 
 	} else {
 		line = cconv_consume_all(dec->cconv, &len);
 		if (len == 0)
-			return 0;
+			return false;
 	}
 
 	*linep = line;
 	*lenp = len;
-	return 1;
+	return true;
 }
 
-static int read_utf8_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
+static bool read_utf8_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
 {
 	char *line = (char *)dec->ibuf + dec->ipos;
 	const char *nl = memchr(line, '\n', dec->isize - dec->ipos);
@@ -97,16 +97,16 @@ static int read_utf8_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
 	} else {
 		len = dec->isize - dec->ipos;
 		if (len == 0)
-			return 0;
+			return false;
 		dec->ipos += len;
 	}
 
 	*linep = line;
 	*lenp = len;
-	return 1;
+	return true;
 }
 
-static int detect_and_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
+static bool detect_and_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
 {
 	char *line = (char *)dec->ibuf + dec->ipos;
 	const char *nl = memchr(line, '\n', dec->isize - dec->ipos);
@@ -117,7 +117,7 @@ static int detect_and_read_line(struct file_decoder *dec, char **linep, ssize_t 
 	} else {
 		len = dec->isize - dec->ipos;
 		if (len == 0)
-			return 0;
+			return false;
 	}
 
 	if (detect(dec, line, len)) {
@@ -131,7 +131,7 @@ static int detect_and_read_line(struct file_decoder *dec, char **linep, ssize_t 
 		dec->ipos++;
 	*linep = line;
 	*lenp = len;
-	return 1;
+	return true;
 }
 
 static int set_encoding(struct file_decoder *dec, const char *encoding)
@@ -174,7 +174,7 @@ void free_file_decoder(struct file_decoder *dec)
 	free(dec);
 }
 
-int file_decoder_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
+bool file_decoder_read_line(struct file_decoder *dec, char **linep, ssize_t *lenp)
 {
 	return dec->read_line(dec, linep, lenp);
 }

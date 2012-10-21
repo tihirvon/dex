@@ -42,14 +42,14 @@ struct state *find_state(struct syntax *syn, const char *name)
 	return NULL;
 }
 
-static int has_destination(enum condition_type type)
+static bool has_destination(enum condition_type type)
 {
 	switch (type) {
 	case COND_RECOLOR:
 	case COND_RECOLOR_BUFFER:
-		return 0;
+		return false;
 	default:
-		return 1;
+		return true;
 	}
 }
 
@@ -140,10 +140,10 @@ struct state *merge_syntax(struct syntax *syn, struct syntax_merge *m)
 			s->conds.ptrs[j] = xmemdup(s->conds.ptrs[j], sizeof(struct condition));
 
 		// Mark unvisited so that state that is used only as a return state gets visited.
-		s->visited = 0;
+		s->visited = false;
 
 		// Don't complain about unvisited copied states.
-		s->copied = 1;
+		s->copied = true;
 	}
 
 	for (i = old_count; i < states->count; i++) {
@@ -152,7 +152,7 @@ struct state *merge_syntax(struct syntax *syn, struct syntax_merge *m)
 			update_state_colors(syn, states->ptrs[i]);
 	}
 
-	m->subsyn->used = 1;
+	m->subsyn->used = true;
 	return states->ptrs[old_count];
 }
 
@@ -163,7 +163,7 @@ static void visit(struct state *s)
 	if (s->visited)
 		return;
 
-	s->visited = 1;
+	s->visited = true;
 	for (i = 0; i < s->conds.count; i++) {
 		struct condition *cond = s->conds.ptrs[i];
 		if (cond->a.destination)

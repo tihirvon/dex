@@ -2,6 +2,7 @@
 #define FRAME_H
 
 #include "ptr-array.h"
+#include "libc.h"
 
 struct frame {
 	struct frame *parent;
@@ -13,8 +14,8 @@ struct frame {
 	// width and height
 	int w, h;
 
-	unsigned int vertical : 1;
-	unsigned int equal_size : 1;
+	bool vertical;
+	bool equal_size;
 };
 
 enum resize_direction {
@@ -31,8 +32,8 @@ void equalize_frame_sizes(struct frame *parent);
 void add_to_frame_size(struct frame *f, enum resize_direction dir, int amount);
 void resize_frame(struct frame *f, enum resize_direction dir, int size);
 void update_window_coordinates(void);
-struct frame *split_frame(struct window *w, int vertical, int before);
-struct frame *split_root(int vertical, int before);
+struct frame *split_frame(struct window *w, bool vertical, bool before);
+struct frame *split_root(bool vertical, bool before);
 void remove_frame(struct frame *f);
 void debug_frames(void);
 

@@ -23,15 +23,15 @@ static const char *config_commands[] = {
 
 const struct command *current_command;
 
-static int allowed_command(const char *name)
+static bool allowed_command(const char *name)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(config_commands); i++) {
 		if (!strcmp(name, config_commands[i]))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 const struct command *find_command(const struct command *cmds, const char *name)

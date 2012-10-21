@@ -27,7 +27,7 @@ static struct file_location *create_location(void)
 	return loc;
 }
 
-static int move_to_file(const char *filename, int save_location)
+static bool move_to_file(const char *filename, int save_location)
 {
 	struct file_location *loc = NULL;
 	struct view *v;
@@ -35,13 +35,13 @@ static int move_to_file(const char *filename, int save_location)
 	if (save_location)
 		loc = create_location();
 
-	v = open_buffer(filename, 1, NULL);
+	v = open_buffer(filename, true, NULL);
 	if (!v) {
 		if (loc) {
 			free(loc->filename);
 			free(loc);
 		}
-		return 0;
+		return false;
 	}
 	if (loc)
 		ptr_array_add(&file_locations, loc);
@@ -49,9 +49,9 @@ static int move_to_file(const char *filename, int save_location)
 	if (view != v) {
 		set_view(v);
 		/* force centering view to the cursor because file changed */
-		view->force_center = 1;
+		view->force_center = true;
 	}
-	return 1;
+	return true;
 }
 
 void pop_location(void)
@@ -65,7 +65,7 @@ void pop_location(void)
 	v = find_view_by_buffer_id(loc->buffer_id);
 	if (!v) {
 		if (loc->filename) {
-			v = open_buffer(loc->filename, 1, NULL);
+			v = open_buffer(loc->filename, true, NULL);
 		} else {
 			// Can't restore closed buffer which had no filename.
 			free(loc->filename);
@@ -92,7 +92,7 @@ static void free_message(struct message *m)
 	free(m);
 }
 
-static int is_duplicate(const struct message *m)
+static bool is_duplicate(const struct message *m)
 {
 	int i;
 
@@ -116,9 +116,9 @@ static int is_duplicate(const struct message *m)
 		}
 		if (strcmp(m->msg, x->msg))
 			continue;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 struct message *new_message(const char *msg)

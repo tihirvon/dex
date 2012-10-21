@@ -268,18 +268,18 @@ static inline char *global_ptr(const struct option_description *desc)
 	return (char *)&options + desc->offset;
 }
 
-static int parse_int_opt(const struct option_description *desc, const char *value, int *val)
+static bool parse_int_opt(const struct option_description *desc, const char *value, int *val)
 {
 	if (!value || !str_to_int(value, val)) {
 		error_msg("Integer value for %s expected.", desc->name);
-		return 0;
+		return false;
 	}
 	if (*val < desc->u.int_opt.min || *val > desc->u.int_opt.max) {
 		error_msg("Value for %s must be in %d-%d range.", desc->name,
 			desc->u.int_opt.min, desc->u.int_opt.max);
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 static int parse_enum(const struct option_description *desc, const char *value)
@@ -496,7 +496,7 @@ static int toggle(int value, const char **values)
 	return value;
 }
 
-void toggle_option(const char *name, int global, int verbose)
+void toggle_option(const char *name, bool global, bool verbose)
 {
 	const struct option_description *desc;
 	char *ptr = NULL;
@@ -511,7 +511,7 @@ void toggle_option(const char *name, int global, int verbose)
 
 	// toggle local value by default if option has both values
 	if (!global && !desc->local)
-		global = 1;
+		global = true;
 
 	if (global) {
 		ptr = global_ptr(desc);
@@ -528,7 +528,7 @@ void toggle_option(const char *name, int global, int verbose)
 	}
 }
 
-void toggle_option_values(const char *name, int global, int verbose, char **values)
+void toggle_option_values(const char *name, bool global, bool verbose, char **values)
 {
 	const struct option_description *desc;
 	int i, count = count_strings(values);
@@ -540,7 +540,7 @@ void toggle_option_values(const char *name, int global, int verbose, char **valu
 
 	// toggle local value by default if option has both values
 	if (!global && !desc->local)
-		global = 1;
+		global = true;
 
 	if (desc->type == OPT_STR) {
 		char *value;

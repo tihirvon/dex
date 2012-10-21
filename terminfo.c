@@ -60,10 +60,10 @@ static unsigned short get_u16le(const unsigned char *buf)
 	return buf[0] + (buf[1] << 8);
 }
 
-static int get_bool(struct terminfo *ti, int idx)
+static bool get_bool(struct terminfo *ti, int idx)
 {
 	if (idx >= ti->nr_bools)
-		return 0;
+		return false;
 	/*
 	 * 0 absent
 	 * 1 present
@@ -104,15 +104,15 @@ static char *get_str(struct terminfo *ti, int idx)
 	return xstrdup(ti->strs + offset);
 }
 
-static int validate(struct terminfo *ti)
+static bool validate(struct terminfo *ti)
 {
-	int valid = 1;
+	bool valid = true;
 	int i;
 
 	for (i = 0; i < ti->nr_bools; i++) {
 		if (ti->bools[i] > 2) {
 			d_print("bool %3d: %d\n", i, ti->bools[i]);
-			valid = 0;
+			valid = false;
 		}
 	}
 
@@ -120,7 +120,7 @@ static int validate(struct terminfo *ti)
 		unsigned short num = get_u16le(ti->nums + i * 2);
 		if (num > 32767 && num < 0xfffe) {
 			d_print("num %3d: negative\n", i);
-			valid = 0;
+			valid = false;
 		}
 	}
 
@@ -130,10 +130,10 @@ static int validate(struct terminfo *ti)
 			continue;
 		if (offset > 32767) {
 			d_print("str %3d: negative\n", i);
-			valid = 0;
+			valid = false;
 		} else if (offset + 1 >= ti->strs_size) {
 			d_print("str %3d: invalid\n", i);
-			valid = 0;
+			valid = false;
 		} else {
 			int len, max_size;
 
@@ -142,7 +142,7 @@ static int validate(struct terminfo *ti)
 				;
 			if (len == max_size) {
 				d_print("str %3d: missing NUL\n", i);
-				valid = 0;
+				valid = false;
 			}
 		}
 	}

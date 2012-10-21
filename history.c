@@ -28,30 +28,30 @@ void history_add(struct ptr_array *history, const char *text, int max_entries)
 	ptr_array_add(history, xstrdup(text));
 }
 
-int history_search_forward(struct ptr_array *history, int *pos, const char *text)
+bool history_search_forward(struct ptr_array *history, int *pos, const char *text)
 {
 	int i = *pos;
 
 	while (--i >= 0) {
 		if (str_has_prefix(history->ptrs[i], text)) {
 			*pos = i;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
-int history_search_backward(struct ptr_array *history, int *pos, const char *text)
+bool history_search_backward(struct ptr_array *history, int *pos, const char *text)
 {
 	int i = *pos;
 
 	while (++i < history->count) {
 		if (str_has_prefix(history->ptrs[i], text)) {
 			*pos = i;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 void history_load(struct ptr_array *history, const char *filename, int max_entries)

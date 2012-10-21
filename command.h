@@ -2,6 +2,7 @@
 #define COMMAND_H
 
 #include "ptr-array.h"
+#include "libc.h"
 
 struct command {
 	const char *name;
@@ -12,7 +13,7 @@ struct command {
 };
 
 /* parse-command.c */
-char *parse_command_arg(const char *cmd, int tilde);
+char *parse_command_arg(const char *cmd, bool tilde);
 int find_end(const char *cmd, int *posp);
 int parse_commands(struct ptr_array *array, const char *cmd);
 char **copy_string_array(char **src, int count);

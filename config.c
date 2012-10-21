@@ -23,20 +23,20 @@ const char *reset_colors_rc =
 "hi activetab bold\n"
 "hi inactivetab black gray\n";
 
-static int is_command(const char *str, int len)
+static bool is_command(const char *str, int len)
 {
 	int i;
 	for (i = 0; i < len; i++) {
 		if (str[i] == '#')
-			return 0;
+			return false;
 		if (!isspace(str[i]))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 // odd number of backslashes at end of line?
-static int has_line_continuation(const char *str, int len)
+static bool has_line_continuation(const char *str, int len)
 {
 	int pos = len - 1;
 
@@ -74,7 +74,7 @@ void exec_config(const struct command *cmds, const char *buf, size_t size)
 	gbuf_free(&line);
 }
 
-int do_read_config(const struct command *cmds, const char *filename, int must_exist)
+int do_read_config(const struct command *cmds, const char *filename, bool must_exist)
 {
 	char *buf;
 	ssize_t size = read_file(filename, &buf);
@@ -94,7 +94,7 @@ int do_read_config(const struct command *cmds, const char *filename, int must_ex
 	return 0;
 }
 
-int read_config(const struct command *cmds, const char *filename, int must_exist)
+int read_config(const struct command *cmds, const char *filename, bool must_exist)
 {
 	/* recursive */
 	const char *saved_config_file = config_file;

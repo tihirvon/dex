@@ -7,7 +7,7 @@
 static void sanity_check(void)
 {
 	struct block *blk;
-	int cursor_seen = 0;
+	bool cursor_seen = false;
 
 	if (!DEBUG)
 		return;
@@ -19,7 +19,7 @@ static void sanity_check(void)
 		BUG_ON(blk->size > blk->alloc);
 		BUG_ON(blk->size && blk->data[blk->size - 1] != '\n');
 		if (blk == view->cursor.blk)
-			cursor_seen = 1;
+			cursor_seen = true;
 		if (DEBUG > 2)
 			BUG_ON(count_nl(blk->data, blk->size) != blk->nl);
 	}

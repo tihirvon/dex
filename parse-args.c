@@ -15,12 +15,12 @@ const char *parse_args(char **args, const char *flag_desc, int min, int max)
 	int argc = count_strings(args);
 	int nr_flags = 0;
 	int nr_flag_args = 0;
-	int flags_after_arg = 1;
+	bool flags_after_arg = true;
 	int i, j;
 
 	if (*flag_desc == '-') {
 		flag_desc++;
-		flags_after_arg = 0;
+		flags_after_arg = false;
 	}
 
 	i = 0;

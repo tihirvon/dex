@@ -51,7 +51,7 @@ void collect_builtin_env(const char *prefix, int len)
 	}
 }
 
-int expand_builtin_env(struct gbuf *buf, const char *name, int len)
+bool expand_builtin_env(struct gbuf *buf, const char *name, int len)
 {
 	int i;
 
@@ -60,8 +60,8 @@ int expand_builtin_env(struct gbuf *buf, const char *name, int len)
 
 		if (len == strlen(be->name) && !memcmp(name, be->name, len)) {
 			be->expand(buf);
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }

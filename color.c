@@ -110,7 +110,7 @@ void remove_extra_colors(void)
 	hl_colors.count = NR_BC;
 }
 
-static int parse_color(const char *str, int *val)
+static bool parse_color(const char *str, int *val)
 {
 	const char *ptr = str;
 	long r, g, b;
@@ -119,43 +119,43 @@ static int parse_color(const char *str, int *val)
 	if (parse_long(&ptr, &r)) {
 		if (*ptr == 0) {
 			if (r < -2 || r > 255)
-				return 0;
+				return false;
 			// color index -2..255
 			*val = r;
-			return 1;
+			return true;
 		}
 		if (r < 0 || r > 5 || *ptr++ != '/' || !parse_long(&ptr, &g) ||
 		    g < 0 || g > 5 || *ptr++ != '/' || !parse_long(&ptr, &b) ||
 		    b < 0 || b > 5 || *ptr)
-			return 0;
+			return false;
 
 		// r/g/b to color index 16..231 (6x6x6 color cube)
 		*val = 16 + r * 36 + g * 6 + b;
-		return 1;
+		return true;
 	}
 	for (i = 0; i < ARRAY_COUNT(color_names); i++) {
 		if (!strcmp(str, color_names[i])) {
 			*val = i - 2;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
-static int parse_attr(const char *str, unsigned short *attr)
+static bool parse_attr(const char *str, unsigned short *attr)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(attr_names); i++) {
 		if (!strcmp(str, attr_names[i])) {
 			*attr |= 1 << i;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
-int parse_term_color(struct term_color *color, char **strs)
+bool parse_term_color(struct term_color *color, char **strs)
 {
 	int i, count = 0;
 
@@ -173,7 +173,7 @@ int parse_term_color(struct term_color *color, char **strs)
 					color->attr |= ATTR_KEEP;
 				} else {
 					error_msg("too many colors");
-					return 0;
+					return false;
 				}
 			} else {
 				if (!count)
@@ -184,10 +184,10 @@ int parse_term_color(struct term_color *color, char **strs)
 			}
 		} else if (!parse_attr(str, &color->attr)) {
 			error_msg("invalid color or attribute %s", str);
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 void collect_hl_colors(const char *prefix)

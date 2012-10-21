@@ -1,6 +1,8 @@
 #ifndef TERM_H
 #define TERM_H
 
+#include "libc.h"
+
 enum term_key_type {
 	/* key is character encoded in the current locale's encoding */
 	KEY_NORMAL,
@@ -88,7 +90,7 @@ enum {
 // see termcap(5)
 struct term_cap {
 	/* boolean caps */
-	int ut; // can clear to end of line with bg color set
+	bool ut; // can clear to end of line with bg color set
 
 	/* integer caps */
 	int colors;
@@ -108,12 +110,12 @@ extern struct term_cap term_cap;
 // control key
 #define CTRL(x) ((x) & ~0x40)
 
-int term_init(int use_terminfo, int use_termcap);
+int term_init(bool use_terminfo, bool use_termcap);
 
 void term_raw(void);
 void term_cooked(void);
 
-int term_read_key(unsigned int *key, enum term_key_type *type);
+bool term_read_key(unsigned int *key, enum term_key_type *type);
 char *term_read_paste(unsigned int *size);
 void term_discard_paste(void);
 

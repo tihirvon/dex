@@ -25,7 +25,7 @@ static void add_change(struct change *change)
 /* This doesn't need to be local to buffer because commands are atomic. */
 static struct change *change_barrier;
 
-static int is_change_chain_barrier(struct change *change)
+static bool is_change_chain_barrier(struct change *change)
 {
 	return !change->ins_count && !change->del_count;
 }
@@ -206,13 +206,13 @@ static void reverse_change(struct change *change)
 	}
 }
 
-int undo(void)
+bool undo(void)
 {
 	struct change *change = buffer->cur_change;
 
 	reset_preferred_x();
 	if (!change->next)
-		return 0;
+		return false;
 
 	if (is_change_chain_barrier(change)) {
 		int count = 0;
@@ -230,10 +230,10 @@ int undo(void)
 		reverse_change(change);
 	}
 	buffer->cur_change = change->next;
-	return 1;
+	return true;
 }
 
-int redo(unsigned int change_id)
+bool redo(unsigned int change_id)
 {
 	struct change *change = buffer->cur_change;
 
@@ -242,13 +242,13 @@ int redo(unsigned int change_id)
 		/* don't complain if change_id is 0 */
 		if (change_id)
 			error_msg("Nothing to redo.");
-		return 0;
+		return false;
 	}
 
 	if (change_id) {
 		if (--change_id >= change->nr_prev) {
 			error_msg("There are only %d possible changes to redo.", change->nr_prev);
-			return 0;
+			return false;
 		}
 	} else {
 		/* default to newest change  */
@@ -274,7 +274,7 @@ int redo(unsigned int change_id)
 		reverse_change(change);
 	}
 	buffer->cur_change = change;
-	return 1;
+	return true;
 }
 
 void free_changes(struct change *ch)
@@ -320,7 +320,7 @@ void insert(const char *buf, unsigned int len)
 		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
-static int would_delete_last_bytes(unsigned int count)
+static bool would_delete_last_bytes(unsigned int count)
 {
 	struct block *blk = view->cursor.blk;
 	unsigned int offset = view->cursor.offset;
@@ -329,10 +329,10 @@ static int would_delete_last_bytes(unsigned int count)
 		unsigned int avail = blk->size - offset;
 
 		if (avail > count)
-			return 0;
+			return false;
 
 		if (blk->node.next == view->cursor.head)
-			return 1;
+			return true;
 
 		count -= avail;
 		blk = BLOCK(blk->node.next);

@@ -21,8 +21,8 @@ extern enum input_mode input_mode;
 extern struct cmdline cmdline;
 extern char *home_dir;
 extern char *charset;
-extern int child_controls_terminal;
-extern int resized;
+extern bool child_controls_terminal;
+extern bool resized;
 extern int cmdline_x;
 
 extern const char *program;

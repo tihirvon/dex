@@ -3,23 +3,23 @@
 #include "common.h"
 #include "cconv.h"
 
-static int make_absolute(char *dst, int size, const char *src)
+static bool make_absolute(char *dst, int size, const char *src)
 {
 	int len = strlen(src);
 	int pos = 0;
 
 	if (src[0] != '/') {
 		if (!getcwd(dst, size - 1))
-			return 0;
+			return false;
 		pos = strlen(dst);
 		dst[pos++] = '/';
 	}
 	if (pos + len + 1 > size) {
 		errno = ENAMETOOLONG;
-		return 0;
+		return false;
 	}
 	memcpy(dst + pos, src, len + 1);
-	return 1;
+	return true;
 }
 
 static int remove_double_slashes(char *str)
@@ -64,7 +64,7 @@ char *path_absolute(const char *filename)
 	while (*sp) {
 		struct stat st;
 		char *ep = strchr(sp, '/');
-		int last = !ep;
+		bool last = !ep;
 		int rc;
 
 		if (ep)

@@ -1,6 +1,8 @@
 #ifndef INDENT_H
 #define INDENT_H
 
+#include "libc.h"
+
 struct indent_info {
 	// size in bytes
 	int bytes;
@@ -13,10 +15,10 @@ struct indent_info {
 
 	// Only spaces or tabs depending of expand-tab, indent-width and tab-width.
 	// Note that "sane" line can contain spaces after tabs for alignment.
-	int sane;
+	bool sane;
 
 	// The line is empty or contains only white space.
-	int wsonly;
+	bool wsonly;
 };
 
 char *make_indent(int width);

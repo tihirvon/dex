@@ -102,7 +102,7 @@ void save_file_history(void)
 	free(filename);
 }
 
-int find_file_in_history(const char *filename, int *row, int *col)
+bool find_file_in_history(const char *filename, int *row, int *col)
 {
 	int i;
 
@@ -111,8 +111,8 @@ int find_file_in_history(const char *filename, int *row, int *col)
 		if (!strcmp(filename, e->filename)) {
 			*row = e->row;
 			*col = e->col;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }

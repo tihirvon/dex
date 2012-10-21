@@ -1,10 +1,12 @@
 #ifndef EDIT_H
 #define EDIT_H
 
+#include "libc.h"
+
 void select_block(void);
 void unselect(void);
-void cut(unsigned int len, int is_lines);
-void copy(unsigned int len, int is_lines);
+void cut(unsigned int len, bool is_lines);
+void copy(unsigned int len, bool is_lines);
 void insert_text(const char *text, unsigned int size);
 void paste(void);
 void delete_ch(void);

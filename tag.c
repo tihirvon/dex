@@ -10,8 +10,8 @@ static const char *current_filename; // for sorting tags
 
 static int visibility_cmp(const struct tag *a, const struct tag *b)
 {
-	int a_this_file = 0;
-	int b_this_file = 0;
+	bool a_this_file = false;
+	bool b_this_file = false;
 
 	if (!a->local && !b->local)
 		return 0;
@@ -102,14 +102,14 @@ static int tag_file_changed(const char *filename, struct tag_file *tf)
 	return st.st_mtime != tf->mtime;
 }
 
-static int load_tag_file(void)
+static bool load_tag_file(void)
 {
 	if (tag_file && tag_file_changed("tags", tag_file)) {
 		close_tag_file(tag_file);
 		tag_file = NULL;
 	}
 	if (tag_file)
-		return 1;
+		return true;
 
 	tag_file = open_tag_file("tags");
 	return !!tag_file;
@@ -127,13 +127,13 @@ void free_tags(struct ptr_array *tags)
 	clear(tags);
 }
 
-int find_tags(const char *name, struct ptr_array *tags)
+bool find_tags(const char *name, struct ptr_array *tags)
 {
 	struct tag *t;
 	size_t pos = 0;
 
 	if (!load_tag_file())
-		return 0;
+		return false;
 
 	t = xnew(struct tag, 1);
 	while (next_tag(tag_file, &pos, name, 1, t)) {
@@ -142,7 +142,7 @@ int find_tags(const char *name, struct ptr_array *tags)
 	}
 	free(t);
 	sort_tags(tags);
-	return 1;
+	return true;
 }
 
 void collect_tags(const char *prefix)

@@ -166,7 +166,7 @@ static char *termcap_open(const char *filename, int *size)
 static void bool_cap(const char *cap)
 {
 	if (str_has_prefix(cap, "ut"))
-		term_cap.ut = 1;
+		term_cap.ut = true;
 }
 
 static char *int_cap(char *cap)

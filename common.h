@@ -6,7 +6,7 @@
 #include "xmalloc.h"
 
 extern const char hex_tab[16];
-extern int term_utf8;
+extern bool term_utf8;
 
 static inline size_t ROUND_UP(size_t x, size_t r)
 {
@@ -39,17 +39,17 @@ static inline void d_print(const char *fmt, ...)
 			BUG("%s\n", STRINGIFY(a)); \
 	} while (0)
 
-static inline int str_has_prefix(const char *str, const char *prefix)
+static inline bool str_has_prefix(const char *str, const char *prefix)
 {
 	return !strncmp(str, prefix, strlen(prefix));
 }
 
 int count_strings(char **strings);
 unsigned int number_width(unsigned int n);
-int buf_parse_long(const char *str, int size, int *posp, long *valp);
-int parse_long(const char **strp, long *valp);
-int str_to_long(const char *str, long *valp);
-int str_to_int(const char *str, int *valp);
+bool buf_parse_long(const char *str, int size, int *posp, long *valp);
+bool parse_long(const char **strp, long *valp);
+bool str_to_long(const char *str, long *valp);
+bool str_to_int(const char *str, int *valp);
 char *xsprintf(const char *format, ...) FORMAT(1);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);

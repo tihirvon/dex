@@ -7,7 +7,7 @@ struct selection_info {
 	struct block_iter si;
 	unsigned int so;
 	unsigned int eo;
-	int swapped;
+	bool swapped;
 };
 
 void init_selection(struct selection_info *info);

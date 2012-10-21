@@ -1,6 +1,8 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include "libc.h"
+
 enum newline_sequence {
 	NEWLINE_UNIX,
 	NEWLINE_DOS,
@@ -100,8 +102,8 @@ extern const char *case_sensitive_search_enum[];
 #define TAB_BAR_MIN_WIDTH 12
 
 void set_option(const char *name, const char *value, unsigned int flags);
-void toggle_option(const char *name, int global, int verbose);
-void toggle_option_values(const char *name, int global, int verbose, char **values);
+void toggle_option(const char *name, bool global, bool verbose);
+void toggle_option_values(const char *name, bool global, bool verbose, char **values);
 void collect_options(const char *prefix);
 void collect_toggleable_options(const char *prefix);
 void collect_option_values(const char *name, const char *prefix);

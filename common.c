@@ -4,7 +4,7 @@
 #include <sys/mman.h>
 
 const char hex_tab[16] = "0123456789abcdef";
-int term_utf8;
+bool term_utf8;
 
 int count_strings(char **strings)
 {
@@ -26,7 +26,7 @@ unsigned int number_width(unsigned int n)
 	return width;
 }
 
-int buf_parse_long(const char *str, int size, int *posp, long *valp)
+bool buf_parse_long(const char *str, int size, int *posp, long *valp)
 {
 	int pos = *posp;
 	int sign = 1;
@@ -45,17 +45,17 @@ int buf_parse_long(const char *str, int size, int *posp, long *valp)
 		count++;
 		if (val < old) {
 			// overflow
-			return 0;
+			return false;
 		}
 	}
 	if (count == 0)
-		return 0;
+		return false;
 	*posp = pos;
 	*valp = sign * val;
-	return 1;
+	return true;
 }
 
-int parse_long(const char **strp, long *valp)
+bool parse_long(const char **strp, long *valp)
 {
 	const char *str = *strp;
 	int size = strlen(str);
@@ -63,24 +63,24 @@ int parse_long(const char **strp, long *valp)
 
 	if (buf_parse_long(str, size, &pos, valp)) {
 		*strp = str + pos;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-int str_to_long(const char *str, long *valp)
+bool str_to_long(const char *str, long *valp)
 {
 	return parse_long(&str, valp) && *str == 0;
 }
 
-int str_to_int(const char *str, int *valp)
+bool str_to_int(const char *str, int *valp)
 {
 	long val;
 
 	if (!str_to_long(str, &val) || val < INT_MIN || val > INT_MAX)
-		return 0;
+		return false;
 	*valp = val;
-	return 1;
+	return true;
 }
 
 char *xsprintf(const char *format, ...)

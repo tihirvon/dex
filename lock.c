@@ -11,7 +11,7 @@ static int process_exists(int pid)
 	return !kill(pid, 0);
 }
 
-static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, int lock)
+static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bool lock)
 {
 	int filename_len = strlen(filename);
 	int my_pid = getpid();
@@ -21,7 +21,7 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, in
 
 	while (pos < size) {
 		ssize_t next_bol, bol = pos;
-		int same, remove_line = 0;
+		bool same, remove_line = false;
 		int pid = 0;
 		char *nl;
 
@@ -39,7 +39,7 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, in
 			if (same) {
 				// lock = 1 => pid conflict. lock must be stale
 				// lock = 0 => normal unlock case
-				remove_line = 1;
+				remove_line = true;
 			}
 		} else if (process_exists(pid)) {
 			if (same && lock) {
@@ -48,7 +48,7 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, in
 			}
 		} else {
 			// release lock from dead process
-			remove_line = 1;
+			remove_line = true;
 		}
 
 		if (remove_line) {
@@ -67,7 +67,7 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, in
 	return err;
 }
 
-static int lock_or_unlock(const char *filename, int lock)
+static int lock_or_unlock(const char *filename, bool lock)
 {
 	int tries = 0;
 	int wfd, rfd, err;
@@ -158,10 +158,10 @@ error:
 
 int lock_file(const char *filename)
 {
-	return lock_or_unlock(filename, 1);
+	return lock_or_unlock(filename, true);
 }
 
 void unlock_file(const char *filename)
 {
-	lock_or_unlock(filename, 0);
+	lock_or_unlock(filename, false);
 }

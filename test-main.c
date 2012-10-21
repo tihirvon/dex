@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
 	if (strcmp(charset, "UTF-8") == 0)
-		term_utf8 = 1;
+		term_utf8 = true;
 
 	test_relative_filename();
 	return 0;

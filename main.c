@@ -53,7 +53,7 @@ static void handle_sigcont(int signum)
 
 static void handle_sigwinch(int signum)
 {
-	resized = 1;
+	resized = true;
 }
 
 static void close_all_views(void)
@@ -86,9 +86,10 @@ int main(int argc, char *argv[])
 	char *command_history_filename;
 	char *search_history_filename;
 	char *editor_dir;
-	int use_terminfo = 1;
-	int use_termcap = 1;
-	int i, read_rc = 1;
+	bool use_terminfo = true;
+	bool use_termcap = true;
+	bool read_rc = true;
+	int i;
 
 	if (!home)
 		home = "";
@@ -102,13 +103,13 @@ int main(int argc, char *argv[])
 		if (!opt[2]) {
 			switch (opt[1]) {
 			case 'C':
-				use_termcap = 0;
+				use_termcap = false;
 				continue;
 			case 'I':
-				use_terminfo = 0;
+				use_terminfo = false;
 				continue;
 			case 'R':
-				read_rc = 0;
+				read_rc = false;
 				continue;
 			case 't':
 				tag = opt_arg(opt, argv[++i]);
@@ -140,7 +141,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_CTYPE, "");
 	charset = nl_langinfo(CODESET);
 	if (strcmp(charset, "UTF-8") == 0)
-		term_utf8 = 1;
+		term_utf8 = true;
 
 	if (term_init(use_terminfo, use_termcap))
 		error_msg("No terminal entry found.");
@@ -155,13 +156,13 @@ int main(int argc, char *argv[])
 
 	if (read_rc) {
 		if (rc) {
-			read_config(commands, rc, 1);
+			read_config(commands, rc, true);
 		} else {
 			char *filename = editor_file("rc");
-			if (read_config(commands, filename, 0)) {
+			if (read_config(commands, filename, false)) {
 				free(filename);
 				filename = xsprintf("%s/rc", pkgdatadir);
-				read_config(commands, filename, 1);
+				read_config(commands, filename, true);
 			}
 			free(filename);
 		}
@@ -204,7 +205,7 @@ int main(int argc, char *argv[])
 	editor_status = EDITOR_RUNNING;
 
 	for (; i < argc; i++)
-		open_buffer(argv[i], 0, NULL);
+		open_buffer(argv[i], false, NULL);
 	if (window->views.count == 0)
 		open_empty_buffer();
 	set_view(window->views.ptrs[0]);

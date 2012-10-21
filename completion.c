@@ -22,9 +22,9 @@ static struct {
 	int idx;
 
 	// should we add space after completed string if we have only one match?
-	int add_space;
+	bool add_space;
 
-	int tilde_expanded;
+	bool tilde_expanded;
 } completion;
 
 static int strptrcmp(const void *ap, const void *bp)
@@ -60,7 +60,7 @@ static void collect_commands(const char *prefix)
 	collect_aliases(prefix);
 }
 
-static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix, int directories_only)
+static void do_collect_files(const char *dirname, const char *dirprefix, const char *fileprefix, bool directories_only)
 {
 	char path[8192];
 	int plen = strlen(dirname);
@@ -83,7 +83,8 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 	while ((de = readdir(dir))) {
 		const char *name = de->d_name;
 		struct stat st;
-		int len, is_dir;
+		int len;
+		bool is_dir;
 		char *c;
 
 		if (flen) {
@@ -122,14 +123,14 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 	closedir(dir);
 }
 
-static void collect_files(int directories_only)
+static void collect_files(bool directories_only)
 {
 	const char *slash;
-	char *str = parse_command_arg(completion.escaped, 0);
+	char *str = parse_command_arg(completion.escaped, false);
 
 	if (strcmp(completion.parsed, str)) {
 		// ~ was expanded
-		completion.tilde_expanded = 1;
+		completion.tilde_expanded = true;
 		slash = strrchr(str, '/');
 		if (!slash) {
 			// complete ~ to ~/ or ~user to ~user/
@@ -209,11 +210,11 @@ static void collect_completions(char **args, int argc)
 	    !strcmp(cmd->name, "run") ||
 	    !strcmp(cmd->name, "pass-through") ||
 	    !strcmp(cmd->name, "include")) {
-		collect_files(0);
+		collect_files(false);
 		return;
 	}
 	if (!strcmp(cmd->name, "cd")) {
-		collect_files(1);
+		collect_files(true);
 		return;
 	}
 	if (!strcmp(cmd->name, "hi")) {
@@ -293,17 +294,17 @@ static void init_completion(void)
 						array.ptrs[i] = NULL;
 					}
 					array.count = save;
-					ptr_array_add(&array, parse_command_arg(name, 1));
+					ptr_array_add(&array, parse_command_arg(name, true));
 				} else {
 					// Remove NULL
 					array.count--;
 				}
 			} else {
-				ptr_array_add(&array, parse_command_arg(name, 1));
+				ptr_array_add(&array, parse_command_arg(name, true));
 			}
 			free(name);
 		} else {
-			ptr_array_add(&array, parse_command_arg(cmd + pos, 1));
+			ptr_array_add(&array, parse_command_arg(cmd + pos, true));
 		}
 		pos = end;
 	}
@@ -311,7 +312,8 @@ static void init_completion(void)
 	str = cmd + completion_pos;
 	len = cmdline.pos - completion_pos;
 	if (len && str[0] == '$') {
-		int i, var = 1;
+		bool var = true;
+		int i;
 		for (i = 1; i < len; i++) {
 			char ch = str[i];
 			if (isalpha(ch) || ch == '_')
@@ -319,7 +321,7 @@ static void init_completion(void)
 			if (i > 1 && isdigit(ch))
 				continue;
 
-			var = 0;
+			var = false;
 			break;
 		}
 		if (var) {
@@ -336,10 +338,10 @@ static void init_completion(void)
 	}
 
 	completion.escaped = xstrslice(str, 0, len);
-	completion.parsed = parse_command_arg(completion.escaped, 1);
+	completion.parsed = parse_command_arg(completion.escaped, true);
 	completion.head = xstrslice(cmd, 0, completion_pos);
 	completion.tail = xstrdup(cmd + cmdline.pos);
-	completion.add_space = 1;
+	completion.add_space = true;
 
 	collect_completions((char **)array.ptrs + semicolon + 1, array.count - semicolon - 1);
 	sort_completions();

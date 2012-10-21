@@ -45,12 +45,12 @@ static const char *special_names[NR_SKEYS] = {
 	"sright",
 };
 
-static int buf_str_case_equal(const char *buf, int len, const char *str)
+static bool buf_str_case_equal(const char *buf, int len, const char *str)
 {
 	return strlen(str) == len && strncasecmp(buf, str, len) == 0;
 }
 
-static int parse_key(unsigned char *type, unsigned int *key, const char *str, int len)
+static bool parse_key(unsigned char *type, unsigned int *key, const char *str, int len)
 {
 	unsigned char ch;
 	int i;
@@ -58,42 +58,42 @@ static int parse_key(unsigned char *type, unsigned int *key, const char *str, in
 	if (len == 1) {
 		*type = KEY_NORMAL;
 		*key = str[0];
-		return 1;
+		return true;
 	}
 	if (buf_str_case_equal(str, len, "sp") || buf_str_case_equal(str, len, "space")) {
 		*type = KEY_NORMAL;
 		*key = ' ';
-		return 1;
+		return true;
 	}
 	ch = toupper(str[1]);
 	if (str[0] == '^' && len == 2) {
 		if (ch >= 0x40 && ch < 0x60) {
 			*type = KEY_NORMAL;
 			*key = ch - 0x40;
-			return 1;
+			return true;
 		}
 		if (ch == '?') {
 			*type = KEY_NORMAL;
 			*key = 0x7f;
-			return 1;
+			return true;
 		}
 	}
 	if (toupper(str[0]) == 'M' && str[1] == '-' && parse_key(type, key, str + 2, len - 2)) {
 		*type = KEY_META;
-		return 1;
+		return true;
 	}
 	for (i = 0; i < NR_SKEYS; i++) {
 		if (buf_str_case_equal(str, len, special_names[i])) {
 			*type = KEY_SPECIAL;
 			*key = i;
-			return 1;
+			return true;
 		}
 	}
 	error_msg("Invalid key %s", str);
-	return 0;
+	return false;
 }
 
-static int parse_keys(struct key_chain *chain, const char *keys)
+static bool parse_keys(struct key_chain *chain, const char *keys)
 {
 	int i = 0;
 
@@ -111,17 +111,17 @@ static int parse_keys(struct key_chain *chain, const char *keys)
 
 		if (chain->count >= ARRAY_COUNT(chain->keys)) {
 			error_msg("Too many keys.");
-			return 0;
+			return false;
 		}
 		if (!parse_key(&chain->types[chain->count], &chain->keys[chain->count], keys + start, i - start))
-			return 0;
+			return false;
 		chain->count++;
 	}
 	if (chain->count == 0) {
 		error_msg("Empty key not allowed.");
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 void add_binding(const char *keys, const char *command)

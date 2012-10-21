@@ -89,7 +89,7 @@ static int read_termcap(const char *term)
 	return rc;
 }
 
-int term_init(int use_terminfo, int use_termcap)
+int term_init(bool use_terminfo, bool use_termcap)
 {
 	const char *term = getenv("TERM");
 	int rc;
@@ -140,7 +140,7 @@ void term_cooked(void)
 
 static char input_buf[256];
 static int input_buf_fill;
-static int input_can_be_truncated;
+static bool input_can_be_truncated;
 
 static void consume_input(int len)
 {
@@ -149,28 +149,28 @@ static void consume_input(int len)
 		memmove(input_buf, input_buf + len, input_buf_fill);
 
 		/* keys are sent faster than we can read */
-		input_can_be_truncated = 1;
+		input_can_be_truncated = true;
 	}
 }
 
-static int fill_buffer(void)
+static bool fill_buffer(void)
 {
 	int rc;
 
 	if (input_buf_fill == sizeof(input_buf))
-		return 0;
+		return false;
 
 	if (!input_buf_fill)
-		input_can_be_truncated = 0;
+		input_can_be_truncated = false;
 
 	rc = read(0, input_buf + input_buf_fill, sizeof(input_buf) - input_buf_fill);
 	if (rc <= 0)
-		return 0;
+		return false;
 	input_buf_fill += rc;
-	return 1;
+	return true;
 }
 
-static int fill_buffer_timeout(void)
+static bool fill_buffer_timeout(void)
 {
 	struct timeval tv = {
 		.tv_sec = options.esc_timeout / 1000,
@@ -183,20 +183,20 @@ static int fill_buffer_timeout(void)
 	FD_SET(0, &set);
 	rc = select(1, &set, NULL, NULL, &tv);
 	if (rc > 0 && fill_buffer())
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
-static int input_get_byte(unsigned char *ch)
+static bool input_get_byte(unsigned char *ch)
 {
 	if (!input_buf_fill && !fill_buffer())
-		return 0;
+		return false;
 	*ch = input_buf[0];
 	consume_input(1);
-	return 1;
+	return true;
 }
 
-static int read_special(unsigned int *key, enum term_key_type *type)
+static bool read_special(unsigned int *key, enum term_key_type *type)
 {
 	static const struct {
 		enum term_key_type type;
@@ -216,7 +216,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		{ KEY_NORMAL, '+',		"\033Ok" },
 		{ KEY_NORMAL, '\r',		"\033OM" },
 	};
-	int possibly_truncated = 0;
+	bool possibly_truncated = false;
 	int i;
 
 	for (i = 0; i < NR_SKEYS; i++) {
@@ -230,7 +230,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		if (len > input_buf_fill) {
 			/* this might be a truncated escape sequence */
 			if (!memcmp(keycode, input_buf, input_buf_fill))
-				possibly_truncated = 1;
+				possibly_truncated = true;
 			continue;
 		}
 		if (strncmp(keycode, input_buf, len))
@@ -238,7 +238,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		*key = i;
 		*type = KEY_SPECIAL;
 		consume_input(len);
-		return 1;
+		return true;
 	}
 	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
 		int len = strlen(builtin[i].code);
@@ -246,7 +246,7 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		if (len > input_buf_fill) {
 			/* this might be a truncated escape sequence */
 			if (!memcmp(builtin[i].code, input_buf, input_buf_fill))
-				possibly_truncated = 1;
+				possibly_truncated = true;
 			continue;
 		}
 		if (strncmp(builtin[i].code, input_buf, len))
@@ -254,15 +254,15 @@ static int read_special(unsigned int *key, enum term_key_type *type)
 		*key = builtin[i].key;
 		*type = builtin[i].type;
 		consume_input(len);
-		return 1;
+		return true;
 	}
 
 	if (possibly_truncated && input_can_be_truncated && fill_buffer())
 		return read_special(key, type);
-	return 0;
+	return false;
 }
 
-static int read_simple(unsigned int *key, enum term_key_type *type)
+static bool read_simple(unsigned int *key, enum term_key_type *type)
 {
 	unsigned char ch = 0;
 
@@ -287,14 +287,14 @@ static int read_simple(unsigned int *key, enum term_key_type *type)
 		}
 		if (count == 0 || count > 3) {
 			/* invalid first byte */
-			return 0;
+			return false;
 		}
 		u = ch & (bit - 1);
 		do {
 			if (!input_get_byte(&ch))
-				return 0;
+				return false;
 			if (ch >> 6 != 2)
-				return 0;
+				return false;
 			u = (u << 6) | (ch & 0x3f);
 		} while (--count);
 		*key = u;
@@ -302,10 +302,10 @@ static int read_simple(unsigned int *key, enum term_key_type *type)
 		*key = ch;
 	}
 	*type = KEY_NORMAL;
-	return 1;
+	return true;
 }
 
-static int is_text(const char *str, int len)
+static bool is_text(const char *str, int len)
 {
 	int i;
 
@@ -320,27 +320,27 @@ static int is_text(const char *str, int len)
 			break;
 		default:
 			if (ch < 0x20 || ch == 0x7f)
-				return 0;
+				return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
-int term_read_key(unsigned int *key, enum term_key_type *type)
+bool term_read_key(unsigned int *key, enum term_key_type *type)
 {
 	if (!input_buf_fill && !fill_buffer())
-		return 0;
+		return false;
 
 	if (input_buf_fill > 4 && is_text(input_buf, input_buf_fill)) {
 		*key = 0;
 		*type = KEY_PASTE;
-		return 1;
+		return true;
 	}
 
 	if (input_buf[0] == '\033') {
 		if (input_buf_fill > 1 || input_can_be_truncated) {
 			if (read_special(key, type))
-				return 1;
+				return true;
 		}
 		if (input_buf_fill == 1) {
 			/* sometimes alt-key gets split into two reads */
@@ -369,11 +369,11 @@ int term_read_key(unsigned int *key, enum term_key_type *type)
 				*key = input_buf[1];
 				*type = KEY_META;
 				consume_input(2);
-				return 1;
+				return true;
 			}
 			/* unknown escape sequence, avoid inserting it */
 			input_buf_fill = 0;
-			return 0;
+			return false;
 		}
 	}
 	return read_simple(key, type);

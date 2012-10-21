@@ -2,7 +2,7 @@
 #include "error.h"
 #include "common.h"
 
-int regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
+bool regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 {
 	regmatch_t m;
 	regex_t re;
@@ -59,7 +59,7 @@ void free_regexp_matches(void)
 	}
 }
 
-int regexp_compile(regex_t *regexp, const char *pattern, int flags)
+bool regexp_compile(regex_t *regexp, const char *pattern, int flags)
 {
 	int err = regcomp(regexp, pattern, flags);
 
@@ -67,9 +67,9 @@ int regexp_compile(regex_t *regexp, const char *pattern, int flags)
 		char msg[1024];
 		regerror(err, regexp, msg, sizeof(msg));
 		error_msg("%s: %s", msg, pattern);
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 int buf_regexec(const regex_t *regexp, const char *buf,

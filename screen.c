@@ -300,7 +300,7 @@ int print_command(char prefix)
 	return x;
 }
 
-void print_message(const char *msg, int is_error)
+void print_message(const char *msg, bool is_error)
 {
 	enum builtin_color c = BC_COMMANDLINE;
 	unsigned int i = 0;
@@ -356,7 +356,7 @@ void update_term_title(void)
 	}
 }
 
-static int is_default_bg_color(int color)
+static bool is_default_bg_color(int color)
 {
 	return color == builtin_colors[BC_DEFAULT]->bg || color < 0;
 }
@@ -391,23 +391,23 @@ static void mask_selection_and_current_line(struct line_info *info, struct term_
 	}
 }
 
-static int is_non_text(unsigned int u)
+static bool is_non_text(unsigned int u)
 {
 	if (u < 0x20)
 		return u != '\t' || options.display_special;
 	if (u == 0x7f)
-		return 1;
+		return true;
 	return u_is_unprintable(u);
 }
 
-static int whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
+static bool whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
 {
 	int flags = buffer->options.ws_error;
 
 	if (i >= info->trailing_ws_offset && flags & WSE_TRAILING) {
 		// Trailing whitespace.
 		if (info->line_nr != view->cy || view->cx < info->trailing_ws_offset)
-			return 1;
+			return true;
 		// Cursor is on this line and on the whitespace or at eol. It would
 		// be annoying if the line you are editing displays trailing
 		// whitespace as an error.
@@ -417,10 +417,10 @@ static int whitespace_error(struct line_info *info, unsigned int u, unsigned int
 		if (i < info->indent_size) {
 			// in indentation
 			if (flags & WSE_TAB_INDENT)
-				return 1;
+				return true;
 		} else {
 			if (flags & WSE_TAB_AFTER_INDENT)
-				return 1;
+				return true;
 		}
 	} else if (i < info->indent_size) {
 		// space in indentation
@@ -437,18 +437,18 @@ static int whitespace_error(struct line_info *info, unsigned int u, unsigned int
 		if (count >= buffer->options.tab_width) {
 			// spaces used instead of tab
 			if (flags & WSE_SPACE_INDENT)
-				return 1;
+				return true;
 		} else if (pos < info->size && line[pos] == '\t') {
 			// space before tab
 			if (flags & WSE_SPACE_INDENT)
-				return 1;
+				return true;
 		} else {
 			// less than tab width spaces at end of indentation
 			if (flags & WSE_SPACE_ALIGN)
-				return 1;
+				return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 static unsigned int screen_next_char(struct line_info *info)
@@ -456,7 +456,7 @@ static unsigned int screen_next_char(struct line_info *info)
 	unsigned int count, pos = info->pos;
 	unsigned int u = info->line[pos];
 	struct term_color color;
-	int ws_error = 0;
+	bool ws_error = false;
 
 	if (likely(u < 0x80)) {
 		info->pos++;
@@ -469,7 +469,7 @@ static unsigned int screen_next_char(struct line_info *info)
 
 		// highly annoying no-break space etc.?
 		if (u_is_special_whitespace(u) && (buffer->options.ws_error & WSE_SPECIAL))
-			ws_error = 1;
+			ws_error = true;
 	}
 
 	if (info->colors && info->colors[pos]) {
@@ -512,7 +512,7 @@ static void screen_skip_char(struct line_info *info)
 	}
 }
 
-static int is_notice(const char *word, int len)
+static bool is_notice(const char *word, int len)
 {
 	static const char * const words[] = { "fixme", "todo", "xxx" };
 	int i;
@@ -520,9 +520,9 @@ static int is_notice(const char *word, int len)
 	for (i = 0; i < ARRAY_COUNT(words); i++) {
 		const char *w = words[i];
 		if (strlen(w) == len && !strncasecmp(w, word, len))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 // highlight certain words inside comments
@@ -749,7 +749,7 @@ void update_separators(void)
 		print_separator(windows.ptrs[i]);
 }
 
-void update_line_numbers(struct window *win, int force)
+void update_line_numbers(struct window *win, bool force)
 {
 	struct view *v = win->view;
 	int i, first, last;

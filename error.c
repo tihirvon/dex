@@ -3,7 +3,7 @@
 #include "config.h"
 
 int nr_errors;
-int msg_is_error;
+bool msg_is_error;
 char error_buf[256];
 
 void clear_error(void)
@@ -31,7 +31,7 @@ void error_msg(const char *format, ...)
 	vsnprintf(error_buf + pos, sizeof(error_buf) - pos, format, ap);
 	va_end(ap);
 
-	msg_is_error = 1;
+	msg_is_error = true;
 	nr_errors++;
 
 	if (editor_status != EDITOR_RUNNING)
@@ -45,5 +45,5 @@ void info_msg(const char *format, ...)
 	va_start(ap, format);
 	vsnprintf(error_buf, sizeof(error_buf), format, ap);
 	va_end(ap);
-	msg_is_error = 0;
+	msg_is_error = false;
 }

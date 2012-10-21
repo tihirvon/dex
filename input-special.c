@@ -35,17 +35,17 @@ void special_input_activate(void)
 	input_special = INPUT_SPECIAL_UNKNOWN;
 }
 
-int special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
+bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
 {
 	*count = 0;
 	if (input_special == INPUT_SPECIAL_NONE)
-		return 0;
+		return false;
 
 	if (type != KEY_NORMAL) {
 		if (type == KEY_PASTE)
 			term_discard_paste();
 		input_special = INPUT_SPECIAL_NONE;
-		return 1;
+		return true;
 	}
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		raw_input.value = 0;
@@ -75,9 +75,9 @@ int special_input_keypress(enum term_key_type type, unsigned int key, char *buf,
 				buf[0] = key;
 				*count = 1;
 				input_special = INPUT_SPECIAL_NONE;
-				return 1;
+				return true;
 			}
-			return 1;
+			return true;
 		}
 	}
 
@@ -86,7 +86,7 @@ int special_input_keypress(enum term_key_type type, unsigned int key, char *buf,
 			raw_input.value /= raw_input.base;
 			raw_input.nr--;
 		}
-		return 1;
+		return true;
 	}
 
 	if (key != '\r') {
@@ -94,12 +94,12 @@ int special_input_keypress(enum term_key_type type, unsigned int key, char *buf,
 
 		if (n < 0 || n >= raw_input.base) {
 			input_special = INPUT_SPECIAL_NONE;
-			return 1;
+			return true;
 		}
 		raw_input.value *= raw_input.base;
 		raw_input.value += n;
 		if (++raw_input.nr < raw_input.max_chars)
-			return 1;
+			return true;
 	}
 
 	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
@@ -112,21 +112,21 @@ int special_input_keypress(enum term_key_type type, unsigned int key, char *buf,
 		*count = 1;
 	}
 	input_special = INPUT_SPECIAL_NONE;
-	return 1;
+	return true;
 }
 
-int special_input_misc_status(char *status)
+bool special_input_misc_status(char *status)
 {
 	int i, value = raw_input.value;
 	const char *str = "";
 	char buf[7];
 
 	if (input_special == INPUT_SPECIAL_NONE)
-		return 0;
+		return false;
 
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		strcpy(status, "[Insert special]");
-		return 1;
+		return true;
 	}
 
 	for (i = 0; i < raw_input.nr; i++) {
@@ -157,5 +157,5 @@ int special_input_misc_status(char *status)
 	}
 
 	sprintf(status, "[%s <%s>]", str, buf);
-	return 1;
+	return true;
 }

@@ -23,31 +23,31 @@ static const struct codepoint_range zero_width[] = {
 	{ 0xfeff, 0xfeff },
 };
 
-static inline int in_range(unsigned int u, const struct codepoint_range *range, int count)
+static inline bool in_range(unsigned int u, const struct codepoint_range *range, int count)
 {
 	int i;
 
 	for (i = 0; i < count; i++) {
 		if (u < range[i].lo)
-			return 0;
+			return false;
 		if (u <= range[i].hi)
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 // FIXME: incomplete. use generated tables
-static int u_is_combining(unsigned int u)
+static bool u_is_combining(unsigned int u)
 {
 	return u >= 0x0300 && u <= 0x036f;
 }
 
-int u_is_upper(unsigned int u)
+bool u_is_upper(unsigned int u)
 {
 	return u >= 'A' && u <= 'Z';
 }
 
-int u_is_space(unsigned int u)
+bool u_is_space(unsigned int u)
 {
 	switch (u) {
 	case '\t':
@@ -56,35 +56,35 @@ int u_is_space(unsigned int u)
 	case '\f':
 	case '\r':
 	case ' ':
-		return 1;
+		return true;
 	}
 	return u_is_special_whitespace(u);
 }
 
-int u_is_word_char(unsigned int u)
+bool u_is_word_char(unsigned int u)
 {
 	if (u >= 'a' && u <= 'z')
-		return 1;
+		return true;
 	if (u >= 'A' && u <= 'Z')
-		return 1;
+		return true;
 	if (u >= '0' && u <= '9')
-		return 1;
+		return true;
 	return u == '_' || u > 0x7f;
 }
 
-int u_is_unprintable(unsigned int u)
+bool u_is_unprintable(unsigned int u)
 {
 	// Unprintable garbage inherited from latin1.
 	if (u >= 0x80 && u <= 0x9f)
-		return 1;
+		return true;
 
 	if (in_range(u, zero_width, ARRAY_COUNT(zero_width)))
-		return 1;
+		return true;
 
 	return !u_is_unicode(u);
 }
 
-int u_is_special_whitespace(unsigned int u)
+bool u_is_special_whitespace(unsigned int u)
 {
 	return in_range(u, evil_space, ARRAY_COUNT(evil_space));
 }

@@ -21,6 +21,6 @@ struct filter_data {
 
 int spawn_filter(char **argv, struct filter_data *data);
 void spawn_compiler(char **args, unsigned int flags, struct compiler *c);
-void spawn(char **args, int fd[3], int prompt);
+void spawn(char **args, int fd[3], bool prompt);
 
 #endif

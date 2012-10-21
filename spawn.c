@@ -237,7 +237,7 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 	}
 
 	if (!quiet) {
-		child_controls_terminal = 1;
+		child_controls_terminal = true;
 		ui_end();
 	}
 
@@ -258,14 +258,14 @@ void spawn_compiler(char **args, unsigned int flags, struct compiler *c)
 		if (prompt)
 			any_key();
 		resize();
-		child_controls_terminal = 0;
+		child_controls_terminal = false;
 	}
 	close(p[0]);
 	close(dev_null);
 	close(fd[0]);
 }
 
-void spawn(char **args, int fd[3], int prompt)
+void spawn(char **args, int fd[3], bool prompt)
 {
 	int pid, quiet, redir_count = 0;
 	int dev_null = open_dev_null(O_WRONLY);
@@ -291,14 +291,14 @@ void spawn(char **args, int fd[3], int prompt)
 	quiet = redir_count == 3;
 
 	if (!quiet) {
-		child_controls_terminal = 1;
+		child_controls_terminal = true;
 		ui_end();
 	}
 
 	pid = fork_exec(args, fd);
 	if (pid < 0) {
 		error_msg("Error: %s", strerror(errno));
-		prompt = 0;
+		prompt = false;
 	} else {
 		handle_child_error(pid);
 	}
@@ -307,7 +307,7 @@ void spawn(char **args, int fd[3], int prompt)
 		if (prompt)
 			any_key();
 		resize();
-		child_controls_terminal = 0;
+		child_controls_terminal = false;
 	}
 	if (dev_null >= 0)
 		close(dev_null);

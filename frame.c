@@ -223,15 +223,15 @@ static void resize_to(struct frame *f, int size)
 		subtract_from_sibling_size(f, change);
 }
 
-static int rightmost_frame(struct frame *f)
+static bool rightmost_frame(struct frame *f)
 {
 	struct frame *parent = f->parent;
 
 	if (parent == NULL)
-		return 1;
+		return true;
 	if (!parent->vertical) {
 		if (f != parent->frames.ptrs[parent->frames.count - 1])
-			return 0;
+			return false;
 	}
 	return rightmost_frame(parent);
 }
@@ -240,7 +240,7 @@ struct frame *new_frame(void)
 {
 	struct frame *f = xnew0(struct frame, 1);
 
-	f->equal_size = 1;
+	f->equal_size = true;
 	return f;
 }
 
@@ -299,7 +299,7 @@ void set_frame_size(struct frame *f, int w, int h)
 
 void equalize_frame_sizes(struct frame *parent)
 {
-	parent->equal_size = 1;
+	parent->equal_size = true;
 	divide_equally(parent);
 	update_window_coordinates();
 }
@@ -310,7 +310,7 @@ void add_to_frame_size(struct frame *f, enum resize_direction dir, int amount)
 	if (f == NULL)
 		return;
 
-	f->parent->equal_size = 0;
+	f->parent->equal_size = false;
 	if (f->parent->vertical)
 		resize_to(f, f->h + amount);
 	else
@@ -324,7 +324,7 @@ void resize_frame(struct frame *f, enum resize_direction dir, int size)
 	if (f == NULL)
 		return;
 
-	f->parent->equal_size = 0;
+	f->parent->equal_size = false;
 	resize_to(f, size);
 	update_window_coordinates();
 }
@@ -353,7 +353,7 @@ void update_window_coordinates(void)
 	update_frame_coordinates(root_frame, 0, 0);
 }
 
-struct frame *split_frame(struct window *w, int vertical, int before)
+struct frame *split_frame(struct window *w, bool vertical, bool before)
 {
 	struct frame *f, *parent;
 	int idx;
@@ -371,7 +371,7 @@ struct frame *split_frame(struct window *w, int vertical, int before)
 	if (!before)
 		idx++;
 	f = add_frame(parent, window_new(), idx);
-	parent->equal_size = 1;
+	parent->equal_size = true;
 
 	// recalculate
 	set_frame_size(parent, parent->w, parent->h);
@@ -380,7 +380,7 @@ struct frame *split_frame(struct window *w, int vertical, int before)
 }
 
 // doesn't really split root but adds new frame between root and its contents
-struct frame *split_root(int vertical, int before)
+struct frame *split_root(bool vertical, bool before)
 {
 	struct frame *new_root, *f;
 

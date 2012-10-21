@@ -1,6 +1,8 @@
 #ifndef MOVE_H
 #define MOVE_H
 
+#include "libc.h"
+
 struct block_iter;
 
 void move_to_preferred_x(int preferred_x);
@@ -15,7 +17,7 @@ void move_eof(void);
 void move_to_line(int line);
 void move_to_column(int column);
 
-unsigned int word_fwd(struct block_iter *bi, int skip_non_word);
-unsigned int word_bwd(struct block_iter *bi, int skip_non_word);
+unsigned int word_fwd(struct block_iter *bi, bool skip_non_word);
+unsigned int word_bwd(struct block_iter *bi, bool skip_non_word);
 
 #endif

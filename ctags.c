@@ -116,7 +116,7 @@ static int parse_line(struct tag *t, const char *buf, int size)
 
 	si += len;
 	if (si == size)
-		return 1;
+		return true;
 
 	/*
 	 * Extension fields (key:[value]):
@@ -140,18 +140,18 @@ static int parse_line(struct tag *t, const char *buf, int size)
 		if (len == 1) {
 			t->kind = buf[si];
 		} else if (len == 5 && !memcmp(buf + si, "file:", 5)) {
-			t->local = 1;
+			t->local = true;
 		}
 		// FIXME: struct/union/typeref
 		si = ei + 1;
 	}
-	return 1;
+	return true;
 error:
 	free_tag(t);
-	return 0;
+	return false;
 }
 
-int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, struct tag *t)
+bool next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, struct tag *t)
 {
 	size_t prefix_len = strlen(prefix);
 	size_t pos = *posp;
@@ -178,9 +178,9 @@ int next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, s
 			continue;
 
 		*posp = pos;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 // NOTE: t itself is not freed

@@ -2,6 +2,7 @@
 #define OBUF_H
 
 #include "term.h"
+#include "libc.h"
 
 struct output_buffer {
 	char buf[8192];
@@ -22,7 +23,7 @@ struct output_buffer {
 		TAB_SPECIAL,
 		TAB_CONTROL,
 	} tab;
-	int can_clear;
+	bool can_clear;
 
 	struct term_color color;
 };
@@ -43,6 +44,6 @@ void buf_move_cursor(int x, int y);
 void buf_set_color(const struct term_color *color);
 void buf_clear_eol(void);
 void buf_flush(void);
-int buf_put_char(unsigned int u);
+bool buf_put_char(unsigned int u);
 
 #endif

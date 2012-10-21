@@ -4,7 +4,7 @@
 #include "libc.h"
 
 extern int nr_errors;
-extern int msg_is_error;
+extern bool msg_is_error;
 extern char error_buf[256];
 
 void clear_error(void);

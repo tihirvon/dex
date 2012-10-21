@@ -16,8 +16,8 @@ enum input_mode input_mode;
 CMDLINE(cmdline);
 char *home_dir;
 char *charset;
-int child_controls_terminal;
-int resized;
+bool child_controls_terminal;
+bool resized;
 int cmdline_x;
 
 static void sanity_check(void)
@@ -78,7 +78,7 @@ static void update_current_window(void)
 	if (options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers)
-		update_line_numbers(window, 1);
+		update_line_numbers(window, true);
 	update_range(view->vy, view->vy + window->edit_h);
 	update_status_line();
 }
@@ -116,7 +116,7 @@ static void end_update(void)
 	buffer->changed_line_min = INT_MAX;
 	buffer->changed_line_max = -1;
 	for (i = 0; i < windows.count; i++)
-		WINDOW(i)->update_tabbar = 0;
+		WINDOW(i)->update_tabbar = false;
 }
 
 static void update_all_windows(void)
@@ -204,7 +204,7 @@ void normal_update(void)
 
 void resize(void)
 {
-	resized = 0;
+	resized = false;
 	update_screen_size();
 
 	// "dtach -r winch" sends SIGWINCH after program has been attached
@@ -279,7 +279,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	pos--;
 	error_buf[pos++] = ']';
 	error_buf[pos] = 0;
-	msg_is_error = 0;
+	msg_is_error = false;
 
 	// update_windows() assumes these have been called for the current view
 	update_cursor_x();
@@ -326,7 +326,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 }
 
 struct screen_state {
-	int is_modified;
+	bool is_modified;
 	int id;
 	int cy;
 	int vx;
@@ -346,7 +346,7 @@ static void update_screen(struct screen_state *s)
 {
 	if (everything_changed) {
 		modes[input_mode]->update();
-		everything_changed = 0;
+		everything_changed = false;
 		return;
 	}
 
@@ -369,7 +369,7 @@ static void update_screen(struct screen_state *s)
 		if (s->is_modified != buffer_modified(buffer))
 			mark_buffer_tabbars_changed();
 	} else {
-		window->update_tabbar = 1;
+		window->update_tabbar = true;
 		mark_all_lines_changed();
 	}
 

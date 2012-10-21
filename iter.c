@@ -210,12 +210,12 @@ unsigned int block_iter_get_offset(const struct block_iter *bi)
 	return offset + bi->offset;
 }
 
-int block_iter_is_bol(const struct block_iter *bi)
+bool block_iter_is_bol(const struct block_iter *bi)
 {
 	unsigned int offset = bi->offset;
 
 	if (!offset)
-		return 1;
+		return true;
 	return bi->blk->data[offset - 1] == '\n';
 }
 

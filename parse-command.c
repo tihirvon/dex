@@ -184,7 +184,7 @@ static void parse_var(const char *cmd, int *posp)
 	free(name);
 }
 
-char *parse_command_arg(const char *cmd, int tilde)
+char *parse_command_arg(const char *cmd, bool tilde)
 {
 	int pos = 0;
 
@@ -306,7 +306,7 @@ int parse_commands(struct ptr_array *array, const char *cmd)
 		if (find_end(cmd, &end))
 			return -1;
 
-		ptr_array_add(array, parse_command_arg(cmd + pos, 1));
+		ptr_array_add(array, parse_command_arg(cmd + pos, true));
 		pos = end;
 	}
 	ptr_array_add(array, NULL);

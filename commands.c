@@ -79,9 +79,9 @@ static void cmd_cd(const char *pf, char **args)
 {
 	char cwd[8192];
 	char *cwdp = NULL;
-	int i, j, got_cwd;
+	bool got_cwd = !!getcwd(cwd, sizeof(cwd));
+	int i, j;
 
-	got_cwd = !!getcwd(cwd, sizeof(cwd));
 	if (chdir(args[0])) {
 		error_msg("cd: %s", strerror(errno));
 		return;
@@ -107,7 +107,7 @@ static void cmd_cd(const char *pf, char **args)
 
 static void cmd_center_view(const char *pf, char **args)
 {
-	view->force_center = 1;
+	view->force_center = true;
 }
 
 static void cmd_clear(const char *pf, char **args)
@@ -212,7 +212,7 @@ static void cmd_delete_eol(const char *pf, char **args)
 
 static void cmd_delete_word(const char *pf, char **args)
 {
-	int skip_non_word = *pf == 's';
+	bool skip_non_word = *pf == 's';
 	struct block_iter bi = view->cursor;
 
 	delete(word_fwd(&bi, skip_non_word), 0);
@@ -245,18 +245,18 @@ static void cmd_erase_bol(const char *pf, char **args)
 
 static void cmd_erase_word(const char *pf, char **args)
 {
-	int skip_non_word = *pf == 's';
+	bool skip_non_word = *pf == 's';
 	delete(word_bwd(&view->cursor, skip_non_word), 1);
 }
 
 static void cmd_errorfmt(const char *pf, char **args)
 {
-	int ignore = 0;
+	bool ignore = false;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'i':
-			ignore = 1;
+			ignore = true;
 			break;
 		}
 		pf++;
@@ -357,7 +357,7 @@ static void cmd_hi(const char *pf, char **args)
 
 static void cmd_include(const char *pf, char **args)
 {
-	read_config(commands, args[0], 1);
+	read_config(commands, args[0], true);
 }
 
 static void cmd_insert(const char *pf, char **args)
@@ -421,7 +421,7 @@ static void cmd_load_syntax(const char *pf, char **args)
 		if (find_syntax(filetype)) {
 			error_msg("Syntax for filetype %s already loaded", filetype);
 		} else {
-			load_syntax_file(filename, 1, &err);
+			load_syntax_file(filename, true, &err);
 		}
 	} else {
 		if (!find_syntax(filetype))
@@ -450,7 +450,7 @@ static void cmd_move_tab(const char *pf, char **args)
 	}
 
 	ptr_array_insert(&window->views, ptr_array_remove(&window->views, i), j);
-	window->update_tabbar = 1;
+	window->update_tabbar = true;
 }
 
 static void cmd_msg(const char *pf, char **args)
@@ -560,16 +560,16 @@ static void cmd_pass_through(const char *pf, char **args)
 {
 	struct filter_data data;
 	unsigned int del_len = 0;
-	int strip_nl = 0;
-	int move = 0;
+	bool strip_nl = false;
+	bool move = false;
 
 	while (*pf) {
 		switch (*pf++) {
 		case 'm':
-			move = 1;
+			move = true;
 			break;
 		case 's':
-			strip_nl = 1;
+			strip_nl = true;
 			break;
 		}
 	}
@@ -705,12 +705,12 @@ static void cmd_right(const char *pf, char **args)
 static void cmd_run(const char *pf, char **args)
 {
 	int fd[3] = { 0, 1, 2 };
-	int prompt = 0;
+	bool prompt = false;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'p':
-			prompt = 1;
+			prompt = true;
 			break;
 		case 's':
 			fd[0] = -1;
@@ -736,11 +736,11 @@ static void cmd_save(const char *pf, char **args)
 	char *absolute = buffer->abs_filename;
 	char *encoding = buffer->encoding;
 	const char *enc = NULL;
-	int force = 0;
+	bool force = false;
 	enum newline_sequence newline = buffer->newline;
 	mode_t old_mode = buffer->st.st_mode;
 	struct stat st;
-	int new_locked = 0;
+	bool new_locked = false;
 
 	while (*pf) {
 		switch (*pf) {
@@ -751,7 +751,7 @@ static void cmd_save(const char *pf, char **args)
 			enc = *args++;
 			break;
 		case 'f':
-			force = 1;
+			force = true;
 			break;
 		case 'u':
 			newline = NEWLINE_UNIX;
@@ -804,7 +804,7 @@ static void cmd_save(const char *pf, char **args)
 							goto error;
 						}
 					} else {
-						buffer->locked = 1;
+						buffer->locked = true;
 					}
 				}
 			} else {
@@ -814,7 +814,7 @@ static void cmd_save(const char *pf, char **args)
 						goto error;
 					}
 				} else {
-					new_locked = 1;
+					new_locked = true;
 				}
 			}
 		}
@@ -836,7 +836,7 @@ static void cmd_save(const char *pf, char **args)
 							goto error;
 						}
 					} else {
-						buffer->locked = 1;
+						buffer->locked = true;
 					}
 				}
 			} else {
@@ -846,7 +846,7 @@ static void cmd_save(const char *pf, char **args)
 						goto error;
 					}
 				} else {
-					new_locked = 1;
+					new_locked = true;
 				}
 			}
 		}
@@ -862,7 +862,7 @@ static void cmd_save(const char *pf, char **args)
 		goto error;
 
 	buffer->saved_change = buffer->cur_change;
-	buffer->ro = 0;
+	buffer->ro = false;
 	buffer->newline = newline;
 	if (encoding != buffer->encoding) {
 		free(buffer->encoding);
@@ -941,16 +941,16 @@ static void cmd_scroll_up(const char *pf, char **args)
 
 static void cmd_search(const char *pf, char **args)
 {
-	int history = 1;
-	int cmd = 0;
-	int w = 0;
+	bool history = true;
+	char cmd = 0;
+	bool w = false;
 	enum search_direction dir = SEARCH_FWD;
 	char *pattern = args[0];
 
 	while (*pf) {
 		switch (*pf) {
 		case 'H':
-			history = 0;
+			history = false;
 			break;
 		case 'n':
 		case 'p':
@@ -960,7 +960,7 @@ static void cmd_search(const char *pf, char **args)
 			dir = SEARCH_BWD;
 			break;
 		case 'w':
-			w = 1;
+			w = true;
 			if (pattern) {
 				error_msg("Flag -w can't be used with search pattern.");
 				return;
@@ -1007,15 +1007,15 @@ static void cmd_search(const char *pf, char **args)
 static void cmd_select(const char *pf, char **args)
 {
 	enum selection sel = SELECT_CHARS;
-	int block = 0;
+	bool block = false;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'b':
-			block = 1;
+			block = true;
 			break;
 		case 'l':
-			block = 0;
+			block = false;
 			sel = SELECT_LINES;
 			break;
 		}
@@ -1110,12 +1110,12 @@ static void cmd_tag(const char *pf, char **args)
 	PTR_ARRAY(tags);
 	const char *name = args[0];
 	char *word = NULL;
-	int pop = 0;
+	bool pop = false;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'r':
-			pop = 1;
+			pop = true;
 			break;
 		}
 		pf++;
@@ -1152,7 +1152,7 @@ static void cmd_tag(const char *pf, char **args)
 			t->filename = NULL;
 			if (t->pattern) {
 				m->u.pattern = t->pattern;
-				m->pattern_is_set = 1;
+				m->pattern_is_set = true;
 				t->pattern = NULL;
 			} else {
 				m->u.location.line = t->line;
@@ -1167,16 +1167,16 @@ static void cmd_tag(const char *pf, char **args)
 
 static void cmd_toggle(const char *pf, char **args)
 {
-	int global = 0;
-	int verbose = 0;
+	bool global = false;
+	bool verbose = false;
 
 	while (*pf) {
 		switch (*pf) {
 		case 'g':
-			global = 1;
+			global = true;
 			break;
 		case 'v':
-			verbose = 1;
+			verbose = true;
 			break;
 		}
 		pf++;
@@ -1231,15 +1231,16 @@ static int activate_modified_buffer(void)
 		if (buffer_modified(v->buffer) && v->buffer->views.count == 1) {
 			// buffer modified and only in this window
 			set_view(v);
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 static void cmd_wclose(const char *pf, char **args)
 {
-	int i, idx, force = !!*pf;
+	int i, idx;
+	bool force = !!*pf;
 	struct window *w;
 
 	if (!force && activate_modified_buffer()) {
@@ -1294,14 +1295,14 @@ static void cmd_wnext(const char *pf, char **args)
 
 static void cmd_word_bwd(const char *pf, char **args)
 {
-	int skip_non_word = *pf == 's';
+	bool skip_non_word = *pf == 's';
 	word_bwd(&view->cursor, skip_non_word);
 	reset_preferred_x();
 }
 
 static void cmd_word_fwd(const char *pf, char **args)
 {
-	int skip_non_word = *pf == 's';
+	bool skip_non_word = *pf == 's';
 	word_fwd(&view->cursor, skip_non_word);
 	reset_preferred_x();
 }
@@ -1350,9 +1351,9 @@ static void cmd_wresize(const char *pf, char **args)
 
 static void cmd_wsplit(const char *pf, char **args)
 {
-	int before = 0;
-	int vertical = 0;
-	int root = 0;
+	bool before = false;
+	bool vertical = false;
+	bool root = false;
 	struct frame *f;
 	struct view *save;
 
@@ -1360,15 +1361,15 @@ static void cmd_wsplit(const char *pf, char **args)
 		switch (*pf) {
 		case 'b':
 			// add new window before current window
-			before = 1;
+			before = true;
 			break;
 		case 'h':
 			// split horizontally to get vertical layout
-			vertical = 1;
+			vertical = true;
 			break;
 		case 'r':
 			// split root frame instead of current window
-			root = 1;
+			root = true;
 			break;
 		}
 		pf++;

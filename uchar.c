@@ -19,12 +19,12 @@ static inline int u_seq_len(unsigned int first_byte)
 	return -1;
 }
 
-static inline int u_is_continuation(unsigned int uch)
+static inline bool u_is_continuation(unsigned int uch)
 {
 	return (uch & 0xc0) == 0x80;
 }
 
-static inline int u_seq_len_ok(unsigned int uch, int len)
+static inline bool u_seq_len_ok(unsigned int uch, int len)
 {
 	return u_char_size(uch) == len;
 }
@@ -260,7 +260,7 @@ unsigned int u_skip_chars(const char *str, int *width)
 	return idx;
 }
 
-static int has_prefix(const char *str, const char *prefix_lcase)
+static bool has_prefix(const char *str, const char *prefix_lcase)
 {
 	unsigned int ni = 0;
 	unsigned int hi = 0;
@@ -269,9 +269,9 @@ static int has_prefix(const char *str, const char *prefix_lcase)
 	while ((pc = u_str_get_char(prefix_lcase, &ni))) {
 		sc = u_str_get_char(str, &hi);
 		if (sc != pc && u_to_lower(sc) != pc)
-			return 0;
+			return false;
 	}
-	return 1;
+	return true;
 }
 
 int u_str_index(const char *haystack, const char *needle_lcase)

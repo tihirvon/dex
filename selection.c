@@ -10,13 +10,13 @@ void init_selection(struct selection_info *info)
 	info->eo = block_iter_get_offset(&view->cursor);
 	info->si = view->cursor;
 	block_iter_goto_offset(&info->si, info->so);
-	info->swapped = 0;
+	info->swapped = false;
 	if (info->so > info->eo) {
 		unsigned int o = info->so;
 		info->so = info->eo;
 		info->eo = o;
 		info->si = view->cursor;
-		info->swapped = 1;
+		info->swapped = true;
 	}
 
 	ei = info->si;

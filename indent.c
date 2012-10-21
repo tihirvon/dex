@@ -26,16 +26,16 @@ char *make_indent(int width)
 	return str;
 }
 
-static int indent_inc(const char *line, unsigned int len)
+static bool indent_inc(const char *line, unsigned int len)
 {
 	const char *re1 = "\\{\\s*(//.*|/\\*.*\\*/\\s*)?$";
 	const char *re2 = "\\}\\s*(//.*|/\\*.*\\*/\\s*)?$";
 
 	if (buffer->options.brace_indent) {
 		if (regexp_match_nosub(re1, line, len))
-			return 1;
+			return true;
 		if (regexp_match_nosub(re2, line, len))
-			return 0;
+			return false;
 	}
 
 	re1 = buffer->options.indent_regex;
@@ -61,7 +61,7 @@ void get_indent_info(const char *buf, int len, struct indent_info *info)
 	int pos = 0;
 
 	clear(info);
-	info->sane = 1;
+	info->sane = true;
 	while (pos < len) {
 		if (buf[pos] == ' ') {
 			info->width++;

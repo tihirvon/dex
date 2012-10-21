@@ -35,22 +35,22 @@ static struct syntax *current_syntax;
 static struct state *current_state;
 static int saved_nr_errors; // used to check if nr_errors changed
 
-static int no_syntax(void)
+static bool no_syntax(void)
 {
 	if (current_syntax)
-		return 0;
+		return false;
 	error_msg("No syntax started");
-	return 1;
+	return true;
 }
 
-static int no_state(void)
+static bool no_state(void)
 {
 	if (no_syntax())
-		return 1;
+		return true;
 	if (current_state)
-		return 0;
+		return false;
 	error_msg("No state started");
-	return 1;
+	return true;
 }
 
 static void close_state(void)
@@ -65,7 +65,7 @@ static void close_state(void)
 	current_state = NULL;
 }
 
-static struct state *add_state(const char *name, int defined)
+static struct state *add_state(const char *name, bool defined)
 {
 	struct state *st;
 
@@ -88,7 +88,7 @@ static struct state *add_state(const char *name, int defined)
 	}
 	if (!st->defined) {
 		// previously added undefined state will be defined now
-		st->defined = 1;
+		st->defined = true;
 		return st;
 	}
 	error_msg("State %s already exists.", name);
@@ -96,15 +96,15 @@ static struct state *add_state(const char *name, int defined)
 
 }
 
-static int not_subsyntax(void)
+static bool not_subsyntax(void)
 {
 	if (is_subsyntax(current_syntax))
-		return 0;
+		return false;
 	error_msg("Destination state END allowed only in a subsyntax.");
-	return 1;
+	return true;
 }
 
-static int subsyntax_call(const char *name, const char *ret, struct state **dest)
+static bool subsyntax_call(const char *name, const char *ret, struct state **dest)
 {
 	struct syntax_merge m = {
 		.subsyn = find_any_syntax(name),
@@ -112,18 +112,18 @@ static int subsyntax_call(const char *name, const char *ret, struct state **dest
 		.delim = NULL,
 		.delim_len = -1,
 	};
-	int ok = 1;
+	bool ok = 1;
 
 	if (!m.subsyn) {
 		error_msg("No such syntax %s", name);
-		ok = 0;
+		ok = false;
 	} else if (!is_subsyntax(m.subsyn)) {
 		error_msg("Syntax %s is not subsyntax", name);
-		ok = 0;
+		ok = false;
 	}
 	if (!strcmp(ret, "END")) {
 		if (not_subsyntax())
-			ok = 0;
+			ok = false;
 	} else if (ok) {
 		m.return_state = add_state(ret, 0);
 	}
@@ -132,25 +132,25 @@ static int subsyntax_call(const char *name, const char *ret, struct state **dest
 	return ok;
 }
 
-static int destination_state(const char *name, struct state **dest)
+static bool destination_state(const char *name, struct state **dest)
 {
 	char *sep = strchr(name, ':');
 
 	if (sep) {
 		// subsyntax:returnstate
 		char *sub = xstrslice(name, 0, sep - name);
-		int success = subsyntax_call(sub, sep + 1, dest);
+		bool success = subsyntax_call(sub, sep + 1, dest);
 		free(sub);
 		return success;
 	}
 	if (!strcmp(name, "END")) {
 		if (not_subsyntax())
-			return 0;
+			return false;
 		*dest = NULL;
-		return 1;
+		return true;
 	}
 	*dest = add_state(name, 0);
-	return 1;
+	return true;
 }
 
 static struct condition *add_condition(enum condition_type type, const char *dest, const char *emit)
@@ -174,7 +174,7 @@ static struct condition *add_condition(enum condition_type type, const char *des
 
 static void cmd_bufis(const char *pf, char **args)
 {
-	int icase = !!*pf;
+	bool icase = !!*pf;
 	struct condition *c;
 	const char *str = args[0];
 	int len = strlen(str);
@@ -194,7 +194,7 @@ static void cmd_bufis(const char *pf, char **args)
 static void cmd_char(const char *pf, char **args)
 {
 	enum condition_type type = COND_CHAR;
-	int not = 0;
+	bool not = false;
 	struct condition *c;
 
 	while (*pf) {
@@ -203,7 +203,7 @@ static void cmd_char(const char *pf, char **args)
 			type = COND_CHAR_BUFFER;
 			break;
 		case 'n':
-			not = 1;
+			not = true;
 			break;
 		}
 		pf++;
@@ -273,13 +273,13 @@ static void cmd_heredocbegin(const char *pf, char **args)
 
 	// Normally merge() marks subsyntax used but in case of heredocs merge()
 	// is not called when syntax file is loaded.
-	subsyn->used = 1;
+	subsyn->used = true;
 }
 
 static void cmd_heredocend(const char *pf, char **args)
 {
 	add_condition(COND_HEREDOCEND, args[0], args[1]);
-	current_syntax->heredoc = 1;
+	current_syntax->heredoc = true;
 }
 
 static void cmd_list(const char *pf, char **args)
@@ -301,7 +301,7 @@ static void cmd_list(const char *pf, char **args)
 		error_msg("List %s already exists.", name);
 		return;
 	}
-	list->defined = 1;
+	list->defined = true;
 	list->icase = !!*pf;
 
 	for (i = 1; args[i]; i++) {
@@ -332,7 +332,7 @@ static void cmd_inlist(const char *pf, char **args)
 		list->name = xstrdup(name);
 		ptr_array_add(&current_syntax->string_lists, list);
 	}
-	list->used = 1;
+	list->used = true;
 	c->u.cond_inlist.list = list;
 }
 
@@ -395,7 +395,7 @@ static void cmd_state(const char *pf, char **args)
 
 static void cmd_str(const char *pf, char **args)
 {
-	int icase = !!*pf;
+	bool icase = !!*pf;
 	enum condition_type type = icase ? COND_STR_ICASE : COND_STR;
 	const char *str = args[0];
 	struct condition *c;
@@ -452,7 +452,7 @@ static const struct command syntax_commands[] = {
 	{ NULL,		NULL,	0,  0, NULL }
 };
 
-struct syntax *load_syntax_file(const char *filename, int must_exist, int *err)
+struct syntax *load_syntax_file(const char *filename, bool must_exist, int *err)
 {
 	const char *slash = strrchr(filename, '/');
 	const char *name = slash ? slash + 1 : filename;
@@ -487,13 +487,13 @@ struct syntax *load_syntax_by_filetype(const char *filetype)
 	char *filename = xsprintf("%s/.%s/syntax/%s", home_dir, program, filetype);
 	int err;
 
-	syn = load_syntax_file(filename, 0, &err);
+	syn = load_syntax_file(filename, false, &err);
 	free(filename);
 	if (syn || err != ENOENT)
 		return syn;
 
 	filename = xsprintf("%s/syntax/%s", pkgdatadir, filetype);
-	syn = load_syntax_file(filename, 0, &err);
+	syn = load_syntax_file(filename, false, &err);
 	free(filename);
 	return syn;
 }

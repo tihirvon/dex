@@ -41,9 +41,9 @@ struct buffer {
 	char *display_filename;
 	char *abs_filename;
 
-	unsigned ro : 1;
-	unsigned locked : 1;
-	unsigned setup : 1;
+	bool ro;
+	bool locked;
+	bool setup;
 
 	enum newline_sequence newline;
 
@@ -104,21 +104,21 @@ struct view {
 	unsigned int sel_eo;
 
 	// center view to cursor if scrolled
-	unsigned center_on_scroll : 1;
+	bool center_on_scroll;
 
 	// force centering view to cursor
-	unsigned force_center : 1;
+	bool force_center;
 
 	// These are used to save cursor state when there are multiple views
 	// sharing same buffer.
-	int restore_cursor;
+	bool restore_cursor;
 	unsigned int saved_cursor_offset;
 };
 
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
 extern struct buffer *buffer;
-extern int everything_changed;
+extern bool everything_changed;
 
 static inline void mark_all_lines_changed(void)
 {
@@ -128,17 +128,17 @@ static inline void mark_all_lines_changed(void)
 
 static inline void mark_everything_changed(void)
 {
-	everything_changed = 1;
+	everything_changed = true;
 }
 
-static inline int buffer_modified(struct buffer *b)
+static inline bool buffer_modified(struct buffer *b)
 {
 	return b->saved_change != b->cur_change;
 }
 
-static inline int selecting(void)
+static inline bool selecting(void)
 {
-	return view->selection;
+	return !!view->selection;
 }
 
 void lines_changed(int min, int max);
@@ -151,7 +151,7 @@ char *get_word_under_cursor(void);
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);
 struct view *find_view_by_buffer_id(unsigned int buffer_id);
-struct view *open_buffer(const char *filename, int must_exist, const char *encoding);
+struct view *open_buffer(const char *filename, bool must_exist, const char *encoding);
 struct view *open_empty_buffer(void);
 void setup_buffer(void);
 void free_buffer(struct buffer *b);
@@ -174,7 +174,7 @@ static inline void buffer_eof(struct block_iter *bi)
 	bi->offset = bi->blk->size;
 }
 
-int guess_filetype(void);
+bool guess_filetype(void);
 void syntax_changed(void);
 void filetype_changed(void);
 

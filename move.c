@@ -150,7 +150,7 @@ void move_eof(void)
 void move_to_line(int line)
 {
 	block_iter_goto_line(&view->cursor, line - 1);
-	view->center_on_scroll = 1;
+	view->center_on_scroll = true;
 }
 
 void move_to_column(int column)
@@ -180,15 +180,15 @@ static enum char_type get_char_type(unsigned int u)
 	return CT_OTHER;
 }
 
-static int get_current_char_type(struct block_iter *bi, enum char_type *type)
+static bool get_current_char_type(struct block_iter *bi, enum char_type *type)
 {
 	unsigned int u;
 
 	if (!buffer_get_char(bi, &u))
-		return 0;
+		return false;
 
 	*type = get_char_type(u);
-	return 1;
+	return true;
 }
 
 static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type type)
@@ -221,7 +221,7 @@ static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type typ
 	return count;
 }
 
-unsigned int word_fwd(struct block_iter *bi, int skip_non_word)
+unsigned int word_fwd(struct block_iter *bi, bool skip_non_word)
 {
 	unsigned int count = 0;
 	enum char_type type;
@@ -238,7 +238,7 @@ unsigned int word_fwd(struct block_iter *bi, int skip_non_word)
 	}
 }
 
-unsigned int word_bwd(struct block_iter *bi, int skip_non_word)
+unsigned int word_bwd(struct block_iter *bi, bool skip_non_word)
 {
 	unsigned int count = 0;
 	enum char_type type;

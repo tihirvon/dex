@@ -19,7 +19,7 @@ struct paragraph_formatter {
 
 static char *copy_buf;
 static unsigned int copy_len;
-static int copy_is_lines;
+static bool copy_is_lines;
 
 static const char *spattern = "\\{\\s*(//.*|/\\*.*\\*/\\s*)?$";
 static const char *epattern = "^\\s*\\}";
@@ -113,7 +113,7 @@ void unselect(void)
 	}
 }
 
-static void record_copy(char *buf, unsigned int len, int is_lines)
+static void record_copy(char *buf, unsigned int len, bool is_lines)
 {
 	if (copy_buf)
 		free(copy_buf);
@@ -122,7 +122,7 @@ static void record_copy(char *buf, unsigned int len, int is_lines)
 	copy_is_lines = is_lines;
 }
 
-void cut(unsigned int len, int is_lines)
+void cut(unsigned int len, bool is_lines)
 {
 	if (len) {
 		char *buf = buffer_get_bytes(len);
@@ -131,7 +131,7 @@ void cut(unsigned int len, int is_lines)
 	}
 }
 
-void copy(unsigned int len, int is_lines)
+void copy(unsigned int len, bool is_lines)
 {
 	if (len) {
 		char *buf = buffer_get_bytes(len);
@@ -240,28 +240,28 @@ static unsigned int goto_beginning_of_whitespace(void)
 	return count;
 }
 
-static int ws_only(struct lineref *lr)
+static bool ws_only(struct lineref *lr)
 {
 	unsigned int i;
 	for (i = 0; i < lr->size; i++) {
 		char ch = lr->line[i];
 		if (ch != ' ' && ch != '\t')
-			return 0;
+			return false;
 	}
-	return 1;
+	return true;
 }
 
 // non-empty line can be used to determine size of indentation for the next line
-static int find_non_empty_line_bwd(struct block_iter *bi)
+static bool find_non_empty_line_bwd(struct block_iter *bi)
 {
 	block_iter_bol(bi);
 	do {
 		struct lineref lr;
 		fill_line_ref(bi, &lr);
 		if (!ws_only(&lr))
-			return 1;
+			return true;
 	} while (block_iter_prev_line(bi));
-	return 0;
+	return false;
 }
 
 static void insert_nl(void)
@@ -682,7 +682,7 @@ static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 	pf->cur_width += word_width;
 }
 
-static int is_paragraph_separator(const char *line, long size)
+static bool is_paragraph_separator(const char *line, long size)
 {
 	return regexp_match_nosub("^\\s*(/\\*|\\*/)?\\s*$", line, size);
 }
@@ -695,10 +695,10 @@ static int get_indent_width(const char *line, long size)
 	return info.width;
 }
 
-static int in_paragraph(const char *line, long size, int indent_width)
+static bool in_paragraph(const char *line, long size, int indent_width)
 {
 	if (get_indent_width(line, size) != indent_width)
-		return 0;
+		return false;
 	return !is_paragraph_separator(line, size);
 }
 

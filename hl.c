@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 
-static int state_is_valid(const struct state *st)
+static bool state_is_valid(const struct state *st)
 {
 	return ((uintptr_t)st & 1) == 0;
 }
@@ -15,7 +15,7 @@ static void mark_state_invalid(void **ptrs, int idx)
 	ptrs[idx] = (struct state *)((uintptr_t)st | 1);
 }
 
-static int states_equal(void **ptrs, int idx, const struct state *b)
+static bool states_equal(void **ptrs, int idx, const struct state *b)
 {
 	struct state *a = (struct state *)((uintptr_t)ptrs[idx] & ~(uintptr_t)1);
 	return a == b;
@@ -28,17 +28,17 @@ static int bitmap_get(const unsigned char *bitmap, unsigned int idx)
 	return bitmap[byte] & 1 << bit;
 }
 
-static int is_buffered(const struct condition *cond, const char *str, int len)
+static bool is_buffered(const struct condition *cond, const char *str, int len)
 {
 	if (len != cond->u.cond_bufis.len)
-		return 0;
+		return false;
 
 	if (cond->u.cond_bufis.icase)
 		return !strncasecmp(cond->u.cond_bufis.str, str, len);
 	return !memcmp(cond->u.cond_bufis.str, str, len);
 }
 
-static int in_hash(struct string_list *list, const char *str, int len)
+static bool in_hash(struct string_list *list, const char *str, int len)
 {
 	unsigned int hash = buf_hash(str, len);
 	struct hash_str *h = list->hash[hash % ARRAY_COUNT(list->hash)];
@@ -46,17 +46,17 @@ static int in_hash(struct string_list *list, const char *str, int len)
 	if (list->icase) {
 		while (h) {
 			if (len == h->len && !strncasecmp(str, h->str, len))
-				return 1;
+				return true;
 			h = h->next;
 		}
 	} else {
 		while (h) {
 			if (len == h->len && !memcmp(str, h->str, len))
-				return 1;
+				return true;
 			h = h->next;
 		}
 	}
-	return 0;
+	return false;
 }
 
 static struct state *handle_heredoc(struct state *state, const char *delim, int len)

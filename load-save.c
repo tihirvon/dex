@@ -120,7 +120,7 @@ static int read_blocks(struct buffer *b, int fd)
 	size_t size = b->st.st_size;
 	unsigned long map_size = 64 * 1024;
 	unsigned char *buf = NULL;
-	int mapped = 0;
+	bool mapped = false;
 	ssize_t rc;
 
 	// st_size is zero for some files in /proc.
@@ -128,7 +128,7 @@ static int read_blocks(struct buffer *b, int fd)
 	if (size >= map_size) {
 		buf = xmmap(fd, 0, size);
 		if (buf)
-			mapped = 1;
+			mapped = true;
 	}
 	if (!mapped) {
 		ssize_t alloc = map_size;
@@ -160,15 +160,15 @@ static int read_blocks(struct buffer *b, int fd)
 	return rc;
 }
 
-int load_buffer(struct buffer *b, int must_exist, const char *filename)
+int load_buffer(struct buffer *b, bool must_exist, const char *filename)
 {
 	int fd;
 
 	if (options.lock_files) {
 		if (lock_file(b->abs_filename)) {
-			b->ro = 1;
+			b->ro = true;
 		} else {
-			b->locked = 1;
+			b->locked = true;
 		}
 	}
 
@@ -199,7 +199,7 @@ int load_buffer(struct buffer *b, int must_exist, const char *filename)
 
 		if (!b->ro && access(filename, W_OK)) {
 			error_msg("No write permission to %s, marking read-only.", filename);
-			b->ro = 1;
+			b->ro = true;
 		}
 	}
 	if (list_empty(&b->blocks)) {

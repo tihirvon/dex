@@ -26,7 +26,7 @@ struct window {
 
 	int first_tab_idx;
 
-	unsigned int update_tabbar;
+	bool update_tabbar;
 };
 
 extern struct window *window;
@@ -47,7 +47,7 @@ static inline void mark_buffer_tabbars_changed(void)
 	int i;
 	for (i = 0; i < buffer->views.count; i++) {
 		struct view *v = buffer->views.ptrs[i];
-		v->window->update_tabbar = 1;
+		v->window->update_tabbar = true;
 	}
 }
 

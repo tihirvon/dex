@@ -19,7 +19,7 @@
 #include "uchar.h"
 
 struct buffer *buffer;
-int everything_changed;
+bool everything_changed;
 
 static void set_display_filename(struct buffer *b, char *name)
 {
@@ -221,7 +221,8 @@ static struct view *find_view(const char *abs_filename)
 {
 	struct view *found = NULL;
 	struct stat st;
-	int i, j, st_ok;
+	int i, j;
+	bool st_ok;
 
 	st_ok = stat(abs_filename, &st) == 0;
 	for (i = 0; i < windows.count; i++) {
@@ -267,12 +268,12 @@ struct view *find_view_by_buffer_id(unsigned int buffer_id)
 	return v;
 }
 
-static int next_line(struct block_iter *bi, struct lineref *lr)
+static bool next_line(struct block_iter *bi, struct lineref *lr)
 {
 	if (!block_iter_eat_line(bi))
-		return 0;
+		return false;
 	fill_line_ref(bi, lr);
-	return 1;
+	return true;
 }
 
 /*
@@ -315,7 +316,7 @@ static char *get_interpreter(void)
 	return xstrdup("wish");
 }
 
-int guess_filetype(void)
+bool guess_filetype(void)
 {
 	char *interpreter = get_interpreter();
 	const char *ft = NULL;
@@ -335,9 +336,9 @@ int guess_filetype(void)
 	if (ft && strcmp(ft, buffer->options.filetype)) {
 		free(buffer->options.filetype);
 		buffer->options.filetype = xstrdup(ft);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd)
@@ -357,7 +358,7 @@ void update_short_filename(struct buffer *b)
 	set_display_filename(b, short_filename(b->abs_filename));
 }
 
-struct view *open_buffer(const char *filename, int must_exist, const char *encoding)
+struct view *open_buffer(const char *filename, bool must_exist, const char *encoding)
 {
 	struct buffer *b;
 	struct view *v;
@@ -458,7 +459,7 @@ static void restore_cursor_from_history(void)
 
 void setup_buffer(void)
 {
-	buffer->setup = 1;
+	buffer->setup = true;
 	guess_filetype();
 	filetype_changed();
 	if (buffer->options.file_history && buffer->abs_filename)

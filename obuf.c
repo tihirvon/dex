@@ -177,7 +177,7 @@ static void buf_skip(unsigned int u)
 			obuf.x += 2;
 		}
 	} else {
-		// u_char_width() needed to handle 0x80-0x9f even if term_utf8 is 0
+		// u_char_width() needed to handle 0x80-0x9f even if term_utf8 is false
 		obuf.x += u_char_width(u);
 	}
 
@@ -202,7 +202,7 @@ static void print_tab(unsigned int width)
 	}
 }
 
-int buf_put_char(unsigned int u)
+bool buf_put_char(unsigned int u)
 {
 	unsigned int space = obuf.scroll_x + obuf.width - obuf.x;
 	unsigned int width;
@@ -210,11 +210,11 @@ int buf_put_char(unsigned int u)
 	if (obuf.x < obuf.scroll_x) {
 		// scrolled, char (at least partially) invisible
 		buf_skip(u);
-		return 1;
+		return true;
 	}
 
 	if (!space)
-		return 0;
+		return false;
 
 	obuf_need_space(8);
 	if (likely(u < 0x80)) {
@@ -269,5 +269,5 @@ int buf_put_char(unsigned int u)
 			obuf.x++;
 		}
 	}
-	return 1;
+	return true;
 }

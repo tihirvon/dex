@@ -1,6 +1,8 @@
 #ifndef MSG_H
 #define MSG_H
 
+#include "libc.h"
+
 struct message {
 	char *msg;
 	char *file;
@@ -11,7 +13,7 @@ struct message {
 			int column;
 		} location;
 	} u;
-	int pattern_is_set;
+	bool pattern_is_set;
 };
 
 void pop_location(void);

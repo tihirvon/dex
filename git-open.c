@@ -61,15 +61,15 @@ static void git_open_load(void)
 	free(dir);
 }
 
-static int contains_upper(const char *str)
+static bool contains_upper(const char *str)
 {
 	unsigned int i = 0;
 
 	while (str[i]) {
 		if (u_is_upper(u_str_get_char(str, &i)))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 static void split(struct ptr_array *words, const char *str)
@@ -88,26 +88,26 @@ static void split(struct ptr_array *words, const char *str)
 	}
 }
 
-static int words_match(const char *name, struct ptr_array *words)
+static bool words_match(const char *name, struct ptr_array *words)
 {
 	int i;
 
 	for (i = 0; i < words->count; i++) {
 		if (!strstr(name, words->ptrs[i]))
-			return 0;
+			return false;
 	}
-	return 1;
+	return true;
 }
 
-static int words_match_icase(const char *name, struct ptr_array *words)
+static bool words_match_icase(const char *name, struct ptr_array *words)
 {
 	int i;
 
 	for (i = 0; i < words->count; i++) {
 		if (u_str_index(name, words->ptrs[i]) < 0)
-			return 0;
+			return false;
 	}
-	return 1;
+	return true;
 }
 
 static const char *selected_file(void)
@@ -122,7 +122,7 @@ static void git_open_filter(void)
 	char *str = cmdline.buf.buffer;
 	char *ptr = git_open.all_files;
 	char *end = git_open.all_files + git_open.size;
-	int (*match)(const char *, struct ptr_array *) = words_match_icase;
+	bool (*match)(const char *, struct ptr_array *) = words_match_icase;
 	PTR_ARRAY(words);
 
 	// NOTE: words_match_icase() requires str to be lowercase

@@ -10,7 +10,7 @@
 
 #define MAX_SUBSTRINGS 32
 
-static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
+static bool do_search_fwd(regex_t *regex, struct block_iter *bi, bool skip)
 {
 	int flags = block_iter_is_bol(bi) ? 0 : REG_NOTBOL;
 
@@ -19,7 +19,7 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
 		struct lineref lr;
 
 		if (block_iter_is_eof(bi))
-			return 0;
+			return false;
 
 		fill_line_ref(bi, &lr);
 
@@ -37,22 +37,22 @@ static int do_search_fwd(regex_t *regex, struct block_iter *bi, int skip)
 					count = 1;
 				}
 				block_iter_skip_bytes(bi, count);
-				return do_search_fwd(regex, bi, 0);
+				return do_search_fwd(regex, bi, false);
 			}
 
 			block_iter_skip_bytes(bi, match.rm_so);
 			view->cursor = *bi;
-			view->center_on_scroll = 1;
+			view->center_on_scroll = true;
 			reset_preferred_x();
-			return 1;
+			return true;
 		}
-		skip = 0; // not at cursor position anymore
+		skip = false; // not at cursor position anymore
 		flags = 0;
 	} while (block_iter_next_line(bi));
-	return 0;
+	return false;
 }
 
-static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, int skip)
+static bool do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, bool skip)
 {
 	if (block_iter_is_eof(bi))
 		goto next;
@@ -91,14 +91,14 @@ static int do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, int skip
 		if (offset >= 0) {
 			block_iter_skip_bytes(bi, offset);
 			view->cursor = *bi;
-			view->center_on_scroll = 1;
+			view->center_on_scroll = true;
 			reset_preferred_x();
-			return 1;
+			return true;
 		}
 next:
 		cx = -1;
 	} while (block_iter_prev_line(bi));
-	return 0;
+	return false;
 }
 
 void search_tag(const char *pattern)
@@ -110,13 +110,13 @@ void search_tag(const char *pattern)
 		return;
 
 	buffer_bof(&bi);
-	if (do_search_fwd(&regex, &bi, 0)) {
-		view->center_on_scroll = 1;
+	if (do_search_fwd(&regex, &bi, false)) {
+		view->center_on_scroll = true;
 	} else {
 		error_msg("Tag not found.");
 
 		/* don't center view to cursor unnecessarily */
-		view->force_center = 0;
+		view->force_center = false;
 	}
 	regfree(&regex);
 }
@@ -148,18 +148,18 @@ static void free_regex(void)
 	}
 }
 
-static int has_upper(const char *str)
+static bool has_upper(const char *str)
 {
 	int i;
 
 	for (i = 0; str[i]; i++) {
 		if (isupper(str[i]))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
-static int update_regex(void)
+static bool update_regex(void)
 {
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
 
@@ -176,16 +176,16 @@ static int update_regex(void)
 	}
 
 	if (re_flags == current_search.re_flags)
-		return 1;
+		return true;
 
 	free_regex();
 
 	current_search.re_flags = re_flags;
 	if (regexp_compile(&current_search.regex, current_search.pattern, current_search.re_flags))
-		return 1;
+		return true;
 
 	free_regex();
-	return 0;
+	return false;
 }
 
 void search_set_regexp(const char *pattern)
@@ -195,7 +195,7 @@ void search_set_regexp(const char *pattern)
 	current_search.pattern = xstrdup(pattern);
 }
 
-static void do_search_next(int skip)
+static void do_search_next(bool skip)
 {
 	struct block_iter bi = view->cursor;
 
@@ -206,11 +206,11 @@ static void do_search_next(int skip)
 	if (!update_regex())
 		return;
 	if (current_search.direction == SEARCH_FWD) {
-		if (do_search_fwd(&current_search.regex, &bi, 1))
+		if (do_search_fwd(&current_search.regex, &bi, true))
 			return;
 
 		buffer_bof(&bi);
-		if (do_search_fwd(&current_search.regex, &bi, 0)) {
+		if (do_search_fwd(&current_search.regex, &bi, false)) {
 			info_msg("Continuing at top.");
 		} else {
 			info_msg("Pattern '%s' not found.", current_search.pattern);
@@ -222,7 +222,7 @@ static void do_search_next(int skip)
 			return;
 
 		buffer_eof(&bi);
-		if (do_search_bwd(&current_search.regex, &bi, -1, 0)) {
+		if (do_search_bwd(&current_search.regex, &bi, -1, false)) {
 			info_msg("Continuing at bottom.");
 		} else {
 			info_msg("Pattern '%s' not found.", current_search.pattern);
@@ -239,12 +239,12 @@ void search_prev(void)
 
 void search_next(void)
 {
-	do_search_next(0);
+	do_search_next(false);
 }
 
 void search_next_word(void)
 {
-	do_search_next(1);
+	do_search_next(true);
 }
 
 static char *build_replace(const char *line, const char *format, regmatch_t *m)
@@ -295,7 +295,7 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 
 	while (!buf_regexec(re, buf + pos, lr->size - pos, MAX_SUBSTRINGS, m, eflags)) {
 		int match_len = m[0].rm_eo - m[0].rm_so;
-		int skip = 0;
+		bool skip = false;
 
 		/* move cursor to beginning of the text to replace */
 		block_iter_skip_bytes(bi, m[0].rm_so);
@@ -306,7 +306,7 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 			case 'y':
 				break;
 			case 'n':
-				skip = 1;
+				skip = true;
 				break;
 			case 'a':
 				flags &= ~REPLACE_CONFIRM;
@@ -369,7 +369,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 {
 	struct block_iter bi;
 	unsigned int nr_bytes;
-	int swapped = 0;
+	bool swapped = false;
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
 	int nr_substitutions = 0;
 	int nr_lines = 0;

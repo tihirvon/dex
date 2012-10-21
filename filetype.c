@@ -119,14 +119,14 @@ const char *find_ft(const char *filename, const char *interpreter,
 	return NULL;
 }
 
-int is_ft(const char *name)
+bool is_ft(const char *name)
 {
 	int i;
 
 	for (i = 0; i < filetypes.count; i++) {
 		const struct filetype *ft = filetypes.ptrs[i];
 		if (!strcmp(ft->name, name))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }

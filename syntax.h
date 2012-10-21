@@ -1,6 +1,7 @@
 #ifndef SYNTAX_H
 #define SYNTAX_H
 
+#include "libc.h"
 #include "ptr-array.h"
 
 enum condition_type {
@@ -67,9 +68,9 @@ struct state {
 	char *emit_name;
 	struct ptr_array conds;
 
-	char defined;
-	char visited;
-	char copied;
+	bool defined;
+	bool visited;
+	bool copied;
 
 	enum {
 		STATE_EAT,
@@ -94,9 +95,9 @@ struct hash_str {
 struct string_list {
 	char *name;
 	struct hash_str *hash[62];
-	char icase;
-	char used;
-	char defined;
+	bool icase;
+	bool used;
+	bool defined;
 };
 
 struct syntax {
@@ -104,8 +105,8 @@ struct syntax {
 	struct ptr_array states;
 	struct ptr_array string_lists;
 	struct ptr_array default_colors;
-	char heredoc;
-	char used;
+	bool heredoc;
+	bool used;
 };
 
 struct syntax_merge {
@@ -115,7 +116,7 @@ struct syntax_merge {
 	int delim_len;
 };
 
-static inline int is_subsyntax(struct syntax *syn)
+static inline bool is_subsyntax(struct syntax *syn)
 {
 	return syn->name[0] == '.';
 }

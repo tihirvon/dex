@@ -9,7 +9,7 @@ struct formatter {
 	char *buf;
 	unsigned int size;
 	unsigned int pos;
-	int separator;
+	bool separator;
 };
 
 static void add_ch(struct formatter *f, char ch)
@@ -21,7 +21,7 @@ static void add_separator(struct formatter *f)
 {
 	if (f->separator && f->pos < f->size)
 		add_ch(f, ' ');
-	f->separator = 0;
+	f->separator = false;
 }
 
 static void add_status_str(struct formatter *f, const char *str)
@@ -96,15 +96,15 @@ static const char *format_misc_status(void)
 void format_status(char *buf, int size, const char *format)
 {
 	struct formatter f;
-	int got_char;
+	bool got_char;
 	unsigned int u;
 
 	f.buf = buf;
 	f.size = size - 5; // max length of char and terminating NUL
 	f.pos = 0;
-	f.separator = 0;
+	f.separator = false;
 
-	got_char = buffer_get_char(&view->cursor, &u);
+	got_char = buffer_get_char(&view->cursor, &u) > 0;
 	while (f.pos < f.size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
@@ -158,7 +158,7 @@ void format_status(char *buf, int size, const char *format)
 				}
 				break;
 			case 's':
-				f.separator = 1;
+				f.separator = true;
 				break;
 			case 't':
 				add_status_str(&f, buffer->options.filetype);

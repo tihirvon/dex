@@ -22,7 +22,7 @@ struct view *window_add_buffer(struct buffer *b)
 	v->buffer = b;
 	v->window = window;
 	ptr_array_add(&window->views, v);
-	window->update_tabbar = 1;
+	window->update_tabbar = true;
 	return v;
 }
 
@@ -33,7 +33,7 @@ void view_delete(struct view *v)
 	if (v == prev_view)
 		prev_view = NULL;
 
-	v->window->update_tabbar = 1;
+	v->window->update_tabbar = true;
 	ptr_array_remove(&b->views, ptr_array_idx(&b->views, v));
 	if (b->views.count == 0) {
 		if (b->options.file_history && b->abs_filename)
@@ -90,7 +90,7 @@ void set_view(struct view *v)
 	if (view->restore_cursor) {
 		view->cursor.blk = BLOCK(view->buffer->blocks.next);
 		block_iter_goto_offset(&view->cursor, view->saved_cursor_offset);
-		view->restore_cursor = 0;
+		view->restore_cursor = false;
 		view->saved_cursor_offset = 0;
 	}
 
@@ -99,7 +99,7 @@ void set_view(struct view *v)
 		v = buffer->views.ptrs[i];
 		if (v != view) {
 			v->saved_cursor_offset = block_iter_get_offset(&v->cursor);
-			v->restore_cursor = 1;
+			v->restore_cursor = true;
 		}
 	}
 }
@@ -134,7 +134,7 @@ struct view *open_file(const char *filename, const char *encoding)
 {
 	struct view *empty = useless_empty_view();
 	struct view *prev = view;
-	struct view *v = open_buffer(filename, 0, encoding);
+	struct view *v = open_buffer(filename, false, encoding);
 
 	if (v == NULL)
 		return NULL;
@@ -151,13 +151,14 @@ struct view *open_file(const char *filename, const char *encoding)
 void open_files(char **filenames, const char *encoding)
 {
 	struct view *empty = useless_empty_view();
-	int i, first = 1;
+	bool first = true;
+	int i;
 
 	for (i = 0; filenames[i]; i++) {
-		struct view *v = open_buffer(filenames[i], 0, encoding);
+		struct view *v = open_buffer(filenames[i], false, encoding);
 		if (v && first) {
 			set_view(v);
-			first = 0;
+			first = false;
 		}
 	}
 	if (empty != NULL && view != empty) {
@@ -221,8 +222,8 @@ void update_view(void)
 	else
 		update_view_y();
 
-	view->force_center = 0;
-	view->center_on_scroll = 0;
+	view->force_center = false;
+	view->center_on_scroll = false;
 }
 
 int vertical_tabbar_width(struct window *win)
