@@ -244,7 +244,6 @@ bool buf_put_char(unsigned int u)
 			} else {
 				// terminal character set is assumed to be latin1
 				if (u_is_unprintable(u)) {
-					BUG_ON(u == 0xab);
 					u_set_hex(obuf.buf, &obuf.count, u);
 				} else if (u <= 0xff) {
 					obuf.buf[obuf.count++] = u;
