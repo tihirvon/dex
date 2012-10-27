@@ -805,15 +805,23 @@ void format_paragraph(int text_width)
 	unselect();
 }
 
-void change_case(int mode, int move_after)
+void change_case(int mode)
 {
+	bool was_selecting = false;
+	bool move = true;
 	long text_len, i;
 	char *src;
 	GBUF(dst);
 
 	if (selecting()) {
-		text_len = prepare_selection();
+		struct selection_info info;
+
+		init_selection(&info);
+		view->cursor = info.si;
+		text_len = info.eo - info.so;
 		unselect();
+		was_selecting = true;
+		move = !info.swapped;
 	} else {
 		unsigned int u;
 
@@ -852,8 +860,16 @@ void change_case(int mode, int move_after)
 	buffer_replace_bytes(text_len, dst.buffer, dst.len);
 	free(src);
 
-	if (move_after)
-		block_iter_skip_bytes(&view->cursor, dst.len);
+	if (move && dst.len > 0) {
+		if (was_selecting) {
+			// move cursor back to where it was
+			long idx = dst.len;
+			u_prev_char(dst.buffer, &idx);
+			block_iter_skip_bytes(&view->cursor, idx);
+		} else {
+			block_iter_skip_bytes(&view->cursor, dst.len);
+		}
+	}
 
 	gbuf_free(&dst);
 }

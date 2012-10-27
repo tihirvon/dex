@@ -103,13 +103,11 @@ bof
 bol
 	Move to beginning of line.
 
-case [-lmu]
+case [-lu]
 	Change text case. Default is to change lower case to upper and
 	vice versa.
 
 	-l lower case
-
-	-m move forward after the change
 
 	-u upper case
 

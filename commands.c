@@ -57,7 +57,6 @@ static void cmd_bol(const char *pf, char **args)
 static void cmd_case(const char *pf, char **args)
 {
 	int mode = 't';
-	int move = 0;
 
 	while (*pf) {
 		switch (*pf) {
@@ -65,14 +64,10 @@ static void cmd_case(const char *pf, char **args)
 		case 'u':
 			mode = *pf;
 			break;
-		case 'm':
-			move = 1;
-			break;
 		}
 		pf++;
 	}
-
-	change_case(mode, move);
+	change_case(mode);
 }
 
 static void cmd_cd(const char *pf, char **args)
@@ -1433,7 +1428,7 @@ const struct command commands[] = {
 	{ "bind",		"",	1,  2, cmd_bind },
 	{ "bof",		"",	0,  0, cmd_bof },
 	{ "bol",		"",	0,  0, cmd_bol },
-	{ "case",		"lmu",	0,  0, cmd_case },
+	{ "case",		"lu",	0,  0, cmd_case },
 	{ "cd",			"",	1,  1, cmd_cd },
 	{ "center-view",	"",	0,  0, cmd_center_view },
 	{ "clear",		"",	0,  0, cmd_clear },
