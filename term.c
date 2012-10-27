@@ -379,11 +379,11 @@ bool term_read_key(unsigned int *key, enum term_key_type *type)
 	return read_simple(key, type);
 }
 
-char *term_read_paste(unsigned int *size)
+char *term_read_paste(long *size)
 {
-	unsigned int alloc = ROUND_UP(input_buf_fill + 1, 1024);
-	unsigned int count = 0;
-	unsigned int i;
+	long alloc = ROUND_UP(input_buf_fill + 1, 1024);
+	long count = 0;
+	long i;
 	char *buf = xmalloc(alloc);
 
 	if (input_buf_fill) {
@@ -428,7 +428,7 @@ char *term_read_paste(unsigned int *size)
 
 void term_discard_paste(void)
 {
-	unsigned int size;
+	long size;
 	free(term_read_paste(&size));
 }
 

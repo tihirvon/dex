@@ -18,7 +18,7 @@ struct paragraph_formatter {
 };
 
 static char *copy_buf;
-static unsigned int copy_len;
+static long copy_len;
 static bool copy_is_lines;
 
 static const char *spattern = "\\{\\s*(//.*|/\\*.*\\*/\\s*)?$";
@@ -113,7 +113,7 @@ void unselect(void)
 	}
 }
 
-static void record_copy(char *buf, unsigned int len, bool is_lines)
+static void record_copy(char *buf, long len, bool is_lines)
 {
 	if (copy_buf)
 		free(copy_buf);
@@ -122,7 +122,7 @@ static void record_copy(char *buf, unsigned int len, bool is_lines)
 	copy_is_lines = is_lines;
 }
 
-void cut(unsigned int len, bool is_lines)
+void cut(long len, bool is_lines)
 {
 	if (len) {
 		char *buf = buffer_get_bytes(len);
@@ -131,7 +131,7 @@ void cut(unsigned int len, bool is_lines)
 	}
 }
 
-void copy(unsigned int len, bool is_lines)
+void copy(long len, bool is_lines)
 {
 	if (len) {
 		char *buf = buffer_get_bytes(len);
@@ -139,9 +139,9 @@ void copy(unsigned int len, bool is_lines)
 	}
 }
 
-void insert_text(const char *text, unsigned int size)
+void insert_text(const char *text, long size)
 {
-	unsigned int del_count = 0;
+	long del_count = 0;
 
 	if (selecting()) {
 		del_count = prepare_selection();
@@ -153,7 +153,7 @@ void insert_text(const char *text, unsigned int size)
 
 void paste(void)
 {
-	unsigned int del_count = 0;
+	long del_count = 0;
 
 	if (!copy_buf)
 		return;
@@ -180,7 +180,8 @@ void paste(void)
 
 void delete_ch(void)
 {
-	unsigned int u, size = 0;
+	unsigned int u;
+	long size = 0;
 
 	if (selecting()) {
 		size = prepare_selection();
@@ -197,7 +198,8 @@ void delete_ch(void)
 
 void erase(void)
 {
-	unsigned int u, size = 0;
+	unsigned int u;
+	long size = 0;
 
 	if (selecting()) {
 		size = prepare_selection();
@@ -216,10 +218,10 @@ void erase(void)
 
 // goto beginning of whitespace (tabs and spaces) under cursor and
 // return number of whitespace bytes after cursor after moving cursor
-static unsigned int goto_beginning_of_whitespace(void)
+static long goto_beginning_of_whitespace(void)
 {
 	struct block_iter bi = view->cursor;
-	unsigned int count = 0;
+	long count = 0;
 	unsigned int u;
 
 	// count spaces and tabs at or after cursor
@@ -242,7 +244,7 @@ static unsigned int goto_beginning_of_whitespace(void)
 
 static bool ws_only(struct lineref *lr)
 {
-	unsigned int i;
+	long i;
 	for (i = 0; i < lr->size; i++) {
 		char ch = lr->line[i];
 		if (ch != ' ' && ch != '\t')
@@ -266,8 +268,8 @@ static bool find_non_empty_line_bwd(struct block_iter *bi)
 
 static void insert_nl(void)
 {
-	unsigned int del_count = 0;
-	unsigned int ins_count = 1;
+	long del_count = 0;
+	long ins_count = 1;
 	char *ins = NULL;
 
 	// prepare deleted text (selection or whitespace around cursor)
@@ -283,7 +285,7 @@ static void insert_nl(void)
 	if (buffer->options.auto_indent) {
 		// current line will be split at cursor position
 		struct block_iter bi = view->cursor;
-		unsigned int len = block_iter_bol(&bi);
+		long len = block_iter_bol(&bi);
 		struct lineref lr;
 
 		fill_line_ref(&bi, &lr);
@@ -321,8 +323,8 @@ static void insert_nl(void)
 
 void insert_ch(unsigned int ch)
 {
-	unsigned int del_count = 0;
-	unsigned int ins_count = 0;
+	long del_count = 0;
+	long ins_count = 0;
 	char *ins;
 
 	if (ch == '\n') {
@@ -383,8 +385,8 @@ void insert_ch(unsigned int ch)
 
 static void join_selection(void)
 {
-	unsigned int count = prepare_selection();
-	unsigned int len = 0, join = 0;
+	long count = prepare_selection();
+	long len = 0, join = 0;
 	struct block_iter bi;
 	unsigned int ch = 0;
 
@@ -591,7 +593,7 @@ void shift_lines(int count)
 
 void clear_lines(void)
 {
-	unsigned int del_count = 0, ins_count = 0;
+	long del_count = 0, ins_count = 0;
 	char *indent = NULL;
 
 	if (buffer->options.auto_indent) {
@@ -628,7 +630,7 @@ void clear_lines(void)
 
 void new_line(void)
 {
-	unsigned int ins_count = 1;
+	long ins_count = 1;
 	char *ins = NULL;
 
 	block_iter_eol(&view->cursor);
@@ -659,7 +661,7 @@ void new_line(void)
 
 static void add_word(struct paragraph_formatter *pf, const char *word, int len)
 {
-	unsigned int i = 0;
+	long i = 0;
 	int word_width = 0;
 
 	while (i < len)
@@ -730,7 +732,7 @@ static unsigned int paragraph_size(void)
 	// get size of paragraph
 	size = 0;
 	do {
-		unsigned int bytes = block_iter_eat_line(&bi);
+		long bytes = block_iter_eat_line(&bi);
 
 		if (!bytes)
 			break;
@@ -744,7 +746,7 @@ static unsigned int paragraph_size(void)
 void format_paragraph(int text_width)
 {
 	struct paragraph_formatter pf;
-	unsigned int len, i;
+	long len, i;
 	int indent_width;
 	char *sel;
 
@@ -769,7 +771,7 @@ void format_paragraph(int text_width)
 
 	i = 0;
 	while (1) {
-		unsigned int start, tmp;
+		long start, tmp;
 
 		while (i < len) {
 			tmp = i;
@@ -805,7 +807,7 @@ void format_paragraph(int text_width)
 
 void change_case(int mode, int move_after)
 {
-	unsigned int text_len, i;
+	long text_len, i;
 	char *src;
 	GBUF(dst);
 
@@ -825,7 +827,7 @@ void change_case(int mode, int move_after)
 	i = 0;
 	while (i < text_len) {
 		unsigned int u = u_get_char(src, text_len, &i);
-		unsigned int idx = 0;
+		long idx = 0;
 		char buf[4];
 
 		switch (mode) {

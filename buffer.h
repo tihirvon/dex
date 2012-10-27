@@ -11,11 +11,11 @@ struct change {
 	struct change *next;
 	struct change **prev;
 	unsigned int nr_prev;
-	unsigned int offset;
-	unsigned int del_count;
-	unsigned int ins_count;
 	// after undoing backspace move after the text
 	int move_after;
+	long offset;
+	long del_count;
+	long ins_count;
 	// deleted bytes (inserted bytes need not to be saved)
 	char *buf;
 };
@@ -33,7 +33,7 @@ struct buffer {
 	// needed for identifying buffers whose filename is NULL
 	unsigned int id;
 
-	unsigned int nl;
+	long nl;
 
 	// views pointing to this buffer
 	struct ptr_array views;
@@ -96,12 +96,12 @@ struct view {
 	enum selection selection;
 
 	// cursor offset when selection was started
-	unsigned int sel_so;
+	long sel_so;
 
 	// If sel_eo is UINT_MAX that means the offset must be calculated from
 	// the cursor iterator.  Otherwise the offset is precalculated and may
 	// not be same as cursor position (see search/replace code).
-	unsigned int sel_eo;
+	long sel_eo;
 
 	// center view to cursor if scrolled
 	bool center_on_scroll;
@@ -112,7 +112,7 @@ struct view {
 	// These are used to save cursor state when there are multiple views
 	// sharing same buffer.
 	bool restore_cursor;
-	unsigned int saved_cursor_offset;
+	long saved_cursor_offset;
 };
 
 // buffer = view->buffer = window->view->buffer
@@ -143,9 +143,9 @@ static inline bool selecting(void)
 
 void lines_changed(int min, int max);
 const char *buffer_filename(struct buffer *b);
-unsigned int count_nl(const char *buf, unsigned int size);
-char *buffer_get_bytes(unsigned int len);
-char *get_selection(unsigned int *size);
+long count_nl(const char *buf, long size);
+char *buffer_get_bytes(long len);
+char *get_selection(long *size);
 char *get_word_under_cursor(void);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
@@ -156,9 +156,9 @@ struct view *open_empty_buffer(void);
 void setup_buffer(void);
 void free_buffer(struct buffer *b);
 
-unsigned int buffer_get_char(struct block_iter *bi, unsigned int *up);
-unsigned int buffer_next_char(struct block_iter *bi, unsigned int *up);
-unsigned int buffer_prev_char(struct block_iter *bi, unsigned int *up);
+long buffer_get_char(struct block_iter *bi, unsigned int *up);
+long buffer_next_char(struct block_iter *bi, unsigned int *up);
+long buffer_prev_char(struct block_iter *bi, unsigned int *up);
 
 static inline void buffer_bof(struct block_iter *bi)
 {

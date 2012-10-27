@@ -442,7 +442,7 @@ static void debug_frame(struct frame *f, int level)
 {
 	int i;
 
-	d_print("%*s%dx%d %d %d %d\n",
+	d_print("%*s%dx%d %d %d %ld\n",
 		level * 4, "",
 		f->w, f->h,
 		f->vertical, f->equal_size,

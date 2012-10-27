@@ -53,12 +53,12 @@ static struct change *new_change(void)
 	return change;
 }
 
-static unsigned int buffer_offset(void)
+static long buffer_offset(void)
 {
 	return block_iter_get_offset(&view->cursor);
 }
 
-static void record_insert(unsigned int len)
+static void record_insert(long len)
 {
 	struct change *change = buffer->cur_change;
 
@@ -74,7 +74,7 @@ static void record_insert(unsigned int len)
 	change->ins_count = len;
 }
 
-static void record_delete(char *buf, unsigned int len, int move_after)
+static void record_delete(char *buf, long len, int move_after)
 {
 	struct change *change = buffer->cur_change;
 
@@ -106,7 +106,7 @@ static void record_delete(char *buf, unsigned int len, int move_after)
 	change->buf = buf;
 }
 
-static void record_replace(char *deleted, unsigned int del_count, unsigned int ins_count)
+static void record_replace(char *deleted, long del_count, long ins_count)
 {
 	struct change *change;
 
@@ -155,7 +155,7 @@ void end_change_chain(void)
 	}
 }
 
-static void fix_cursors(unsigned int offset, unsigned int del, unsigned int ins)
+static void fix_cursors(long offset, long del, long ins)
 {
 	int i;
 
@@ -190,8 +190,8 @@ static void reverse_change(struct change *change)
 		change->buf = NULL;
 	} else if (change->del_count) {
 		// reverse replace
-		unsigned int del_count = change->ins_count;
-		unsigned int ins_count = change->del_count;
+		long del_count = change->ins_count;
+		long ins_count = change->del_count;
 		char *buf = do_replace(del_count, change->buf, ins_count);
 
 		free(change->buf);
@@ -299,9 +299,9 @@ top:
 	}
 }
 
-void insert(const char *buf, unsigned int len)
+void insert(const char *buf, long len)
 {
-	unsigned int rec_len = len;
+	long rec_len = len;
 
 	reset_preferred_x();
 	if (len == 0)
@@ -320,13 +320,13 @@ void insert(const char *buf, unsigned int len)
 		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
-static bool would_delete_last_bytes(unsigned int count)
+static bool would_delete_last_bytes(long count)
 {
 	struct block *blk = view->cursor.blk;
-	unsigned int offset = view->cursor.offset;
+	long offset = view->cursor.offset;
 
 	while (1) {
-		unsigned int avail = blk->size - offset;
+		long avail = blk->size - offset;
 
 		if (avail > count)
 			return false;
@@ -340,7 +340,7 @@ static bool would_delete_last_bytes(unsigned int count)
 	}
 }
 
-void delete(unsigned int len, int move_after)
+void delete(long len, int move_after)
 {
 	reset_preferred_x();
 	if (len == 0)
@@ -365,7 +365,7 @@ void delete(unsigned int len, int move_after)
 		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
-void replace(unsigned int del_count, const char *inserted, int ins_count)
+void replace(long del_count, const char *inserted, int ins_count)
 {
 	char *deleted = NULL;
 

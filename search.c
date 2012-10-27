@@ -30,7 +30,7 @@ static bool do_search_fwd(regex_t *regex, struct block_iter *bi, bool skip)
 		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, flags)) {
 			if (skip && match.rm_so == 0) {
 				// ignore match at current cursor position
-				unsigned int count = match.rm_eo;
+				long count = match.rm_eo;
 				if (count == 0) {
 					// it is safe to skip one byte because every line
 					// has one extra byte (newline) that is not in lr.line
@@ -61,8 +61,8 @@ static bool do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, bool sk
 		regmatch_t match;
 		struct lineref lr;
 		int flags = 0;
-		int offset = -1;
-		int pos = 0;
+		long offset = -1;
+		long pos = 0;
 
 		fill_line_ref(bi, &lr);
 		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, flags)) {
@@ -405,7 +405,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 	while (1) {
 		// number of bytes to process
-		unsigned int count;
+		long count;
 		struct lineref lr;
 		int nr;
 
@@ -446,7 +446,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		if (view->sel_eo)
 			view->sel_eo--;
 		if (swapped) {
-			unsigned int tmp = view->sel_so;
+			long tmp = view->sel_so;
 			view->sel_so = view->sel_eo;
 			view->sel_eo = tmp;
 		}

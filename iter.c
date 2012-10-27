@@ -16,9 +16,9 @@ void block_iter_normalize(struct block_iter *bi)
  * Move after next newline (beginning of next line or end of file).
  * Returns number of bytes iterator advanced.
  */
-unsigned int block_iter_eat_line(struct block_iter *bi)
+long block_iter_eat_line(struct block_iter *bi)
 {
-	unsigned int offset;
+	long offset;
 
 	block_iter_normalize(bi);
 
@@ -42,10 +42,10 @@ unsigned int block_iter_eat_line(struct block_iter *bi)
  * If there is no next line iterator is not advanced.
  * Returns number of bytes iterator advanced.
  */
-unsigned int block_iter_next_line(struct block_iter *bi)
+long block_iter_next_line(struct block_iter *bi)
 {
-	unsigned int offset;
-	unsigned int new_offset;
+	long offset;
+	long new_offset;
 
 	block_iter_normalize(bi);
 
@@ -72,11 +72,11 @@ unsigned int block_iter_next_line(struct block_iter *bi)
  * Move to beginning of previous line.
  * Returns number of bytes moved which is zero if there's no previous line.
  */
-unsigned int block_iter_prev_line(struct block_iter *bi)
+long block_iter_prev_line(struct block_iter *bi)
 {
 	struct block *blk = bi->blk;
-	unsigned int offset = bi->offset;
-	unsigned int start = offset;
+	long offset = bi->offset;
+	long start = offset;
 
 	while (offset && blk->data[offset - 1] != '\n')
 		offset--;
@@ -96,9 +96,9 @@ unsigned int block_iter_prev_line(struct block_iter *bi)
 	return start - offset;
 }
 
-unsigned int block_iter_bol(struct block_iter *bi)
+long block_iter_bol(struct block_iter *bi)
 {
-	unsigned int offset, ret;
+	long offset, ret;
 
 	block_iter_normalize(bi);
 
@@ -118,10 +118,10 @@ unsigned int block_iter_bol(struct block_iter *bi)
 	return ret;
 }
 
-unsigned int block_iter_eol(struct block_iter *bi)
+long block_iter_eol(struct block_iter *bi)
 {
 	struct block *blk;
-	unsigned int offset;
+	long offset;
 	const unsigned char *end;
 
 	block_iter_normalize(bi);
@@ -141,7 +141,7 @@ unsigned int block_iter_eol(struct block_iter *bi)
 	return bi->offset - offset;
 }
 
-void block_iter_back_bytes(struct block_iter *bi, unsigned int count)
+void block_iter_back_bytes(struct block_iter *bi, long count)
 {
 	while (count > bi->offset) {
 		count -= bi->offset;
@@ -151,9 +151,9 @@ void block_iter_back_bytes(struct block_iter *bi, unsigned int count)
 	bi->offset -= count;
 }
 
-void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
+void block_iter_skip_bytes(struct block_iter *bi, long count)
 {
-	unsigned int avail = bi->blk->size - bi->offset;
+	long avail = bi->blk->size - bi->offset;
 
 	while (count > avail) {
 		count -= avail;
@@ -164,7 +164,7 @@ void block_iter_skip_bytes(struct block_iter *bi, unsigned int count)
 	bi->offset += count;
 }
 
-void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
+void block_iter_goto_offset(struct block_iter *bi, long offset)
 {
 	struct block *blk;
 
@@ -178,10 +178,10 @@ void block_iter_goto_offset(struct block_iter *bi, unsigned int offset)
 	}
 }
 
-void block_iter_goto_line(struct block_iter *bi, unsigned int line)
+void block_iter_goto_line(struct block_iter *bi, long line)
 {
 	struct block *blk = BLOCK(bi->head->next);
-	unsigned int nl = 0;
+	long nl = 0;
 
 	while (blk->node.next != bi->head && nl + blk->nl < line) {
 		nl += blk->nl;
@@ -197,10 +197,10 @@ void block_iter_goto_line(struct block_iter *bi, unsigned int line)
 	}
 }
 
-unsigned int block_iter_get_offset(const struct block_iter *bi)
+long block_iter_get_offset(const struct block_iter *bi)
 {
 	struct block *blk;
-	unsigned int offset = 0;
+	long offset = 0;
 
 	list_for_each_entry(blk, bi->head, node) {
 		if (blk == bi->blk)
@@ -212,7 +212,7 @@ unsigned int block_iter_get_offset(const struct block_iter *bi)
 
 bool block_iter_is_bol(const struct block_iter *bi)
 {
-	unsigned int offset = bi->offset;
+	long offset = bi->offset;
 
 	if (!offset)
 		return true;
@@ -222,7 +222,7 @@ bool block_iter_is_bol(const struct block_iter *bi)
 // bi should be at bol
 void fill_line_ref(struct block_iter *bi, struct lineref *lr)
 {
-	unsigned int max;
+	long max;
 	const unsigned char *nl;
 
 	block_iter_normalize(bi);
@@ -244,7 +244,7 @@ void fill_line_ref(struct block_iter *bi, struct lineref *lr)
 
 void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr)
 {
-	unsigned int max;
+	long max;
 	const unsigned char *nl;
 
 	block_iter_normalize(bi);
@@ -264,10 +264,10 @@ void fill_line_nl_ref(struct block_iter *bi, struct lineref *lr)
 	lr->size = nl - lr->line + 1;
 }
 
-unsigned int fetch_this_line(const struct block_iter *bi, struct lineref *lr)
+long fetch_this_line(const struct block_iter *bi, struct lineref *lr)
 {
 	struct block_iter tmp = *bi;
-	unsigned int count = block_iter_bol(&tmp);
+	long count = block_iter_bol(&tmp);
 
 	fill_line_ref(&tmp, lr);
 	return count;

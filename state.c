@@ -8,7 +8,7 @@
 #include "error.h"
 #include "common.h"
 
-static void bitmap_set(unsigned char *bitmap, unsigned int idx)
+static void bitmap_set(unsigned char *bitmap, long idx)
 {
 	unsigned int byte = idx / 8;
 	unsigned int bit = idx & 7;
@@ -307,7 +307,7 @@ static void cmd_list(const char *pf, char **args)
 	for (i = 1; args[i]; i++) {
 		const char *str = args[i];
 		int len = strlen(str);
-		unsigned int idx = buf_hash(str, len) % ARRAY_COUNT(list->hash);
+		long idx = buf_hash(str, len) % ARRAY_COUNT(list->hash);
 		struct hash_str *h = xmalloc(sizeof(struct hash_str *) + sizeof(int) + len);
 		h->next = list->hash[idx];
 		h->len = len;

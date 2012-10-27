@@ -22,7 +22,7 @@ static void expand_pkgdatadir(struct gbuf *buf)
 
 static void expand_word(struct gbuf *buf)
 {
-	unsigned int size;
+	long size;
 	char *str = get_selection(&size);
 
 	if (str) {

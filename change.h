@@ -19,8 +19,8 @@ void end_change_chain(void);
 bool undo(void);
 bool redo(unsigned int change_id);
 void free_changes(struct change *head);
-void insert(const char *buf, unsigned int len);
-void delete(unsigned int len, int move_after);
-void replace(unsigned int del_count, const char *inserted, int ins_count);
+void insert(const char *buf, long len);
+void delete(long len, int move_after);
+void replace(long del_count, const char *inserted, int ins_count);
 
 #endif

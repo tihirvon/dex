@@ -32,7 +32,7 @@ static inline size_t ALLOC_ROUND(size_t size)
 	return ROUND_UP(size, 64);
 }
 
-struct block *block_new(unsigned int alloc)
+struct block *block_new(long alloc)
 {
 	struct block *blk = xnew0(struct block, 1);
 
@@ -49,9 +49,9 @@ static void delete_block(struct block *blk)
 	free(blk);
 }
 
-static unsigned int copy_count_nl(char *dst, const char *src, unsigned int len)
+static long copy_count_nl(char *dst, const char *src, long len)
 {
-	unsigned int i, nl = 0;
+	long i, nl = 0;
 	for (i = 0; i < len; i++) {
 		dst[i] = src[i];
 		if (src[i] == '\n')
@@ -60,12 +60,12 @@ static unsigned int copy_count_nl(char *dst, const char *src, unsigned int len)
 	return nl;
 }
 
-static unsigned int insert_to_current(const char *buf, unsigned int len)
+static long insert_to_current(const char *buf, long len)
 {
 	struct block *blk = view->cursor.blk;
-	unsigned int offset = view->cursor.offset;
-	unsigned int size = blk->size + len;
-	unsigned int nl;
+	long offset = view->cursor.offset;
+	long size = blk->size + len;
+	long nl;
 
 	if (size > blk->alloc) {
 		blk->alloc = ALLOC_ROUND(size);
@@ -86,26 +86,26 @@ static unsigned int insert_to_current(const char *buf, unsigned int len)
  *   - Size of any block can be larger than BLOCK_EDIT_SIZE
  *     only if there's a very long line
  */
-static unsigned int split_and_insert(const char *buf, unsigned int len)
+static long split_and_insert(const char *buf, long len)
 {
 	struct block *blk = view->cursor.blk;
 	struct list_head *prev_node = blk->node.prev;
 	const char *buf1 = blk->data;
 	const char *buf2 = buf;
 	const char *buf3 = blk->data + view->cursor.offset;
-	unsigned int size1 = view->cursor.offset;
-	unsigned int size2 = len;
-	unsigned int size3 = blk->size - size1;
-	unsigned int total = size1 + size2 + size3;
-	unsigned int start = 0; // beginning of new block
-	unsigned int size = 0;  // size of new block
-	unsigned int pos = 0;   // current position
-	unsigned int nl_added = 0;
+	long size1 = view->cursor.offset;
+	long size2 = len;
+	long size3 = blk->size - size1;
+	long total = size1 + size2 + size3;
+	long start = 0; // beginning of new block
+	long size = 0;  // size of new block
+	long pos = 0;   // current position
+	long nl_added = 0;
 
 	while (start < total) {
 		// size of new block if next line would be added
-		unsigned int new_size = 0;
-		unsigned int copied = 0;
+		long new_size = 0;
+		long copied = 0;
 		struct block *new;
 
 		if (pos < size1) {
@@ -115,7 +115,7 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 		}
 
 		if (!new_size && pos < size1 + size2) {
-			unsigned int offset = 0;
+			long offset = 0;
 			const char *nl;
 
 			if (pos > size1)
@@ -127,7 +127,7 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 		}
 
 		if (!new_size && pos < total) {
-			unsigned int offset = 0;
+			long offset = 0;
 			const char *nl;
 
 			if (pos > size1 + size2)
@@ -158,8 +158,8 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 		BUG_ON(!size);
 		new = block_new(size);
 		if (start < size1) {
-			unsigned int avail = size1 - start;
-			unsigned int count = size;
+			long avail = size1 - start;
+			long count = size;
 
 			if (count > avail)
 				count = avail;
@@ -168,9 +168,9 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 			start += count;
 		}
 		if (start >= size1 && start < size1 + size2) {
-			unsigned int offset = start - size1;
-			unsigned int avail = size2 - offset;
-			unsigned int count = size - copied;
+			long offset = start - size1;
+			long avail = size2 - offset;
+			long count = size - copied;
 
 			if (count > avail)
 				count = avail;
@@ -179,9 +179,9 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 			start += count;
 		}
 		if (start >= size1 + size2) {
-			unsigned int offset = start - size1 - size2;
-			unsigned int avail = size3 - offset;
-			unsigned int count = size - copied;
+			long offset = start - size1 - size2;
+			long avail = size3 - offset;
+			long count = size - copied;
 
 			BUG_ON(count > avail);
 			new->nl += copy_count_nl(new->data + copied, buf3 + offset, count);
@@ -208,10 +208,10 @@ static unsigned int split_and_insert(const char *buf, unsigned int len)
 	return nl_added;
 }
 
-static unsigned int insert_bytes(const char *buf, unsigned int len)
+static long insert_bytes(const char *buf, long len)
 {
 	struct block *blk;
-	unsigned int new_size;
+	long new_size;
 
 	// blocks must contain whole lines
 	// last char of buf might not be newline
@@ -230,9 +230,9 @@ static unsigned int insert_bytes(const char *buf, unsigned int len)
 	return split_and_insert(buf, len);
 }
 
-void do_insert(const char *buf, unsigned int len)
+void do_insert(const char *buf, long len)
 {
-	unsigned int nl = insert_bytes(buf, len);
+	long nl = insert_bytes(buf, len);
 
 	buffer->nl += nl;
 	sanity_check();
@@ -248,13 +248,13 @@ static int only_block(struct block *blk)
 	return blk->node.prev == &buffer->blocks && blk->node.next == &buffer->blocks;
 }
 
-char *do_delete(unsigned int len)
+char *do_delete(long len)
 {
 	struct list_head *saved_prev_node = NULL;
 	struct block *blk = view->cursor.blk;
-	unsigned int offset = view->cursor.offset;
-	unsigned int pos = 0;
-	unsigned int deleted_nl = 0;
+	long offset = view->cursor.offset;
+	long pos = 0;
+	long deleted_nl = 0;
 	char *buf;
 
 	if (!len)
@@ -268,9 +268,9 @@ char *do_delete(unsigned int len)
 	buf = xnew(char, len);
 	while (pos < len) {
 		struct list_head *next = blk->node.next;
-		unsigned int avail = blk->size - offset;
-		unsigned int count = len - pos;
-		unsigned int nl;
+		long avail = blk->size - offset;
+		long count = len - pos;
+		long nl;
 
 		if (count > avail)
 			count = avail;
@@ -305,7 +305,7 @@ char *do_delete(unsigned int len)
 	blk = view->cursor.blk;
 	if (blk->size && blk->data[blk->size - 1] != '\n' && blk->node.next != &buffer->blocks) {
 		struct block *next = BLOCK(blk->node.next);
-		unsigned int size = blk->size + next->size;
+		long size = blk->size + next->size;
 
 		if (size > blk->alloc) {
 			blk->alloc = ALLOC_ROUND(size);
@@ -326,12 +326,12 @@ char *do_delete(unsigned int len)
 	return buf;
 }
 
-char *do_replace(unsigned int del, const char *buf, unsigned int ins)
+char *do_replace(long del, const char *buf, long ins)
 {
 	struct block *blk;
-	unsigned int offset, avail, new_size;
+	long offset, avail, new_size;
 	char *ptr, *deleted;
-	unsigned int del_nl, ins_nl;
+	long del_nl, ins_nl;
 
 	block_iter_normalize(&view->cursor);
 	blk = view->cursor.blk;

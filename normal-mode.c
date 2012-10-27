@@ -8,7 +8,7 @@
 
 static void insert_paste(void)
 {
-	unsigned int size;
+	long size;
 	char *text = term_read_paste(&size);
 
 	// because this is not a command (see run_command()) you have to

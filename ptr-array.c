@@ -15,9 +15,9 @@ void ptr_array_add(struct ptr_array *array, void *ptr)
 	array->ptrs[array->count++] = ptr;
 }
 
-void ptr_array_insert(struct ptr_array *array, void *ptr, unsigned int pos)
+void ptr_array_insert(struct ptr_array *array, void *ptr, long pos)
 {
-	unsigned int count = array->count - pos;
+	long count = array->count - pos;
 	ptr_array_add(array, NULL);
 	memmove(array->ptrs + pos + 1, array->ptrs + pos, count * sizeof(void *));
 	array->ptrs[pos] = ptr;
@@ -32,7 +32,7 @@ void ptr_array_free(struct ptr_array *array)
 	free(array->ptrs);
 }
 
-void *ptr_array_remove(struct ptr_array *array, unsigned int pos)
+void *ptr_array_remove(struct ptr_array *array, long pos)
 {
 	void *ptr = array->ptrs[pos];
 	array->count--;

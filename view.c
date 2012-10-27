@@ -22,7 +22,7 @@ void update_cursor_y(void)
 void update_cursor_x(void)
 {
 	unsigned int tw = buffer->options.tab_width;
-	unsigned int idx = 0;
+	long idx = 0;
 	struct lineref lr;
 	int c = 0;
 	int w = 0;

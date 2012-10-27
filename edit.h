@@ -5,9 +5,9 @@
 
 void select_block(void);
 void unselect(void);
-void cut(unsigned int len, bool is_lines);
-void copy(unsigned int len, bool is_lines);
-void insert_text(const char *text, unsigned int size);
+void cut(long len, bool is_lines);
+void copy(long len, bool is_lines);
+void insert_text(const char *text, long size);
 void paste(void);
 void delete_ch(void);
 void erase(void);

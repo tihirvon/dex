@@ -15,10 +15,14 @@ int count_strings(char **strings)
 	return count;
 }
 
-unsigned int number_width(unsigned int n)
+int number_width(long n)
 {
-	unsigned int width = 0;
+	int width = 0;
 
+	if (n < 0) {
+		n *= -1;
+		width++;
+	}
 	do {
 		n /= 10;
 		width++;

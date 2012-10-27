@@ -7,8 +7,8 @@
 
 struct formatter {
 	char *buf;
-	unsigned int size;
-	unsigned int pos;
+	long size;
+	long pos;
 	bool separator;
 };
 
@@ -26,7 +26,7 @@ static void add_separator(struct formatter *f)
 
 static void add_status_str(struct formatter *f, const char *str)
 {
-	unsigned int idx = 0;
+	long idx = 0;
 
 	if (!*str)
 		return;

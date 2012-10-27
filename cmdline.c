@@ -28,7 +28,7 @@ static void cmdline_delete(struct cmdline *c)
 		return;
 
 	if (term_utf8) {
-		unsigned int pos = c->pos;
+		long pos = c->pos;
 		u_get_char(c->buf.buffer, c->buf.len, &pos);
 		len = pos - c->pos;
 	}
@@ -103,7 +103,7 @@ static void cmdline_insert_bytes(struct cmdline *c, const char *buf, int size)
 
 static void cmdline_insert_paste(struct cmdline *c)
 {
-	unsigned int size, i;
+	long size, i;
 	char *text = term_read_paste(&size);
 
 	for (i = 0; i < size; i++) {

@@ -14,7 +14,7 @@ void move_to_preferred_x(int preferred_x)
 {
 	unsigned int tw = buffer->options.tab_width;
 	struct lineref lr;
-	unsigned int i = 0;
+	long i = 0;
 	unsigned int x = 0;
 
 	view->preferred_x = preferred_x;
@@ -191,9 +191,9 @@ static bool get_current_char_type(struct block_iter *bi, enum char_type *type)
 	return true;
 }
 
-static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type type)
+static long skip_fwd_char_type(struct block_iter *bi, enum char_type type)
 {
-	unsigned int count = 0;
+	long count = 0;
 	unsigned int u;
 
 	while (buffer_next_char(bi, &u)) {
@@ -206,9 +206,9 @@ static unsigned int skip_fwd_char_type(struct block_iter *bi, enum char_type typ
 	return count;
 }
 
-static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type type)
+static long skip_bwd_char_type(struct block_iter *bi, enum char_type type)
 {
-	unsigned int count = 0;
+	long count = 0;
 	unsigned int u;
 
 	while (buffer_prev_char(bi, &u)) {
@@ -221,9 +221,9 @@ static unsigned int skip_bwd_char_type(struct block_iter *bi, enum char_type typ
 	return count;
 }
 
-unsigned int word_fwd(struct block_iter *bi, bool skip_non_word)
+long word_fwd(struct block_iter *bi, bool skip_non_word)
 {
-	unsigned int count = 0;
+	long count = 0;
 	enum char_type type;
 
 	while (1) {
@@ -238,9 +238,9 @@ unsigned int word_fwd(struct block_iter *bi, bool skip_non_word)
 	}
 }
 
-unsigned int word_bwd(struct block_iter *bi, bool skip_non_word)
+long word_bwd(struct block_iter *bi, bool skip_non_word)
 {
-	unsigned int count = 0;
+	long count = 0;
 	enum char_type type;
 	unsigned int u;
 

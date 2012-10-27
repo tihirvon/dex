@@ -369,8 +369,8 @@ static void cmd_insert(const char *pf, char **args)
 		for (i = 0; str[i]; i++)
 			insert_ch(str[i]);
 	} else {
-		unsigned int del_len = 0;
-		unsigned int ins_len = strlen(str);
+		long del_len = 0;
+		long ins_len = strlen(str);
 
 		if (selecting()) {
 			del_len = prepare_selection();
@@ -559,7 +559,7 @@ static void cmd_option(const char *pf, char **args)
 static void cmd_pass_through(const char *pf, char **args)
 {
 	struct filter_data data;
-	unsigned int del_len = 0;
+	long del_len = 0;
 	bool strip_nl = false;
 	bool move = false;
 

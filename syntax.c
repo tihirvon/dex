@@ -9,7 +9,7 @@ static PTR_ARRAY(syntaxes);
 
 unsigned int buf_hash(const char *str, unsigned int size)
 {
-	unsigned int i, hash = 0;
+	long i, hash = 0;
 
 	for (i = 0; i < size; i++) {
 		unsigned int ch = tolower(str[i]);

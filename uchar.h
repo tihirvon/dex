@@ -18,9 +18,9 @@ static inline unsigned int u_char_size(unsigned int uch)
 	return 1;
 }
 
-static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
+static inline void u_set_ctrl(char *buf, long *idx, unsigned int u)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 	buf[i++] = '^';
 	if (u == 0x7f)
 		buf[i++] = '?';
@@ -31,14 +31,14 @@ static inline void u_set_ctrl(char *buf, unsigned int *idx, unsigned int u)
 
 unsigned int u_str_width(const unsigned char *str);
 
-unsigned int u_prev_char(const unsigned char *buf, unsigned int *idx);
-unsigned int u_str_get_char(const unsigned char *str, unsigned int *idx);
-unsigned int u_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx);
-unsigned int u_get_nonascii(const unsigned char *buf, unsigned int size, unsigned int *idx);
+unsigned int u_prev_char(const unsigned char *buf, long *idx);
+unsigned int u_str_get_char(const unsigned char *str, long *idx);
+unsigned int u_get_char(const unsigned char *buf, long size, long *idx);
+unsigned int u_get_nonascii(const unsigned char *buf, long size, long *idx);
 
-void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch);
-void u_set_char(char *str, unsigned int *idx, unsigned int uch);
-void u_set_hex(char *str, unsigned int *idx, unsigned int uch);
+void u_set_char_raw(char *str, long *idx, unsigned int uch);
+void u_set_char(char *str, long *idx, unsigned int uch);
+void u_set_hex(char *str, long *idx, unsigned int uch);
 
 /*
  * Total width of skipped characters is stored back to @width.

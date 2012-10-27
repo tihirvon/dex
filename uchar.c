@@ -46,16 +46,16 @@ static inline unsigned int u_get_first_byte_mask(unsigned int len)
 
 unsigned int u_str_width(const unsigned char *str)
 {
-	unsigned int i = 0, w = 0;
+	long i = 0, w = 0;
 
 	while (str[i])
 		w += u_char_width(u_str_get_char(str, &i));
 	return w;
 }
 
-unsigned int u_prev_char(const unsigned char *buf, unsigned int *idx)
+unsigned int u_prev_char(const unsigned char *buf, long *idx)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 	unsigned int count, shift;
 	unsigned int u;
 
@@ -101,9 +101,9 @@ invalid:
 	return -u;
 }
 
-unsigned int u_str_get_char(const unsigned char *str, unsigned int *idx)
+unsigned int u_str_get_char(const unsigned char *str, long *idx)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 	unsigned int u = str[i];
 
 	if (likely(u < 0x80)) {
@@ -113,9 +113,9 @@ unsigned int u_str_get_char(const unsigned char *str, unsigned int *idx)
 	return u_get_nonascii(str, i + 4, idx);
 }
 
-unsigned int u_get_char(const unsigned char *buf, unsigned int size, unsigned int *idx)
+unsigned int u_get_char(const unsigned char *buf, long size, long *idx)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 	unsigned int u = buf[i];
 
 	if (likely(u < 0x80)) {
@@ -125,9 +125,9 @@ unsigned int u_get_char(const unsigned char *buf, unsigned int size, unsigned in
 	return u_get_nonascii(buf, size, idx);
 }
 
-unsigned int u_get_nonascii(const unsigned char *buf, unsigned int size, unsigned int *idx)
+unsigned int u_get_nonascii(const unsigned char *buf, long size, long *idx)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 	int len, c;
 	unsigned int first, u;
 
@@ -155,9 +155,9 @@ invalid:
 	return -first;
 }
 
-void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch)
+void u_set_char_raw(char *str, long *idx, unsigned int uch)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 
 	if (uch <= 0x7fU) {
 		str[i++] = uch;
@@ -187,9 +187,9 @@ void u_set_char_raw(char *str, unsigned int *idx, unsigned int uch)
 	}
 }
 
-void u_set_char(char *str, unsigned int *idx, unsigned int uch)
+void u_set_char(char *str, long *idx, unsigned int uch)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 
 	if (uch < 0x80) {
 		if (likely(!u_is_ctrl(uch))) {
@@ -229,9 +229,9 @@ void u_set_char(char *str, unsigned int *idx, unsigned int uch)
 	}
 }
 
-void u_set_hex(char *str, unsigned int *idx, unsigned int uch)
+void u_set_hex(char *str, long *idx, unsigned int uch)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 
 	str[i++] = '<';
 	if (!u_is_unicode(uch)) {
@@ -250,7 +250,7 @@ void u_set_hex(char *str, unsigned int *idx, unsigned int uch)
 unsigned int u_skip_chars(const char *str, int *width)
 {
 	int w = *width;
-	unsigned int idx = 0;
+	long idx = 0;
 
 	while (str[idx] && w > 0)
 		w -= u_char_width(u_str_get_char(str, &idx));
@@ -262,8 +262,8 @@ unsigned int u_skip_chars(const char *str, int *width)
 
 static bool has_prefix(const char *str, const char *prefix_lcase)
 {
-	unsigned int ni = 0;
-	unsigned int hi = 0;
+	long ni = 0;
+	long hi = 0;
 	unsigned int pc, sc;
 
 	while ((pc = u_str_get_char(prefix_lcase, &ni))) {
@@ -276,15 +276,15 @@ static bool has_prefix(const char *str, const char *prefix_lcase)
 
 int u_str_index(const char *haystack, const char *needle_lcase)
 {
-	unsigned int hi = 0;
-	unsigned int ni = 0;
+	long hi = 0;
+	long ni = 0;
 	unsigned int nc = u_str_get_char(needle_lcase, &ni);
 
 	if (!nc)
 		return 0;
 
 	while (haystack[hi]) {
-		unsigned int prev = hi;
+		long prev = hi;
 		unsigned int hc = u_str_get_char(haystack, &hi);
 		if ((hc == nc || u_to_lower(hc) == nc) && has_prefix(haystack + hi, needle_lcase + ni))
 			return prev;

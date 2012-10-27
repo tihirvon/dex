@@ -60,10 +60,10 @@ const char *buffer_filename(struct buffer *b)
 	return b->display_filename;
 }
 
-unsigned int count_nl(const char *buf, unsigned int size)
+long count_nl(const char *buf, long size)
 {
 	const char *end = buf + size;
-	unsigned int nl = 0;
+	long nl = 0;
 
 	while (buf < end) {
 		buf = memchr(buf, '\n', end - buf);
@@ -75,11 +75,11 @@ unsigned int count_nl(const char *buf, unsigned int size)
 	return nl;
 }
 
-char *buffer_get_bytes(unsigned int len)
+char *buffer_get_bytes(long len)
 {
 	struct block *blk = view->cursor.blk;
-	unsigned int offset = view->cursor.offset;
-	unsigned int pos = 0;
+	long offset = view->cursor.offset;
+	long pos = 0;
 	char *buf;
 
 	if (!len)
@@ -87,8 +87,8 @@ char *buffer_get_bytes(unsigned int len)
 
 	buf = xnew(char, len);
 	while (pos < len) {
-		unsigned int avail = blk->size - offset;
-		unsigned int count = len - pos;
+		long avail = blk->size - offset;
+		long count = len - pos;
 
 		if (count > avail)
 			count = avail;
@@ -102,7 +102,7 @@ char *buffer_get_bytes(unsigned int len)
 	return buf;
 }
 
-char *get_selection(unsigned int *size)
+char *get_selection(long *size)
 {
 	struct block_iter save = view->cursor;
 	char *buf;
@@ -119,7 +119,7 @@ char *get_selection(unsigned int *size)
 char *get_word_under_cursor(void)
 {
 	struct lineref lr;
-	unsigned int i, ei, si = fetch_this_line(&view->cursor, &lr);
+	long i, ei, si = fetch_this_line(&view->cursor, &lr);
 
 	while (si < lr.size) {
 		i = si;

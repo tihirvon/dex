@@ -86,7 +86,7 @@ void buf_escape(const char *str)
 
 void buf_add_str(const char *str)
 {
-	unsigned int i = 0;
+	long i = 0;
 	while (str[i]) {
 		if (!buf_put_char(u_str_get_char(str, &i)))
 			break;
@@ -156,7 +156,7 @@ static void skipped_too_much(unsigned int u)
 		obuf.buf[obuf.count++] = '?';
 	} else if (u_is_unprintable(u)) {
 		char tmp[4];
-		unsigned int idx = 0;
+		long idx = 0;
 		u_set_hex(tmp, &idx, u);
 		memcpy(obuf.buf + obuf.count, tmp + 4 - n, n);
 		obuf.count += n;
@@ -260,7 +260,7 @@ bool buf_put_char(unsigned int u)
 			// <xx> would not fit
 			// there's enough space in the buffer so render all 4 characters
 			// but increment position less
-			unsigned int idx = obuf.count;
+			long idx = obuf.count;
 			u_set_hex(obuf.buf, &idx, u);
 			obuf.count += space;
 			obuf.x += space;

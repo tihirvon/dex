@@ -63,7 +63,7 @@ static void git_open_load(void)
 
 static bool contains_upper(const char *str)
 {
-	unsigned int i = 0;
+	long i = 0;
 
 	while (str[i]) {
 		if (u_is_upper(u_str_get_char(str, &i)))

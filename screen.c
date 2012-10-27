@@ -21,10 +21,10 @@ struct line_info {
 	long sel_eo;
 
 	const unsigned char *line;
-	unsigned int size;
-	unsigned int pos;
-	unsigned int indent_size;
-	unsigned int trailing_ws_offset;
+	long size;
+	long pos;
+	long indent_size;
+	long trailing_ws_offset;
 	struct hl_color **colors;
 };
 
@@ -45,9 +45,9 @@ static void set_builtin_color(enum builtin_color c)
 	set_color(builtin_colors[c]);
 }
 
-static unsigned int term_get_char(const char *buf, unsigned int size, unsigned int *idx)
+static unsigned int term_get_char(const char *buf, long size, long *idx)
 {
-	unsigned int i = *idx;
+	long i = *idx;
 	unsigned int u;
 
 	if (term_utf8) {
@@ -149,7 +149,7 @@ static void print_vertical_tab_title(struct view *v, int idx, int width)
 	}
 	if (filename != orig_filename) {
 		// filename was shortened. add "<<" symbol
-		unsigned int i = strlen(buf);
+		long i = strlen(buf);
 		u_set_char(buf, &i, 0xab);
 		buf[i] = 0;
 	}
@@ -251,12 +251,12 @@ void update_status_line(void)
 	}
 }
 
-static int get_char_width(unsigned int *idx)
+static int get_char_width(long *idx)
 {
 	if (term_utf8) {
 		return u_char_width(u_get_char(cmdline.buf.buffer, cmdline.buf.len, idx));
 	} else {
-		int i = *idx;
+		long i = *idx;
 		unsigned char ch = cmdline.buf.buffer[i++];
 
 		*idx = i;
@@ -270,7 +270,7 @@ static int get_char_width(unsigned int *idx)
 
 int print_command(char prefix)
 {
-	unsigned int i, w;
+	long i, w;
 	unsigned int u;
 	int x;
 
@@ -303,7 +303,7 @@ int print_command(char prefix)
 void print_message(const char *msg, bool is_error)
 {
 	enum builtin_color c = BC_COMMANDLINE;
-	unsigned int i = 0;
+	long i = 0;
 
 	if (msg[0])
 		c = is_error ? BC_ERRORMSG : BC_INFOMSG;
@@ -400,7 +400,7 @@ static bool is_non_text(unsigned int u)
 	return u_is_unprintable(u);
 }
 
-static bool whitespace_error(struct line_info *info, unsigned int u, unsigned int i)
+static bool whitespace_error(struct line_info *info, unsigned int u, long i)
 {
 	int flags = buffer->options.ws_error;
 
@@ -453,7 +453,7 @@ static bool whitespace_error(struct line_info *info, unsigned int u, unsigned in
 
 static unsigned int screen_next_char(struct line_info *info)
 {
-	unsigned int count, pos = info->pos;
+	long count, pos = info->pos;
 	unsigned int u = info->line[pos];
 	struct term_color color;
 	bool ws_error = false;
@@ -503,7 +503,7 @@ static void screen_skip_char(struct line_info *info)
 			obuf.x += 2;
 		}
 	} else {
-		unsigned int pos = info->pos;
+		long pos = info->pos;
 
 		info->pos--;
 		u = u_get_nonascii(info->line, info->size, &info->pos);

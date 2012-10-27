@@ -71,7 +71,7 @@ static int unicode_escape(const char *str, int count)
 		u = u << 4 | x;
 	}
 	if (u_is_unicode(u)) {
-		unsigned int idx = 0;
+		long idx = 0;
 		char buf[4];
 		u_set_char_raw(buf, &idx, u);
 		gbuf_add_buf(&arg, buf, idx);

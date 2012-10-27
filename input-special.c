@@ -103,7 +103,7 @@ bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf
 	}
 
 	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
-		unsigned int idx = 0;
+		long idx = 0;
 		u_set_char_raw(buf, &idx, raw_input.value);
 		*count = idx;
 	}

@@ -7,7 +7,7 @@
 
 struct cmdline {
 	struct gbuf buf;
-	unsigned int pos;
+	long pos;
 	int search_pos;
 	char *search_text;
 };

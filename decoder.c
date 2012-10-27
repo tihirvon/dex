@@ -32,7 +32,7 @@ static bool detect(struct file_decoder *dec, const unsigned char *line, ssize_t 
 
 	for (; i < len; i++) {
 		if (line[i] >= 0x80) {
-			unsigned int idx = i;
+			long idx = i;
 			unsigned int u = u_get_nonascii(line, len, &idx);
 			const char *encoding;
 

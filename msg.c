@@ -150,7 +150,7 @@ void current_message(int save_location)
 		go = 1;
 
 	// search_tag() can print error so do this before it
-	info_msg("[%d/%d] %s", msg_pos + 1, msgs.count, m->msg);
+	info_msg("[%d/%ld] %s", msg_pos + 1, msgs.count, m->msg);
 	if (!go)
 		return;
 
