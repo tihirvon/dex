@@ -25,7 +25,7 @@ static char *cdup(void)
 {
 	static const char * const cmd[] = { "git", "rev-parse", "--show-cdup", NULL };
 	struct filter_data data;
-	int len;
+	long len;
 
 	data.in = NULL;
 	data.in_len = 0;

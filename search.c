@@ -327,7 +327,7 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 			block_iter_skip_bytes(&view->cursor, match_len);
 		} else {
 			char *str = build_replace(buf + pos, format, m);
-			int nr_insert = strlen(str);
+			long nr_insert = strlen(str);
 
 			/* lineref is invalidated by modification */
 			if (buf == lr->line)

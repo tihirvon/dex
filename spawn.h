@@ -15,8 +15,8 @@
 struct filter_data {
 	char *in;
 	char *out;
-	unsigned int in_len;
-	unsigned int out_len;
+	long in_len;
+	long out_len;
 };
 
 int spawn_filter(char **argv, struct filter_data *data);

@@ -365,7 +365,7 @@ void delete(long len, int move_after)
 		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
-void replace(long del_count, const char *inserted, int ins_count)
+void replace(long del_count, const char *inserted, long ins_count)
 {
 	char *deleted = NULL;
 

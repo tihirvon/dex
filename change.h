@@ -21,6 +21,6 @@ bool redo(unsigned int change_id);
 void free_changes(struct change *head);
 void insert(const char *buf, long len);
 void delete(long len, int move_after);
-void replace(long del_count, const char *inserted, int ins_count);
+void replace(long del_count, const char *inserted, long ins_count);
 
 #endif
