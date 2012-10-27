@@ -45,7 +45,7 @@ static void set_builtin_color(enum builtin_color c)
 	set_color(builtin_colors[c]);
 }
 
-static unsigned int term_get_char(const char *buf, long size, long *idx)
+static unsigned int term_get_char(const unsigned char *buf, long size, long *idx)
 {
 	long i = *idx;
 	unsigned int u;
