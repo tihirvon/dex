@@ -11,11 +11,14 @@ struct change {
 	struct change *next;
 	struct change **prev;
 	unsigned int nr_prev;
-	// after undoing backspace move after the text
-	int move_after;
+
+	// move after inserted text when undoing delete?
+	bool move_after;
+
 	long offset;
 	long del_count;
 	long ins_count;
+
 	// deleted bytes (inserted bytes need not to be saved)
 	char *buf;
 };

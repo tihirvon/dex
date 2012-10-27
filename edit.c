@@ -127,7 +127,7 @@ void cut(long len, bool is_lines)
 	if (len) {
 		char *buf = buffer_get_bytes(len);
 		record_copy(buf, len, is_lines);
-		buffer_delete_bytes(len, 0);
+		buffer_delete_bytes(len);
 	}
 }
 
@@ -193,7 +193,7 @@ void delete_ch(void)
 		if (size == 0)
 			size = buffer_get_char(&view->cursor, &u);
 	}
-	buffer_delete_bytes(size, 0);
+	buffer_delete_bytes(size);
 }
 
 void erase(void)
@@ -213,7 +213,7 @@ void erase(void)
 		if (size == 0)
 			size = buffer_prev_char(&view->cursor, &u);
 	}
-	buffer_delete_bytes(size, 1);
+	buffer_erase_bytes(size);
 }
 
 // goto beginning of whitespace (tabs and spaces) under cursor and
@@ -427,7 +427,7 @@ static void join_selection(void)
 	if (join) {
 		if (ch == '\n') {
 			/* don't add space to end of line */
-			buffer_delete_bytes(len, 0);
+			buffer_delete_bytes(len);
 		} else {
 			buffer_replace_bytes(len, " ", 1);
 		}
@@ -469,7 +469,7 @@ void join_lines(void)
 
 	view->cursor = bi;
 	if (u == '\n') {
-		buffer_delete_bytes(count, 0);
+		buffer_delete_bytes(count);
 	} else {
 		buffer_replace_bytes(count, " ", 1);
 	}
@@ -491,7 +491,7 @@ static void shift_right(int nr_lines, int count)
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
-				buffer_delete_bytes(info.bytes, 0);
+				buffer_delete_bytes(info.bytes);
 			}
 		} else if (info.sane) {
 			// insert whitespace
@@ -523,7 +523,7 @@ static void shift_left(int nr_lines, int count)
 		if (info.wsonly) {
 			if (info.bytes) {
 				// remove indentation
-				buffer_delete_bytes(info.bytes, 0);
+				buffer_delete_bytes(info.bytes);
 			}
 		} else if (info.level && info.sane) {
 			int n = count;
@@ -532,7 +532,7 @@ static void shift_left(int nr_lines, int count)
 				n = info.level;
 			if (use_spaces_for_indent())
 				n *= buffer->options.indent_width;
-			buffer_delete_bytes(n, 0);
+			buffer_delete_bytes(n);
 		} else if (info.bytes) {
 			// replace whole indentation with sane one
 			if (info.level > count) {
@@ -540,7 +540,7 @@ static void shift_left(int nr_lines, int count)
 				char *buf = alloc_indent(info.level - count, &size);
 				buffer_replace_bytes(info.bytes, buf, size);
 			} else {
-				buffer_delete_bytes(info.bytes, 0);
+				buffer_delete_bytes(info.bytes);
 			}
 		}
 		if (++i == nr_lines)

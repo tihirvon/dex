@@ -20,7 +20,8 @@ bool undo(void);
 bool redo(unsigned int change_id);
 void free_changes(struct change *head);
 void buffer_insert_bytes(const char *buf, long len);
-void buffer_delete_bytes(long len, int move_after);
+void buffer_delete_bytes(long len);
+void buffer_erase_bytes(long len);
 void buffer_replace_bytes(long del_count, const char *inserted, long ins_count);
 
 #endif

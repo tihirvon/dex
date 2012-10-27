@@ -74,7 +74,7 @@ static void record_insert(long len)
 	change->ins_count = len;
 }
 
-static void record_delete(char *buf, long len, int move_after)
+static void record_delete(char *buf, long len, bool move_after)
 {
 	struct change *change = buffer->cur_change;
 
@@ -340,7 +340,7 @@ static bool would_delete_last_bytes(long count)
 	}
 }
 
-void buffer_delete_bytes(long len, int move_after)
+static void buffer_delete_bytes_internal(long len, bool move_after)
 {
 	reset_preferred_x();
 	if (len == 0)
@@ -365,6 +365,16 @@ void buffer_delete_bytes(long len, int move_after)
 		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
+void buffer_delete_bytes(long len)
+{
+	buffer_delete_bytes_internal(len, false);
+}
+
+void buffer_erase_bytes(long len)
+{
+	buffer_delete_bytes_internal(len, true);
+}
+
 void buffer_replace_bytes(long del_count, const char *inserted, long ins_count)
 {
 	char *deleted = NULL;
@@ -375,7 +385,7 @@ void buffer_replace_bytes(long del_count, const char *inserted, long ins_count)
 		return;
 	}
 	if (ins_count == 0) {
-		buffer_delete_bytes(del_count, 0);
+		buffer_delete_bytes(del_count);
 		return;
 	}
 
