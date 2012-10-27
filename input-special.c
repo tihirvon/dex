@@ -35,17 +35,13 @@ void special_input_activate(void)
 	input_special = INPUT_SPECIAL_UNKNOWN;
 }
 
-bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
+static void keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
 {
-	*count = 0;
-	if (input_special == INPUT_SPECIAL_NONE)
-		return false;
-
 	if (type != KEY_NORMAL) {
 		if (type == KEY_PASTE)
 			term_discard_paste();
 		input_special = INPUT_SPECIAL_NONE;
-		return true;
+		return;
 	}
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		raw_input.value = 0;
@@ -75,9 +71,8 @@ bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf
 				buf[0] = key;
 				*count = 1;
 				input_special = INPUT_SPECIAL_NONE;
-				return true;
 			}
-			return true;
+			return;
 		}
 	}
 
@@ -86,7 +81,7 @@ bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf
 			raw_input.value /= raw_input.base;
 			raw_input.nr--;
 		}
-		return true;
+		return;
 	}
 
 	if (key != '\r') {
@@ -94,12 +89,12 @@ bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf
 
 		if (n < 0 || n >= raw_input.base) {
 			input_special = INPUT_SPECIAL_NONE;
-			return true;
+			return;
 		}
 		raw_input.value *= raw_input.base;
 		raw_input.value += n;
 		if (++raw_input.nr < raw_input.max_chars)
-			return true;
+			return;
 	}
 
 	if (input_special == INPUT_SPECIAL_UNICODE && u_is_unicode(raw_input.value)) {
@@ -112,6 +107,14 @@ bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf
 		*count = 1;
 	}
 	input_special = INPUT_SPECIAL_NONE;
+}
+
+bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
+{
+	*count = 0;
+	if (input_special == INPUT_SPECIAL_NONE)
+		return false;
+	keypress(type, key, buf, count);
 	return true;
 }
 
