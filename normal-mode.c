@@ -28,7 +28,7 @@ static void normal_mode_keypress(enum term_key_type type, unsigned int key)
 	if (special_input_keypress(type, key, buf, &count)) {
 		if (count) {
 			begin_change(CHANGE_MERGE_NONE);
-			insert(buf, count);
+			buffer_insert_bytes(buf, count);
 			end_change();
 			block_iter_skip_bytes(&view->cursor, count);
 		}

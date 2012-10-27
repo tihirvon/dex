@@ -299,7 +299,7 @@ top:
 	}
 }
 
-void insert(const char *buf, long len)
+void buffer_insert_bytes(const char *buf, long len)
 {
 	long rec_len = len;
 
@@ -340,7 +340,7 @@ static bool would_delete_last_bytes(long count)
 	}
 }
 
-void delete(long len, int move_after)
+void buffer_delete_bytes(long len, int move_after)
 {
 	reset_preferred_x();
 	if (len == 0)
@@ -365,17 +365,17 @@ void delete(long len, int move_after)
 		fix_cursors(block_iter_get_offset(&view->cursor), len, 0);
 }
 
-void replace(long del_count, const char *inserted, long ins_count)
+void buffer_replace_bytes(long del_count, const char *inserted, long ins_count)
 {
 	char *deleted = NULL;
 
 	reset_preferred_x();
 	if (del_count == 0) {
-		insert(inserted, ins_count);
+		buffer_insert_bytes(inserted, ins_count);
 		return;
 	}
 	if (ins_count == 0) {
-		delete(del_count, 0);
+		buffer_delete_bytes(del_count, 0);
 		return;
 	}
 
@@ -384,7 +384,7 @@ void replace(long del_count, const char *inserted, long ins_count)
 		if (inserted[ins_count - 1] != '\n') {
 			// don't replace last newline
 			if (--del_count == 0) {
-				insert(inserted, ins_count);
+				buffer_insert_bytes(inserted, ins_count);
 				return;
 			}
 		}

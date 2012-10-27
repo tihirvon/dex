@@ -333,7 +333,7 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 			if (buf == lr->line)
 				buf = xmemdup(buf, lr->size);
 
-			replace(match_len, str, nr_insert);
+			buffer_replace_bytes(match_len, str, nr_insert);
 			free(str);
 			nr++;
 
