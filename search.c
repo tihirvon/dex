@@ -27,7 +27,7 @@ static bool do_search_fwd(regex_t *regex, struct block_iter *bi, bool skip)
 		// partial line (text starting from the cursor position) and
 		// if match.rm_so is 0 then match is at beginning of the text
 		// which is same as the cursor position.
-		if (!buf_regexec(regex, lr.line, lr.size, 1, &match, flags)) {
+		if (regexp_exec(regex, lr.line, lr.size, 1, &match, flags)) {
 			if (skip && match.rm_so == 0) {
 				// ignore match at current cursor position
 				long count = match.rm_eo;
@@ -65,7 +65,7 @@ static bool do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, bool sk
 		long pos = 0;
 
 		fill_line_ref(bi, &lr);
-		while (pos <= lr.size && !buf_regexec(regex, lr.line + pos, lr.size - pos, 1, &match, flags)) {
+		while (pos <= lr.size && regexp_exec(regex, lr.line + pos, lr.size - pos, 1, &match, flags)) {
 			flags = REG_NOTBOL;
 			if (cx >= 0) {
 				if (pos + match.rm_so >= cx) {
@@ -293,7 +293,7 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 	int eflags = 0;
 	int nr = 0;
 
-	while (!buf_regexec(re, buf + pos, lr->size - pos, MAX_SUBSTRINGS, m, eflags)) {
+	while (regexp_exec(re, buf + pos, lr->size - pos, MAX_SUBSTRINGS, m, eflags)) {
 		int match_len = m[0].rm_eo - m[0].rm_so;
 		bool skip = false;
 

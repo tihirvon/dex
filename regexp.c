@@ -13,9 +13,9 @@ bool regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 		error_msg("Invalid regexp: %s", pattern);
 		return 0;
 	}
-	rc = buf_regexec(&re, buf, len, 1, &m, 0);
+	rc = regexp_exec(&re, buf, len, 1, &m, 0);
 	regfree(&re);
-	return !rc;
+	return rc;
 }
 
 #define REGEXP_SUBSTRINGS 8
@@ -34,7 +34,7 @@ int regexp_match(const char *pattern, const char *buf, unsigned int len)
 		error_msg("Invalid regexp: %s", pattern);
 		return 0;
 	}
-	ret = !buf_regexec(&re, buf, len, REGEXP_SUBSTRINGS, m, 0);
+	ret = regexp_exec(&re, buf, len, REGEXP_SUBSTRINGS, m, 0);
 	regfree(&re);
 	if (ret) {
 		int i;
@@ -59,27 +59,26 @@ void free_regexp_matches(void)
 	}
 }
 
-bool regexp_compile(regex_t *regexp, const char *pattern, int flags)
+bool regexp_compile(regex_t *re, const char *pattern, int flags)
 {
-	int err = regcomp(regexp, pattern, flags);
+	int err = regcomp(re, pattern, flags);
 
 	if (err) {
 		char msg[1024];
-		regerror(err, regexp, msg, sizeof(msg));
+		regerror(err, re, msg, sizeof(msg));
 		error_msg("%s: %s", msg, pattern);
 		return false;
 	}
 	return true;
 }
 
-int buf_regexec(const regex_t *regexp, const char *buf,
-	unsigned int size, size_t nr_m, regmatch_t *m, int flags)
+bool regexp_exec(const regex_t *re, const char *buf, long size, long nr_m, regmatch_t *m, int flags)
 {
 #ifdef REG_STARTEND
 	BUG_ON(!nr_m);
 	m[0].rm_so = 0;
 	m[0].rm_eo = size;
-	return regexec(regexp, buf, nr_m, m, flags | REG_STARTEND);
+	return !regexec(re, buf, nr_m, m, flags | REG_STARTEND);
 #else
 	// buffer must be null-terminated string if REG_STARTED is not supported
 	char *tmp = xnew(char, size + 1);
@@ -88,7 +87,7 @@ int buf_regexec(const regex_t *regexp, const char *buf,
 	BUG_ON(!nr_m);
 	memcpy(tmp, buf, size);
 	tmp[size] = 0;
-	ret = regexec(regexp, tmp, nr_m, m, flags);
+	ret = !regexec(re, tmp, nr_m, m, flags);
 	free(tmp);
 	return ret;
 #endif
