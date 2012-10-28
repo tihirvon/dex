@@ -589,31 +589,31 @@ ws-error [special]
 	Comma separated list of flags that describe what whitespace
 	errors should be highlighted. Set to `0` to disable.
 
-	trailing
-		Display trailing whitespace as error.
+	space-align
+		Display spaces used as alignment after tabs in
+		indentation as error.
 
 	space-indent
 		Display spaces in indentation as error. Note that this
 		still allows using less than `tab-width` spaces at end
 		of indentation for alignment.
 
-	space-align
-		Display spaces used as alignment after tabs in
-		indentation as error.
+	tab-after-indent
+		Display tabs used anywhere else but indentation as
+		errors.
 
 	tab-indent
 		Display tabs in indentation as errors. If you set this
 		you most likely want to set `tab-after-indent` too.
-
-	tab-after-indent
-		Display tabs used anywhere else but indentation as
-		errors.
 
 	special
 		Display all characters that look like regular space as
 		errors. One of these characters is no-break space
 		(U+00A0) which is often accidentally typed (AltGr+space
 		in some keyboard layouts).
+
+	trailing
+		Display trailing whitespace as error.
 
 @h2 Local only options
 
