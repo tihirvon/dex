@@ -99,6 +99,7 @@ dex_objects :=	 		\
 	ctags.o			\
 	ctype.o			\
 	decoder.o		\
+	detect.o		\
 	edit.o			\
 	editor.o		\
 	encoder.o		\
