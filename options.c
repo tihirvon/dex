@@ -288,7 +288,7 @@ static int parse_enum(const struct option_description *desc, const char *value)
 	int val, i;
 
 	for (i = 0; desc->u.enum_opt.values[i]; i++) {
-		if (!strcmp(desc->u.enum_opt.values[i], value))
+		if (streq(desc->u.enum_opt.values[i], value))
 			return i;
 	}
 	if (!str_to_int(value, &val) || val < 0 || val >= i) {
@@ -321,7 +321,7 @@ static int parse_flags(const struct option_description *desc, const char *value)
 		ptr = end;
 
 		for (i = 0; values[i]; i++) {
-			if (!strcmp(buf, values[i])) {
+			if (streq(buf, values[i])) {
 				flags |= 1 << i;
 				break;
 			}
@@ -553,7 +553,7 @@ void toggle_option_values(const char *name, bool global, bool verbose, char **va
 
 		value = *(char **)ptr;
 		for (i = 0; i < count; i++) {
-			if (!strcmp(values[i], value))
+			if (streq(values[i], value))
 				break;
 		}
 		if (i < count)

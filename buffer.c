@@ -231,7 +231,7 @@ static struct view *find_view(const char *abs_filename)
 			const char *f = v->buffer->abs_filename;
 			if (f == NULL)
 				continue;
-			if (!strcmp(f, abs_filename) || (st_ok && same_file(&st, &v->buffer->st))) {
+			if (streq(f, abs_filename) || (st_ok && same_file(&st, &v->buffer->st))) {
 				// found in current window?
 				if (v->window == window)
 					return v;

@@ -1,7 +1,7 @@
 #include "decoder.h"
 #include "editor.h"
 #include "uchar.h"
-#include "xmalloc.h"
+#include "common.h"
 #include "cconv.h"
 
 static bool fill(struct file_decoder *dec)
@@ -38,7 +38,7 @@ static bool detect(struct file_decoder *dec, const unsigned char *line, ssize_t 
 
 			if (u_is_unicode(u)) {
 				encoding = "UTF-8";
-			} else if (!strcmp(charset, "UTF-8")) {
+			} else if (streq(charset, "UTF-8")) {
 				// UTF-8 terminal, assuming latin1
 				encoding = "ISO-8859-1";
 			} else {
@@ -136,7 +136,7 @@ static bool detect_and_read_line(struct file_decoder *dec, char **linep, ssize_t
 
 static int set_encoding(struct file_decoder *dec, const char *encoding)
 {
-	if (!strcmp(encoding, "UTF-8")) {
+	if (streq(encoding, "UTF-8")) {
 		dec->read_line = read_utf8_line;
 	} else {
 		dec->cconv = cconv_to_utf8(encoding);

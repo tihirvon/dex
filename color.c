@@ -50,7 +50,7 @@ struct hl_color *set_highlight_color(const char *name, const struct term_color *
 
 	for (i = 0; i < hl_colors.count; i++) {
 		c = hl_colors.ptrs[i];
-		if (!strcmp(name, c->name)) {
+		if (streq(name, c->name)) {
 			c->color = *color;
 			return c;
 		}
@@ -69,7 +69,7 @@ static struct hl_color *find_real_color(const char *name)
 
 	for (i = 0; i < hl_colors.count; i++) {
 		struct hl_color *c = hl_colors.ptrs[i];
-		if (!strcmp(c->name, name))
+		if (streq(c->name, name))
 			return c;
 	}
 	return NULL;
@@ -134,7 +134,7 @@ static bool parse_color(const char *str, int *val)
 		return true;
 	}
 	for (i = 0; i < ARRAY_COUNT(color_names); i++) {
-		if (!strcmp(str, color_names[i])) {
+		if (streq(str, color_names[i])) {
 			*val = i - 2;
 			return true;
 		}
@@ -147,7 +147,7 @@ static bool parse_attr(const char *str, unsigned short *attr)
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(attr_names); i++) {
-		if (!strcmp(str, attr_names[i])) {
+		if (streq(str, attr_names[i])) {
 			*attr |= 1 << i;
 			return true;
 		}

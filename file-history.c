@@ -21,7 +21,7 @@ void add_file_history(int row, int col, const char *filename)
 
 	for (i = 0; i < history.count; i++) {
 		e = history.ptrs[i];
-		if (!strcmp(filename, e->filename)) {
+		if (streq(filename, e->filename)) {
 			e->row = row;
 			e->col = col;
 			// keep newest at end of the array
@@ -108,7 +108,7 @@ bool find_file_in_history(const char *filename, int *row, int *col)
 
 	for (i = 0; i < history.count; i++) {
 		struct history_entry *e = history.ptrs[i];
-		if (!strcmp(filename, e->filename)) {
+		if (streq(filename, e->filename)) {
 			*row = e->row;
 			*col = e->col;
 			return true;

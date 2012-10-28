@@ -327,7 +327,7 @@ void update_term_title(void)
 		if (term) {
 			if (strstr(term, "xterm") || strstr(term, "rxvt")) {
 				term_type = 1;
-			} else if (!strcmp(term, "screen")) {
+			} else if (streq(term, "screen")) {
 				term_type = 2;
 			}
 		}

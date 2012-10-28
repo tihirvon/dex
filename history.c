@@ -17,7 +17,7 @@ void history_add(struct ptr_array *history, const char *text, int max_entries)
 
 	// don't add identical entries
 	for (i = 0; i < history->count; i++) {
-		if (!strcmp(history->ptrs[i], text)) {
+		if (streq(history->ptrs[i], text)) {
 			// move identical entry to end
 			ptr_array_add(history, ptr_array_remove(history, i));
 			return;

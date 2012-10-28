@@ -24,7 +24,7 @@ struct string_list *find_string_list(struct syntax *syn, const char *name)
 
 	for (i = 0; i < syn->string_lists.count; i++) {
 		struct string_list *list = syn->string_lists.ptrs[i];
-		if (!strcmp(list->name, name))
+		if (streq(list->name, name))
 			return list;
 	}
 	return NULL;
@@ -36,7 +36,7 @@ struct state *find_state(struct syntax *syn, const char *name)
 
 	for (i = 0; i < syn->states.count; i++) {
 		struct state *s = syn->states.ptrs[i];
-		if (!strcmp(s->name, name))
+		if (streq(s->name, name))
 			return s;
 	}
 	return NULL;
@@ -59,7 +59,7 @@ struct syntax *find_any_syntax(const char *name)
 
 	for (i = 0; i < syntaxes.count; i++) {
 		struct syntax *syn = syntaxes.ptrs[i];
-		if (!strcmp(syn->name, name))
+		if (streq(syn->name, name))
 			return syn;
 	}
 	return NULL;
@@ -298,7 +298,7 @@ static const char *find_default_color(struct syntax *syn, const char *name)
 	for (i = 0; i < syn->default_colors.count; i++) {
 		char **strs = syn->default_colors.ptrs[i];
 		for (j = 1; strs[j]; j++) {
-			if (!strcmp(strs[j], name))
+			if (streq(strs[j], name))
 				return strs[0];
 		}
 	}

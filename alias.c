@@ -42,7 +42,7 @@ void add_alias(const char *name, const char *value)
 	/* replace existing alias */
 	for (i = 0; i < aliases.count; i++) {
 		alias = aliases.ptrs[i];
-		if (!strcmp(alias->name, name)) {
+		if (streq(alias->name, name)) {
 			free(alias->value);
 			alias->value = xstrdup(value);
 			return;
@@ -76,7 +76,7 @@ const char *find_alias(const char *name)
 
 	for (i = 0; i < aliases.count; i++) {
 		const struct alias *alias = aliases.ptrs[i];
-		if (!strcmp(alias->name, name))
+		if (streq(alias->name, name))
 			return alias->value;
 	}
 	return NULL;

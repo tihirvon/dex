@@ -39,6 +39,11 @@ static inline void d_print(const char *fmt, ...)
 			BUG("%s\n", STRINGIFY(a)); \
 	} while (0)
 
+static inline bool streq(const char *a, const char *b)
+{
+	return !strcmp(a, b);
+}
+
 static inline bool str_has_prefix(const char *str, const char *prefix)
 {
 	return !strncmp(str, prefix, strlen(prefix));

@@ -78,7 +78,7 @@ static int lock_or_unlock(const char *filename, bool lock)
 		file_locks = editor_file("file-locks");
 		file_locks_lock = editor_file("file-locks.lock");
 	}
-	if (!strcmp(filename, file_locks) || !strcmp(filename, file_locks_lock))
+	if (streq(filename, file_locks) || streq(filename, file_locks_lock))
 		return 0;
 
 	while (1) {

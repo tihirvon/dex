@@ -27,7 +27,7 @@ const char *parse_args(char **args, const char *flag_desc, int min, int max)
 	while (args[i]) {
 		char *arg = args[i];
 
-		if (!strcmp(arg, "--")) {
+		if (streq(arg, "--")) {
 			/* move the NULL too */
 			memmove(args + i, args + i + 1, (argc - i) * sizeof(*args));
 			free(arg);

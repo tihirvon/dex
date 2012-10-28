@@ -4,7 +4,7 @@
 #include "parse-args.h"
 #include "change.h"
 #include "config.h"
-#include "xmalloc.h"
+#include "common.h"
 
 // commands that are allowed in config files
 static const char *config_commands[] = {
@@ -28,7 +28,7 @@ static bool allowed_command(const char *name)
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(config_commands); i++) {
-		if (!strcmp(name, config_commands[i]))
+		if (streq(name, config_commands[i]))
 			return true;
 	}
 	return false;
@@ -41,7 +41,7 @@ const struct command *find_command(const struct command *cmds, const char *name)
 	for (i = 0; cmds[i].name; i++) {
 		const struct command *cmd = &cmds[i];
 
-		if (!strcmp(name, cmd->name))
+		if (streq(name, cmd->name))
 			return cmd;
 	}
 	return NULL;

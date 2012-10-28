@@ -51,7 +51,7 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 			// UTF-16BE/LE or UTF-32BE/LE
 			b->encoding = xstrdup(e);
 		}
-	} else if (!strcmp(b->encoding, "UTF-16")) {
+	} else if (streq(b->encoding, "UTF-16")) {
 		// BE or LE?
 		if (e && str_has_prefix(e, b->encoding)) {
 			free(b->encoding);
@@ -62,7 +62,7 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 			free(b->encoding);
 			b->encoding = xstrdup("UTF-16BE");
 		}
-	} else if (!strcmp(b->encoding, "UTF-32")) {
+	} else if (streq(b->encoding, "UTF-32")) {
 		// BE or LE?
 		if (e && str_has_prefix(e, b->encoding)) {
 			free(b->encoding);
@@ -76,7 +76,7 @@ static int decode_and_add_blocks(struct buffer *b, const unsigned char *buf, siz
 	}
 
 	// Skip BOM only if it matches the specified file encoding.
-	if (b->encoding && e && !strcmp(b->encoding, e)) {
+	if (b->encoding && e && streq(b->encoding, e)) {
 		size_t bom_len = 2;
 		if (str_has_prefix(e, "UTF-32"))
 			bom_len = 4;

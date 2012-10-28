@@ -429,9 +429,9 @@ static void cmd_move_tab(const char *pf, char **args)
 	int j, i = view_idx();
 	char *str = args[0];
 
-	if (!strcmp(str, "left")) {
+	if (streq(str, "left")) {
 		j = new_view_idx(i - 1);
-	} else if (!strcmp(str, "right")) {
+	} else if (streq(str, "right")) {
 		j = new_view_idx(i + 1);
 	} else {
 		long num;
@@ -769,7 +769,7 @@ static void cmd_save(const char *pf, char **args)
 			error_msg("Failed to make absolute path: %s", strerror(errno));
 			return;
 		}
-		if (absolute && !strcmp(tmp, absolute)) {
+		if (absolute && streq(tmp, absolute)) {
 			free(tmp);
 		} else {
 			absolute = tmp;
@@ -878,7 +878,7 @@ static void cmd_save(const char *pf, char **args)
 		// filename change is not detected (only buffer_modified() change)
 		mark_buffer_tabbars_changed();
 	}
-	if (!old_mode && !strcmp(buffer->options.filetype, "none")) {
+	if (!old_mode && streq(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
 		if (guess_filetype())
 			filetype_changed();
@@ -1203,7 +1203,7 @@ static void cmd_view(const char *pf, char **args)
 {
 	int idx;
 
-	if (strcmp(args[0], "last") == 0) {
+	if (streq(args[0], "last")) {
 		idx = window->views.count - 1;
 	} else {
 		idx = atoi(args[0]) - 1;

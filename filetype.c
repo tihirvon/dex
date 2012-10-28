@@ -125,7 +125,7 @@ bool is_ft(const char *name)
 
 	for (i = 0; i < filetypes.count; i++) {
 		const struct filetype *ft = filetypes.ptrs[i];
-		if (!strcmp(ft->name, name))
+		if (streq(ft->name, name))
 			return true;
 	}
 	return false;

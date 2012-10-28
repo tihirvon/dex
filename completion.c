@@ -203,21 +203,21 @@ static void collect_completions(char **args, int argc)
 	if (!cmd)
 		return;
 
-	if (!strcmp(cmd->name, "open") ||
-	    !strcmp(cmd->name, "wsplit") ||
-	    !strcmp(cmd->name, "save") ||
-	    !strcmp(cmd->name, "compile") ||
-	    !strcmp(cmd->name, "run") ||
-	    !strcmp(cmd->name, "pass-through") ||
-	    !strcmp(cmd->name, "include")) {
+	if (streq(cmd->name, "open") ||
+	    streq(cmd->name, "wsplit") ||
+	    streq(cmd->name, "save") ||
+	    streq(cmd->name, "compile") ||
+	    streq(cmd->name, "run") ||
+	    streq(cmd->name, "pass-through") ||
+	    streq(cmd->name, "include")) {
 		collect_files(false);
 		return;
 	}
-	if (!strcmp(cmd->name, "cd")) {
+	if (streq(cmd->name, "cd")) {
 		collect_files(true);
 		return;
 	}
-	if (!strcmp(cmd->name, "hi")) {
+	if (streq(cmd->name, "hi")) {
 		switch (argc) {
 		case 1:
 			collect_hl_colors(completion.parsed);
@@ -228,7 +228,7 @@ static void collect_completions(char **args, int argc)
 		}
 		return;
 	}
-	if (!strcmp(cmd->name, "set")) {
+	if (streq(cmd->name, "set")) {
 		if (argc % 2) {
 			collect_options(completion.parsed);
 		} else {
@@ -236,11 +236,11 @@ static void collect_completions(char **args, int argc)
 		}
 		return;
 	}
-	if (!strcmp(cmd->name, "toggle") && argc == 1) {
+	if (streq(cmd->name, "toggle") && argc == 1) {
 		collect_toggleable_options(completion.parsed);
 		return;
 	}
-	if (!strcmp(cmd->name, "tag") && argc == 1) {
+	if (streq(cmd->name, "tag") && argc == 1) {
 		collect_tags(completion.parsed);
 		return;
 	}

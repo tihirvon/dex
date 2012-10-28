@@ -28,7 +28,7 @@ void set_file_options(void)
 		const struct file_option *opt = file_options.ptrs[i];
 
 		if (opt->type == FILE_OPTIONS_FILETYPE) {
-			if (!strcmp(opt->type_or_pattern, buffer->options.filetype))
+			if (streq(opt->type_or_pattern, buffer->options.filetype))
 				set_options(opt->strs);
 		} else if (buffer->abs_filename && regexp_match_nosub(
 							opt->type_or_pattern,

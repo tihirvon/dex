@@ -69,7 +69,7 @@ static struct state *add_state(const char *name, bool defined)
 {
 	struct state *st;
 
-	if (!strcmp(name, "END")) {
+	if (streq(name, "END")) {
 		error_msg("%s is reserved state name", name);
 		return NULL;
 	}
@@ -121,7 +121,7 @@ static bool subsyntax_call(const char *name, const char *ret, struct state **des
 		error_msg("Syntax %s is not subsyntax", name);
 		ok = false;
 	}
-	if (!strcmp(ret, "END")) {
+	if (streq(ret, "END")) {
 		if (not_subsyntax())
 			ok = false;
 	} else if (ok) {
@@ -143,7 +143,7 @@ static bool destination_state(const char *name, struct state **dest)
 		free(sub);
 		return success;
 	}
-	if (!strcmp(name, "END")) {
+	if (streq(name, "END")) {
 		if (not_subsyntax())
 			return false;
 		*dest = NULL;
@@ -343,7 +343,7 @@ static void cmd_noeat(const char *pf, char **args)
 	if (no_state())
 		return;
 
-	if (!strcmp(args[0], current_state->name)) {
+	if (streq(args[0], current_state->name)) {
 		error_msg("Using noeat to to jump to parent state causes infinite loop");
 		return;
 	}

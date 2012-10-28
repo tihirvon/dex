@@ -41,14 +41,14 @@ char *normalize_encoding(const char *encoding)
 		e[i] = toupper(e[i]);
 
 	for (i = 0; i < ARRAY_COUNT(aliases); i++) {
-		if (!strcmp(e, aliases[i].alias)) {
+		if (streq(e, aliases[i].alias)) {
 			free(e);
 			e = xstrdup(aliases[i].encoding);
 			break;
 		}
 	}
 
-	if (!strcmp(e, "UTF-8"))
+	if (streq(e, "UTF-8"))
 		return e;
 
 	cd = iconv_open("UTF-8", e);
@@ -78,7 +78,7 @@ const struct byte_order_mark *get_bom_for_encoding(const char *encoding)
 
 	for (i = 0; i < ARRAY_COUNT(boms); i++) {
 		const struct byte_order_mark *bom = &boms[i];
-		if (!strcmp(bom->encoding, encoding))
+		if (streq(bom->encoding, encoding))
 			return bom;
 	}
 	return NULL;

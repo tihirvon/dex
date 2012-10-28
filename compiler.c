@@ -1,6 +1,6 @@
 #include "compiler.h"
 #include "error.h"
-#include "xmalloc.h"
+#include "common.h"
 
 static PTR_ARRAY(compilers);
 
@@ -23,7 +23,7 @@ struct compiler *find_compiler(const char *name)
 
 	for (i = 0; i < compilers.count; i++) {
 		struct compiler *c = compilers.ptrs[i];
-		if (!strcmp(c->name, name))
+		if (streq(c->name, name))
 			return c;
 	}
 	return NULL;
@@ -38,7 +38,7 @@ void add_error_fmt(const char *compiler, bool ignore, const char *format, char *
 
 	for (i = 0; desc[i]; i++) {
 		for (j = 0; j < ARRAY_COUNT(names); j++) {
-			if (!strcmp(desc[i], names[j])) {
+			if (streq(desc[i], names[j])) {
 				idx[j] = i + 1;
 				break;
 			}

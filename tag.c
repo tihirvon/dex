@@ -18,9 +18,9 @@ static int visibility_cmp(const struct tag *a, const struct tag *b)
 
 	// Is tag visibility limited to the current file?
 	if (a->local)
-		a_this_file = current_filename && !strcmp(current_filename, a->filename);
+		a_this_file = current_filename && streq(current_filename, a->filename);
 	if (b->local)
-		b_this_file = current_filename && !strcmp(current_filename, b->filename);
+		b_this_file = current_filename && streq(current_filename, b->filename);
 
 	// Tags local to other file than current are not interesting.
 	if (a->local && !a_this_file) {

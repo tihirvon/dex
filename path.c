@@ -69,7 +69,7 @@ char *path_absolute(const char *filename)
 
 		if (ep)
 			*ep = 0;
-		if (!strcmp(sp, ".")) {
+		if (streq(sp, ".")) {
 			if (last) {
 				*sp = 0;
 				break;
@@ -77,7 +77,7 @@ char *path_absolute(const char *filename)
 			memmove(sp, ep + 1, strlen(ep + 1) + 1);
 			continue;
 		}
-		if (!strcmp(sp, "..")) {
+		if (streq(sp, "..")) {
 			if (sp != buf + 1) {
 				// not first component, remove previous component
 				sp--;
