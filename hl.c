@@ -281,9 +281,9 @@ static int fill_hole(struct block_iter *bi, int sidx, int eidx)
 
 void hl_fill_start_states(int line_nr)
 {
+	BLOCK_ITER(bi, &buffer->blocks);
 	struct ptr_array *s = &buffer->line_start_states;
 	struct state **states;
-	struct block_iter bi;
 	int current_line = 0;
 	int idx = 0;
 	int last;
@@ -291,7 +291,6 @@ void hl_fill_start_states(int line_nr)
 	if (!buffer->syn)
 		return;
 
-	buffer_bof(&bi);
 	// NOTE: "+ 2" so that you don't have to worry about overflow in fill_hole()
 	resize_line_states(s, line_nr + 2);
 	states = (struct state **)s->ptrs;

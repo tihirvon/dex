@@ -283,12 +283,11 @@ static bool next_line(struct block_iter *bi, struct lineref *lr)
  */
 static char *get_interpreter(void)
 {
-	struct block_iter bi;
+	BLOCK_ITER(bi, &buffer->blocks);
 	struct lineref lr;
 	char *ret;
 	int n;
 
-	buffer_bof(&bi);
 	fill_line_ref(&bi, &lr);
 	n = regexp_match("^#!\\s*/.*(/env\\s+|/)([a-zA-Z_-]+)[0-9.]*(\\s|$)",
 		lr.line, lr.size);
@@ -322,10 +321,9 @@ bool guess_filetype(void)
 	const char *ft = NULL;
 
 	if (BLOCK(buffer->blocks.next)->size) {
+		BLOCK_ITER(bi, &buffer->blocks);
 		struct lineref lr;
-		struct block_iter bi;
 
-		buffer_bof(&bi);
 		fill_line_ref(&bi, &lr);
 		ft = find_ft(buffer->abs_filename, interpreter, lr.line, lr.size);
 	} else if (buffer->abs_filename) {

@@ -163,20 +163,6 @@ long buffer_get_char(struct block_iter *bi, unsigned int *up);
 long buffer_next_char(struct block_iter *bi, unsigned int *up);
 long buffer_prev_char(struct block_iter *bi, unsigned int *up);
 
-static inline void buffer_bof(struct block_iter *bi)
-{
-	bi->head = &buffer->blocks;
-	bi->blk = BLOCK(buffer->blocks.next);
-	bi->offset = 0;
-}
-
-static inline void buffer_eof(struct block_iter *bi)
-{
-	bi->head = &buffer->blocks;
-	bi->blk = BLOCK(buffer->blocks.prev);
-	bi->offset = bi->blk->size;
-}
-
 bool guess_filetype(void);
 void syntax_changed(void);
 void filetype_changed(void);

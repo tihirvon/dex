@@ -137,13 +137,13 @@ void move_down(int count)
 
 void move_bof(void)
 {
-	buffer_bof(&view->cursor);
+	block_iter_bof(&view->cursor);
 	reset_preferred_x();
 }
 
 void move_eof(void)
 {
-	buffer_eof(&view->cursor);
+	block_iter_eof(&view->cursor);
 	reset_preferred_x();
 }
 

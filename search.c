@@ -103,13 +103,12 @@ next:
 
 void search_tag(const char *pattern)
 {
-	struct block_iter bi = view->cursor;
+	BLOCK_ITER(bi, &buffer->blocks);
 	regex_t regex;
 
 	if (!regexp_compile(&regex, pattern, REG_NEWLINE))
 		return;
 
-	buffer_bof(&bi);
 	if (do_search_fwd(&regex, &bi, false)) {
 		view->center_on_scroll = true;
 	} else {
@@ -209,7 +208,7 @@ static void do_search_next(bool skip)
 		if (do_search_fwd(&current_search.regex, &bi, true))
 			return;
 
-		buffer_bof(&bi);
+		block_iter_bof(&bi);
 		if (do_search_fwd(&current_search.regex, &bi, false)) {
 			info_msg("Continuing at top.");
 		} else {
@@ -221,7 +220,7 @@ static void do_search_next(bool skip)
 		if (do_search_bwd(&current_search.regex, &bi, cursor_x, skip))
 			return;
 
-		buffer_eof(&bi);
+		block_iter_eof(&bi);
 		if (do_search_bwd(&current_search.regex, &bi, -1, false)) {
 			info_msg("Continuing at bottom.");
 		} else {
@@ -367,7 +366,7 @@ out:
 
 void reg_replace(const char *pattern, const char *format, unsigned int flags)
 {
-	struct block_iter bi;
+	BLOCK_ITER(bi, &buffer->blocks);
 	unsigned int nr_bytes;
 	bool swapped = false;
 	int re_flags = REG_EXTENDED | REG_NEWLINE;
@@ -393,9 +392,8 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		bi = view->cursor;
 		nr_bytes = info.eo - info.so;
 	} else {
-		struct block_iter eof;
-		buffer_bof(&bi);
-		buffer_eof(&eof);
+		struct block_iter eof = bi;
+		block_iter_eof(&eof);
 		nr_bytes = block_iter_get_offset(&eof);
 	}
 

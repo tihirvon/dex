@@ -34,6 +34,20 @@ struct lineref {
 	long size;
 };
 
+#define BLOCK_ITER(name, head) struct block_iter name = { BLOCK((head)->next), (head), 0 }
+
+static inline void block_iter_bof(struct block_iter *bi)
+{
+	bi->blk = BLOCK(bi->head->next);
+	bi->offset = 0;
+}
+
+static inline void block_iter_eof(struct block_iter *bi)
+{
+	bi->blk = BLOCK(bi->head->prev);
+	bi->offset = bi->blk->size;
+}
+
 void block_iter_normalize(struct block_iter *bi);
 long block_iter_eat_line(struct block_iter *bi);
 long block_iter_next_line(struct block_iter *bi);
