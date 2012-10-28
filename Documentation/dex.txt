@@ -589,6 +589,11 @@ ws-error [special]
 	Comma separated list of flags that describe what whitespace
 	errors should be highlighted. Set to `0` to disable.
 
+	auto-indent
+		If expand-tab is true then same as
+		`tab-after-indent,tab-indent` otherwise same as
+		`space-indent`.
+
 	space-align
 		Display spaces used as alignment after tabs in
 		indentation as error.

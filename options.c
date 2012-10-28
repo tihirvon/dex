@@ -227,6 +227,7 @@ static const char *ws_error_values[] = {
 	"tab-indent",
 	"tab-after-indent",
 	"special",
+	"auto-indent",
 	NULL
 };
 

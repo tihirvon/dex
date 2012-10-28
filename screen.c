@@ -400,9 +400,23 @@ static bool is_non_text(unsigned int u)
 	return u_is_unprintable(u);
 }
 
-static bool whitespace_error(struct line_info *info, unsigned int u, long i)
+static int get_ws_error_option(void)
 {
 	int flags = buffer->options.ws_error;
+
+	if (flags & WSE_AUTO_INDENT) {
+		if (buffer->options.expand_tab) {
+			flags |= WSE_TAB_AFTER_INDENT | WSE_TAB_INDENT;
+		} else {
+			flags |= WSE_SPACE_INDENT;
+		}
+	}
+	return flags;
+}
+
+static bool whitespace_error(struct line_info *info, unsigned int u, long i)
+{
+	int flags = get_ws_error_option();
 
 	if (i >= info->trailing_ws_offset && flags & WSE_TRAILING) {
 		// Trailing whitespace.
