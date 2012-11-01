@@ -41,6 +41,7 @@ enum case_sensitive_search {
 
 struct common_options {
 	int auto_indent;
+	int detect_indent;
 	int emulate_tab;
 	int expand_tab;
 	int file_history;
@@ -54,6 +55,7 @@ struct common_options {
 struct local_options {
 	/* these have also global values */
 	int auto_indent;
+	int detect_indent;
 	int emulate_tab;
 	int expand_tab;
 	int file_history;
@@ -72,6 +74,7 @@ struct local_options {
 struct global_options {
 	/* these have also local values */
 	int auto_indent;
+	int detect_indent;
 	int emulate_tab;
 	int expand_tab;
 	int file_history;

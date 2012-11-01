@@ -413,6 +413,9 @@ void setup_buffer(void)
 	buffer->setup = true;
 	guess_filetype();
 	filetype_changed();
+	if (buffer->options.detect_indent && buffer->abs_filename) {
+		detect_indent(buffer);
+	}
 	if (buffer->options.file_history && buffer->abs_filename)
 		restore_cursor_from_history();
 }

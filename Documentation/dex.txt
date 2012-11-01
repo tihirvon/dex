@@ -562,6 +562,16 @@ auto-indent [true]
 	automatically increased if the regular expression matches
 	current line.
 
+detect-indent [""]
+	Comma separated list of indent widths (1-8) to detect
+	automatically when file is opened. Set to "" to disable. Tab
+	indentation is detected if the value is not "". Adjusts
+	following options if indentation style is detected:
+	*emulate-tab*, *expand-tab*, *indent-width*.
+
+	Example:
+		set detect-indent 2,3,4,8
+
 emulate-tab [false]
 	Make *delete*, *erase* and moving *left* and *right* inside
 	indentation feel as if there were tabs instead of spaces.

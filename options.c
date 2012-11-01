@@ -8,6 +8,7 @@
 
 struct global_options options = {
 	.auto_indent = 1,
+	.detect_indent = 0,
 	.emulate_tab = 0,
 	.expand_tab = 0,
 	.file_history = 1,
@@ -230,11 +231,13 @@ static const char *ws_error_values[] = {
 	"auto-indent",
 	NULL
 };
+static const char *detect_indent_values[] = { "1", "2", "3", "4", "5", "6", "7", "8", NULL };
 
 static const struct option_description option_desc[] = {
 	C_BOOL("auto-indent", auto_indent, default_bool_set),
 	L_BOOL("brace-indent", brace_indent, default_bool_set),
 	G_ENUM("case-sensitive-search", case_sensitive_search, case_sensitive_search_enum, default_enum_set),
+	C_FLAG("detect-indent", detect_indent, detect_indent_values, default_flag_set),
 	G_BOOL("display-special", display_special, default_bool_set),
 	C_BOOL("emulate-tab", emulate_tab, default_bool_set),
 	G_INT("esc-timeout", esc_timeout, 0, 2000, default_int_set),
