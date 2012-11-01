@@ -587,7 +587,7 @@ text-width [72]
 
 ws-error [special]
 	Comma separated list of flags that describe what whitespace
-	errors should be highlighted. Set to `0` to disable.
+	errors should be highlighted. Set to "" to disable.
 
 	auto-indent
 		If expand-tab is true then same as

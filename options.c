@@ -302,8 +302,12 @@ static int parse_flags(const struct option_description *desc, const char *value)
 {
 	const char **values = desc->u.flag_opt.values;
 	const char *ptr = value;
-	int flags = 0;
+	int val, flags = 0;
 
+	// "0" is allowed for compatibility and is same as ""
+	if (str_to_int(value, &val) && val == 0) {
+		return 0;
+	}
 	while (*ptr) {
 		const char *end = strchr(ptr, ',');
 		char *buf;
@@ -327,14 +331,9 @@ static int parse_flags(const struct option_description *desc, const char *value)
 			}
 		}
 		if (!values[i]) {
-			int val, max = (1 << i) - 1;
-
-			if (!str_to_int(buf, &val) || val < 0 || val > max) {
-				error_msg("Invalid value for %s.", desc->name);
-				free(buf);
-				return -1;
-			}
-			flags |= val;
+			error_msg("Invalid flag '%s' for %s.", buf, desc->name);
+			free(buf);
+			return -1;
 		}
 		free(buf);
 	}
