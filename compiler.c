@@ -60,6 +60,15 @@ void add_error_fmt(const char *compiler, bool ignore, const char *format, char *
 		free(f);
 		return;
 	}
+	for (i = 0; i < ARRAY_COUNT(idx); i++) {
+		// NOTE: -1 is larger than 0UL
+		if (idx[i] > (int)f->re.re_nsub) {
+			error_msg("Invalid substring count.");
+			regfree(&f->re);
+			free(f);
+			return;
+		}
+	}
 
 	ptr_array_add(&add_compiler(compiler)->error_formats, f);
 }
