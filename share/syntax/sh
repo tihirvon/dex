@@ -1,12 +1,29 @@
-# variables
-syntax .sh-variable
+# $var, $(command), $((expression))
+syntax .sh-dollar
 
-state variable
+state special
+	char '(' paren
+	recolor variable 1
+	char '{' brace
 	char '*@#?$!0-9-' END variable
 	char a-zA-Z_ name
-	char '{' brace
-	char '(' paren
 	noeat END
+
+state paren special
+	char '(' expression special
+	noeat command
+
+state expression
+	char ')' expression-end
+	eat expression
+
+state expression-end special
+	char ')' END special
+	eat END error
+
+state command
+	char ')' END special
+	eat command
 
 state name variable
 	char a-zA-Z_0-9 name
@@ -14,11 +31,15 @@ state name variable
 
 state brace variable
 	char -n "\n}" brace
-	eat END
+	eat END variable
 
-state paren special
-	char ')' END special
-	eat paren
+# `command`
+syntax .sh-backtick
+
+state special
+	# can't escape `
+	char ` END special
+	eat special
 
 # common to <<"EOF" and <<'EOF'
 syntax .sh-heredoc-common
@@ -50,8 +71,9 @@ state bol string
 	noeat string
 
 state string
-	# FIXME: variables etc.
 	char "\n" bol
+	char \` .sh-backtick:string
+	char \$ .sh-dollar:string
 	eat string
 
 state match special
@@ -138,11 +160,8 @@ state args code
 	char "'" sq
 	char '"' dq
 	char \\ esc
-	# FIXME: after second ` should go to args
-	char ` command special
-	str "$((" args special
-	str "$(" command special
-	char \$ .sh-variable:args
+	char ` .sh-backtick:args
+	char \$ .sh-dollar:args
 	char "\n" start
 	# && is same as two &, same for |. does not matter
 	char ";&|" start special
@@ -162,18 +181,14 @@ state sq string
 state dq string
 	char '"' args string
 	char \\ dqescape
-	char \$ .sh-variable:dq
-	char '`' dqcmd
+	char ` .sh-backtick:dq
+	char \$ .sh-dollar:dq
 	eat dq
 
 state dqescape special
 	char '"$\`'"\n" dq special
 	recolor string 1
 	eat dq
-
-state dqcmd special
-	char '`' dq special
-	eat dqcmd
 
 state esc special
 	eat args special
@@ -224,3 +239,5 @@ list builtin \
 	time declare typeset dirs disown echo enable eval fc fg getopts hash \
 	help history jobs let local logout popd printf pushd pwd read \
 	readonly shopt set trap type ulimit umask unalias unset wait "."
+
+default special expression
