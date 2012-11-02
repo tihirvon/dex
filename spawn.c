@@ -26,17 +26,18 @@ static void handle_error_msg(struct compiler *c, char *str)
 
 	for (i = 0; i < c->error_formats.count; i++) {
 		const struct error_format *p = c->error_formats.ptrs[i];
+		PTR_ARRAY(m);
 
-		if (!regexp_match(p->pattern, str, len))
+		if (!regexp_match(p->pattern, str, len, &m))
 			continue;
 		if (!p->ignore) {
-			struct message *m = new_message(regexp_matches[p->msg_idx]);
-			m->file = p->file_idx < 0 ? NULL : xstrdup(regexp_matches[p->file_idx]);
-			m->u.location.line = p->line_idx < 0 ? 0 : atoi(regexp_matches[p->line_idx]);
-			m->u.location.column = p->column_idx < 0 ? 0 : atoi(regexp_matches[p->column_idx]);
-			add_message(m);
+			struct message *msg = new_message(m.ptrs[p->msg_idx]);
+			msg->file = p->file_idx < 0 ? NULL : xstrdup(m.ptrs[p->file_idx]);
+			msg->u.location.line = p->line_idx < 0 ? 0 : atoi(m.ptrs[p->line_idx]);
+			msg->u.location.column = p->column_idx < 0 ? 0 : atoi(m.ptrs[p->column_idx]);
+			add_message(msg);
 		}
-		free_regexp_matches();
+		ptr_array_free(&m);
 		return;
 	}
 	add_message(new_message(str));

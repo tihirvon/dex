@@ -18,45 +18,20 @@ bool regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
 	return rc;
 }
 
-#define REGEXP_SUBSTRINGS 8
-
-char *regexp_matches[REGEXP_SUBSTRINGS + 1];
-
-// returns number of regexp_matches[]
-int regexp_match(const char *pattern, const char *buf, unsigned int len)
+bool regexp_match(const char *pattern, const char *buf, long size, struct ptr_array *m)
 {
-	regmatch_t m[REGEXP_SUBSTRINGS];
 	regex_t re;
-	int err, ret;
+	int err;
+	bool ret;
 
 	err = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE);
 	if (err) {
 		error_msg("Invalid regexp: %s", pattern);
-		return 0;
+		return false;
 	}
-	ret = regexp_exec(&re, buf, len, REGEXP_SUBSTRINGS, m, 0);
+	ret = regexp_exec_sub(&re, buf, size, m, 0);
 	regfree(&re);
-	if (ret) {
-		int i;
-		for (i = 0; i < REGEXP_SUBSTRINGS; i++) {
-			if (m[i].rm_so == -1)
-				break;
-			regexp_matches[i] = xstrslice(buf, m[i].rm_so, m[i].rm_eo);
-		}
-		regexp_matches[i] = NULL;
-		return i;
-	}
 	return ret;
-}
-
-void free_regexp_matches(void)
-{
-	int i;
-
-	for (i = 0; i < REGEXP_SUBSTRINGS; i++) {
-		free(regexp_matches[i]);
-		regexp_matches[i] = NULL;
-	}
 }
 
 bool regexp_compile(regex_t *re, const char *pattern, int flags)
@@ -91,4 +66,20 @@ bool regexp_exec(const regex_t *re, const char *buf, long size, long nr_m, regma
 	free(tmp);
 	return ret;
 #endif
+}
+
+bool regexp_exec_sub(const regex_t *re, const char *buf, long size, struct ptr_array *matches, int flags)
+{
+	regmatch_t m[16];
+	bool ret = regexp_exec(re, buf, size, ARRAY_COUNT(m), m, flags);
+	int i;
+
+	if (!ret)
+		return false;
+	for (i = 0; i < ARRAY_COUNT(m); i++) {
+		if (m[i].rm_so == -1)
+			break;
+		ptr_array_add(matches, xstrslice(buf, m[i].rm_so, m[i].rm_eo));
+	}
+	return true;
 }

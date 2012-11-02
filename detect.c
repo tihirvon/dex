@@ -18,18 +18,16 @@ static bool next_line(struct block_iter *bi, struct lineref *lr)
 char *detect_interpreter(struct buffer *b)
 {
 	BLOCK_ITER(bi, &b->blocks);
+	PTR_ARRAY(m);
 	struct lineref lr;
 	char *ret;
-	int n;
 
 	fill_line_ref(&bi, &lr);
-	n = regexp_match("^#!\\s*/.*(/env\\s+|/)([a-zA-Z_-]+)[0-9.]*(\\s|$)",
-		lr.line, lr.size);
-	if (!n)
+	if (!regexp_match("^#!\\s*/.*(/env\\s+|/)([a-zA-Z_-]+)[0-9.]*(\\s|$)", lr.line, lr.size, &m))
 		return NULL;
 
-	ret = xstrdup(regexp_matches[2]);
-	free_regexp_matches();
+	ret = xstrdup(m.ptrs[2]);
+	ptr_array_free(&m);
 
 	if (strcmp(ret, "sh"))
 		return ret;
