@@ -55,7 +55,11 @@ void add_error_fmt(const char *compiler, bool ignore, const char *format, char *
 	f->file_idx = idx[0];
 	f->line_idx = idx[1];
 	f->column_idx = idx[2];
-	f->pattern = xstrdup(format);
+
+	if (!regexp_compile(&f->re, format, REG_EXTENDED)) {
+		free(f);
+		return;
+	}
 
 	ptr_array_add(&add_compiler(compiler)->error_formats, f);
 }

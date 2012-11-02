@@ -28,7 +28,7 @@ static void handle_error_msg(struct compiler *c, char *str)
 		const struct error_format *p = c->error_formats.ptrs[i];
 		PTR_ARRAY(m);
 
-		if (!regexp_match(p->pattern, str, len, &m))
+		if (!regexp_exec_sub(&p->re, str, len, &m, 0))
 			continue;
 		if (!p->ignore) {
 			struct message *msg = new_message(m.ptrs[p->msg_idx]);

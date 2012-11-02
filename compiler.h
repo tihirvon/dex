@@ -2,6 +2,7 @@
 #define COMPILER_H
 
 #include "ptr-array.h"
+#include "regexp.h"
 #include "libc.h"
 
 struct compile_error {
@@ -17,7 +18,7 @@ struct error_format {
 	signed char file_idx;
 	signed char line_idx;
 	signed char column_idx;
-	const char *pattern;
+	regex_t re;
 };
 
 struct compiler {
