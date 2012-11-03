@@ -107,7 +107,7 @@ static void indent_regex_set(char **local, char **global, const char *value)
 {
 	if (value[0]) {
 		regex_t re;
-		if (!regexp_compile(&re, value, REG_EXTENDED | REG_NEWLINE | REG_NOSUB))
+		if (!regexp_compile(&re, value, REG_NEWLINE | REG_NOSUB))
 			return;
 		regfree(&re);
 	}

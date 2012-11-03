@@ -56,7 +56,7 @@ void add_error_fmt(const char *compiler, bool ignore, const char *format, char *
 	f->line_idx = idx[1];
 	f->column_idx = idx[2];
 
-	if (!regexp_compile(&f->re, format, REG_EXTENDED)) {
+	if (!regexp_compile(&f->re, format, 0)) {
 		free(f);
 		return;
 	}

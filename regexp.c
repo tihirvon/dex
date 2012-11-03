@@ -34,7 +34,7 @@ bool regexp_match(const char *pattern, const char *buf, long size, struct ptr_ar
 	return ret;
 }
 
-bool regexp_compile(regex_t *re, const char *pattern, int flags)
+bool regexp_compile_internal(regex_t *re, const char *pattern, int flags)
 {
 	int err = regcomp(re, pattern, flags);
 

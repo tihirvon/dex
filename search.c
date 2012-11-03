@@ -106,7 +106,7 @@ void search_tag(const char *pattern)
 	BLOCK_ITER(bi, &buffer->blocks);
 	regex_t regex;
 
-	if (!regexp_compile(&regex, pattern, REG_NEWLINE))
+	if (!regexp_compile_basic(&regex, pattern, REG_NEWLINE))
 		return;
 
 	if (do_search_fwd(&regex, &bi, false)) {
@@ -160,7 +160,7 @@ static bool has_upper(const char *str)
 
 static bool update_regex(void)
 {
-	int re_flags = REG_EXTENDED | REG_NEWLINE;
+	int re_flags = REG_NEWLINE;
 
 	switch (options.case_sensitive_search) {
 	case CSS_TRUE:
@@ -369,18 +369,20 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 	BLOCK_ITER(bi, &buffer->blocks);
 	unsigned int nr_bytes;
 	bool swapped = false;
-	int re_flags = REG_EXTENDED | REG_NEWLINE;
+	int re_flags = REG_NEWLINE;
 	int nr_substitutions = 0;
 	int nr_lines = 0;
 	regex_t re;
 
 	if (flags & REPLACE_IGNORE_CASE)
 		re_flags |= REG_ICASE;
-	if (flags & REPLACE_BASIC)
-		re_flags &= ~REG_EXTENDED;
-
-	if (!regexp_compile(&re, pattern, re_flags))
-		return;
+	if (flags & REPLACE_BASIC) {
+		if (!regexp_compile_basic(&re, pattern, re_flags))
+			return;
+	} else {
+		if (!regexp_compile(&re, pattern, re_flags))
+			return;
+	}
 
 	if (selecting()) {
 		struct selection_info info;

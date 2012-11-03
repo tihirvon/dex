@@ -45,7 +45,7 @@ void add_file_options(enum file_options_type type, char *to, char **strs)
 	regex_t re;
 
 	if (type == FILE_OPTIONS_FILENAME) {
-		if (!regexp_compile(&re, to, REG_EXTENDED | REG_NEWLINE | REG_NOSUB)) {
+		if (!regexp_compile(&re, to, REG_NEWLINE | REG_NOSUB)) {
 			int i;
 			free(to);
 			for (i = 0; strs[i]; i++)

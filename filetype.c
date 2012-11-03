@@ -29,7 +29,7 @@ void add_filetype(const char *name, const char *str, enum detect_type type)
 	switch (type) {
 	case FT_CONTENT:
 	case FT_FILENAME:
-		if (!regexp_compile(&re, str, REG_EXTENDED | REG_NEWLINE | REG_NOSUB))
+		if (!regexp_compile(&re, str, REG_NEWLINE | REG_NOSUB))
 			return;
 		regfree(&re);
 		break;
