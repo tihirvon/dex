@@ -5,7 +5,7 @@
 #include "ptr-array.h"
 #include <regex.h>
 
-bool regexp_match_nosub(const char *pattern, const char *buf, unsigned int len);
+bool regexp_match_nosub(const char *pattern, const char *buf, long size);
 bool regexp_match(const char *pattern, const char *buf, long size, struct ptr_array *m);
 
 bool regexp_compile_internal(regex_t *re, const char *pattern, int flags);

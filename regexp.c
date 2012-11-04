@@ -2,33 +2,24 @@
 #include "error.h"
 #include "common.h"
 
-bool regexp_match_nosub(const char *pattern, const char *buf, unsigned int len)
+bool regexp_match_nosub(const char *pattern, const char *buf, long size)
 {
 	regmatch_t m;
 	regex_t re;
-	int rc;
+	bool ret;
 
-	rc = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE | REG_NOSUB);
-	if (rc) {
-		error_msg("Invalid regexp: %s", pattern);
-		return 0;
-	}
-	rc = regexp_exec(&re, buf, len, 1, &m, 0);
+	BUG_ON(!regexp_compile(&re, pattern, REG_NEWLINE | REG_NOSUB));
+	ret = regexp_exec(&re, buf, size, 1, &m, 0);
 	regfree(&re);
-	return rc;
+	return ret;
 }
 
 bool regexp_match(const char *pattern, const char *buf, long size, struct ptr_array *m)
 {
 	regex_t re;
-	int err;
 	bool ret;
 
-	err = regcomp(&re, pattern, REG_EXTENDED | REG_NEWLINE);
-	if (err) {
-		error_msg("Invalid regexp: %s", pattern);
-		return false;
-	}
+	BUG_ON(!regexp_compile(&re, pattern, REG_NEWLINE));
 	ret = regexp_exec_sub(&re, buf, size, m, 0);
 	regfree(&re);
 	return ret;
