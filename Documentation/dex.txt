@@ -446,8 +446,8 @@ set [-gl] <option1> [value1] ...
 
 	-l set only local (per-file) option
 
-	Without neither -g nor -l both global and local value is set (if
-	there are both, of course).
+	By default both global and local values are changed (if the
+	option has both values, of course).
 
 	In configuration files only global options can be set (no need
 	to give any flags).
