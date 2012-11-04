@@ -255,7 +255,7 @@ list constant \
 	EPIPE EDOM ERANGE
 
 list preproccond \
-	else endif if ifdef ifndef
+	elif else endif if ifdef ifndef
 
 list -i numeric-suffix \
 	ULL UL U LLU LU LL L
