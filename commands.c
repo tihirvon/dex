@@ -1070,8 +1070,7 @@ static void cmd_set(const char *pf, char **args)
 	}
 
 	if (count == 1) {
-		// set boolean to true
-		set_option(args[0], NULL, local, global);
+		set_bool_option(args[0], local, global);
 		return;
 	}
 	if (count % 2) {

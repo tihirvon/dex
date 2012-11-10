@@ -274,7 +274,7 @@ static inline char *global_ptr(const struct option_description *desc)
 
 static bool parse_int_opt(const struct option_description *desc, const char *value, int *val)
 {
-	if (!value || !str_to_int(value, val)) {
+	if (!str_to_int(value, val)) {
 		error_msg("Integer value for %s expected.", desc->name);
 		return false;
 	}
@@ -353,39 +353,19 @@ static void set_int_opt(const struct option_description *desc, const char *value
 
 static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
 {
-	if (!value) {
-		error_msg("String value for %s expected.", desc->name);
-		return;
-	}
 	desc->u.str_opt.set(local, global, value);
 }
 
 static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
 {
-	int val = 1;
-
-	if (!value) {
-		if (desc->u.enum_opt.values != bool_enum) {
-			error_msg("Option %s is not boolean.", desc->name);
-			return;
-		}
-	} else {
-		val = parse_enum(desc, value);
-	}
+	int val = parse_enum(desc, value);
 	if (val >= 0)
 		desc->u.enum_opt.set(local, global, val);
 }
 
 static void set_flag_opt(const struct option_description *desc, const char *value, int *local, int *global)
 {
-	int flags;
-
-	if (!value) {
-		error_msg("No value given for %s.", desc->name);
-		return;
-	}
-
-	flags = parse_flags(desc, value);
+	int flags = parse_flags(desc, value);
 	if (flags >= 0)
 		desc->u.flag_opt.set(local, global, flags);
 }
@@ -460,20 +440,17 @@ static const struct option_description *must_find_global_option(const char *name
 	return desc;
 }
 
-void set_option(const char *name, const char *value, bool local, bool global)
+static void do_set_option(const struct option_description *desc, const char *value, bool local, bool global)
 {
-	const struct option_description *desc = must_find_option(name);
 	void *l = NULL;
 	void *g = NULL;
 
-	if (!desc)
-		return;
 	if (local && !desc->local) {
-		error_msg("Option %s is not local", name);
+		error_msg("Option %s is not local", desc->name);
 		return;
 	}
 	if (global && !desc->global) {
-		error_msg("Option %s is not global", name);
+		error_msg("Option %s is not global", desc->name);
 		return;
 	}
 	if (!local && !global) {
@@ -503,6 +480,28 @@ void set_option(const char *name, const char *value, bool local, bool global)
 		set_flag_opt(desc, value, l, g);
 		break;
 	}
+}
+
+void set_option(const char *name, const char *value, bool local, bool global)
+{
+	const struct option_description *desc = must_find_option(name);
+
+	if (!desc)
+		return;
+	do_set_option(desc, value, local, global);
+}
+
+void set_bool_option(const char *name, bool local, bool global)
+{
+	const struct option_description *desc = must_find_option(name);
+
+	if (!desc)
+		return;
+	if (desc->type != OPT_ENUM || desc->u.enum_opt.values != bool_enum) {
+		error_msg("Option %s is not boolean.", desc->name);
+		return;
+	}
+	do_set_option(desc, "true", local, global);
 }
 
 static const struct option_description *find_toggle_option(const char *name, bool *global)
