@@ -62,7 +62,7 @@ static void default_str_set(char **local, char **global, const char *value)
 	mark_everything_changed();
 }
 
-static void statusline_set(char **local, char **global, const char *value)
+static bool validate_statusline_format(const char *value)
 {
 	static const char chars[] = "fmryxXpEMnstu%";
 	int i = 0;
@@ -74,15 +74,15 @@ static void statusline_set(char **local, char **global, const char *value)
 			ch = value[i++];
 			if (!ch) {
 				error_msg("Format character expected after '%%'.");
-				return;
+				return false;
 			}
 			if (!strchr(chars, ch)) {
 				error_msg("Invalid format character '%c'.", ch);
-				return;
+				return false;
 			}
 		}
 	}
-	default_str_set(local, global, value);
+	return true;
 }
 
 static void syntax_set(int *local, int *global, int value)
@@ -91,28 +91,32 @@ static void syntax_set(int *local, int *global, int value)
 	syntax_changed();
 }
 
-static void filetype_set(char **local, char **global, const char *value)
+static bool validate_filetype(const char *value)
 {
 	if (strcmp(value, "none") && !is_ft(value)) {
 		error_msg("No such file type %s", value);
-		return;
+		return false;
 	}
+	return true;
+}
+
+static void filetype_set(char **local, char **global, const char *value)
+{
 	free(*local);
 	*local = xstrdup(value);
 
 	filetype_changed();
 }
 
-static void indent_regex_set(char **local, char **global, const char *value)
+static bool validate_regex(const char *value)
 {
 	if (value[0]) {
 		regex_t re;
 		if (!regexp_compile(&re, value, REG_NEWLINE | REG_NOSUB))
-			return;
+			return false;
 		regfree(&re);
 	}
-	free(*local);
-	*local = xstrdup(value);
+	return true;
 }
 
 #define default_enum_set default_int_set
@@ -156,7 +160,7 @@ static void indent_regex_set(char **local, char **global, const char *value)
 	} },							\
 }
 
-#define STR_OPT(_name, _local, _global, _offset, _set) {	\
+#define STR_OPT(_name, _local, _global, _offset, _set, _validate) { \
 	.name = _name,						\
 	.type = OPT_STR,					\
 	.local = _local,					\
@@ -164,6 +168,7 @@ static void indent_regex_set(char **local, char **global, const char *value)
 	.offset = _offset,					\
 	.u = { .str_opt = {					\
 		.set = _set,					\
+		.validate = _validate,				\
 	} },							\
 }
 
@@ -184,9 +189,9 @@ static void indent_regex_set(char **local, char **global, const char *value)
 #define G_FLAG(name, member, values, set) FLAG_OPT(name, 0, 1, G_OFFSET(member), values, set)
 #define C_FLAG(name, member, values, set) FLAG_OPT(name, 1, 1, C_OFFSET(member), values, set)
 
-#define L_STR(name, member, set) STR_OPT(name, 1, 0, L_OFFSET(member), set)
-#define G_STR(name, member, set) STR_OPT(name, 0, 1, G_OFFSET(member), set)
-#define C_STR(name, member, set) STR_OPT(name, 1, 1, C_OFFSET(member), set)
+#define L_STR(name, member, set, validate) STR_OPT(name, 1, 0, L_OFFSET(member), set, validate)
+#define G_STR(name, member, set, validate) STR_OPT(name, 0, 1, G_OFFSET(member), set, validate)
+#define C_STR(name, member, set, validate) STR_OPT(name, 1, 1, C_OFFSET(member), set, validate)
 
 #define L_BOOL(name, member, set) L_ENUM(name, member, bool_enum, set)
 #define G_BOOL(name, member, set) G_ENUM(name, member, bool_enum, set)
@@ -214,6 +219,7 @@ struct option_description {
 		} flag_opt;
 		struct {
 			void (*set)(char **local, char **global, const char *value);
+			bool (*validate)(const char *value);
 		} str_opt;
 	} u;
 };
@@ -243,16 +249,16 @@ static const struct option_description option_desc[] = {
 	G_INT("esc-timeout", esc_timeout, 0, 2000, default_int_set),
 	C_BOOL("expand-tab", expand_tab, default_bool_set),
 	C_BOOL("file-history", file_history, default_bool_set),
-	L_STR("filetype", filetype, filetype_set),
+	L_STR("filetype", filetype, filetype_set, validate_filetype),
 	C_INT("indent-width", indent_width, 1, 8, default_int_set),
-	L_STR("indent-regex", indent_regex, indent_regex_set),
+	L_STR("indent-regex", indent_regex, default_str_set, validate_regex),
 	G_BOOL("lock-files", lock_files, default_bool_set),
 	G_ENUM("newline", newline, newline_enum, default_enum_set),
 	G_INT("scroll-margin", scroll_margin, 0, 100, default_int_set),
 	G_BOOL("show-line-numbers", show_line_numbers, default_int_set),
 	G_BOOL("show-tab-bar", show_tab_bar, default_int_set),
-	G_STR("statusline-left", statusline_left, statusline_set),
-	G_STR("statusline-right", statusline_right, statusline_set),
+	G_STR("statusline-left", statusline_left, default_str_set, validate_statusline_format),
+	G_STR("statusline-right", statusline_right, default_str_set, validate_statusline_format),
 	C_BOOL("syntax", syntax, syntax_set),
 	G_INT("tab-bar-max-components", tab_bar_max_components, 0, 10, default_int_set),
 	G_INT("tab-bar-width", tab_bar_width, TAB_BAR_MIN_WIDTH, 100, default_int_set),
@@ -353,7 +359,8 @@ static void set_int_opt(const struct option_description *desc, const char *value
 
 static void set_str_opt(const struct option_description *desc, const char *value, char **local, char **global)
 {
-	desc->u.str_opt.set(local, global, value);
+	if (desc->u.str_opt.validate(value))
+		desc->u.str_opt.set(local, global, value);
 }
 
 static void set_enum_opt(const struct option_description *desc, const char *value, int *local, int *global)
