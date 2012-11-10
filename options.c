@@ -427,69 +427,95 @@ static char *option_to_string(const struct option_description *desc, const char 
 	return NULL;
 }
 
-static const struct option_description *find_option(const char *name, unsigned int flags)
+static const struct option_description *find_option(const char *name)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
 		const struct option_description *desc = &option_desc[i];
 
-		if (strcmp(name, desc->name))
-			continue;
-		if (flags & OPT_LOCAL && !desc->local) {
-			error_msg("Option %s is not local", name);
-			return NULL;
-		}
-		if (flags & OPT_GLOBAL && !desc->global) {
-			error_msg("Option %s is not global", name);
-			return NULL;
-		}
-		return desc;
+		if (streq(name, desc->name))
+			return desc;
 	}
-	error_msg("No such option %s", name);
 	return NULL;
 }
 
-void set_option(const char *name, const char *value, unsigned int flags)
+static const struct option_description *must_find_option(const char *name)
 {
-	const struct option_description *desc = find_option(name, flags);
-	void *local = NULL;
-	void *global = NULL;
+	const struct option_description *desc = find_option(name);
+
+	if (desc == NULL)
+		error_msg("No such option %s", name);
+	return desc;
+}
+
+static const struct option_description *must_find_global_option(const char *name)
+{
+	const struct option_description *desc = must_find_option(name);
+
+	if (desc && !desc->global) {
+		error_msg("Option %s is not global", name);
+		return NULL;
+	}
+	return desc;
+}
+
+void set_option(const char *name, const char *value, bool local, bool global)
+{
+	const struct option_description *desc = must_find_option(name);
+	void *l = NULL;
+	void *g = NULL;
 
 	if (!desc)
 		return;
-
-	if (!(flags & (OPT_LOCAL | OPT_GLOBAL))) {
-		if (desc->local && buffer)
-			flags |= OPT_LOCAL;
-		if (desc->global)
-			flags |= OPT_GLOBAL;
-	}
-
-	if (!buffer && (!flags || flags & OPT_LOCAL)) {
-		error_msg("Local option can't be set in config file.");
+	if (local && !desc->local) {
+		error_msg("Option %s is not local", name);
 		return;
 	}
+	if (global && !desc->global) {
+		error_msg("Option %s is not global", name);
+		return;
+	}
+	if (!local && !global) {
+		// set both by default
+		if (desc->local)
+			local = true;
+		if (desc->global)
+			global = true;
+	}
 
-	if (flags & OPT_LOCAL)
-		local = local_ptr(desc, &buffer->options);
-	if (flags & OPT_GLOBAL)
-		global = global_ptr(desc);
+	if (local)
+		l = local_ptr(desc, &buffer->options);
+	if (global)
+		g = global_ptr(desc);
 
 	switch (desc->type) {
 	case OPT_INT:
-		set_int_opt(desc, value, local, global);
+		set_int_opt(desc, value, l, g);
 		break;
 	case OPT_STR:
-		set_str_opt(desc, value, local, global);
+		set_str_opt(desc, value, l, g);
 		break;
 	case OPT_ENUM:
-		set_enum_opt(desc, value, local, global);
+		set_enum_opt(desc, value, l, g);
 		break;
 	case OPT_FLAG:
-		set_flag_opt(desc, value, local, global);
+		set_flag_opt(desc, value, l, g);
 		break;
 	}
+}
+
+static const struct option_description *find_toggle_option(const char *name, bool *global)
+{
+	const struct option_description *desc;
+
+	if (*global)
+		return must_find_global_option(name);
+	// toggle local value by default if option has both values
+	desc = must_find_option(name);
+	if (desc && !desc->local)
+		*global = true;
+	return desc;
 }
 
 static int toggle(int value, const char **values)
@@ -501,20 +527,15 @@ static int toggle(int value, const char **values)
 
 void toggle_option(const char *name, bool global, bool verbose)
 {
-	const struct option_description *desc;
+	const struct option_description *desc = find_toggle_option(name, &global);
 	char *ptr = NULL;
 
-	desc = find_option(name, global ? OPT_GLOBAL : 0);
 	if (!desc)
 		return;
 	if (desc->type != OPT_ENUM) {
 		error_msg("Option %s is not toggleable.", name);
 		return;
 	}
-
-	// toggle local value by default if option has both values
-	if (!global && !desc->local)
-		global = true;
 
 	if (global) {
 		ptr = global_ptr(desc);
@@ -533,17 +554,12 @@ void toggle_option(const char *name, bool global, bool verbose)
 
 void toggle_option_values(const char *name, bool global, bool verbose, char **values)
 {
-	const struct option_description *desc;
+	const struct option_description *desc = find_toggle_option(name, &global);
 	int i, count = count_strings(values);
 	char *ptr = NULL;
 
-	desc = find_option(name, global ? OPT_GLOBAL : 0);
 	if (!desc)
 		return;
-
-	// toggle local value by default if option has both values
-	if (!global && !desc->local)
-		global = true;
 
 	if (desc->type == OPT_STR) {
 		char *value;

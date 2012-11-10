@@ -103,12 +103,9 @@ struct global_options {
 extern struct global_options options;
 extern const char *case_sensitive_search_enum[];
 
-#define OPT_LOCAL	(1 << 0)
-#define OPT_GLOBAL	(1 << 1)
-
 #define TAB_BAR_MIN_WIDTH 12
 
-void set_option(const char *name, const char *value, unsigned int flags);
+void set_option(const char *name, const char *value, bool local, bool global);
 void toggle_option(const char *name, bool global, bool verbose);
 void toggle_option_values(const char *name, bool global, bool verbose, char **values);
 void collect_options(const char *prefix);

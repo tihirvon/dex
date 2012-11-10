@@ -1044,23 +1044,34 @@ static void cmd_select(const char *pf, char **args)
 
 static void cmd_set(const char *pf, char **args)
 {
-	unsigned int flags = 0;
+	bool global = false;
+	bool local = false;
 	int i, count = count_strings(args);
 
 	while (*pf) {
 		switch (*pf) {
 		case 'g':
-			flags |= OPT_GLOBAL;
+			global = true;
 			break;
 		case 'l':
-			flags |= OPT_LOCAL;
+			local = true;
 			break;
 		}
 		pf++;
 	}
+
+	// you can set only global values in config file
+	if (buffer == NULL) {
+		if (local) {
+			error_msg("Flag -l makes no sense in config file.");
+			return;
+		}
+		global = true;
+	}
+
 	if (count == 1) {
 		// set boolean to true
-		set_option(args[0], NULL, flags);
+		set_option(args[0], NULL, local, global);
 		return;
 	}
 	if (count % 2) {
@@ -1068,7 +1079,7 @@ static void cmd_set(const char *pf, char **args)
 		return;
 	}
 	for (i = 0; args[i]; i += 2)
-		set_option(args[i], args[i + 1], flags);
+		set_option(args[i], args[i + 1], local, global);
 }
 
 static void cmd_setenv(const char *pf, char **args)

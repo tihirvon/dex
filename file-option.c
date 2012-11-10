@@ -17,7 +17,7 @@ static void set_options(char **args)
 	int i;
 
 	for (i = 0; args[i]; i += 2)
-		set_option(args[i], args[i + 1], OPT_LOCAL);
+		set_option(args[i], args[i + 1], true, false);
 }
 
 void set_file_options(void)
