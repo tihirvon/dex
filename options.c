@@ -667,52 +667,47 @@ void collect_toggleable_options(const char *prefix)
 
 void collect_option_values(const char *name, const char *prefix)
 {
-	int i;
+	const struct option_description *desc = find_option(name);
 
-	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
-		const struct option_description *desc = &option_desc[i];
+	if (!desc)
+		return;
 
-		if (strcmp(name, desc->name))
-			continue;
+	if (!*prefix) {
+		// complete value
+		const char *ptr;
 
-		if (!*prefix) {
-			/* complete value */
-			const char *ptr;
+		if (desc->local) {
+			ptr = local_ptr(desc, &buffer->options);
+		} else {
+			ptr = global_ptr(desc);
+		}
+		add_completion(option_to_string(desc, ptr));
+	} else if (desc->type == OPT_ENUM) {
+		// complete possible values
+		int i;
 
-			if (desc->local) {
-				ptr = local_ptr(desc, &buffer->options);
-			} else {
-				ptr = global_ptr(desc);
-			}
-			add_completion(option_to_string(desc, ptr));
-		} else if (desc->type == OPT_ENUM) {
-			/* complete possible values */
-			int j;
+		for (i = 0; desc->u.enum_opt.values[i]; i++) {
+			if (str_has_prefix(desc->u.enum_opt.values[i], prefix))
+				add_completion(xstrdup(desc->u.enum_opt.values[i]));
+		}
+	} else if (desc->type == OPT_FLAG) {
+		// complete possible values
+		const char *comma = strrchr(prefix, ',');
+		int i, prefix_len = 0;
 
-			for (j = 0; desc->u.enum_opt.values[j]; j++) {
-				if (str_has_prefix(desc->u.enum_opt.values[j], prefix))
-					add_completion(xstrdup(desc->u.enum_opt.values[j]));
-			}
-		} else if (desc->type == OPT_FLAG) {
-			/* complete possible values */
-			const char *comma = strrchr(prefix, ',');
-			int j, prefix_len = 0;
+		if (comma)
+			prefix_len = ++comma - prefix;
+		for (i = 0; desc->u.flag_opt.values[i]; i++) {
+			const char *str = desc->u.flag_opt.values[i];
 
-			if (comma)
-				prefix_len = ++comma - prefix;
-			for (j = 0; desc->u.flag_opt.values[j]; j++) {
-				const char *str = desc->u.flag_opt.values[j];
-
-				if (str_has_prefix(str, prefix + prefix_len)) {
-					int str_len = strlen(str);
-					char *completion = xmalloc(prefix_len + str_len + 1);
-					memcpy(completion, prefix, prefix_len);
-					memcpy(completion + prefix_len, str, str_len + 1);
-					add_completion(completion);
-				}
+			if (str_has_prefix(str, prefix + prefix_len)) {
+				int str_len = strlen(str);
+				char *completion = xmalloc(prefix_len + str_len + 1);
+				memcpy(completion, prefix, prefix_len);
+				memcpy(completion + prefix_len, str, str_len + 1);
+				add_completion(completion);
 			}
 		}
-		break;
 	}
 }
 
@@ -723,9 +718,7 @@ void free_local_options(struct local_options *opt)
 	for (i = 0; i < ARRAY_COUNT(option_desc); i++) {
 		const struct option_description *desc = &option_desc[i];
 
-		if (desc->type != OPT_STR)
-			continue;
-		if (desc->local) {
+		if (desc->local && desc->type == OPT_STR) {
 			char **local = (char **)local_ptr(desc, opt);
 			free(*local);
 			*local = NULL;
