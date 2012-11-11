@@ -50,6 +50,7 @@ static inline bool str_has_prefix(const char *str, const char *prefix)
 }
 
 int count_strings(char **strings);
+void free_strings(char **strings);
 int number_width(long n);
 bool buf_parse_long(const char *str, int size, int *posp, long *valp);
 bool parse_long(const char **strp, long *valp);

@@ -208,14 +208,6 @@ static void free_string_list(struct string_list *list)
 	free(list);
 }
 
-static void free_default_colors(char **strs)
-{
-	int i;
-	for (i = 0; strs[i]; i++)
-		free(strs[i]);
-	free(strs);
-}
-
 static void free_syntax(struct syntax *syn)
 {
 	int i;
@@ -229,7 +221,7 @@ static void free_syntax(struct syntax *syn)
 	free(syn->string_lists.ptrs);
 
 	for (i = 0; i < syn->default_colors.count; i++)
-		free_default_colors(syn->default_colors.ptrs[i]);
+		free_strings(syn->default_colors.ptrs[i]);
 	free(syn->default_colors.ptrs);
 
 	free(syn->name);

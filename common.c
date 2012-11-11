@@ -15,6 +15,14 @@ int count_strings(char **strings)
 	return count;
 }
 
+void free_strings(char **strings)
+{
+	int i;
+	for (i = 0; strings[i]; i++)
+		free(strings[i]);
+	free(strings);
+}
+
 int number_width(long n)
 {
 	int width = 0;
