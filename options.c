@@ -562,18 +562,18 @@ void toggle_option_values(const char *name, bool global, bool verbose, char **va
 {
 	const struct option_description *desc = find_toggle_option(name, &global);
 	int i, count = count_strings(values);
-	char *ptr = NULL;
+	char *ptr;
 
 	if (!desc)
 		return;
 
+	if (global) {
+		ptr = global_ptr(desc);
+	} else {
+		ptr = local_ptr(desc, &buffer->options);
+	}
 	if (desc->type == OPT_STR) {
 		char *value;
-
-		if (global)
-			ptr = global_ptr(desc);
-		else
-			ptr = local_ptr(desc, &buffer->options);
 
 		value = *(char **)ptr;
 		for (i = 0; i < count; i++) {
@@ -620,11 +620,6 @@ void toggle_option_values(const char *name, bool global, bool verbose, char **va
 			}
 			break;
 		}
-
-		if (global)
-			ptr = global_ptr(desc);
-		else
-			ptr = local_ptr(desc, &buffer->options);
 
 		value = *(int *)ptr;
 		for (i = 0; i < count; i++) {
