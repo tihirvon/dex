@@ -531,6 +531,9 @@ static void cmd_option(const char *pf, char **args)
 		error_msg("Missing option value");
 		return;
 	}
+	if (!validate_local_options(args + 1)) {
+		return;
+	}
 
 	// NOTE: options and values are shared
 	strs = copy_string_array(args + 1, argc - 1);

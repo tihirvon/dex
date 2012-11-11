@@ -604,6 +604,34 @@ void toggle_option_values(const char *name, bool global, bool verbose, char **va
 	free(parsed_values);
 }
 
+bool validate_local_options(char **strs)
+{
+	bool valid = true;
+	int i;
+
+	for (i = 0; strs[i]; i += 2) {
+		const char *name = strs[i];
+		const char *value = strs[i + 1];
+		const struct option_desc *desc = must_find_option(name);
+
+		if (desc == NULL) {
+			valid = false;
+		} else if (!desc->local) {
+			error_msg("Option %s is not local", name);
+			valid = false;
+		} else {
+			union option_value val;
+
+			if (desc->ops->parse(desc, value, &val)) {
+				free_value(desc, val);
+			} else {
+				valid = false;
+			}
+		}
+	}
+	return valid;
+}
+
 void collect_options(const char *prefix)
 {
 	int i;
