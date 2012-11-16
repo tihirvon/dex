@@ -1,29 +1,32 @@
-# $var, $(command), $((expression))
-syntax .sh-dollar
+# single quoted string
+syntax .sh-sq
+
+state string
+	char "'" END string
+	eat string
+
+# escape inside double quotes
+syntax .sh-dq-escape
 
 state special
-	char '(' paren
-	recolor variable 1
+	char '"$\`'"\n" END special
+	recolor string 1
+	eat END
+
+# escape outside double quotes
+syntax .sh-command-escape
+
+state special
+	eat END special
+
+# ${var}, $var, $1 etc. ($ already eaten)
+syntax .sh-var
+
+state variable
 	char '{' brace
 	char '*@#?$!0-9-' END variable
 	char a-zA-Z_ name
 	noeat END
-
-state paren special
-	char '(' expression special
-	noeat command
-
-state expression
-	char ')' expression-end
-	eat expression
-
-state expression-end special
-	char ')' END special
-	eat END error
-
-state command
-	char ')' END special
-	eat command
 
 state name variable
 	char a-zA-Z_0-9 name
@@ -33,13 +36,85 @@ state brace variable
 	char -n "\n}" brace
 	eat END variable
 
+# $((expr)) "$((" already eaten
+syntax .sh-expression
+
+state expression special
+	# FIXME: there can be almost anything in $(( ... ))
+	char ')' expression-end
+	eat expression
+
+state expression-end special
+	char ')' END special
+	eat END error
+
+# double quoted string. $(cmd) and $((expr) not properly parsed
+syntax .sh-simple-dq
+
+state string
+	char \" END string
+	char \\ .sh-dq-escape:string
+	char \$ special
+	eat string
+
+state special
+	char '(' paren
+	recolor variable 1
+	noeat .sh-var:string
+
+state paren special
+	char '(' .sh-expression:string
+	noeat command
+
+state command
+	char ')' string special
+	char -n "\n" command
+	noeat string
+
+# $(cmd)
+syntax .sh-pcommand
+
+state command
+	char ')' END special
+	char \' .sh-sq:command
+	char \" .sh-simple-dq:command
+	char \\ .sh-command-escape:command
+	char \$ .sh-var:command
+	eat command
+
+# $var, $(command), $((expression))
+syntax .sh-dollar
+
+state special
+	char '(' paren
+	recolor variable 1
+	noeat .sh-var:END
+
+state paren special
+	char '(' .sh-expression:END
+	noeat .sh-pcommand:END
+
 # `command`
 syntax .sh-backtick
 
 state special
-	# can't escape `
+	# NOTE: you can't put "`" inside `...`, it's not possible
+	char \' .sh-sq:special
+	char \" .sh-simple-dq:special
+	char \\ .sh-command-escape:special
+	char \$ .sh-var:special
 	char ` END special
 	eat special
+
+syntax .sh-dq
+
+# double quoted string
+state string
+	char '"' END string
+	char \\ .sh-dq-escape:string
+	char ` .sh-backtick:string
+	char \$ .sh-dollar:string
+	eat string
 
 # common to <<"EOF" and <<'EOF'
 syntax .sh-heredoc-common
@@ -157,9 +232,9 @@ state forerror code
 
 state args code
 	char # comment
-	char "'" sq
-	char '"' dq
-	char \\ esc
+	char "'" .sh-sq:args
+	char '"' .sh-dq:args
+	char \\ .sh-command-escape:args
 	char ` .sh-backtick:args
 	char \$ .sh-dollar:args
 	char "\n" start
@@ -173,25 +248,6 @@ state args code
 state comment
 	char "\n" start
 	eat comment
-
-state sq string
-	char "'" args string
-	eat sq
-
-state dq string
-	char '"' args string
-	char \\ dqescape
-	char ` .sh-backtick:dq
-	char \$ .sh-dollar:dq
-	eat dq
-
-state dqescape special
-	char '"$\`'"\n" dq special
-	recolor string 1
-	eat dq
-
-state esc special
-	eat args special
 
 state lt special
 	char < lt2
