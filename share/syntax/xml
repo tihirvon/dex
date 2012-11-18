@@ -29,10 +29,10 @@ state dec entity
 
 state name error
 	char -b a-zA-Z0-9 name
-	inlist entity end
-	noeat end
+	inlist entity semicolon
+	noeat semicolon
 
-state end error
+state semicolon error
 	char ";" END entity
 	eat END error
 

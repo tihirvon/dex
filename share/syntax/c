@@ -46,10 +46,10 @@ syntax .c-char
 
 state char
 	char "'\n" END error
-	char \\ .c-esc:end
-	eat end
+	char \\ .c-esc:char-end
+	eat char-end
 
-state end char
+state char-end char
 	char "'" END char
 	eat END error
 

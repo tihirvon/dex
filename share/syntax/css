@@ -35,25 +35,25 @@ syntax .css-hex
 
 state hex1 special
 	char 0-9a-fA-F hex2
-	noeat end
+	noeat ws
 
 state hex2 special
 	char 0-9a-fA-F hex3
-	noeat end
+	noeat ws
 
 state hex3 special
 	char 0-9a-fA-F hex4
-	noeat end
+	noeat ws
 
 state hex4 special
 	char 0-9a-fA-F hex5
-	noeat end
+	noeat ws
 
 state hex5 special
-	char 0-9a-fA-F end special
-	noeat end
+	char 0-9a-fA-F ws special
+	noeat ws
 
-state end
+state ws
 	# whitespace is always skipped, even if there are 6 hex digits!
 	char "\t\n\r " END special
 	noeat END
@@ -100,25 +100,25 @@ syntax .css-attributeselector
 
 state attributeselector code
 	char -b a-zA-Z attribute
-	noeat end
+	noeat close
 
 state attribute
 	char -b a-zA-Z attribute
 	char "|~" op
 	char = value code
-	noeat end
+	noeat close
 
 state op code
 	char = value code
 	eat END error
 
 state value
-	char \" .css-dq:end
-	char \' .css-sq:end
-	char a-zA-Z_- .css-ident:end
-	noeat end
+	char \" .css-dq:close
+	char \' .css-sq:close
+	char a-zA-Z_- .css-ident:close
+	noeat close
 
-state end
+state close
 	char ] END code
 	eat END error
 
@@ -126,8 +126,8 @@ state end
 syntax .css-url
 
 state url
-	char \" .css-dq:end
-	char \' .css-sq:end
+	char \" .css-dq:close
+	char \' .css-sq:close
 	noeat plain
 
 state plain code
@@ -135,7 +135,7 @@ state plain code
 	char "\n" END error
 	eat plain
 
-state end
+state close
 	char ) END url
 	eat END error
 
@@ -198,7 +198,7 @@ state namespace atkeyword
 
 state arg1 code
 	char "\t\n " arg1
-	str -i "url(" .css-url:end
+	str -i "url(" .css-url:namespace-end
 	char a-zA-Z prefix
 	noeat arg2
 
@@ -209,13 +209,13 @@ state prefix code
 
 state arg2 code
 	char "\t\n " arg2
-	char \" .css-dq:end
-	char \' .css-sq:end
-	str -i "url(" .css-url:end
+	char \" .css-dq:namespace-end
+	char \' .css-sq:namespace-end
+	str -i "url(" .css-url:namespace-end
 	noeat error
 
-state end
-	char "\t\n " end
+state namespace-end
+	char "\t\n " namespace-end
 	char \; END code
 	noeat error
 
