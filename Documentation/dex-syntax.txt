@@ -1,4 +1,4 @@
-@title %MAN% 7 2011
+@title %MAN% 7 2012
 
 @h1 NAME
 
