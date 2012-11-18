@@ -67,13 +67,8 @@ static void close_state(void)
 
 static struct state *add_state(const char *name, bool defined)
 {
-	struct state *st;
+	struct state *st = find_state(current_syntax, name);
 
-	if (streq(name, "END")) {
-		error_msg("%s is reserved state name", name);
-		return NULL;
-	}
-	st = find_state(current_syntax, name);
 	if (st == NULL) {
 		st = xnew0(struct state, 1);
 		st->name = xstrdup(name);
@@ -384,7 +379,10 @@ static void cmd_state(const char *pf, char **args)
 	close_state();
 	if (no_syntax())
 		return;
-
+	if (streq(name, "END")) {
+		error_msg("%s is reserved state name", name);
+		return;
+	}
 	s = add_state(name, 1);
 	if (s) {
 		s->emit_name = xstrdup(emit);
