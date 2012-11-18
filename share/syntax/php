@@ -138,10 +138,10 @@ state variable
 
 state variable2 variable
 	char -b a-zA-Z_0-9 variable2
-	bufis this this
+	bufis this this-keyword
 	noeat code
 
-state this
+state this-keyword
 	recolor this 5
 	noeat code
 

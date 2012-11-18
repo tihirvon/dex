@@ -15,6 +15,9 @@ sub-syntaxes).
 Basic syntax of the syntax files is the same used in the rc files, but
 the available commands are different.
 
+Conditionals and default actions have destination state. The special
+destination state "this" can be used to jump to current state.
+
 @h1 COMMANDS
 
 @h2 Main commands

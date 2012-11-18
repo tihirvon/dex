@@ -82,6 +82,8 @@ static struct state *find_or_add_state(const char *name)
 
 static struct state *reference_state(const char *name)
 {
+	if (streq(name, "this"))
+		return current_state;
 	return find_or_add_state(name);
 }
 
@@ -374,7 +376,7 @@ static void cmd_state(const char *pf, char **args)
 	close_state();
 	if (no_syntax())
 		return;
-	if (streq(name, "END")) {
+	if (streq(name, "END") || streq(name, "this")) {
 		error_msg("%s is reserved state name", name);
 		return;
 	}
