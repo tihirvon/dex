@@ -1,13 +1,13 @@
 syntax dex
 
 state start code
-	char " \t" start
+	char " \t" this
 	char # comment
 	noeat command
 
 state comment
 	char "\n" start
-	eat comment
+	eat this
 
 state command code
 	char "'" sq
@@ -15,19 +15,19 @@ state command code
 	char "\n" start
 	char "\\" escape
 	char -b \$ variable
-	char ";*?[]{}" command special
-	eat command
+	char ";*?[]{}" this special
+	eat this
 
 state sq string
 	char "'" command string
 	char "\n" start
-	eat sq
+	eat this
 
 state dq string
 	char -b "\\" dq-escape
 	char '"' command string
 	char "\n" start
-	eat dq
+	eat this
 
 state dq-escape special
 	char "abfnrtv'\\\"" dq special
@@ -49,5 +49,5 @@ state escape special
 	eat command special
 
 state variable
-	char -b a-zA-Z_ variable
+	char -b a-zA-Z_ this
 	noeat command
