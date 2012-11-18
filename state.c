@@ -65,29 +65,24 @@ static void close_state(void)
 	current_state = NULL;
 }
 
-static struct state *add_state(const char *name, bool defined)
+static struct state *find_or_add_state(const char *name)
 {
 	struct state *st = find_state(current_syntax, name);
 
-	if (st == NULL) {
-		st = xnew0(struct state, 1);
-		st->name = xstrdup(name);
-		st->defined = defined;
-		st->type = -1;
-		ptr_array_add(&current_syntax->states, st);
+	if (st)
 		return st;
-	}
-	if (!defined) {
-		// reference to already added (possibly undefined) state
-		return st;
-	}
-	if (!st->defined) {
-		// previously added undefined state will be defined now
-		st->defined = true;
-		return st;
-	}
-	error_msg("State %s already exists.", name);
-	return NULL;
+
+	st = xnew0(struct state, 1);
+	st->name = xstrdup(name);
+	st->defined = false;
+	st->type = -1;
+	ptr_array_add(&current_syntax->states, st);
+	return st;
+}
+
+static struct state *reference_state(const char *name)
+{
+	return find_or_add_state(name);
 }
 
 static bool not_subsyntax(void)
@@ -119,7 +114,7 @@ static bool subsyntax_call(const char *name, const char *ret, struct state **des
 		if (not_subsyntax())
 			ok = false;
 	} else if (ok) {
-		m.return_state = add_state(ret, 0);
+		m.return_state = reference_state(ret);
 	}
 	if (ok)
 		*dest = merge_syntax(current_syntax, &m);
@@ -143,7 +138,7 @@ static bool destination_state(const char *name, struct state **dest)
 		*dest = NULL;
 		return true;
 	}
-	*dest = add_state(name, 0);
+	*dest = reference_state(name);
 	return true;
 }
 
@@ -383,11 +378,14 @@ static void cmd_state(const char *pf, char **args)
 		error_msg("%s is reserved state name", name);
 		return;
 	}
-	s = add_state(name, 1);
-	if (s) {
-		s->emit_name = xstrdup(emit);
-		current_state = s;
+	s = find_or_add_state(name);
+	if (s->defined) {
+		error_msg("State %s already exists.", name);
+		return;
 	}
+	s->defined = true;
+	s->emit_name = xstrdup(emit);
+	current_state = s;
 }
 
 static void cmd_str(const char *pf, char **args)
