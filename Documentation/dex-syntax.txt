@@ -76,10 +76,6 @@ inlist <list> <destination> [emit-name]
 	Test if buffered bytes are found in `list`. If found emit
 	`emit-name` and jump to destination state.
 
-recolor	<color> [count]
-	If count is given, recolor count previous bytes, otherwise
-	recolor buffered bytes.
-
 str [-i] <string> <destination> [emit-name]
 	See if following bytes are same as `string`. If they are emit
 	`emit-name` and jump to destination state.
@@ -108,6 +104,12 @@ noeat [-b] <destination>
 	consuming byte.
 
 	-b Don't stop buffering.
+
+@h2 Other commands
+
+recolor <color> [count]
+	If count is given, recolor count previous bytes, otherwise
+	recolor buffered bytes.
 
 @h1 SUB-SYNTAXES
 
