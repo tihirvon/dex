@@ -93,7 +93,6 @@ static struct state *add_state(const char *name, bool defined)
 	}
 	error_msg("State %s already exists.", name);
 	return NULL;
-
 }
 
 static bool not_subsyntax(void)
