@@ -443,15 +443,30 @@ set [-gl] <option1> [value1] ...
 	it true. Multiple options can be set at once but then value must
 	be given for every option.
 
-	-g set only global option
+	There are three kinds of options.
 
-	-l set only local (per-file) option
+	@li 1. Global options
 
-	By default both global and local values are changed (if the
-	option has both values, of course).
+	@li 2. Local options
+		These are file specific options. Each open file has its
+		own copies of the option values.
+
+	@li 3. Options that have both global and local values
+		Global value is just a default local value for opened
+		files and never used for anything else. Changing global
+		value does not affect any already opened files.
+
+		By default *set* changes both global and local values.
+
+		-g change only global option value
+
+		-l change only local option value of current file
 
 	In configuration files only global options can be set (no need
-	to give any flags).
+	to specify the -g flag).
+
+	To change option for specific filetypes and filenames use the
+	*option* command.
 
 setenv <name> <value>
 	Set environment variable.
