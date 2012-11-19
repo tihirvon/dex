@@ -31,6 +31,7 @@ void close_tag_file(struct tag_file *tf)
 {
 	xmunmap(tf->map, tf->size);
 	close(tf->fd);
+	free(tf);
 }
 
 static int parse_excmd(struct tag *t, const char *buf, int size)
