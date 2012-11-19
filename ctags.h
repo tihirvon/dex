@@ -5,9 +5,8 @@
 
 struct tag_file {
 	char *map;
-	size_t size;
+	long size;
 	time_t mtime;
-	int fd;
 };
 
 struct tag {
