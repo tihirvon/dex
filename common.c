@@ -153,19 +153,24 @@ ssize_t xwrite(int fd, const void *buf, size_t count)
 ssize_t read_file(const char *filename, char **bufp)
 {
 	struct stat st;
-	char *buf;
-	ssize_t r;
+	return stat_read_file(filename, bufp, &st);
+}
+
+long stat_read_file(const char *filename, char **bufp, struct stat *st)
+{
 	int fd = open(filename, O_RDONLY);
+	char *buf;
+	long r;
 
 	*bufp = NULL;
 	if (fd == -1)
 		return -1;
-	if (fstat(fd, &st) == -1) {
+	if (fstat(fd, st) == -1) {
 		close(fd);
 		return -1;
 	}
-	buf = xnew(char, st.st_size + 1);
-	r = xread(fd, buf, st.st_size);
+	buf = xnew(char, st->st_size + 1);
+	r = xread(fd, buf, st->st_size);
 	close(fd);
 	if (r > 0) {
 		buf[r] = 0;
