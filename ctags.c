@@ -5,6 +5,7 @@ struct tag_file *open_tag_file(const char *filename)
 {
 	struct tag_file *tf = xnew0(struct tag_file, 1);
 	struct stat st;
+	long rc;
 
 	tf->fd = open(filename, O_RDONLY);
 	if (tf->fd < 0) {
@@ -18,18 +19,21 @@ struct tag_file *open_tag_file(const char *filename)
 	fstat(tf->fd, &st);
 	tf->size = st.st_size;
 	tf->mtime = st.st_mtime;
-	tf->map = xmmap(tf->fd, 0, tf->size);
-	if (!tf->map) {
-		close(tf->fd);
-		free(tf);
+	// +1 because file can be empty
+	tf->map = xnew(char, tf->size + 1);
+	rc = xread(tf->fd, tf->map, tf->size);
+	if (rc < 0) {
+		close_tag_file(tf);
 		return NULL;
 	}
+	// just in case
+	tf->size = rc;
 	return tf;
 }
 
 void close_tag_file(struct tag_file *tf)
 {
-	xmunmap(tf->map, tf->size);
+	free(tf->map);
 	close(tf->fd);
 	free(tf);
 }
