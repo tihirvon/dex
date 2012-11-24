@@ -143,26 +143,6 @@ static char *termcap_find(const char *buf, int size, const char *name)
 	}
 }
 
-static char *termcap_open(const char *filename, int *size)
-{
-	struct stat st;
-	char *buf;
-	int fd;
-
-	fd = open(filename, O_RDONLY);
-	if (fd == -1)
-		return NULL;
-	if (fstat(fd, &st) == -1) {
-		close(fd);
-		return NULL;
-	}
-	*size = st.st_size;
-
-	buf = xmmap(fd, 0, *size);
-	close(fd);
-	return buf;
-}
-
 static void bool_cap(const char *cap)
 {
 	if (str_has_prefix(cap, "ut"))
@@ -349,12 +329,13 @@ out:
 int termcap_get_caps(const char *filename, const char *term)
 {
 	char *buf;
-	int size, rc;
+	long size;
+	int rc;
 
-	buf = termcap_open(filename, &size);
-	if (buf == NULL)
+	size = read_file(filename, &buf);
+	if (size < 0)
 		return -1;
 	rc = process(buf, size, term);
-	xmunmap(buf, size);
+	free(buf);
 	return rc;
 }
