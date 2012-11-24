@@ -1,8 +1,6 @@
 #include "common.h"
 #include "editor.h"
 
-#include <sys/mman.h>
-
 const char hex_tab[16] = "0123456789abcdef";
 bool term_utf8;
 
@@ -236,26 +234,4 @@ void debug_print(const char *function, const char *fmt, ...)
 	vsnprintf(buf + pos, sizeof(buf) - pos, fmt, ap);
 	va_end(ap);
 	xwrite(fd, buf, strlen(buf));
-}
-
-#define mmap_empty ((void *)8UL)
-
-void *xmmap(int fd, off_t offset, size_t len)
-{
-	void *buf;
-	if (!len)
-		return mmap_empty;
-	buf = mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, offset);
-	if (buf == MAP_FAILED)
-		return NULL;
-	return buf;
-}
-
-void xmunmap(void *start, size_t len)
-{
-	if (start != mmap_empty) {
-		BUG_ON(munmap(start, len));
-	} else {
-		BUG_ON(len);
-	}
 }

@@ -10,6 +10,8 @@
 #include "error.h"
 #include "cconv.h"
 
+#include <sys/mman.h>
+
 static void add_block(struct buffer *b, struct block *blk)
 {
 	b->nl += blk->nl;
@@ -126,9 +128,13 @@ static int read_blocks(struct buffer *b, int fd)
 	// st_size is zero for some files in /proc.
 	// Can't mmap files in /proc and /sys.
 	if (size >= map_size) {
-		buf = xmmap(fd, 0, size);
-		if (buf)
+		// NOTE: size must be greater than 0
+		buf = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+		if (buf == MAP_FAILED) {
+			buf = NULL;
+		} else {
 			mapped = true;
+		}
 	}
 	if (!mapped) {
 		ssize_t alloc = map_size;
@@ -153,7 +159,7 @@ static int read_blocks(struct buffer *b, int fd)
 	}
 	rc = decode_and_add_blocks(b, buf, size);
 	if (mapped) {
-		xmunmap(buf, size);
+		munmap(buf, size);
 	} else {
 		free(buf);
 	}

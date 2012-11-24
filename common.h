@@ -64,7 +64,5 @@ long stat_read_file(const char *filename, char **bufp, struct stat *st);
 char *buf_next_line(char *buf, ssize_t *posp, ssize_t size);
 void bug(const char *function, const char *fmt, ...) FORMAT(2) NORETURN;
 void debug_print(const char *function, const char *fmt, ...) FORMAT(2);
-void *xmmap(int fd, off_t offset, size_t len);
-void xmunmap(void *start, size_t len);
 
 #endif
