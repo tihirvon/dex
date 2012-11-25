@@ -134,6 +134,7 @@ dex_objects :=	 		\
 	ptr-array.o		\
 	regexp.o		\
 	run.o			\
+	screen-view.o		\
 	screen.o		\
 	search-mode.o		\
 	search.o		\
