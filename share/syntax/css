@@ -1,11 +1,6 @@
 # comment
 syntax .css-comment
 
-state start comment
-	char "*" comment
-	recolor code 1
-	noeat END
-
 state comment
 	char "*" star
 	eat comment
@@ -248,7 +243,7 @@ state start code
 	char \[ .css-attributeselector:start
 	char \{ block
 	char 0-9_- .css-selectorerror:start
-	char / .css-comment:start
+	str "/*" .css-comment:start
 	char -b @ atrule
 	eat start
 
@@ -321,7 +316,7 @@ state block code
 	char -b a-zA-Z- property
 	char 0-9_- property-error
 	char } start
-	char / .css-comment:block
+	str "/*" .css-comment:block
 	eat block
 
 state property code
@@ -350,6 +345,7 @@ state values code
 	str -i "url(" .css-url:values
 	char -b a-zA-Z_ value
 	char } start
+	str "/*" .css-comment:values
 	eat values
 
 state minus numeric
