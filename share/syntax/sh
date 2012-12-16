@@ -116,8 +116,19 @@ state string
 	char \$ .sh-dollar:string
 	eat string
 
+# skip redirect etc. after <<EOF
+# e.g. cat <<EOF > /tmp/file
+syntax .sh-heredoc-skip-line
+
+state start
+	char "\n" END
+	eat start code
+
 # common to <<"EOF" and <<'EOF'
 syntax .sh-heredoc-common
+
+state start
+	noeat .sh-heredoc-skip-line:bol
 
 state bol string
 	heredocend match
@@ -137,9 +148,7 @@ state match special
 syntax .sh-heredoc
 
 state start code
-	char " \t" start
-	char "\n" bol
-	eat END error
+	noeat .sh-heredoc-skip-line:bol
 
 state bol string
 	heredocend match
@@ -161,25 +170,15 @@ state match special
 syntax .sh-heredoc-dq
 
 state start string
-	char \" skipws string
-	eat END error
-
-state skipws code
-	char " \t" skipws
-	char "\n" .sh-heredoc-common:END
-	eat END error
+	char -n \" END error
+	eat .sh-heredoc-common:END
 
 # << 'EOF'
 syntax .sh-heredoc-sq
 
 state start string
-	char \' skipws string
-	eat END error
-
-state skipws code
-	char " \t" skipws
-	char "\n" .sh-heredoc-common:END
-	eat END error
+	char -n \' END error
+	eat .sh-heredoc-common:END
 
 # commands can be at beginning of line or after any of && || ; & | { ` $(
 # also beginning of line can contain ( after which command is allowed
@@ -279,7 +278,7 @@ state heredoc-sq string
 	heredocbegin .sh-heredoc-sq start
 
 state heredoc special
-	char -bn " \t\n" heredoc
+	char -bn " \t\n;|>" heredoc
 	heredocbegin .sh-heredoc start
 
 # command allowed after these
