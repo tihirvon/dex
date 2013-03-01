@@ -464,7 +464,7 @@ list -i exprpseudo :nth-child :nth-last-child :nth-last-of-type :nth-of-type
 
 # CSS1 and CSS2 pseudo-elements can be prefixed with single colon
 # CSS2.1 changed pseudo-elements start with a double colon
-# support only dobule colon for CSS3 pseudo-elements
+# support only double colon for CSS3 pseudo-elements
 list -i pseudoelement \
 	:after :before :first-letter :first-line \
 	::after ::before ::first-letter ::first-line \
@@ -478,8 +478,14 @@ list -i pagepseudoclass \
 list -i fontfaceproperty \
 	font-family font-stretch font-style font-weight src unicode-range
 
+# %, distance, angle, time, frequency, resolution
 list -i unit \
-	% cm em ex in mm pc pt px
+	% \
+	ch cm em ex in mm pc pt px rem vh vw vmin vmax \
+	deg grad rad turn \
+	ms s \
+	hz khz \
+	dpcm dpi dppx
 
 list -i func \
 	attr clip counter rect rgb
