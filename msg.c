@@ -27,7 +27,7 @@ static struct file_location *create_location(void)
 	return loc;
 }
 
-static bool move_to_file(const char *filename, int save_location)
+static bool move_to_file(const char *filename, bool save_location)
 {
 	struct file_location *loc = NULL;
 	struct view *v;
@@ -137,7 +137,7 @@ void add_message(struct message *m)
 	}
 }
 
-void current_message(int save_location)
+void current_message(bool save_location)
 {
 	struct message *m;
 	int go = 0;
@@ -167,14 +167,14 @@ void next_message(void)
 {
 	if (msg_pos + 1 < msgs.count)
 		msg_pos++;
-	current_message(0);
+	current_message(false);
 }
 
 void prev_message(void)
 {
 	if (msg_pos > 0)
 		msg_pos--;
-	current_message(0);
+	current_message(false);
 }
 
 void clear_messages(void)

@@ -156,7 +156,7 @@ static void cmd_compile(const char *pf, char **args)
 	clear_messages();
 	spawn_compiler(args, flags, c);
 	if (message_count())
-		current_message(1);
+		current_message(true);
 }
 
 static void cmd_copy(const char *pf, char **args)
@@ -467,7 +467,7 @@ static void cmd_msg(const char *pf, char **args)
 	} else if (dir == 'p') {
 		prev_message();
 	} else {
-		current_message(0);
+		current_message(false);
 	}
 }
 
@@ -1168,7 +1168,7 @@ static void cmd_tag(const char *pf, char **args)
 			add_message(m);
 		}
 		free_tags(&tags);
-		current_message(1);
+		current_message(true);
 	}
 	free(word);
 }

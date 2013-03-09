@@ -19,7 +19,7 @@ struct message {
 void pop_location(void);
 struct message *new_message(const char *msg);
 void add_message(struct message *m);
-void current_message(int save_location);
+void current_message(bool save_location);
 void next_message(void);
 void prev_message(void);
 void clear_messages(void);
