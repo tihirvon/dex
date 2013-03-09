@@ -239,22 +239,7 @@ bool buf_put_char(unsigned int u)
 		width = u_char_width(u);
 		if (width <= space) {
 			obuf.x += width;
-			if (term_utf8) {
-				u_set_char(obuf.buf, &obuf.count, u);
-			} else {
-				// terminal character set is assumed to be latin1
-				if (u_is_unprintable(u)) {
-					u_set_hex(obuf.buf, &obuf.count, u);
-				} else if (u <= 0xff) {
-					obuf.buf[obuf.count++] = u;
-				} else {
-					// character can't be displayed
-					while (width--) {
-						// inverted question mark
-						obuf.buf[obuf.count++] = 0xbf;
-					}
-				}
-			}
+			u_set_char(obuf.buf, &obuf.count, u);
 		} else if (u_is_unprintable(u)) {
 			// <xx> would not fit
 			// there's enough space in the buffer so render all 4 characters

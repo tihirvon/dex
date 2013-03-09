@@ -24,12 +24,7 @@ bool everything_changed;
 static void set_display_filename(struct buffer *b, char *name)
 {
 	free(b->display_filename);
-	if (term_utf8) {
-		b->display_filename = name;
-	} else {
-		b->display_filename = filename_to_utf8(name);
-		free(name);
-	}
+	b->display_filename = name;
 }
 
 /*

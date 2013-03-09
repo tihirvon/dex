@@ -26,20 +26,6 @@ void set_builtin_color(enum builtin_color c)
 	set_color(builtin_colors[c]);
 }
 
-static unsigned int term_get_char(const unsigned char *buf, long size, long *idx)
-{
-	long i = *idx;
-	unsigned int u;
-
-	if (term_utf8) {
-		u = u_get_char(buf, size, &i);
-	} else {
-		u = buf[i++];
-	}
-	*idx = i;
-	return u;
-}
-
 void update_status_line(void)
 {
 	char lbuf[256];
@@ -77,23 +63,6 @@ void update_status_line(void)
 	}
 }
 
-static int get_char_width(long *idx)
-{
-	if (term_utf8) {
-		return u_char_width(u_get_char(cmdline.buf.buffer, cmdline.buf.len, idx));
-	} else {
-		long i = *idx;
-		unsigned char ch = cmdline.buf.buffer[i++];
-
-		*idx = i;
-		if (u_is_ctrl(ch))
-			return 2;
-		if (ch >= 0x80 && ch <= 0x9f)
-			return 4;
-		return 1;
-	}
-}
-
 int print_command(char prefix)
 {
 	long i, w;
@@ -103,8 +72,10 @@ int print_command(char prefix)
 	// width of characters up to and including cursor position
 	w = 1; // ":" (prefix)
 	i = 0;
-	while (i <= cmdline.pos && cmdline.buf.buffer[i])
-		w += get_char_width(&i);
+	while (i <= cmdline.pos && cmdline.buf.buffer[i]) {
+		u = u_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
+		w += u_char_width(u);
+	}
 	if (!cmdline.buf.buffer[cmdline.pos])
 		w++;
 
@@ -117,7 +88,7 @@ int print_command(char prefix)
 	x = obuf.x - obuf.scroll_x;
 	while (cmdline.buf.buffer[i]) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
-		u = term_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
+		u = u_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
 		if (!buf_put_char(u))
 			break;
 		if (i <= cmdline.pos)
@@ -135,7 +106,7 @@ void print_message(const char *msg, bool is_error)
 		c = is_error ? BC_ERRORMSG : BC_INFOMSG;
 	set_builtin_color(c);
 	while (msg[i]) {
-		unsigned int u = term_get_char(msg, i + 4, &i);
+		unsigned int u = u_get_char(msg, i + 4, &i);
 		if (!buf_put_char(u))
 			break;
 	}
@@ -288,13 +259,7 @@ void update_git_open(void)
 		if (file_idx == git_open.selected)
 			mask_color(&color, builtin_colors[BC_SELECTION]);
 		buf_set_color(&color);
-		if (term_utf8) {
-			buf_add_str(file);
-		} else {
-			char *tmp = filename_to_utf8(file);
-			buf_add_str(tmp);
-			free(tmp);
-		}
+		buf_add_str(file);
 		buf_clear_eol();
 	}
 	set_builtin_color(BC_DEFAULT);

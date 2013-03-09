@@ -8,10 +8,8 @@
 
 static void cmdline_insert(struct cmdline *c, unsigned int u)
 {
-	unsigned int len = 1;
+	unsigned int len = u_char_size(u);
 
-	if (term_utf8)
-		len = u_char_size(u);
 	gbuf_make_space(&c->buf, c->pos, len);
 	if (len > 1) {
 		u_set_char_raw(c->buf.buffer, &c->pos, u);
@@ -22,16 +20,14 @@ static void cmdline_insert(struct cmdline *c, unsigned int u)
 
 static void cmdline_delete(struct cmdline *c)
 {
-	int len = 1;
+	long pos = c->pos;
+	long len = 1;
 
-	if (c->pos == c->buf.len)
+	if (pos == c->buf.len)
 		return;
 
-	if (term_utf8) {
-		long pos = c->pos;
-		u_get_char(c->buf.buffer, c->buf.len, &pos);
-		len = pos - c->pos;
-	}
+	u_get_char(c->buf.buffer, c->buf.len, &pos);
+	len = pos - c->pos;
 	gbuf_remove(&c->buf, c->pos, len);
 }
 
