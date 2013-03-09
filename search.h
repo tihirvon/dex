@@ -1,6 +1,8 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
+#include "libc.h"
+
 enum search_direction {
 	SEARCH_FWD,
 	SEARCH_BWD,
@@ -14,7 +16,7 @@ enum {
 	REPLACE_CANCEL = (1 << 4),
 };
 
-void search_tag(const char *pattern);
+bool search_tag(const char *pattern, bool *err);
 
 void search_set_direction(enum search_direction dir);
 enum search_direction current_search_direction(void);

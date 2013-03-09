@@ -156,7 +156,7 @@ static void cmd_compile(const char *pf, char **args)
 	clear_messages();
 	spawn_compiler(args, flags, c);
 	if (message_count())
-		current_message(true);
+		activate_current_message_save();
 }
 
 static void cmd_copy(const char *pf, char **args)
@@ -463,11 +463,11 @@ static void cmd_msg(const char *pf, char **args)
 	}
 
 	if (dir == 'n') {
-		next_message();
+		activate_next_message();
 	} else if (dir == 'p') {
-		prev_message();
+		activate_prev_message();
 	} else {
-		current_message(false);
+		activate_current_message();
 	}
 }
 
@@ -1130,7 +1130,7 @@ static void cmd_tag(const char *pf, char **args)
 	}
 
 	if (pop) {
-		pop_location();
+		pop_file_location();
 		return;
 	}
 
@@ -1168,7 +1168,7 @@ static void cmd_tag(const char *pf, char **args)
 			add_message(m);
 		}
 		free_tags(&tags);
-		current_message(true);
+		activate_current_message_save();
 	}
 	free(word);
 }

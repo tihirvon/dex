@@ -1,5 +1,21 @@
 #include "file-location.h"
-#include "common.h"
+#include "window.h"
+#include "search.h"
+#include "move.h"
+
+static PTR_ARRAY(file_locations);
+
+struct file_location *create_file_location(void)
+{
+	struct file_location *loc;
+
+	loc = xnew0(struct file_location, 1);
+	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
+	loc->buffer_id = buffer->id;
+	loc->line = view->cy + 1;
+	loc->column = view->cx_char + 1;
+	return loc;
+}
 
 void file_location_free(struct file_location *loc)
 {
@@ -26,4 +42,73 @@ bool file_location_equals(const struct file_location *a, const struct file_locat
 		return false;
 	}
 	return true;
+}
+
+// returns true if file or cursor position changed
+bool file_location_go(struct file_location *loc, bool *err)
+{
+	struct view *v = open_buffer(loc->filename, true, NULL);
+	bool ret = false;
+
+	if (!v) {
+		// failed to open file. error message should be visible
+		*err = true;
+		return ret;
+	}
+	if (view != v) {
+		set_view(v);
+		// force centering view to the cursor because file changed
+		view->force_center = true;
+		ret = true;
+	}
+	if (loc->pattern != NULL) {
+		if (search_tag(loc->pattern, err)) {
+			// cursor moved
+			ret = true;
+		}
+	} else if (loc->line > 0) {
+		move_to_line(loc->line);
+		if (loc->column > 0) {
+			move_to_column(loc->column);
+		}
+	}
+	return ret;
+}
+
+bool file_location_return(struct file_location *loc)
+{
+	struct view *v = find_view_by_buffer_id(loc->buffer_id);
+
+	if (v == NULL) {
+		if (loc->filename == NULL) {
+			// Can't restore closed buffer which had no filename.
+			// Try again.
+			return false;
+		}
+		v = open_buffer(loc->filename, true, NULL);
+	}
+	if (v == NULL) {
+		// Open failed. Don't try again.
+		return true;
+	}
+	set_view(v);
+	move_to_line(loc->line);
+	move_to_column(loc->column);
+	return true;
+}
+
+void push_file_location(struct file_location *loc)
+{
+	ptr_array_add(&file_locations, loc);
+}
+
+void pop_file_location(void)
+{
+	bool go = true;
+
+	while (file_locations.count > 0 && go) {
+		struct file_location *loc = file_locations.ptrs[--file_locations.count];
+		go = !file_location_return(loc);
+		file_location_free(loc);
+	}
 }

@@ -101,23 +101,25 @@ next:
 	return false;
 }
 
-void search_tag(const char *pattern)
+bool search_tag(const char *pattern, bool *err)
 {
 	BLOCK_ITER(bi, &buffer->blocks);
 	regex_t regex;
+	bool found = false;
 
-	if (!regexp_compile_basic(&regex, pattern, REG_NEWLINE))
-		return;
-
-	if (do_search_fwd(&regex, &bi, false)) {
+	if (!regexp_compile_basic(&regex, pattern, REG_NEWLINE)) {
+		*err = true;
+	} else if (do_search_fwd(&regex, &bi, false)) {
 		view->center_on_scroll = true;
+		found = true;
 	} else {
-		error_msg("Tag not found.");
-
-		/* don't center view to cursor unnecessarily */
+		// don't center view to cursor unnecessarily
 		view->force_center = false;
+		error_msg("Tag not found.");
+		*err = true;
 	}
 	regfree(&regex);
+	return found;
 }
 
 static struct {

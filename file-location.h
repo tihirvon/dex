@@ -16,7 +16,12 @@ struct file_location {
 	int line, column;
 };
 
+struct file_location *create_file_location(void);
 void file_location_free(struct file_location *loc);
 bool file_location_equals(const struct file_location *a, const struct file_location *b);
+bool file_location_go(struct file_location *loc, bool *err);
+bool file_location_return(struct file_location *loc);
+void push_file_location(struct file_location *loc);
+void pop_file_location(void);
 
 #endif
