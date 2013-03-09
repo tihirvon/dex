@@ -5,12 +5,6 @@
 #include "move.h"
 #include "error.h"
 
-struct file_location {
-	char *filename;
-	unsigned int buffer_id;
-	int row, col;
-};
-
 static PTR_ARRAY(file_locations);
 static PTR_ARRAY(msgs);
 static int msg_pos;
@@ -19,11 +13,11 @@ static struct file_location *create_location(void)
 {
 	struct file_location *loc;
 
-	loc = xnew(struct file_location, 1);
+	loc = xnew0(struct file_location, 1);
 	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
 	loc->buffer_id = buffer->id;
-	loc->row = view->cy + 1;
-	loc->col = view->cx_char + 1;
+	loc->line = view->cy + 1;
+	loc->column = view->cx_char + 1;
 	return loc;
 }
 
@@ -38,8 +32,7 @@ static bool move_to_file(const char *filename, bool save_location)
 	v = open_buffer(filename, true, NULL);
 	if (!v) {
 		if (loc) {
-			free(loc->filename);
-			free(loc);
+			file_location_free(loc);
 		}
 		return false;
 	}
@@ -68,28 +61,40 @@ void pop_location(void)
 			v = open_buffer(loc->filename, true, NULL);
 		} else {
 			// Can't restore closed buffer which had no filename.
-			free(loc->filename);
-			free(loc);
+			file_location_free(loc);
 			pop_location();
 			return;
 		}
 	}
 	if (v) {
 		set_view(v);
-		move_to_line(loc->row);
-		move_to_column(loc->col);
+		move_to_line(loc->line);
+		move_to_column(loc->column);
 	}
-	free(loc->filename);
-	free(loc);
+	file_location_free(loc);
 }
 
 static void free_message(struct message *m)
 {
 	free(m->msg);
-	free(m->file);
-	if (m->pattern_is_set)
-		free(m->u.pattern);
+	if (m->loc != NULL) {
+		file_location_free(m->loc);
+	}
 	free(m);
+}
+
+static bool message_equals(const struct message *a, const struct message *b)
+{
+	if (!streq(a->msg, b->msg)) {
+		return false;
+	}
+	if (a->loc == NULL) {
+		return b->loc == NULL;
+	}
+	if (b->loc == NULL) {
+		return false;
+	}
+	return file_location_equals(a->loc, b->loc);
 }
 
 static bool is_duplicate(const struct message *m)
@@ -97,26 +102,9 @@ static bool is_duplicate(const struct message *m)
 	int i;
 
 	for (i = 0; i < msgs.count; i++) {
-		const struct message *x = msgs.ptrs[i];
-
-		if (!m->file != !x->file)
-			continue;
-		if (m->file) {
-			if (strcmp(m->file, x->file))
-				continue;
-			if (m->pattern_is_set) {
-				if (strcmp(m->u.pattern, x->u.pattern))
-					continue;
-			} else {
-				if (m->u.location.line != x->u.location.line)
-					continue;
-				if (m->u.location.column != x->u.location.column)
-					continue;
-			}
+		if (message_equals(m, msgs.ptrs[i])) {
+			return true;
 		}
-		if (strcmp(m->msg, x->msg))
-			continue;
-		return true;
 	}
 	return false;
 }
@@ -146,7 +134,7 @@ void current_message(bool save_location)
 		return;
 
 	m = msgs.ptrs[msg_pos];
-	if (m->file && move_to_file(m->file, save_location))
+	if (m->loc != NULL && move_to_file(m->loc->filename, save_location))
 		go = 1;
 
 	// search_tag() can print error so do this before it
@@ -154,12 +142,13 @@ void current_message(bool save_location)
 	if (!go)
 		return;
 
-	if (m->pattern_is_set) {
-		search_tag(m->u.pattern);
-	} else if (m->u.location.line > 0) {
-		move_to_line(m->u.location.line);
-		if (m->u.location.column > 0)
-			move_to_column(m->u.location.column);
+	if (m->loc->pattern != NULL) {
+		search_tag(m->loc->pattern);
+	} else if (m->loc->line > 0) {
+		move_to_line(m->loc->line);
+		if (m->loc->column > 0) {
+			move_to_column(m->loc->column);
+		}
 	}
 }
 

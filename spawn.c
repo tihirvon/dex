@@ -32,9 +32,10 @@ static void handle_error_msg(struct compiler *c, char *str)
 			continue;
 		if (!p->ignore) {
 			struct message *msg = new_message(m.ptrs[p->msg_idx]);
-			msg->file = p->file_idx < 0 ? NULL : xstrdup(m.ptrs[p->file_idx]);
-			msg->u.location.line = p->line_idx < 0 ? 0 : atoi(m.ptrs[p->line_idx]);
-			msg->u.location.column = p->column_idx < 0 ? 0 : atoi(m.ptrs[p->column_idx]);
+			msg->loc = xnew0(struct file_location, 1);
+			msg->loc->filename = p->file_idx < 0 ? NULL : xstrdup(m.ptrs[p->file_idx]);
+			msg->loc->line = p->line_idx < 0 ? 0 : atoi(m.ptrs[p->line_idx]);
+			msg->loc->column = p->column_idx < 0 ? 0 : atoi(m.ptrs[p->column_idx]);
 			add_message(msg);
 		}
 		ptr_array_free(&m);

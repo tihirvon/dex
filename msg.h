@@ -2,18 +2,11 @@
 #define MSG_H
 
 #include "libc.h"
+#include "file-location.h"
 
 struct message {
 	char *msg;
-	char *file;
-	union {
-		char *pattern;
-		struct {
-			int line;
-			int column;
-		} location;
-	} u;
-	bool pattern_is_set;
+	struct file_location *loc;
 };
 
 void pop_location(void);

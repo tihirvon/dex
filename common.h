@@ -44,6 +44,17 @@ static inline bool streq(const char *a, const char *b)
 	return !strcmp(a, b);
 }
 
+static inline bool xstreq(const char *a, const char *b)
+{
+	if (a == b) {
+		return true;
+	}
+	if (a == NULL) {
+		return false;
+	}
+	return streq(a, b);
+}
+
 static inline bool str_has_prefix(const char *str, const char *prefix)
 {
 	return !strncmp(str, prefix, strlen(prefix));

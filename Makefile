@@ -107,6 +107,7 @@ dex_objects :=	 		\
 	env.o			\
 	error.o			\
 	file-history.o		\
+	file-location.o		\
 	file-option.o		\
 	filetype.o		\
 	fork.o			\

@@ -1156,14 +1156,14 @@ static void cmd_tag(const char *pf, char **args)
 
 			snprintf(buf, sizeof(buf), "Tag %s", name);
 			m = new_message(buf);
-			m->file = t->filename;
+			m->loc = xnew0(struct file_location, 1);
+			m->loc->filename = t->filename;
 			t->filename = NULL;
 			if (t->pattern) {
-				m->u.pattern = t->pattern;
-				m->pattern_is_set = true;
+				m->loc->pattern = t->pattern;
 				t->pattern = NULL;
 			} else {
-				m->u.location.line = t->line;
+				m->loc->line = t->line;
 			}
 			add_message(m);
 		}
