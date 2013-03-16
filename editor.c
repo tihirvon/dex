@@ -48,6 +48,14 @@ void any_key(void)
 		term_discard_paste();
 }
 
+static void show_message(const char *msg, bool is_error)
+{
+	buf_reset(0, screen_w, 0);
+	buf_move_cursor(0, screen_h - 1);
+	print_message(msg, is_error);
+	buf_clear_eol();
+}
+
 static void update_command_line(void)
 {
 	char prefix = ':';
@@ -258,28 +266,28 @@ char *editor_file(const char *name)
 
 char get_confirmation(const char *choices, const char *format, ...)
 {
+	char buf[4096];
 	unsigned int key;
 	int pos, i, count = strlen(choices);
 	char def = 0;
 	va_list ap;
 
 	va_start(ap, format);
-	vsnprintf(error_buf, sizeof(error_buf), format, ap);
+	vsnprintf(buf, sizeof(buf), format, ap);
 	va_end(ap);
 
-	pos = strlen(error_buf);
-	error_buf[pos++] = ' ';
-	error_buf[pos++] = '[';
+	pos = strlen(buf);
+	buf[pos++] = ' ';
+	buf[pos++] = '[';
 	for (i = 0; i < count; i++) {
 		if (isupper(choices[i]))
 			def = tolower(choices[i]);
-		error_buf[pos++] = choices[i];
-		error_buf[pos++] = '/';
+		buf[pos++] = choices[i];
+		buf[pos++] = '/';
 	}
 	pos--;
-	error_buf[pos++] = ']';
-	error_buf[pos] = 0;
-	msg_is_error = false;
+	buf[pos++] = ']';
+	buf[pos] = 0;
 
 	// update_windows() assumes these have been called for the current view
 	update_cursor_x();
@@ -292,7 +300,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	start_update();
 	update_term_title();
 	update_windows();
-	update_command_line();
+	show_message(buf, false);
 	end_update();
 
 	while (1) {
@@ -321,7 +329,6 @@ char get_confirmation(const char *choices, const char *format, ...)
 			resize();
 		}
 	}
-	clear_error();
 	return key;
 }
 
