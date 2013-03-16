@@ -1,10 +1,49 @@
 #include "error.h"
 #include "editor.h"
 #include "config.h"
+#include "common.h"
 
 int nr_errors;
 bool msg_is_error;
 char error_buf[256];
+
+static struct error *error_new(char *msg)
+{
+	struct error *err = xnew0(struct error, 1);
+	err->msg = msg;
+	return err;
+}
+
+struct error *error_create(const char *format, ...)
+{
+	struct error *err;
+	va_list ap;
+
+	va_start(ap, format);
+	err = error_new(xvsprintf(format, ap));
+	va_end(ap);
+	return err;
+}
+
+struct error *error_create_errno(int code, const char *format, ...)
+{
+	struct error *err;
+	va_list ap;
+
+	va_start(ap, format);
+	err = error_new(xvsprintf(format, ap));
+	va_end(ap);
+	err->code = code;
+	return err;
+}
+
+void error_free(struct error *err)
+{
+	if (err != NULL) {
+		free(err->msg);
+		free(err);
+	}
+}
 
 void clear_error(void)
 {

@@ -93,14 +93,21 @@ bool str_to_int(const char *str, int *valp)
 	return true;
 }
 
-char *xsprintf(const char *format, ...)
+char *xvsprintf(const char *format, va_list ap)
 {
 	char buf[4096];
-	va_list ap;
-	va_start(ap, format);
 	vsnprintf(buf, sizeof(buf), format, ap);
-	va_end(ap);
 	return xstrdup(buf);
+}
+
+char *xsprintf(const char *format, ...)
+{
+	va_list ap;
+	char *str;
+	va_start(ap, format);
+	str = xvsprintf(format, ap);
+	va_end(ap);
+	return str;
 }
 
 ssize_t xread(int fd, void *buf, size_t count)

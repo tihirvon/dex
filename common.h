@@ -67,6 +67,7 @@ bool buf_parse_long(const char *str, int size, int *posp, long *valp);
 bool parse_long(const char **strp, long *valp);
 bool str_to_long(const char *str, long *valp);
 bool str_to_int(const char *str, int *valp);
+char *xvsprintf(const char *format, va_list ap);
 char *xsprintf(const char *format, ...) FORMAT(1);
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);
