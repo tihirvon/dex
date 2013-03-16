@@ -55,14 +55,18 @@ static void run_command(const struct command *cmds, char **av)
 
 	if (!cmd) {
 		PTR_ARRAY(array);
-		const char *alias = find_alias(av[0]);
+		const char *alias_name = av[0];
+		const char *alias_value = find_alias(alias_name);
+		struct error *err = NULL;
 		int i;
 
-		if (!alias) {
-			error_msg("No such command or alias: %s", av[0]);
+		if (alias_value == NULL) {
+			error_msg("No such command or alias: %s", alias_name);
 			return;
 		}
-		if (parse_commands(&array, alias)) {
+		if (!parse_commands(&array, alias_value, &err)) {
+			error_msg("Parsing alias %s: %s", alias_name, err->msg);
+			error_free(err);
 			ptr_array_free(&array);
 			return;
 		}
@@ -117,9 +121,12 @@ void run_commands(const struct command *cmds, const struct ptr_array *array)
 
 void handle_command(const struct command *cmds, const char *cmd)
 {
+	struct error *err = NULL;
 	PTR_ARRAY(array);
 
-	if (parse_commands(&array, cmd)) {
+	if (!parse_commands(&array, cmd, &err)) {
+		error_msg("%s", err->msg);
+		error_free(err);
 		ptr_array_free(&array);
 		return;
 	}

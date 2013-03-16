@@ -214,10 +214,8 @@ char *parse_command_arg(const char *cmd, bool tilde)
 	return gbuf_steal(&arg);
 }
 
-int find_end(const char *cmd, int *posp)
+int find_end(const char *cmd, int pos, struct error **err)
 {
-	int pos = *posp;
-
 	while (1) {
 		char ch = cmd[pos];
 
@@ -232,7 +230,7 @@ int find_end(const char *cmd, int *posp)
 					break;
 				}
 				if (!cmd[pos]) {
-					error_msg("Missing '");
+					*err = error_create("Missing '");
 					return -1;
 				}
 				pos++;
@@ -244,7 +242,7 @@ int find_end(const char *cmd, int *posp)
 					break;
 				}
 				if (!cmd[pos]) {
-					error_msg("Missing \"");
+					*err = error_create("Missing \"");
 					return -1;
 				}
 				if (cmd[pos++] == '\\') {
@@ -271,19 +269,18 @@ int find_end(const char *cmd, int *posp)
 				// implemented in this program, it would behave differently.
 				// Patterns should always expand to "nothing" if it didn't match.
 				// E.g. "open *" in an empty directory would expand to "open".
-				error_msg("You need to escape %c (characters *?[{ are reserved)", ch);
+				*err = error_create("You need to escape %c (characters *?[{ are reserved)", ch);
 				return -1;
 			}
 		}
 	}
-	*posp = pos;
-	return 0;
+	return pos;
 unexpected_eof:
-	error_msg("Unexpected EOF");
+	*err = error_create("Unexpected EOF");
 	return -1;
 }
 
-int parse_commands(struct ptr_array *array, const char *cmd)
+bool parse_commands(struct ptr_array *array, const char *cmd, struct error **err)
 {
 	int pos = 0;
 
@@ -302,15 +299,15 @@ int parse_commands(struct ptr_array *array, const char *cmd)
 			continue;
 		}
 
-		end = pos;
-		if (find_end(cmd, &end))
-			return -1;
+		end = find_end(cmd, pos, err);
+		if (*err != NULL)
+			return false;
 
 		ptr_array_add(array, parse_command_arg(cmd + pos, true));
 		pos = end;
 	}
 	ptr_array_add(array, NULL);
-	return 0;
+	return true;
 }
 
 char **copy_string_array(char **src, int count)

@@ -9,11 +9,12 @@
 static void command_line_enter(void)
 {
 	PTR_ARRAY(array);
-	int ret;
+	struct error *err = NULL;
+	bool ok;
 
 	reset_completion();
 	input_mode = INPUT_NORMAL;
-	ret = parse_commands(&array, cmdline.buf.buffer);
+	ok = parse_commands(&array, cmdline.buf.buffer, &err);
 
 	/* Need to do this before executing the command because
 	 * "command" can modify contents of command line.
@@ -21,8 +22,12 @@ static void command_line_enter(void)
 	history_add(&command_history, cmdline.buf.buffer, command_history_size);
 	cmdline_clear(&cmdline);
 
-	if (!ret)
+	if (ok) {
 		run_commands(commands, &array);
+	} else {
+		error_msg("Parsing command: %s", err->msg);
+		error_free(err);
+	}
 	ptr_array_free(&array);
 }
 
@@ -59,8 +64,6 @@ static void command_mode_keypress(enum term_key_type type, unsigned int key)
 		break;
 	case CMDLINE_CANCEL:
 		input_mode = INPUT_NORMAL;
-		// clear possible parse error
-		clear_error();
 		break;
 	}
 }

@@ -255,6 +255,7 @@ static void init_completion(void)
 	int len, pos = 0;
 
 	while (1) {
+		struct error *err = NULL;
 		int end;
 
 		while (isspace(cmd[pos]))
@@ -275,8 +276,9 @@ static void init_completion(void)
 			continue;
 		}
 
-		end = pos;
-		if (find_end(cmd, &end) || end >= cmdline.pos) {
+		end = find_end(cmd, pos, &err);
+		error_free(err);
+		if (end < 0 || end >= cmdline.pos) {
 			completion_pos = pos;
 			break;
 		}
@@ -288,7 +290,8 @@ static void init_completion(void)
 			if (value) {
 				int i, save = array.count;
 
-				if (parse_commands(&array, value)) {
+				if (!parse_commands(&array, value, &err)) {
+					error_free(err);
 					for (i = save; i < array.count; i++) {
 						free(array.ptrs[i]);
 						array.ptrs[i] = NULL;
