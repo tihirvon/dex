@@ -401,23 +401,24 @@ void set_signal_handler(int signum, void (*handler)(int))
 void main_loop(void)
 {
 	while (editor_status == EDITOR_RUNNING) {
-		if (resized) {
+		unsigned int key;
+		enum term_key_type type;
+
+		if (resized)
 			resize();
+		if (!term_read_key(&key, &type))
+			continue;
+
+		clear_error();
+		if (input_mode == INPUT_GIT_OPEN) {
+			modes[input_mode]->keypress(type, key);
+			modes[input_mode]->update();
 		} else {
-			unsigned int key;
-			enum term_key_type type;
-			if (term_read_key(&key, &type)) {
-				struct screen_state s;
-				clear_error();
-				save_state(&s);
-				modes[input_mode]->keypress(type, key);
-				if (input_mode == INPUT_GIT_OPEN) {
-					modes[input_mode]->update();
-				} else {
-					sanity_check();
-					update_screen(&s);
-				}
-			}
+			struct screen_state s;
+			save_state(&s);
+			modes[input_mode]->keypress(type, key);
+			sanity_check();
+			update_screen(&s);
 		}
 	}
 }
