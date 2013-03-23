@@ -15,9 +15,9 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bo
 {
 	int filename_len = strlen(filename);
 	int my_pid = getpid();
-	int err = 0;
 	ssize_t size = *sizep;
 	ssize_t pos = 0;
+	int other_pid = 0;
 
 	while (pos < size) {
 		ssize_t next_bol, bol = pos;
@@ -42,9 +42,8 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bo
 				remove_line = true;
 			}
 		} else if (process_exists(pid)) {
-			if (same && lock) {
-				error_msg("File is locked (%s) by process %d", file_locks, pid);
-				err = -1;
+			if (same) {
+				other_pid = pid;
 			}
 		} else {
 			// release lock from dead process
@@ -59,18 +58,18 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bo
 			pos = next_bol;
 		}
 	}
-	if (lock && err == 0) {
+	if (lock && other_pid == 0) {
 		sprintf(buf + size, "%d %s\n", my_pid, filename);
 		size += strlen(buf + size);
 	}
 	*sizep = size;
-	return err;
+	return other_pid;
 }
 
 static int lock_or_unlock(const char *filename, bool lock)
 {
 	int tries = 0;
-	int wfd, rfd, err;
+	int wfd, rfd, pid;
 	ssize_t size;
 	char *buf = NULL;
 
@@ -134,7 +133,10 @@ static int lock_or_unlock(const char *filename, bool lock)
 	if (size && buf[size - 1] != '\n')
 		buf[size++] = '\n';
 
-	err = rewrite_lock_file(buf, &size, filename, lock);
+	pid = rewrite_lock_file(buf, &size, filename, lock);
+	if (lock && pid) {
+		error_msg("File is locked (%s) by process %d", file_locks, pid);
+	}
 	if (xwrite(wfd, buf, size) < 0) {
 		error_msg("Error writing %s: %s", file_locks_lock, strerror(errno));
 		goto error;
@@ -148,7 +150,7 @@ static int lock_or_unlock(const char *filename, bool lock)
 		goto error;
 	}
 	free(buf);
-	return err;
+	return pid == 0 ? 0 : -1;
 error:
 	unlink(file_locks_lock);
 	free(buf);
