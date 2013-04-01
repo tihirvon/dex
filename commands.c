@@ -1390,7 +1390,7 @@ static void cmd_wsplit(const char *pf, char **args)
 	mark_everything_changed();
 
 	if (*args) {
-		cmd_open("", args);
+		open_files(args, NULL);
 	} else {
 		struct view *new = window_add_buffer(save->buffer);
 		new->cursor = save->cursor;
