@@ -1244,7 +1244,7 @@ static int activate_modified_buffer(void)
 
 static void cmd_wclose(const char *pf, char **args)
 {
-	int i, idx;
+	int idx;
 	bool force = !!*pf;
 	struct window *w;
 
@@ -1252,12 +1252,10 @@ static void cmd_wclose(const char *pf, char **args)
 		error_msg("Save modified files or run 'wclose -f' to close window without saving.");
 		return;
 	}
-	for (i = 0; i < window->views.count; i++)
-		view_delete(window->views.ptrs[i]);
-	window->views.count = 0;
-	view = NULL;
-	buffer = NULL;
-
+	while (window->views.count > 0) {
+		struct view *v = window->views.ptrs[window->views.count - 1];
+		remove_view(v);
+	}
 	if (windows.count == 1) {
 		// don't close last window
 		set_view(open_empty_buffer());

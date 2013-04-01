@@ -26,14 +26,23 @@ struct view *window_add_buffer(struct buffer *b)
 	return v;
 }
 
-void view_delete(struct view *v)
+// Remove view from v->window and v->buffer->views and free it.
+void remove_view(struct view *v)
 {
 	struct buffer *b = v->buffer;
 
-	if (v == prev_view)
+	// stupid globals
+	if (v == prev_view) {
 		prev_view = NULL;
+	}
+	if (v == view) {
+		view = NULL;
+		buffer = NULL;
+	}
 
+	ptr_array_remove(&v->window->views, v);
 	v->window->update_tabbar = true;
+
 	ptr_array_remove(&b->views, v);
 	if (b->views.count == 0) {
 		if (b->options.file_history && b->abs_filename)
@@ -43,19 +52,11 @@ void view_delete(struct view *v)
 	free(v);
 }
 
-static void remove_view(struct view *v)
-{
-	ptr_array_remove(&window->views, v);
-	view_delete(v);
-}
-
 void close_current_view(void)
 {
 	int idx = view_idx();
 
 	remove_view(view);
-	view = NULL;
-
 	if (prev_view) {
 		set_view(prev_view);
 		return;
