@@ -37,11 +37,6 @@ static inline struct window *WINDOW(int i)
 	return windows.ptrs[i];
 }
 
-static inline struct view *VIEW(int i, int j)
-{
-	return WINDOW(i)->views.ptrs[j];
-}
-
 static inline void mark_buffer_tabbars_changed(void)
 {
 	int i;

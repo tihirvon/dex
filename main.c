@@ -56,15 +56,17 @@ static void handle_sigwinch(int signum)
 	resized = true;
 }
 
-static void close_all_views(void)
+static void record_file_history(void)
 {
-	int i, j;
+	int i;
 
-	for (i = 0; i < windows.count; i++) {
-		struct window *w = WINDOW(i);
-		for (j = 0; j < w->views.count; j++)
-			view_delete(VIEW(i, j));
-		w->views.count = 0;
+	for (i = 0; i < buffers.count; i++) {
+		struct buffer *b = buffers.ptrs[i];
+		if (b->options.file_history && b->abs_filename) {
+			// choose first view
+			struct view *v = b->views.ptrs[0];
+			add_file_history(v->cy + 1, v->cx_char + 1, b->abs_filename);
+		}
 	}
 }
 
@@ -227,7 +229,7 @@ int main(int argc, char *argv[])
 	history_save(&search_history, search_history_filename);
 	free(command_history_filename);
 	free(search_history_filename);
-	close_all_views();
+	record_file_history();
 	save_file_history();
 	return 0;
 }
