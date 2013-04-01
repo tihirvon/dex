@@ -75,7 +75,7 @@ static void cmd_cd(const char *pf, char **args)
 	char cwd[8192];
 	char *cwdp = NULL;
 	bool got_cwd = !!getcwd(cwd, sizeof(cwd));
-	int i, j;
+	int i;
 
 	if (chdir(args[0])) {
 		error_msg("cd: %s", strerror(errno));
@@ -90,10 +90,9 @@ static void cmd_cd(const char *pf, char **args)
 		cwdp = cwd;
 	}
 
-	for (i = 0; i < windows.count; i++) {
-		for (j = 0; j < WINDOW(i)->views.count; j++) {
-			update_short_filename_cwd(VIEW(i, j)->buffer, cwdp);
-		}
+	for (i = 0; i < buffers.count; i++) {
+		struct buffer *b = buffers.ptrs[i];
+		update_short_filename_cwd(b, cwdp);
 	}
 
 	// need to update all tabbars
@@ -616,20 +615,18 @@ static void cmd_prev(const char *pf, char **args)
 
 static void cmd_quit(const char *pf, char **args)
 {
-	int i, j;
+	int i;
 
 	if (pf[0]) {
 		editor_status = EDITOR_EXITING;
 		return;
 	}
-	for (i = 0; i < windows.count; i++) {
-		for (j = 0; j < WINDOW(i)->views.count; j++) {
-			struct view *v = VIEW(i, j);
-			if (buffer_modified(v->buffer)) {
-				set_view(v);
-				error_msg("Save modified files or run 'quit -f' to quit without saving.");
-				return;
-			}
+	for (i = 0; i < buffers.count; i++) {
+		struct buffer *b = buffers.ptrs[i];
+		if (buffer_modified(b)) {
+			set_view(buffer_get_view(b));
+			error_msg("Save modified files or run 'quit -f' to quit without saving.");
+			return;
 		}
 	}
 	editor_status = EDITOR_EXITING;

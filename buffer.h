@@ -121,6 +121,7 @@ struct view {
 // buffer = view->buffer = window->view->buffer
 extern struct view *view;
 extern struct buffer *buffer;
+extern struct ptr_array buffers;
 extern bool everything_changed;
 
 static inline void mark_all_lines_changed(void)
@@ -153,7 +154,8 @@ char *get_word_under_cursor(void);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);
-struct view *find_view_by_buffer_id(unsigned int buffer_id);
+struct view *buffer_get_view(struct buffer *b);
+struct buffer *find_buffer_by_id(unsigned int id);
 struct view *open_buffer(const char *filename, bool must_exist, const char *encoding);
 struct view *open_empty_buffer(void);
 void setup_buffer(void);

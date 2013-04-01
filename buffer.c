@@ -19,6 +19,7 @@
 #include "detect.h"
 
 struct buffer *buffer;
+PTR_ARRAY(buffers);
 bool everything_changed;
 
 static void set_display_filename(struct buffer *b, char *name)
@@ -151,6 +152,7 @@ static struct buffer *buffer_new(const char *encoding)
 	b->cur_change = &b->change_head;
 	b->saved_change = &b->change_head;
 	b->id = ++id;
+	b->newline = options.newline;
 	if (encoding)
 		b->encoding = xstrdup(encoding);
 
@@ -159,7 +161,7 @@ static struct buffer *buffer_new(const char *encoding)
 	b->options.filetype = xstrdup("none");
 	b->options.indent_regex = xstrdup("");
 
-	b->newline = options.newline;
+	ptr_array_add(&buffers, b);
 	return b;
 }
 
@@ -185,6 +187,8 @@ void free_buffer(struct buffer *b)
 {
 	struct list_head *item;
 
+	ptr_array_remove(&buffers, ptr_array_idx(&buffers, b));
+
 	if (b->locked)
 		unlock_file(b->abs_filename);
 
@@ -207,60 +211,57 @@ void free_buffer(struct buffer *b)
 	free(b);
 }
 
+struct view *buffer_get_view(struct buffer *b)
+{
+	struct view *v;
+	int i;
+
+	for (i = 0; i < b->views.count; i++) {
+		v = b->views.ptrs[i];
+		if (v->window == window) {
+			// the file was already open in current window
+			return v;
+		}
+	}
+	// open the buffer in other window to current window
+	v = window_add_buffer(b);
+	v->cursor = ((struct view *)b->views.ptrs[0])->cursor;
+	return v;
+}
+
 static int same_file(const struct stat *a, const struct stat *b)
 {
 	return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
 }
 
-static struct view *find_view(const char *abs_filename)
+static struct buffer *find_buffer(const char *abs_filename)
 {
-	struct view *found = NULL;
 	struct stat st;
-	int i, j;
-	bool st_ok;
+	bool st_ok = stat(abs_filename, &st) == 0;
+	int i;
 
-	st_ok = stat(abs_filename, &st) == 0;
-	for (i = 0; i < windows.count; i++) {
-		for (j = 0; j < WINDOW(i)->views.count; j++) {
-			struct view *v = VIEW(i, j);
-			const char *f = v->buffer->abs_filename;
-			if (f == NULL)
-				continue;
-			if (streq(f, abs_filename) || (st_ok && same_file(&st, &v->buffer->st))) {
-				// found in current window?
-				if (v->window == window)
-					return v;
-				found = v;
-			}
+	for (i = 0; i < buffers.count; i++) {
+		struct buffer *b = buffers.ptrs[i];
+		const char *f = b->abs_filename;
+
+		if ((f != NULL && streq(f, abs_filename)) || (st_ok && same_file(&st, &b->st))) {
+			return b;
 		}
 	}
-	return found;
+	return NULL;
 }
 
-struct view *find_view_by_buffer_id(unsigned int buffer_id)
+struct buffer *find_buffer_by_id(unsigned int id)
 {
-	struct view *v, *found = NULL;
-	int i, j;
+	int i;
 
-	for (i = 0; i < windows.count; i++) {
-		for (j = 0; j < WINDOW(i)->views.count; j++) {
-			v = VIEW(i, j);
-			if (buffer_id == v->buffer->id) {
-				// found in current window?
-				if (v->window == window)
-					return v;
-
-				found = v;
-			}
+	for (i = 0; i < buffers.count; i++) {
+		struct buffer *b = buffers.ptrs[i];
+		if (b->id == id) {
+			return b;
 		}
 	}
-	if (!found)
-		return NULL;
-
-	// open the buffer in other window to current window
-	v = window_add_buffer(found->buffer);
-	v->cursor = found->cursor;
-	return v;
+	return NULL;
 }
 
 bool guess_filetype(void)
@@ -317,22 +318,15 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 	}
 
 	// already open?
-	v = find_view(absolute);
-	if (v) {
-		if (strcmp(absolute, v->buffer->abs_filename)) {
+	b = find_buffer(absolute);
+	if (b) {
+		if (strcmp(absolute, b->abs_filename)) {
 			char *s = short_filename(absolute);
-			info_msg("%s and %s are the same file", s, v->buffer->display_filename);
+			info_msg("%s and %s are the same file", s, b->display_filename);
 			free(s);
 		}
 		free(absolute);
-		if (v->window != window) {
-			// open the buffer in other window to current window
-			struct view *new = window_add_buffer(v->buffer);
-			new->cursor = v->cursor;
-			return new;
-		}
-		// the file was already open in current window
-		return v;
+		return buffer_get_view(b);
 	}
 
 	b = buffer_new(encoding);

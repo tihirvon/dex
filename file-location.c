@@ -77,9 +77,12 @@ bool file_location_go(struct file_location *loc, bool *err)
 
 bool file_location_return(struct file_location *loc)
 {
-	struct view *v = find_view_by_buffer_id(loc->buffer_id);
+	struct buffer *b = find_buffer_by_id(loc->buffer_id);
+	struct view *v;
 
-	if (v == NULL) {
+	if (b != NULL) {
+		v = buffer_get_view(b);
+	} else {
 		if (loc->filename == NULL) {
 			// Can't restore closed buffer which had no filename.
 			// Try again.
