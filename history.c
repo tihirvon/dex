@@ -19,12 +19,12 @@ void history_add(struct ptr_array *history, const char *text, int max_entries)
 	for (i = 0; i < history->count; i++) {
 		if (streq(history->ptrs[i], text)) {
 			// move identical entry to end
-			ptr_array_add(history, ptr_array_remove(history, i));
+			ptr_array_add(history, ptr_array_remove_idx(history, i));
 			return;
 		}
 	}
 	if (history->count == max_entries)
-		free(ptr_array_remove(history, 0));
+		free(ptr_array_remove_idx(history, 0));
 	ptr_array_add(history, xstrdup(text));
 }
 

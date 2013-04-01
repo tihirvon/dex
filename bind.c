@@ -161,7 +161,7 @@ void remove_binding(const char *keys)
 		struct binding *b = bindings.ptrs[--i];
 
 		if (memcmp(&b->chain, &chain, sizeof(chain)) == 0) {
-			ptr_array_remove(&bindings, i);
+			ptr_array_remove_idx(&bindings, i);
 			free(b->command);
 			free(b);
 			return;

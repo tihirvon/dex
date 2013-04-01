@@ -408,9 +408,8 @@ struct frame *split_root(bool vertical, bool before)
 void remove_frame(struct frame *f)
 {
 	struct frame *parent = f->parent;
-	int idx = ptr_array_idx(&parent->frames, f);
 
-	ptr_array_remove(&parent->frames, idx);
+	ptr_array_remove(&parent->frames, f);
 	free(f->frames.ptrs);
 	free(f);
 
@@ -423,7 +422,7 @@ void remove_frame(struct frame *f)
 		c->w = parent->w;
 		c->h = parent->h;
 		if (gp) {
-			idx = ptr_array_idx(&gp->frames, parent);
+			long idx = ptr_array_idx(&gp->frames, parent);
 			gp->frames.ptrs[idx] = c;
 		} else {
 			root_frame = c;

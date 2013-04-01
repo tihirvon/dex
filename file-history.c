@@ -25,13 +25,13 @@ void add_file_history(int row, int col, const char *filename)
 			e->row = row;
 			e->col = col;
 			// keep newest at end of the array
-			ptr_array_add(&history, ptr_array_remove(&history, i));
+			ptr_array_add(&history, ptr_array_remove_idx(&history, i));
 			return;
 		}
 	}
 
 	while (max_history_size && history.count >= max_history_size) {
-		e = ptr_array_remove(&history, 0);
+		e = ptr_array_remove_idx(&history, 0);
 		free(e->filename);
 		free(e);
 	}

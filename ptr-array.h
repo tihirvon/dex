@@ -14,7 +14,8 @@ struct ptr_array {
 void ptr_array_add(struct ptr_array *array, void *ptr);
 void ptr_array_insert(struct ptr_array *array, void *ptr, long pos);
 void ptr_array_free(struct ptr_array *array);
-void *ptr_array_remove(struct ptr_array *array, long pos);
-int ptr_array_idx(struct ptr_array *array, void *ptr);
+void ptr_array_remove(struct ptr_array *array, void *ptr);
+void *ptr_array_remove_idx(struct ptr_array *array, long pos);
+long ptr_array_idx(struct ptr_array *array, void *ptr);
 
 #endif

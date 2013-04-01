@@ -443,7 +443,7 @@ static void cmd_move_tab(const char *pf, char **args)
 			j = window->views.count - 1;
 	}
 
-	ptr_array_insert(&window->views, ptr_array_remove(&window->views, i), j);
+	ptr_array_insert(&window->views, ptr_array_remove_idx(&window->views, i), j);
 	window->update_tabbar = true;
 }
 
@@ -1265,7 +1265,7 @@ static void cmd_wclose(const char *pf, char **args)
 	}
 
 	idx = window_idx();
-	w = ptr_array_remove(&windows, idx);
+	w = ptr_array_remove_idx(&windows, idx);
 	remove_frame(w->frame);
 	free(w->views.ptrs);
 	free(w);
@@ -1401,7 +1401,7 @@ static void cmd_wsplit(const char *pf, char **args)
 
 	if (window->views.count == 0) {
 		// open failed, remove new window
-		ptr_array_remove(&windows, ptr_array_idx(&windows, window));
+		ptr_array_remove(&windows, window);
 		remove_frame(window->frame);
 		free(window->views.ptrs);
 		free(window);

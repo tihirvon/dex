@@ -187,7 +187,7 @@ void free_buffer(struct buffer *b)
 {
 	struct list_head *item;
 
-	ptr_array_remove(&buffers, ptr_array_idx(&buffers, b));
+	ptr_array_remove(&buffers, b);
 
 	if (b->locked)
 		unlock_file(b->abs_filename);

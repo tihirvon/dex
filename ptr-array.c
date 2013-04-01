@@ -32,7 +32,13 @@ void ptr_array_free(struct ptr_array *array)
 	free(array->ptrs);
 }
 
-void *ptr_array_remove(struct ptr_array *array, long pos)
+void ptr_array_remove(struct ptr_array *array, void *ptr)
+{
+	long pos = ptr_array_idx(array, ptr);
+	ptr_array_remove_idx(array, pos);
+}
+
+void *ptr_array_remove_idx(struct ptr_array *array, long pos)
 {
 	void *ptr = array->ptrs[pos];
 	array->count--;
@@ -40,9 +46,9 @@ void *ptr_array_remove(struct ptr_array *array, long pos)
 	return ptr;
 }
 
-int ptr_array_idx(struct ptr_array *array, void *ptr)
+long ptr_array_idx(struct ptr_array *array, void *ptr)
 {
-	int i;
+	long i;
 
 	for (i = 0; i < array->count; i++) {
 		if (array->ptrs[i] == ptr)

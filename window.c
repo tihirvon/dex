@@ -34,7 +34,7 @@ void view_delete(struct view *v)
 		prev_view = NULL;
 
 	v->window->update_tabbar = true;
-	ptr_array_remove(&b->views, ptr_array_idx(&b->views, v));
+	ptr_array_remove(&b->views, v);
 	if (b->views.count == 0) {
 		if (b->options.file_history && b->abs_filename)
 			add_file_history(v->cy + 1, v->cx_char + 1, b->abs_filename);
@@ -45,7 +45,7 @@ void view_delete(struct view *v)
 
 static void remove_view(struct view *v)
 {
-	ptr_array_remove(&window->views, ptr_array_idx(&window->views, v));
+	ptr_array_remove(&window->views, v);
 	view_delete(v);
 }
 
