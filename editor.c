@@ -123,8 +123,10 @@ static void end_update(void)
 
 	buffer->changed_line_min = INT_MAX;
 	buffer->changed_line_max = -1;
-	for (i = 0; i < windows.count; i++)
-		WINDOW(i)->update_tabbar = false;
+	for (i = 0; i < windows.count; i++) {
+		struct window *w = windows.ptrs[i];
+		w->update_tabbar = false;
+	}
 }
 
 static void update_all_windows(void)
@@ -134,7 +136,7 @@ static void update_all_windows(void)
 
 	update_window_sizes();
 	for (i = 0; i < windows.count; i++) {
-		window = WINDOW(i);
+		window = windows.ptrs[i];
 		view = window->view;
 		buffer = view->buffer;
 		update_current_window();

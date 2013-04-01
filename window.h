@@ -32,11 +32,6 @@ struct window {
 extern struct window *window;
 extern struct ptr_array windows;
 
-static inline struct window *WINDOW(int i)
-{
-	return windows.ptrs[i];
-}
-
 static inline void mark_buffer_tabbars_changed(void)
 {
 	int i;
