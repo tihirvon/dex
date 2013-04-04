@@ -155,7 +155,7 @@ void collect_tags(const char *prefix)
 		return;
 
 	while (next_tag(tag_file, &pos, prefix, 0, &t)) {
-		if (!prev || strcmp(prev, t.name)) {
+		if (!prev || !streq(prev, t.name)) {
 			add_completion(t.name);
 			prev = t.name;
 			t.name = NULL;

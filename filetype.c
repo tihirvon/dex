@@ -96,7 +96,7 @@ const char *find_ft(const char *filename, const char *interpreter,
 
 		switch (ft->type) {
 		case FT_EXTENSION:
-			if (!ext || strcmp(ext, ft->str))
+			if (!ext || !streq(ext, ft->str))
 				continue;
 			break;
 		case FT_FILENAME:
@@ -108,7 +108,7 @@ const char *find_ft(const char *filename, const char *interpreter,
 				continue;
 			break;
 		case FT_INTERPRETER:
-			if (!interpreter || strcmp(interpreter, ft->str))
+			if (!interpreter || !streq(interpreter, ft->str))
 				continue;
 			break;
 		}

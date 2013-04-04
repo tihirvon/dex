@@ -10,7 +10,7 @@ struct file_encoder *new_file_encoder(const char *encoding, enum newline_sequenc
 	enc->nls = nls;
 	enc->fd = fd;
 
-	if (strcmp(encoding, "UTF-8")) {
+	if (!streq(encoding, "UTF-8")) {
 		enc->cconv = cconv_from_utf8(encoding);
 		if (enc->cconv == NULL) {
 			free(enc);

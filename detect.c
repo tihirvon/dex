@@ -29,7 +29,7 @@ char *detect_interpreter(struct buffer *b)
 	ret = xstrdup(m.ptrs[2]);
 	ptr_array_free(&m);
 
-	if (strcmp(ret, "sh"))
+	if (!streq(ret, "sh"))
 		return ret;
 
 	/*

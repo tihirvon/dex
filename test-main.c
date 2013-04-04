@@ -33,7 +33,7 @@ static void test_relative_filename(void)
 	for (i = 0; i < ARRAY_COUNT(tests); i++) {
 		const struct rel_test *t = &tests[i];
 		char *result = relative_filename(t->path, t->cwd);
-		if (strcmp(t->result, result))
+		if (!streq(t->result, result))
 			fail("relative_filename(%s, %s) -> %s, expected %s\n", t->path, t->cwd, result, t->result);
 		free(result);
 	}

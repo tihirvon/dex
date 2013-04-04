@@ -280,7 +280,7 @@ bool guess_filetype(void)
 	}
 	free(interpreter);
 
-	if (ft && strcmp(ft, buffer->options.filetype)) {
+	if (ft && !streq(ft, buffer->options.filetype)) {
 		free(buffer->options.filetype);
 		buffer->options.filetype = xstrdup(ft);
 		return true;
@@ -320,7 +320,7 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 	// already open?
 	b = find_buffer(absolute);
 	if (b) {
-		if (strcmp(absolute, b->abs_filename)) {
+		if (!streq(absolute, b->abs_filename)) {
 			char *s = short_filename(absolute);
 			info_msg("%s and %s are the same file", s, b->display_filename);
 			free(s);

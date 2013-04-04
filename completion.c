@@ -128,7 +128,7 @@ static void collect_files(bool directories_only)
 	const char *slash;
 	char *str = parse_command_arg(completion.escaped, false);
 
-	if (strcmp(completion.parsed, str)) {
+	if (!streq(completion.parsed, str)) {
 		// ~ was expanded
 		completion.tilde_expanded = true;
 		slash = strrchr(str, '/');
