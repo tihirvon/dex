@@ -26,6 +26,23 @@ struct view *window_add_buffer(struct buffer *b)
 	return v;
 }
 
+void window_remove_views(struct window *w)
+{
+	while (w->views.count > 0) {
+		struct view *v = w->views.ptrs[w->views.count - 1];
+		remove_view(v);
+	}
+}
+
+// NOTE: w->frame isn't removed
+void window_free(struct window *w)
+{
+	window_remove_views(w);
+	free(w->views.ptrs);
+	w->frame = NULL;
+	free(w);
+}
+
 // Remove view from v->window and v->buffer->views and free it.
 void remove_view(struct view *v)
 {

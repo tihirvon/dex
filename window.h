@@ -43,6 +43,8 @@ static inline void mark_buffer_tabbars_changed(void)
 
 struct window *new_window(void);
 struct view *window_add_buffer(struct buffer *b);
+void window_remove_views(struct window *w);
+void window_free(struct window *w);
 void remove_view(struct view *v);
 void close_current_view(void);
 void set_view(struct view *v);

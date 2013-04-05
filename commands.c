@@ -1252,12 +1252,9 @@ static void cmd_wclose(const char *pf, char **args)
 		error_msg("Save modified files or run 'wclose -f' to close window without saving.");
 		return;
 	}
-	while (window->views.count > 0) {
-		struct view *v = window->views.ptrs[window->views.count - 1];
-		remove_view(v);
-	}
 	if (windows.count == 1) {
 		// don't close last window
+		window_remove_views(window);
 		set_view(open_empty_buffer());
 		return;
 	}
@@ -1265,8 +1262,7 @@ static void cmd_wclose(const char *pf, char **args)
 	idx = window_idx();
 	w = ptr_array_remove_idx(&windows, idx);
 	remove_frame(w->frame);
-	free(w->views.ptrs);
-	free(w);
+	window_free(w);
 
 	if (idx == windows.count)
 		idx = windows.count - 1;
@@ -1401,8 +1397,7 @@ static void cmd_wsplit(const char *pf, char **args)
 		// open failed, remove new window
 		ptr_array_remove(&windows, window);
 		remove_frame(window->frame);
-		free(window->views.ptrs);
-		free(window);
+		window_free(window);
 
 		view = save;
 		buffer = view->buffer;
