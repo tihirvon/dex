@@ -236,7 +236,7 @@ static bool rightmost_frame(struct frame *f)
 	return rightmost_frame(parent);
 }
 
-struct frame *new_frame(void)
+static struct frame *new_frame(void)
 {
 	struct frame *f = xnew0(struct frame, 1);
 
@@ -248,14 +248,20 @@ static struct frame *add_frame(struct frame *parent, struct window *w, int idx)
 {
 	struct frame *f = new_frame();
 
-	BUG_ON(idx > parent->frames.count);
-
 	f->parent = parent;
 	f->window = w;
-	ptr_array_insert(&parent->frames, f, idx);
-	parent->window = NULL;
 	w->frame = f;
+	if (parent != NULL) {
+		BUG_ON(idx > parent->frames.count);
+		ptr_array_insert(&parent->frames, f, idx);
+		parent->window = NULL;
+	}
 	return f;
+}
+
+struct frame *new_root_frame(struct window *w)
+{
+	return add_frame(NULL, w, 0);
 }
 
 static struct frame *find_resizable(struct frame *f, enum resize_direction dir)

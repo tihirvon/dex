@@ -26,7 +26,7 @@ enum resize_direction {
 
 extern struct frame *root_frame;
 
-struct frame *new_frame(void);
+struct frame *new_root_frame(struct window *w);
 void set_frame_size(struct frame *f, int w, int h);
 void equalize_frame_sizes(struct frame *parent);
 void add_to_frame_size(struct frame *f, enum resize_direction dir, int amount);

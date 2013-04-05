@@ -151,11 +151,9 @@ int main(int argc, char *argv[])
 	exec_builtin_rc(builtin_rc);
 	fill_builtin_colors();
 
-	root_frame = new_frame();
 	window = new_window();
 	ptr_array_add(&windows, window);
-	window->frame = root_frame;
-	root_frame->window = window;
+	root_frame = new_root_frame(window);
 
 	if (read_rc) {
 		if (rc) {
