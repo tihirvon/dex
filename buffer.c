@@ -169,18 +169,13 @@ struct view *open_empty_buffer(void)
 {
 	struct buffer *b = buffer_new(charset);
 	struct block *blk;
-	struct view *v;
 
 	// at least one block required
 	blk = block_new(1);
 	list_add_before(&blk->node, &b->blocks);
 
-	v = window_add_buffer(b);
-	v->cursor.head = &v->buffer->blocks;
-	v->cursor.blk = BLOCK(v->buffer->blocks.next);
-
 	set_display_filename(b, xstrdup("(No name)"));
-	return v;
+	return window_add_buffer(b);
 }
 
 void free_buffer(struct buffer *b)
@@ -308,7 +303,6 @@ void update_short_filename(struct buffer *b)
 struct view *open_buffer(const char *filename, bool must_exist, const char *encoding)
 {
 	struct buffer *b;
-	struct view *v;
 	char *absolute;
 
 	absolute = path_absolute(filename);
@@ -340,11 +334,7 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 		free_buffer(b);
 		return NULL;
 	}
-
-	v = window_add_buffer(b);
-	v->cursor.head = &v->buffer->blocks;
-	v->cursor.blk = BLOCK(v->buffer->blocks.next);
-	return v;
+	return window_add_buffer(b);
 }
 
 void filetype_changed(void)

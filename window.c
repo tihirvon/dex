@@ -15,9 +15,12 @@ struct view *window_add_buffer(struct buffer *b)
 {
 	struct view *v = xnew0(struct view, 1);
 
-	ptr_array_add(&b->views, v);
 	v->buffer = b;
 	v->window = window;
+	v->cursor.head = &b->blocks;
+	v->cursor.blk = BLOCK(b->blocks.next);
+
+	ptr_array_add(&b->views, v);
 	ptr_array_add(&window->views, v);
 	window->update_tabbar = true;
 	return v;
