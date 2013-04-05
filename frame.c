@@ -356,6 +356,7 @@ void update_window_coordinates(void)
 struct frame *split_frame(struct window *w, bool vertical, bool before)
 {
 	struct frame *f, *parent;
+	struct window *neww;
 	int idx;
 
 	f = w->frame;
@@ -370,7 +371,9 @@ struct frame *split_frame(struct window *w, bool vertical, bool before)
 	idx = ptr_array_idx(&parent->frames, w->frame);
 	if (!before)
 		idx++;
-	f = add_frame(parent, window_new(), idx);
+	neww = new_window();
+	ptr_array_add(&windows, neww);
+	f = add_frame(parent, neww, idx);
 	parent->equal_size = true;
 
 	// recalculate
@@ -388,8 +391,9 @@ struct frame *split_root(bool vertical, bool before)
 	new_root->vertical = vertical;
 	f = new_frame();
 	f->parent = new_root;
-	f->window = window_new();
+	f->window = new_window();
 	f->window->frame = f;
+	ptr_array_add(&windows, f->window);
 	if (before) {
 		ptr_array_add(&new_root->frames, f);
 		ptr_array_add(&new_root->frames, root_frame);

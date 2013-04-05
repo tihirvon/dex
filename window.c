@@ -6,12 +6,9 @@ struct window *window;
 
 static struct view *prev_view;
 
-struct window *window_new(void)
+struct window *new_window(void)
 {
-	struct window *w = xnew0(struct window, 1);
-
-	ptr_array_add(&windows, w);
-	return w;
+	return xnew0(struct window, 1);
 }
 
 struct view *window_add_buffer(struct buffer *b)

@@ -41,7 +41,7 @@ static inline void mark_buffer_tabbars_changed(void)
 	}
 }
 
-struct window *window_new(void);
+struct window *new_window(void);
 struct view *window_add_buffer(struct buffer *b);
 void remove_view(struct view *v);
 void close_current_view(void);

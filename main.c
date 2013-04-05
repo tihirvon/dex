@@ -152,7 +152,8 @@ int main(int argc, char *argv[])
 	fill_builtin_colors();
 
 	root_frame = new_frame();
-	window = window_new();
+	window = new_window();
+	ptr_array_add(&windows, window);
 	window->frame = root_frame;
 	root_frame->window = window;
 
