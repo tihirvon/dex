@@ -32,15 +32,6 @@ struct window {
 extern struct window *window;
 extern struct ptr_array windows;
 
-static inline void mark_buffer_tabbars_changed(void)
-{
-	int i;
-	for (i = 0; i < buffer->views.count; i++) {
-		struct view *v = buffer->views.ptrs[i];
-		v->window->update_tabbar = true;
-	}
-}
-
 struct window *new_window(void);
 struct view *window_add_buffer(struct buffer *b);
 struct view *window_find_unclosable_view(struct window *w, bool (*can_close)(struct view *));
@@ -53,6 +44,7 @@ struct view *open_new_file(void);
 struct view *open_file(const char *filename, const char *encoding);
 void open_files(char **filenames, const char *encoding);
 void update_view(void);
+void mark_buffer_tabbars_changed(void);
 int vertical_tabbar_width(struct window *win);
 void calculate_line_numbers(struct window *win);
 void set_window_coordinates(struct window *win, int x, int y);

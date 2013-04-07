@@ -261,6 +261,15 @@ void update_view(void)
 	view->center_on_scroll = false;
 }
 
+void mark_buffer_tabbars_changed(void)
+{
+	long i;
+	for (i = 0; i < buffer->views.count; i++) {
+		struct view *v = buffer->views.ptrs[i];
+		v->window->update_tabbar = true;
+	}
+}
+
 int vertical_tabbar_width(struct window *win)
 {
 	// line numbers are included in min_edit_w
