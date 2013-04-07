@@ -6,6 +6,7 @@
 #include "hl.h"
 
 struct line_info {
+	struct view *view;
 	long line_nr;
 	long offset;
 	long sel_so;
@@ -39,7 +40,7 @@ static void mask_selection_and_current_line(struct line_info *info, struct term_
 {
 	if (info->offset >= info->sel_so && info->offset < info->sel_eo) {
 		mask_color(color, builtin_colors[BC_SELECTION]);
-	} else if (info->line_nr == view->cy) {
+	} else if (info->line_nr == info->view->cy) {
 		mask_color2(color, builtin_colors[BC_CURRENTLINE]);
 	}
 }
@@ -53,12 +54,12 @@ static bool is_non_text(unsigned int u)
 	return u_is_unprintable(u);
 }
 
-static int get_ws_error_option(void)
+static int get_ws_error_option(struct buffer *b)
 {
-	int flags = buffer->options.ws_error;
+	int flags = b->options.ws_error;
 
 	if (flags & WSE_AUTO_INDENT) {
-		if (buffer->options.expand_tab) {
+		if (b->options.expand_tab) {
 			flags |= WSE_TAB_AFTER_INDENT | WSE_TAB_INDENT;
 		} else {
 			flags |= WSE_SPACE_INDENT;
@@ -69,11 +70,12 @@ static int get_ws_error_option(void)
 
 static bool whitespace_error(struct line_info *info, unsigned int u, long i)
 {
-	int flags = get_ws_error_option();
+	struct view *v = info->view;
+	int flags = get_ws_error_option(v->buffer);
 
 	if (i >= info->trailing_ws_offset && flags & WSE_TRAILING) {
 		// Trailing whitespace.
-		if (info->line_nr != view->cy || view->cx < info->trailing_ws_offset)
+		if (info->line_nr != v->cy || v->cx < info->trailing_ws_offset)
 			return true;
 		// Cursor is on this line and on the whitespace or at eol. It would
 		// be annoying if the line you are editing displays trailing
@@ -101,7 +103,7 @@ static bool whitespace_error(struct line_info *info, unsigned int u, long i)
 			count++;
 		}
 
-		if (count >= buffer->options.tab_width) {
+		if (count >= v->buffer->options.tab_width) {
 			// spaces used instead of tab
 			if (flags & WSE_SPACE_INDENT)
 				return true;
@@ -135,7 +137,7 @@ static unsigned int screen_next_char(struct line_info *info)
 		count = info->pos - pos;
 
 		// highly annoying no-break space etc.?
-		if (u_is_special_whitespace(u) && (buffer->options.ws_error & WSE_SPECIAL))
+		if (u_is_special_whitespace(u) && (info->view->buffer->options.ws_error & WSE_SPECIAL))
 			ws_error = true;
 	}
 
@@ -232,19 +234,20 @@ static void hl_words(struct line_info *info)
 	}
 }
 
-static void line_info_init(struct line_info *info, struct block_iter *bi, long line_nr)
+static void line_info_init(struct line_info *info, struct view *v, struct block_iter *bi, long line_nr)
 {
 	memset(info, 0, sizeof(*info));
+	info->view = v;
 	info->line_nr = line_nr;
 	info->offset = block_iter_get_offset(bi);
 
-	if (!view->selection) {
+	if (!v->selection) {
 		info->sel_so = -1;
 		info->sel_eo = -1;
-	} else if (view->sel_eo != UINT_MAX) {
+	} else if (v->sel_eo != UINT_MAX) {
 		/* already calculated */
-		info->sel_so = view->sel_so;
-		info->sel_eo = view->sel_eo;
+		info->sel_so = v->sel_so;
+		info->sel_eo = v->sel_eo;
 		BUG_ON(info->sel_so > info->sel_eo);
 	} else {
 		struct selection_info sel;
@@ -325,27 +328,26 @@ static void print_line(struct line_info *info)
 	buf_clear_eol();
 }
 
-void update_range(int y1, int y2)
+void update_range(struct view *v, int y1, int y2)
 {
-	struct view *v = view;
 	struct line_info info;
-	struct block_iter bi = view->cursor;
+	struct block_iter bi = v->cursor;
 	int i, got_line;
 
-	buf_reset(window->edit_x, window->edit_w, view->vx);
-	obuf.tab_width = buffer->options.tab_width;
+	buf_reset(v->window->edit_x, v->window->edit_w, v->vx);
+	obuf.tab_width = v->buffer->options.tab_width;
 	obuf.tab = options.display_special ? TAB_SPECIAL : TAB_NORMAL;
 
-	for (i = 0; i < view->cy - y1; i++)
+	for (i = 0; i < v->cy - y1; i++)
 		block_iter_prev_line(&bi);
-	for (i = 0; i < y1 - view->cy; i++)
+	for (i = 0; i < y1 - v->cy; i++)
 		block_iter_eat_line(&bi);
 	block_iter_bol(&bi);
 
-	line_info_init(&info, &bi, y1);
+	line_info_init(&info, v, &bi, y1);
 
-	y1 -= view->vy;
-	y2 -= view->vy;
+	y1 -= v->vy;
+	y2 -= v->vy;
 
 	got_line = !block_iter_is_eof(&bi);
 	hl_fill_start_states(v->buffer, info.line_nr);
@@ -355,7 +357,7 @@ void update_range(int y1, int y2)
 		int next_changed;
 
 		obuf.x = 0;
-		buf_move_cursor(window->edit_x, window->edit_y + i);
+		buf_move_cursor(v->window->edit_x, v->window->edit_y + i);
 
 		fill_line_nl_ref(&bi, &lr);
 		colors = hl_line(v->buffer, lr.line, lr.size, info.line_nr, &next_changed);
@@ -365,7 +367,7 @@ void update_range(int y1, int y2)
 		got_line = block_iter_next_line(&bi);
 		info.line_nr++;
 
-		if (next_changed && i + 1 == y2 && y2 < window->edit_h) {
+		if (next_changed && i + 1 == y2 && y2 < v->window->edit_h) {
 			// more lines need to be updated not because their
 			// contents have changed but because their highlight
 			// state has
@@ -373,7 +375,7 @@ void update_range(int y1, int y2)
 		}
 	}
 
-	if (i < y2 && info.line_nr == view->cy) {
+	if (i < y2 && info.line_nr == v->cy) {
 		// dummy empty line is shown only if cursor is on it
 		struct term_color color = *builtin_colors[BC_DEFAULT];
 
@@ -381,7 +383,7 @@ void update_range(int y1, int y2)
 		mask_color2(&color, builtin_colors[BC_CURRENTLINE]);
 		set_color(&color);
 
-		buf_move_cursor(window->edit_x, window->edit_y + i++);
+		buf_move_cursor(v->window->edit_x, v->window->edit_y + i++);
 		buf_clear_eol();
 	}
 
@@ -389,7 +391,7 @@ void update_range(int y1, int y2)
 		set_builtin_color(BC_NOLINE);
 	for (; i < y2; i++) {
 		obuf.x = 0;
-		buf_move_cursor(window->edit_x, window->edit_y + i);
+		buf_move_cursor(v->window->edit_x, v->window->edit_y + i);
 		buf_put_char('~');
 		buf_clear_eol();
 	}

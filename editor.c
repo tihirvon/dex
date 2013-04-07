@@ -89,7 +89,7 @@ static void update_current_window(void)
 		print_tabbar(w);
 	if (options.show_line_numbers)
 		update_line_numbers(window, true);
-	update_range(view->vy, view->vy + window->edit_h);
+	update_range(view, view->vy, view->vy + window->edit_h);
 	update_status_line();
 }
 
@@ -169,7 +169,7 @@ static void update_window(void)
 	if (y2 > view->vy + window->edit_h - 1)
 		y2 = view->vy + window->edit_h - 1;
 
-	update_range(y1, y2 + 1);
+	update_range(view, y1, y2 + 1);
 	update_status_line();
 }
 
