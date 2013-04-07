@@ -70,9 +70,9 @@ static inline int new_view_idx(int idx)
 	return (idx + window->views.count) % window->views.count;
 }
 
-static inline int get_scroll_margin(void)
+static inline int window_get_scroll_margin(struct window *w)
 {
-	int max = (window->edit_h - 1) / 2;
+	int max = (w->edit_h - 1) / 2;
 
 	if (options.scroll_margin > max)
 		return max;

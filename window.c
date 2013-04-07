@@ -235,7 +235,7 @@ static void update_view_x(void)
 
 static void update_view_y(void)
 {
-	int margin = get_scroll_margin();
+	int margin = get_scroll_margin(window);
 	int max_y = view->vy + window->edit_h - 1 - margin;
 
 	if (view->cy < view->vy + margin) {

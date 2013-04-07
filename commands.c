@@ -603,12 +603,12 @@ static void cmd_paste(const char *pf, char **args)
 
 static void cmd_pgdown(const char *pf, char **args)
 {
-	move_down(window->edit_h - 1 - get_scroll_margin() * 2);
+	move_down(window->edit_h - 1 - window_get_scroll_margin(window) * 2);
 }
 
 static void cmd_pgup(const char *pf, char **args)
 {
-	move_up(window->edit_h - 1 - get_scroll_margin() * 2);
+	move_up(window->edit_h - 1 - window_get_scroll_margin(window) * 2);
 }
 
 static void cmd_prev(const char *pf, char **args)
