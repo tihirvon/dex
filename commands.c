@@ -1117,6 +1117,7 @@ static void cmd_tag(const char *pf, char **args)
 {
 	PTR_ARRAY(tags);
 	const char *name = args[0];
+	const char *cur_filename;
 	char *word = NULL;
 	bool pop = false;
 
@@ -1143,7 +1144,12 @@ static void cmd_tag(const char *pf, char **args)
 
 	clear_messages();
 
-	if (!find_tags(name, &tags)) {
+	// filename helps to find correct tags
+	cur_filename = NULL;
+	if (buffer->abs_filename != NULL) {
+		cur_filename = strrchr(buffer->abs_filename, '/') + 1;
+	}
+	if (!find_tags(cur_filename, name, &tags)) {
 		error_msg("No tag file.");
 	} else if (!tags.count) {
 		error_msg("Tag %s not found.", name);

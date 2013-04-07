@@ -5,7 +5,7 @@
 #include "ptr-array.h"
 
 void free_tags(struct ptr_array *tags);
-bool find_tags(const char *name, struct ptr_array *tags);
+bool find_tags(const char *filename, const char *name, struct ptr_array *tags);
 void collect_tags(const char *prefix);
 
 #endif

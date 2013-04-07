@@ -1,9 +1,8 @@
 #include "tag.h"
 #include "ctags.h"
-#include "buffer.h"
-#include "list.h"
 #include "ptr-array.h"
 #include "completion.h"
+#include "common.h"
 
 static struct tag_file *tag_file;
 static const char *current_filename; // for sorting tags
@@ -86,15 +85,6 @@ static int tag_cmp(const void *ap, const void *bp)
 	return kind_cmp(a, b);
 }
 
-static void sort_tags(struct ptr_array *tags)
-{
-	current_filename = NULL;
-	if (buffer->abs_filename)
-		current_filename = strrchr(buffer->abs_filename, '/') + 1;
-
-	qsort(tags->ptrs, tags->count, sizeof(tags->ptrs[0]), tag_cmp);
-}
-
 static int tag_file_changed(const char *filename, struct tag_file *tf)
 {
 	struct stat st;
@@ -127,7 +117,7 @@ void free_tags(struct ptr_array *tags)
 	clear(tags);
 }
 
-bool find_tags(const char *name, struct ptr_array *tags)
+bool find_tags(const char *filename, const char *name, struct ptr_array *tags)
 {
 	struct tag *t;
 	size_t pos = 0;
@@ -141,7 +131,10 @@ bool find_tags(const char *name, struct ptr_array *tags)
 		t = xnew(struct tag, 1);
 	}
 	free(t);
-	sort_tags(tags);
+
+	// FIXME: this is ugly
+	current_filename = filename;
+	qsort(tags->ptrs, tags->count, sizeof(tags->ptrs[0]), tag_cmp);
 	return true;
 }
 
