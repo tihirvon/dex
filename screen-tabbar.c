@@ -19,35 +19,35 @@ static void print_horizontal_tab_title(struct view *v, int idx)
 		idx + 1,
 		buffer_modified(v->buffer) ? "+" : ":");
 
-	if (v == view)
+	if (v == v->window->view)
 		set_builtin_color(BC_ACTIVETAB);
 	else
 		set_builtin_color(BC_INACTIVETAB);
 	buf_add_str(buf);
 	buf_add_str(filename);
-	if (obuf.x == obuf.width - 1 && idx < window->views.count - 1)
+	if (obuf.x == obuf.width - 1 && idx < v->window->views.count - 1)
 		buf_put_char('>');
 	else
 		buf_put_char(' ');
 }
 
-static void print_horizontal_tabbar(void)
+static void print_horizontal_tabbar(struct window *win)
 {
 	int i;
 
-	buf_reset(window->x, window->w, 0);
-	buf_move_cursor(window->x, window->y);
+	buf_reset(win->x, win->w, 0);
+	buf_move_cursor(win->x, win->y);
 
-	calculate_tabbar(window);
-	for (i = window->first_tab_idx; i < window->views.count; i++) {
-		struct view *v = window->views.ptrs[i];
+	calculate_tabbar(win);
+	for (i = win->first_tab_idx; i < win->views.count; i++) {
+		struct view *v = win->views.ptrs[i];
 
-		if (obuf.x + v->tt_truncated_width > window->w)
+		if (obuf.x + v->tt_truncated_width > win->w)
 			break;
 		print_horizontal_tab_title(v, i);
 	}
 	set_builtin_color(BC_TABBAR);
-	if (i != window->views.count) {
+	if (i != win->views.count) {
 		while (obuf.x < obuf.width - 1)
 			buf_put_char(' ');
 		if (obuf.x == obuf.width - 1)
@@ -99,7 +99,7 @@ static void print_vertical_tab_title(struct view *v, int idx, int width)
 		buf[i] = 0;
 	}
 
-	if (v == view)
+	if (v == v->window->view)
 		set_builtin_color(BC_ACTIVETAB);
 	else
 		set_builtin_color(BC_INACTIVETAB);
@@ -108,53 +108,53 @@ static void print_vertical_tab_title(struct view *v, int idx, int width)
 	buf_clear_eol();
 }
 
-static void print_vertical_tabbar(void)
+static void print_vertical_tabbar(struct window *win)
 {
-	int width = vertical_tabbar_width(window);
-	int h = window->edit_h;
+	int width = vertical_tabbar_width(win);
+	int h = win->edit_h;
 	int i, n, cur_idx = 0;
 
-	for (i = 0; i < window->views.count; i++) {
-		if (view == window->views.ptrs[i]) {
+	for (i = 0; i < win->views.count; i++) {
+		if (win->view == win->views.ptrs[i]) {
 			cur_idx = i;
 			break;
 		}
 	}
-	if (window->views.count <= h) {
+	if (win->views.count <= h) {
 		// all tabs fit
-		window->first_tab_idx = 0;
+		win->first_tab_idx = 0;
 	} else {
-		int max_y = window->first_tab_idx + h - 1;
+		int max_y = win->first_tab_idx + h - 1;
 
-		if (window->first_tab_idx > cur_idx)
-			window->first_tab_idx = cur_idx;
+		if (win->first_tab_idx > cur_idx)
+			win->first_tab_idx = cur_idx;
 		if (cur_idx > max_y)
-			window->first_tab_idx += cur_idx - max_y;
+			win->first_tab_idx += cur_idx - max_y;
 	}
 
-	buf_reset(window->x, width, 0);
+	buf_reset(win->x, width, 0);
 	n = h;
-	if (n + window->first_tab_idx > window->views.count)
-		n = window->views.count - window->first_tab_idx;
+	if (n + win->first_tab_idx > win->views.count)
+		n = win->views.count - win->first_tab_idx;
 	for (i = 0; i < n; i++) {
-		int idx = window->first_tab_idx + i;
+		int idx = win->first_tab_idx + i;
 		obuf.x = 0;
-		buf_move_cursor(window->x, window->y + i);
-		print_vertical_tab_title(window->views.ptrs[idx], idx, width);
+		buf_move_cursor(win->x, win->y + i);
+		print_vertical_tab_title(win->views.ptrs[idx], idx, width);
 	}
 	set_builtin_color(BC_TABBAR);
 	for (; i < h; i++) {
 		obuf.x = 0;
-		buf_move_cursor(window->x, window->y + i);
+		buf_move_cursor(win->x, win->y + i);
 		buf_clear_eol();
 	}
 }
 
-void print_tabbar(void)
+void print_tabbar(struct window *win)
 {
 	if (options.vertical_tab_bar) {
-		print_vertical_tabbar();
+		print_vertical_tabbar(win);
 	} else {
-		print_horizontal_tabbar();
+		print_horizontal_tabbar(win);
 	}
 }

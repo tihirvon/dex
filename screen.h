@@ -8,7 +8,7 @@ void set_color(struct term_color *color);
 void set_builtin_color(enum builtin_color c);
 void mask_color(struct term_color *color, const struct term_color *over);
 
-void print_tabbar(void);
+void print_tabbar(struct window *w);
 int print_command(char prefix);
 void print_message(const char *msg, bool is_error);
 void update_term_title(void);

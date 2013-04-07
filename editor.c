@@ -81,11 +81,12 @@ static void update_command_line(void)
 
 static void update_current_window(void)
 {
+	struct window *w = view->window;
 	view_update_cursor_x(view);
 	view_update_cursor_y(view);
 	view_update(view);
 	if (options.show_tab_bar)
-		print_tabbar();
+		print_tabbar(w);
 	if (options.show_line_numbers)
 		update_line_numbers(window, true);
 	update_range(view->vy, view->vy + window->edit_h);
@@ -150,10 +151,11 @@ static void update_all_windows(void)
 
 static void update_window(void)
 {
+	struct window *w = window;
 	int y1, y2;
 
 	if (window->update_tabbar && options.show_tab_bar)
-		print_tabbar();
+		print_tabbar(w);
 
 	if (options.show_line_numbers) {
 		// force updating lines numbers if all lines changed
