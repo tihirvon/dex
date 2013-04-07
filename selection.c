@@ -36,11 +36,11 @@ void init_selection(struct view *v, struct selection_info *info)
 	}
 }
 
-long prepare_selection(void)
+long prepare_selection(struct view *v)
 {
 	struct selection_info info;
-	init_selection(view, &info);
-	view->cursor = info.si;
+	init_selection(v, &info);
+	v->cursor = info.si;
 	return info.eo - info.so;
 }
 

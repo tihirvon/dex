@@ -145,7 +145,7 @@ void insert_text(const char *text, long size)
 	long del_count = 0;
 
 	if (view->selection) {
-		del_count = prepare_selection();
+		del_count = prepare_selection(view);
 		unselect();
 	}
 	buffer_replace_bytes(del_count, text, size);
@@ -160,7 +160,7 @@ void paste(void)
 		return;
 
 	if (view->selection) {
-		del_count = prepare_selection();
+		del_count = prepare_selection(view);
 		unselect();
 	}
 
@@ -185,7 +185,7 @@ void delete_ch(void)
 	long size = 0;
 
 	if (view->selection) {
-		size = prepare_selection();
+		size = prepare_selection(view);
 		unselect();
 	} else {
 		begin_change(CHANGE_MERGE_DELETE);
@@ -203,7 +203,7 @@ void erase(void)
 	long size = 0;
 
 	if (view->selection) {
-		size = prepare_selection();
+		size = prepare_selection(view);
 		unselect();
 	} else {
 		begin_change(CHANGE_MERGE_ERASE);
@@ -275,7 +275,7 @@ static void insert_nl(void)
 
 	// prepare deleted text (selection or whitespace around cursor)
 	if (view->selection) {
-		del_count = prepare_selection();
+		del_count = prepare_selection(view);
 		unselect();
 	} else {
 		// trim whitespace around cursor
@@ -336,7 +336,7 @@ void insert_ch(unsigned int ch)
 	ins = xmalloc(8);
 	if (view->selection) {
 		// prepare deleted text (selection)
-		del_count = prepare_selection();
+		del_count = prepare_selection(view);
 		unselect();
 	} else if (ch == '}' && buffer->options.auto_indent && buffer->options.brace_indent) {
 		struct block_iter bi = view->cursor;
@@ -386,7 +386,7 @@ void insert_ch(unsigned int ch)
 
 static void join_selection(void)
 {
-	long count = prepare_selection();
+	long count = prepare_selection(view);
 	long len = 0, join = 0;
 	struct block_iter bi;
 	unsigned int ch = 0;
@@ -609,7 +609,7 @@ void clear_lines(void)
 
 	if (view->selection) {
 		view->selection = SELECT_LINES;
-		del_count = prepare_selection();
+		del_count = prepare_selection(view);
 		unselect();
 
 		// don't delete last newline
@@ -753,7 +753,7 @@ void format_paragraph(int text_width)
 
 	if (view->selection) {
 		view->selection = SELECT_LINES;
-		len = prepare_selection();
+		len = prepare_selection(view);
 	} else {
 		len = paragraph_size();
 	}

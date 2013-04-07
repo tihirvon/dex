@@ -11,7 +11,7 @@ struct selection_info {
 };
 
 void init_selection(struct view *v, struct selection_info *info);
-long prepare_selection(void);
+long prepare_selection(struct view *v);
 int get_nr_selected_lines(struct selection_info *info);
 int get_nr_selected_chars(struct selection_info *info);
 

@@ -107,7 +107,7 @@ char *get_selection(long *size)
 	if (!view->selection)
 		return NULL;
 
-	*size = prepare_selection();
+	*size = prepare_selection(view);
 	buf = buffer_get_bytes(*size);
 	view->cursor = save;
 	return buf;
