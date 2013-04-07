@@ -6,7 +6,9 @@ enum file_options_type {
 	FILE_OPTIONS_FILETYPE,
 };
 
-void set_file_options(void);
+struct buffer;
+
+void set_file_options(struct buffer *b);
 void add_file_options(enum file_options_type type, char *to, char **strs);
 
 #endif

@@ -340,7 +340,7 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 
 void filetype_changed(void)
 {
-	set_file_options();
+	set_file_options(buffer);
 	syntax_changed();
 }
 

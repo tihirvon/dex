@@ -20,7 +20,7 @@ static void set_options(char **args)
 		set_option(args[i], args[i + 1], true, false);
 }
 
-void set_file_options(void)
+void set_file_options(struct buffer *b)
 {
 	int i;
 
@@ -28,12 +28,12 @@ void set_file_options(void)
 		const struct file_option *opt = file_options.ptrs[i];
 
 		if (opt->type == FILE_OPTIONS_FILETYPE) {
-			if (streq(opt->type_or_pattern, buffer->options.filetype))
+			if (streq(opt->type_or_pattern, b->options.filetype))
 				set_options(opt->strs);
-		} else if (buffer->abs_filename && regexp_match_nosub(
+		} else if (b->abs_filename && regexp_match_nosub(
 							opt->type_or_pattern,
-							buffer->abs_filename,
-							strlen(buffer->abs_filename))) {
+							b->abs_filename,
+							strlen(b->abs_filename))) {
 			set_options(opt->strs);
 		}
 	}
