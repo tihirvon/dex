@@ -1,6 +1,7 @@
 #include "load-save.h"
 #include "buffer.h"
 #include "window.h"
+#include "view.h"
 #include "editor.h"
 #include "error.h"
 #include "change.h"

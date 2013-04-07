@@ -1,5 +1,6 @@
 #include "format-status.h"
 #include "window.h"
+#include "view.h"
 #include "uchar.h"
 #include "editor.h"
 #include "input-special.h"

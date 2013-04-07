@@ -1,5 +1,6 @@
 #include "search.h"
 #include "buffer.h"
+#include "view.h"
 #include "editor.h"
 #include "change.h"
 #include "error.h"

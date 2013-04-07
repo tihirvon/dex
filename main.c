@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "window.h"
+#include "view.h"
 #include "frame.h"
 #include "term.h"
 #include "config.h"

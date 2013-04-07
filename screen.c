@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "format-status.h"
 #include "editor.h"
+#include "view.h"
 #include "obuf.h"
 #include "cmdline.h"
 #include "search.h"

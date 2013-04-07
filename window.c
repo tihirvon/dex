@@ -1,4 +1,5 @@
 #include "window.h"
+#include "view.h"
 #include "file-history.h"
 
 PTR_ARRAY(windows);

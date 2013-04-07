@@ -1,5 +1,6 @@
 #include "modes.h"
 #include "buffer.h"
+#include "view.h"
 #include "edit.h"
 #include "change.h"
 #include "bind.h"

@@ -1,4 +1,5 @@
 #include "screen.h"
+#include "view.h"
 #include "uchar.h"
 #include "obuf.h"
 #include "selection.h"

@@ -1,5 +1,6 @@
 #include "indent.h"
 #include "buffer.h"
+#include "view.h"
 #include "regexp.h"
 
 char *make_indent(int width)

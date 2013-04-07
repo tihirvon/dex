@@ -1,5 +1,6 @@
 #include "tabbar.h"
 #include "window.h"
+#include "view.h"
 #include "uchar.h"
 
 static int tab_title_width(int number, const char *filename)

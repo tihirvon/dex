@@ -2,6 +2,7 @@
 #include "buffer.h"
 #include "error.h"
 #include "block.h"
+#include "view.h"
 
 static enum change_merge change_merge;
 static enum change_merge prev_change_merge;

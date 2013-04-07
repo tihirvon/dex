@@ -1,5 +1,6 @@
 #include "file-location.h"
 #include "window.h"
+#include "view.h"
 #include "search.h"
 #include "move.h"
 

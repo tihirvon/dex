@@ -2,6 +2,7 @@
 #include "tabbar.h"
 #include "uchar.h"
 #include "obuf.h"
+#include "view.h"
 
 static void print_horizontal_tab_title(struct view *v, int idx)
 {
