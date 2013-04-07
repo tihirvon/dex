@@ -1,4 +1,5 @@
 #include "move.h"
+#include "view.h"
 #include "buffer.h"
 #include "indent.h"
 #include "uchar.h"

@@ -1,5 +1,6 @@
 #include "block.h"
 #include "buffer.h"
+#include "view.h"
 #include "hl.h"
 
 #define BLOCK_EDIT_SIZE 512

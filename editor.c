@@ -1,6 +1,7 @@
 #include "editor.h"
 #include "buffer.h"
 #include "window.h"
+#include "view.h"
 #include "term.h"
 #include "obuf.h"
 #include "cmdline.h"

@@ -2,6 +2,7 @@
 #include "edit.h"
 #include "move.h"
 #include "window.h"
+#include "view.h"
 #include "change.h"
 #include "term.h"
 #include "search.h"

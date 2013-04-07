@@ -169,11 +169,6 @@ bool guess_filetype(void);
 void syntax_changed(void);
 void filetype_changed(void);
 
-void view_update_cursor_y(struct view *v);
-void view_update_cursor_x(struct view *v);
-int view_get_preferred_x(struct view *v);
-bool view_can_close(struct view *v);
-
 static inline void reset_preferred_x(void)
 {
 	view->preferred_x = -1;

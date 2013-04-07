@@ -1,6 +1,7 @@
 #include "edit.h"
 #include "move.h"
 #include "buffer.h"
+#include "view.h"
 #include "change.h"
 #include "gbuf.h"
 #include "indent.h"
