@@ -79,17 +79,18 @@ static void update_command_line(void)
 	buf_clear_eol();
 }
 
-static void update_current_window(void)
+static void update_window_full(struct window *w)
 {
-	struct window *w = view->window;
-	view_update_cursor_x(view);
-	view_update_cursor_y(view);
-	view_update(view);
+	struct view *v = w->view;
+
+	view_update_cursor_x(v);
+	view_update_cursor_y(v);
+	view_update(v);
 	if (options.show_tab_bar)
 		print_tabbar(w);
 	if (options.show_line_numbers)
-		update_line_numbers(window, true);
-	update_range(view, view->vy, view->vy + window->edit_h);
+		update_line_numbers(w, true);
+	update_range(v, v->vy, v->vy + w->edit_h);
 	update_status_line(w);
 }
 
@@ -133,77 +134,61 @@ static void end_update(void)
 
 static void update_all_windows(void)
 {
-	struct window *save = window;
-	int i;
+	long i;
 
 	update_window_sizes();
 	for (i = 0; i < windows.count; i++) {
-		window = windows.ptrs[i];
-		view = window->view;
-		buffer = view->buffer;
-		update_current_window();
+		update_window_full(windows.ptrs[i]);
 	}
 	update_separators();
-	window = save;
-	view = window->view;
-	buffer = view->buffer;
 }
 
-static void update_window(void)
+static void update_window(struct window *w)
 {
-	struct window *w = window;
+	struct view *v = w->view;
 	int y1, y2;
 
-	if (window->update_tabbar && options.show_tab_bar)
+	if (w->update_tabbar && options.show_tab_bar)
 		print_tabbar(w);
 
 	if (options.show_line_numbers) {
 		// force updating lines numbers if all lines changed
-		update_line_numbers(window, buffer->changed_line_max == INT_MAX);
+		update_line_numbers(w, v->buffer->changed_line_max == INT_MAX);
 	}
 
-	y1 = buffer->changed_line_min;
-	y2 = buffer->changed_line_max;
-	if (y1 < view->vy)
-		y1 = view->vy;
-	if (y2 > view->vy + window->edit_h - 1)
-		y2 = view->vy + window->edit_h - 1;
+	y1 = v->buffer->changed_line_min;
+	y2 = v->buffer->changed_line_max;
+	if (y1 < v->vy)
+		y1 = v->vy;
+	if (y2 > v->vy + w->edit_h - 1)
+		y2 = v->vy + w->edit_h - 1;
 
-	update_range(view, y1, y2 + 1);
+	update_range(v, y1, y2 + 1);
 	update_status_line(w);
 }
 
-// update all visible views containing current buffer
-static void update_windows(void)
+// update all visible views containing this buffer
+static void update_buffer_windows(struct buffer *b)
 {
-	struct view *save = view;
-	void **ptrs = buffer->views.ptrs;
-	int i, count = buffer->views.count;
+	long i;
 
-	for (i = 0; i < count; i++) {
-		struct view *v = ptrs[i];
+	for (i = 0; i < b->views.count; i++) {
+		struct view *v = b->views.ptrs[i];
 		if (v->window->view == v) {
 			// visible view
-			view = v;
-			buffer = view->buffer;
-			window = view->window;
-
-			if (view != save) {
+			if (v != view) {
 				// restore cursor
-				view->cursor.blk = BLOCK(view->buffer->blocks.next);
-				block_iter_goto_offset(&view->cursor, view->saved_cursor_offset);
+				v->cursor.blk = BLOCK(v->buffer->blocks.next);
+				block_iter_goto_offset(&v->cursor, v->saved_cursor_offset);
 
 				// these have already been updated for current view
-				view_update_cursor_x(view);
-				view_update_cursor_y(view);
-				view_update(view);
+				view_update_cursor_x(v);
+				view_update_cursor_y(v);
+				view_update(v);
 			}
-			update_window();
+			update_window(v->window);
 		}
 	}
-	view = save;
-	buffer = view->buffer;
-	window = view->window;
 }
 
 void normal_update(void)
@@ -304,7 +289,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 
 	start_update();
 	update_term_title();
-	update_windows();
+	update_buffer_windows(buffer);
 	show_message(buf, false);
 	end_update();
 
@@ -388,7 +373,7 @@ static void update_screen(struct screen_state *s)
 	start_update();
 	if (window->update_tabbar)
 		update_term_title();
-	update_windows();
+	update_buffer_windows(buffer);
 	update_command_line();
 	end_update();
 }
