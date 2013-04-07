@@ -347,3 +347,12 @@ void set_window_size(struct window *win, int w, int h)
 	win->h = h;
 	calculate_line_numbers(win);
 }
+
+int window_get_scroll_margin(struct window *w)
+{
+	int max = (w->edit_h - 1) / 2;
+
+	if (options.scroll_margin > max)
+		return max;
+	return options.scroll_margin;
+}

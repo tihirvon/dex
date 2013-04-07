@@ -49,6 +49,7 @@ int vertical_tabbar_width(struct window *win);
 void calculate_line_numbers(struct window *win);
 void set_window_coordinates(struct window *win, int x, int y);
 void set_window_size(struct window *win, int w, int h);
+int window_get_scroll_margin(struct window *w);
 
 static inline int window_idx(void)
 {
@@ -68,15 +69,6 @@ static inline int new_window_idx(int idx)
 static inline int new_view_idx(int idx)
 {
 	return (idx + window->views.count) % window->views.count;
-}
-
-static inline int window_get_scroll_margin(struct window *w)
-{
-	int max = (w->edit_h - 1) / 2;
-
-	if (options.scroll_margin > max)
-		return max;
-	return options.scroll_margin;
 }
 
 #endif
