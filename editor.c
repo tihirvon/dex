@@ -90,7 +90,7 @@ static void update_current_window(void)
 	if (options.show_line_numbers)
 		update_line_numbers(window, true);
 	update_range(view, view->vy, view->vy + window->edit_h);
-	update_status_line();
+	update_status_line(w);
 }
 
 static void restore_cursor(void)
@@ -170,7 +170,7 @@ static void update_window(void)
 		y2 = view->vy + window->edit_h - 1;
 
 	update_range(view, y1, y2 + 1);
-	update_status_line();
+	update_status_line(w);
 }
 
 // update all visible views containing current buffer

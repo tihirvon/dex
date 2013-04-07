@@ -14,7 +14,7 @@ void print_message(const char *msg, bool is_error);
 void update_term_title(void);
 void update_range(struct view *v, int y1, int y2);
 void update_separators(void);
-void update_status_line(void);
+void update_status_line(struct window *win);
 void update_window_sizes(void);
 void update_line_numbers(struct window *win, bool force);
 void update_git_open(void);

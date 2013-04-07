@@ -49,27 +49,28 @@ static void add_status_format(struct formatter *f, const char *format, ...)
 	add_status_str(f, buf);
 }
 
-static void add_status_pos(struct formatter *f)
+static void add_status_pos(struct window *win, struct formatter *f)
 {
-	int h = window->edit_h;
-	int pos = view->vy;
+	long lines = win->view->buffer->nl;
+	int h = win->edit_h;
+	int pos = win->view->vy;
 
-	if (buffer->nl <= h) {
+	if (lines <= h) {
 		if (pos)
 			add_status_str(f, "Bot");
 		else
 			add_status_str(f, "All");
 	} else if (pos == 0) {
 		add_status_str(f, "Top");
-	} else if (pos + h - 1 >= buffer->nl) {
+	} else if (pos + h - 1 >= lines) {
 		add_status_str(f, "Bot");
 	} else {
-		int d = buffer->nl - (h - 1);
+		int d = lines - (h - 1);
 		add_status_format(f, "%2d%%", (pos * 100 + d / 2) / d);
 	}
 }
 
-static const char *format_misc_status(void)
+static const char *format_misc_status(struct window *win)
 {
 	static char misc_status[32];
 
@@ -79,11 +80,11 @@ static const char *format_misc_status(void)
 	if (input_mode == INPUT_SEARCH) {
 		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
 			case_sensitive_search_enum[options.case_sensitive_search]);
-	} else if (view->selection) {
+	} else if (win->view->selection) {
 		struct selection_info info;
 
 		init_selection(&info);
-		if (view->selection == SELECT_LINES) {
+		if (win->view->selection == SELECT_LINES) {
 			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
 		} else {
 			snprintf(misc_status, sizeof(misc_status), "[%d chars]", get_nr_selected_chars(&info));
@@ -94,8 +95,9 @@ static const char *format_misc_status(void)
 	return misc_status;
 }
 
-void format_status(char *buf, int size, const char *format)
+void format_status(struct window *win, char *buf, int size, const char *format)
 {
+	struct view *v = win->view;
 	struct formatter f;
 	bool got_char;
 	unsigned int u;
@@ -105,7 +107,7 @@ void format_status(char *buf, int size, const char *format)
 	f.pos = 0;
 	f.separator = false;
 
-	got_char = buffer_get_char(&view->cursor, &u) > 0;
+	got_char = buffer_get_char(&v->cursor, &u) > 0;
 	while (f.pos < f.size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
@@ -115,41 +117,41 @@ void format_status(char *buf, int size, const char *format)
 			ch = *format++;
 			switch (ch) {
 			case 'f':
-				add_status_str(&f, buffer_filename(buffer));
+				add_status_str(&f, buffer_filename(v->buffer));
 				break;
 			case 'm':
-				if (buffer_modified(buffer))
+				if (buffer_modified(v->buffer))
 					add_status_str(&f, "*");
 				break;
 			case 'r':
-				if (buffer->ro)
+				if (v->buffer->ro)
 					add_status_str(&f, "RO");
 				break;
 			case 'y':
-				add_status_format(&f, "%d", view->cy + 1);
+				add_status_format(&f, "%d", v->cy + 1);
 				break;
 			case 'x':
-				add_status_format(&f, "%d", view->cx_display + 1);
+				add_status_format(&f, "%d", v->cx_display + 1);
 				break;
 			case 'X':
-				add_status_format(&f, "%d", view->cx_char + 1);
-				if (view->cx_display != view->cx_char)
-					add_status_format(&f, "-%d", view->cx_display + 1);
+				add_status_format(&f, "%d", v->cx_char + 1);
+				if (v->cx_display != v->cx_char)
+					add_status_format(&f, "-%d", v->cx_display + 1);
 				break;
 			case 'p':
-				add_status_pos(&f);
+				add_status_pos(win, &f);
 				break;
 			case 'E':
-				add_status_str(&f, buffer->encoding);
+				add_status_str(&f, v->buffer->encoding);
 				break;
 			case 'M': {
-				const char *misc_status = format_misc_status();
+				const char *misc_status = format_misc_status(win);
 				if (misc_status[0])
 					add_status_str(&f, misc_status);
 				break;
 			}
 			case 'n':
-				switch (buffer->newline) {
+				switch (v->buffer->newline) {
 				case NEWLINE_UNIX:
 					add_status_str(&f, "LF");
 					break;
@@ -162,7 +164,7 @@ void format_status(char *buf, int size, const char *format)
 				f.separator = true;
 				break;
 			case 't':
-				add_status_str(&f, buffer->options.filetype);
+				add_status_str(&f, v->buffer->options.filetype);
 				break;
 			case 'u':
 				if (got_char) {

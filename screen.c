@@ -27,37 +27,37 @@ void set_builtin_color(enum builtin_color c)
 	set_color(builtin_colors[c]);
 }
 
-void update_status_line(void)
+void update_status_line(struct window *win)
 {
 	char lbuf[256];
 	char rbuf[256];
 	int lw, rw;
 
-	buf_reset(window->x, window->w, 0);
-	buf_move_cursor(window->x, window->y + window->h - 1);
+	buf_reset(win->x, win->w, 0);
+	buf_move_cursor(win->x, win->y + win->h - 1);
 	set_builtin_color(BC_STATUSLINE);
-	format_status(lbuf, sizeof(lbuf), options.statusline_left);
-	format_status(rbuf, sizeof(rbuf), options.statusline_right);
+	format_status(win, lbuf, sizeof(lbuf), options.statusline_left);
+	format_status(win, rbuf, sizeof(rbuf), options.statusline_right);
 	lw = u_str_width(lbuf);
 	rw = u_str_width(rbuf);
-	if (lw + rw <= window->w) {
+	if (lw + rw <= win->w) {
 		// both fit
 		buf_add_str(lbuf);
-		buf_set_bytes(' ', window->w - lw - rw);
+		buf_set_bytes(' ', win->w - lw - rw);
 		buf_add_str(rbuf);
-	} else if (lw <= window->w && rw <= window->w) {
+	} else if (lw <= win->w && rw <= win->w) {
 		// both would fit separately, draw overlapping
 		buf_add_str(lbuf);
-		obuf.x = window->w - rw;
-		buf_move_cursor(window->x + window->w - rw, window->y + window->h - 1);
+		obuf.x = win->w - rw;
+		buf_move_cursor(win->x + win->w - rw, win->y + win->h - 1);
 		buf_add_str(rbuf);
-	} else if (lw <= window->w) {
+	} else if (lw <= win->w) {
 		// left fits
 		buf_add_str(lbuf);
 		buf_clear_eol();
-	} else if (rw <= window->w) {
+	} else if (rw <= win->w) {
 		// right fits
-		buf_set_bytes(' ', window->w - rw);
+		buf_set_bytes(' ', win->w - rw);
 		buf_add_str(rbuf);
 	} else {
 		buf_clear_eol();
