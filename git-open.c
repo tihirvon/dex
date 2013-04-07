@@ -239,7 +239,7 @@ void git_open_keypress(enum term_key_type type, unsigned int key)
 static void git_open_update(void)
 {
 	buf_hide_cursor();
-	update_term_title();
+	update_term_title(buffer);
 	update_git_open();
 	buf_move_cursor(cmdline_x, 0);
 	buf_show_cursor();

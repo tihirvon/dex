@@ -11,7 +11,7 @@ void mask_color(struct term_color *color, const struct term_color *over);
 void print_tabbar(struct window *w);
 int print_command(char prefix);
 void print_message(const char *msg, bool is_error);
-void update_term_title(void);
+void update_term_title(struct buffer *b);
 void update_range(struct view *v, int y1, int y2);
 void update_separators(void);
 void update_status_line(struct window *win);

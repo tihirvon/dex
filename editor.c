@@ -194,7 +194,7 @@ static void update_buffer_windows(struct buffer *b)
 void normal_update(void)
 {
 	start_update();
-	update_term_title();
+	update_term_title(buffer);
 	update_all_windows();
 	update_command_line();
 	end_update();
@@ -288,7 +288,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	mark_all_lines_changed(buffer);
 
 	start_update();
-	update_term_title();
+	update_term_title(buffer);
 	update_buffer_windows(buffer);
 	show_message(buf, false);
 	end_update();
@@ -372,7 +372,7 @@ static void update_screen(struct screen_state *s)
 
 	start_update();
 	if (window->update_tabbar)
-		update_term_title();
+		update_term_title(buffer);
 	update_buffer_windows(buffer);
 	update_command_line();
 	end_update();

@@ -113,7 +113,7 @@ void print_message(const char *msg, bool is_error)
 	}
 }
 
-void update_term_title(void)
+void update_term_title(struct buffer *b)
 {
 	static int term_type = -1;
 	char title[1024];
@@ -133,8 +133,8 @@ void update_term_title(void)
 
 	// FIXME: title must not contain control characters
 	snprintf(title, sizeof(title), "%s %c %s",
-		buffer_filename(buffer),
-		buffer_modified(buffer) ? '+' : '-',
+		buffer_filename(b),
+		buffer_modified(b) ? '+' : '-',
 		program);
 
 	switch (term_type) {
