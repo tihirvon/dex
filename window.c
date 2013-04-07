@@ -202,64 +202,67 @@ void open_files(char **filenames, const char *encoding)
 	}
 }
 
-static int cursor_outside_view(void)
+static int view_is_cursor_visible(struct view *v)
 {
-	return view->cy < view->vy || view->cy > view->vy + window->edit_h - 1;
+	return v->cy < v->vy || v->cy > v->vy + v->window->edit_h - 1;
 }
 
-static void center_view_to_cursor(void)
+static void view_center_to_cursor(struct view *v)
 {
-	unsigned int hh = window->edit_h / 2;
+	struct window *w = v->window;
+	unsigned int hh = w->edit_h / 2;
 
-	if (window->edit_h >= buffer->nl || view->cy < hh) {
-		view->vy = 0;
+	if (w->edit_h >= buffer->nl || v->cy < hh) {
+		v->vy = 0;
 		return;
 	}
 
-	view->vy = view->cy - hh;
-	if (view->vy + window->edit_h > buffer->nl) {
+	v->vy = v->cy - hh;
+	if (v->vy + w->edit_h > buffer->nl) {
 		/* -1 makes one ~ line visible so that you know where the EOF is */
-		view->vy -= view->vy + window->edit_h - buffer->nl - 1;
+		v->vy -= v->vy + w->edit_h - buffer->nl - 1;
 	}
 }
 
-static void update_view_x(void)
+static void view_update_vx(struct view *v)
 {
+	struct window *w = v->window;
 	unsigned int c = 8;
 
-	if (view->cx_display - view->vx >= window->edit_w)
-		view->vx = (view->cx_display - window->edit_w + c) / c * c;
-	if (view->cx_display < view->vx)
-		view->vx = view->cx_display / c * c;
+	if (v->cx_display - v->vx >= w->edit_w)
+		v->vx = (v->cx_display - w->edit_w + c) / c * c;
+	if (v->cx_display < v->vx)
+		v->vx = v->cx_display / c * c;
 }
 
-static void update_view_y(void)
+static void view_update_vy(struct view *v)
 {
-	int margin = get_scroll_margin(window);
-	int max_y = view->vy + window->edit_h - 1 - margin;
+	struct window *w = v->window;
+	int margin = window_get_scroll_margin(w);
+	int max_y = v->vy + w->edit_h - 1 - margin;
 
-	if (view->cy < view->vy + margin) {
-		view->vy = view->cy - margin;
-		if (view->vy < 0)
-			view->vy = 0;
-	} else if (view->cy > max_y) {
-		view->vy += view->cy - max_y;
-		max_y = buffer->nl - window->edit_h + 1;
-		if (view->vy > max_y && max_y >= 0)
-			view->vy = max_y;
+	if (v->cy < v->vy + margin) {
+		v->vy = v->cy - margin;
+		if (v->vy < 0)
+			v->vy = 0;
+	} else if (v->cy > max_y) {
+		v->vy += v->cy - max_y;
+		max_y = buffer->nl - w->edit_h + 1;
+		if (v->vy > max_y && max_y >= 0)
+			v->vy = max_y;
 	}
 }
 
-void update_view(void)
+void view_update(struct view *v)
 {
-	update_view_x();
-	if (view->force_center || (view->center_on_scroll && cursor_outside_view()))
-		center_view_to_cursor();
-	else
-		update_view_y();
-
-	view->force_center = false;
-	view->center_on_scroll = false;
+	view_update_vx(v);
+	if (v->force_center || (v->center_on_scroll && view_is_cursor_visible(v))) {
+		view_center_to_cursor(v);
+	} else {
+		view_update_vy(v);
+	}
+	v->force_center = false;
+	v->center_on_scroll = false;
 }
 
 void mark_buffer_tabbars_changed(void)

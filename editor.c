@@ -83,7 +83,7 @@ static void update_current_window(void)
 {
 	view_update_cursor_x(view);
 	view_update_cursor_y(view);
-	update_view();
+	view_update(view);
 	if (options.show_tab_bar)
 		print_tabbar();
 	if (options.show_line_numbers)
@@ -194,7 +194,7 @@ static void update_windows(void)
 				// these have already been updated for current view
 				view_update_cursor_x(view);
 				view_update_cursor_y(view);
-				update_view();
+				view_update(view);
 			}
 			update_window();
 		}
@@ -295,7 +295,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	// update_windows() assumes these have been called for the current view
 	view_update_cursor_x(view);
 	view_update_cursor_y(view);
-	update_view();
+	view_update(view);
 
 	// set changed_line_min and changed_line_max before calling update_range()
 	mark_all_lines_changed();
@@ -362,7 +362,7 @@ static void update_screen(struct screen_state *s)
 
 	view_update_cursor_x(view);
 	view_update_cursor_y(view);
-	update_view();
+	view_update(view);
 
 	if (s->id == buffer->id) {
 		if (s->vx != view->vx || s->vy != view->vy) {
