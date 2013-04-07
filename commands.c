@@ -428,13 +428,13 @@ static void cmd_load_syntax(const char *pf, char **args)
 
 static void cmd_move_tab(const char *pf, char **args)
 {
-	int j, i = view_idx();
+	long j, i = ptr_array_idx(&window->views, view);
 	char *str = args[0];
 
 	if (streq(str, "left")) {
-		j = new_view_idx(i - 1);
+		j = i - 1;
 	} else if (streq(str, "right")) {
-		j = new_view_idx(i + 1);
+		j = i + 1;
 	} else {
 		long num;
 		if (!str_to_long(str, &num) || num < 1) {
@@ -445,7 +445,7 @@ static void cmd_move_tab(const char *pf, char **args)
 		if (j >= window->views.count)
 			j = window->views.count - 1;
 	}
-
+	j = (window->views.count + j) % window->views.count;
 	ptr_array_insert(&window->views, ptr_array_remove_idx(&window->views, i), j);
 	window->update_tabbar = true;
 }
@@ -480,7 +480,7 @@ static void cmd_new_line(const char *pf, char **args)
 
 static void cmd_next(const char *pf, char **args)
 {
-	set_view(window->views.ptrs[new_view_idx(view_idx() + 1)]);
+	set_view(ptr_array_next(&window->views, view));
 }
 
 static void cmd_open(const char *pf, char **args)
@@ -613,7 +613,7 @@ static void cmd_pgup(const char *pf, char **args)
 
 static void cmd_prev(const char *pf, char **args)
 {
-	set_view(window->views.ptrs[new_view_idx(view_idx() - 1)]);
+	set_view(ptr_array_prev(&window->views, view));
 }
 
 static void cmd_quit(const char *pf, char **args)
@@ -1233,7 +1233,7 @@ static void cmd_view(const char *pf, char **args)
 static void cmd_wclose(const char *pf, char **args)
 {
 	struct view *v = window_find_unclosable_view(window, view_can_close);
-	int idx;
+	long idx;
 	bool force = !!*pf;
 	struct window *w;
 
@@ -1249,7 +1249,7 @@ static void cmd_wclose(const char *pf, char **args)
 		return;
 	}
 
-	idx = window_idx();
+	idx = ptr_array_idx(&windows, window);
 	w = ptr_array_remove_idx(&windows, idx);
 	remove_frame(w->frame);
 	window_free(w);
@@ -1276,7 +1276,7 @@ static void cmd_wflip(const char *pf, char **args)
 
 static void cmd_wnext(const char *pf, char **args)
 {
-	window = windows.ptrs[new_window_idx(window_idx() + 1)];
+	window = ptr_array_next(&windows, window);
 	set_view(window->view);
 	mark_everything_changed();
 	debug_frames();
@@ -1298,7 +1298,7 @@ static void cmd_word_fwd(const char *pf, char **args)
 
 static void cmd_wprev(const char *pf, char **args)
 {
-	window = windows.ptrs[new_window_idx(window_idx() - 1)];
+	window = ptr_array_prev(&windows, window);
 	set_view(window->view);
 	mark_everything_changed();
 	debug_frames();

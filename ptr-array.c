@@ -56,3 +56,13 @@ long ptr_array_idx(struct ptr_array *array, void *ptr)
 	}
 	return -1;
 }
+
+void *ptr_array_rel(struct ptr_array *array, void *ptr, long offset)
+{
+	long i = ptr_array_idx(array, ptr);
+
+	if (i < 0) {
+		return NULL;
+	}
+	return array->ptrs[(i + offset + array->count) % array->count];
+}

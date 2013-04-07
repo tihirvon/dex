@@ -89,7 +89,7 @@ void remove_view(struct view *v)
 
 void close_current_view(void)
 {
-	int idx = view_idx();
+	long idx = ptr_array_idx(&window->views, view);
 
 	remove_view(view);
 	if (prev_view) {

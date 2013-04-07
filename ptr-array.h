@@ -17,5 +17,16 @@ void ptr_array_free(struct ptr_array *array);
 void ptr_array_remove(struct ptr_array *array, void *ptr);
 void *ptr_array_remove_idx(struct ptr_array *array, long pos);
 long ptr_array_idx(struct ptr_array *array, void *ptr);
+void *ptr_array_rel(struct ptr_array *array, void *ptr, long offset);
+
+static inline void *ptr_array_next(struct ptr_array *array, void *ptr)
+{
+	return ptr_array_rel(array, ptr, 1);
+}
+
+static inline void *ptr_array_prev(struct ptr_array *array, void *ptr)
+{
+	return ptr_array_rel(array, ptr, -1);
+}
 
 #endif

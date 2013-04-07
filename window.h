@@ -50,24 +50,4 @@ void set_window_coordinates(struct window *win, int x, int y);
 void set_window_size(struct window *win, int w, int h);
 int window_get_scroll_margin(struct window *w);
 
-static inline int window_idx(void)
-{
-	return ptr_array_idx(&windows, window);
-}
-
-static inline int view_idx(void)
-{
-	return ptr_array_idx(&window->views, view);
-}
-
-static inline int new_window_idx(int idx)
-{
-	return (idx + windows.count) % windows.count;
-}
-
-static inline int new_view_idx(int idx)
-{
-	return (idx + window->views.count) % window->views.count;
-}
-
 #endif
