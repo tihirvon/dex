@@ -156,28 +156,30 @@ closed after opening another file. This is done because closing last
 buffer causes an empty buffer to be opened (window must contain at least
 one buffer).
 */
-static struct view *useless_empty_view(void)
+static bool is_useless_empty_view(struct view *v)
 {
-	if (window->views.count != 1)
-		return NULL;
+	if (v == NULL)
+		return false;
+	if (v->window->views.count != 1)
+		return false;
 	// touched?
-	if (buffer->abs_filename != NULL || buffer->change_head.nr_prev != 0)
-		return NULL;
-	return view;
+	if (v->buffer->abs_filename != NULL || v->buffer->change_head.nr_prev != 0)
+		return false;
+	return true;
 }
 
 struct view *open_file(const char *filename, const char *encoding)
 {
-	struct view *empty = useless_empty_view();
 	struct view *prev = view;
+	bool useless = is_useless_empty_view(prev);
 	struct view *v = open_buffer(filename, false, encoding);
 
 	if (v == NULL)
 		return NULL;
 
 	set_view(v);
-	if (empty != NULL) {
-		remove_view(empty);
+	if (useless) {
+		remove_view(prev);
 	} else {
 		prev_view = prev;
 	}
@@ -186,7 +188,8 @@ struct view *open_file(const char *filename, const char *encoding)
 
 void open_files(char **filenames, const char *encoding)
 {
-	struct view *empty = useless_empty_view();
+	struct view *empty = view;
+	bool useless = is_useless_empty_view(empty);
 	bool first = true;
 	int i;
 
@@ -197,7 +200,7 @@ void open_files(char **filenames, const char *encoding)
 			first = false;
 		}
 	}
-	if (empty != NULL && view != empty) {
+	if (useless && view != empty) {
 		remove_view(empty);
 	}
 }
