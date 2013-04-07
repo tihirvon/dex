@@ -252,7 +252,7 @@ static void line_info_init(struct line_info *info, struct view *v, struct block_
 	} else {
 		struct selection_info sel;
 
-		init_selection(&sel);
+		init_selection(v, &sel);
 		info->sel_so = sel.so;
 		info->sel_eo = sel.eo;
 	}

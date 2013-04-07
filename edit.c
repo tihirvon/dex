@@ -561,7 +561,7 @@ void shift_lines(int count)
 
 	if (view->selection) {
 		view->selection = SELECT_LINES;
-		init_selection(&info);
+		init_selection(view, &info);
 		view->cursor = info.si;
 		nr_lines = get_nr_selected_lines(&info);
 	}
@@ -817,7 +817,7 @@ void change_case(int mode)
 	if (view->selection) {
 		struct selection_info info;
 
-		init_selection(&info);
+		init_selection(view, &info);
 		view->cursor = info.si;
 		text_len = info.eo - info.so;
 		unselect();

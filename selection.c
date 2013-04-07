@@ -2,21 +2,21 @@
 #include "buffer.h"
 #include "view.h"
 
-void init_selection(struct selection_info *info)
+void init_selection(struct view *v, struct selection_info *info)
 {
 	struct block_iter ei;
 	unsigned int u;
 
-	info->so = view->sel_so;
-	info->eo = block_iter_get_offset(&view->cursor);
-	info->si = view->cursor;
+	info->so = v->sel_so;
+	info->eo = block_iter_get_offset(&v->cursor);
+	info->si = v->cursor;
 	block_iter_goto_offset(&info->si, info->so);
 	info->swapped = false;
 	if (info->so > info->eo) {
 		long o = info->so;
 		info->so = info->eo;
 		info->eo = o;
-		info->si = view->cursor;
+		info->si = v->cursor;
 		info->swapped = true;
 	}
 
@@ -27,7 +27,7 @@ void init_selection(struct selection_info *info)
 			return;
 		info->eo -= buffer_prev_char(&ei, &u);
 	}
-	if (view->selection == SELECT_LINES) {
+	if (v->selection == SELECT_LINES) {
 		info->so -= block_iter_bol(&info->si);
 		info->eo += block_iter_eat_line(&ei);
 	} else {
@@ -39,7 +39,7 @@ void init_selection(struct selection_info *info)
 long prepare_selection(void)
 {
 	struct selection_info info;
-	init_selection(&info);
+	init_selection(view, &info);
 	view->cursor = info.si;
 	return info.eo - info.so;
 }

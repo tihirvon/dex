@@ -83,7 +83,7 @@ static const char *format_misc_status(struct window *win)
 	} else if (win->view->selection) {
 		struct selection_info info;
 
-		init_selection(&info);
+		init_selection(win->view, &info);
 		if (win->view->selection == SELECT_LINES) {
 			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
 		} else {

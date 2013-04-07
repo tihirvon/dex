@@ -389,7 +389,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 
 	if (view->selection) {
 		struct selection_info info;
-		init_selection(&info);
+		init_selection(view, &info);
 		view->cursor = info.si;
 		view->sel_so = info.so;
 		view->sel_eo = info.eo;
