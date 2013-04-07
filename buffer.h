@@ -172,6 +172,7 @@ void filetype_changed(void);
 void update_cursor_y(void);
 void update_cursor_x(void);
 int get_preferred_x(void);
+bool view_can_close(struct view *v);
 
 static inline void reset_preferred_x(void)
 {

@@ -26,6 +26,23 @@ struct view *window_add_buffer(struct buffer *b)
 	return v;
 }
 
+struct view *window_find_unclosable_view(struct window *w, bool (*can_close)(struct view *))
+{
+	long i;
+
+	// check active view first
+	if (w->view != NULL && !can_close(w->view)) {
+		return w->view;
+	}
+	for (i = 0; i < w->views.count; i++) {
+		struct view *v = w->views.ptrs[i];
+		if (!can_close(v)) {
+			return v;
+		}
+	}
+	return NULL;
+}
+
 void window_remove_views(struct window *w)
 {
 	while (w->views.count > 0) {

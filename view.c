@@ -58,3 +58,12 @@ int get_preferred_x(void)
 	}
 	return view->preferred_x;
 }
+
+bool view_can_close(struct view *v)
+{
+	if (!buffer_modified(v->buffer)) {
+		return true;
+	}
+	// open in another window?
+	return v->buffer->views.count > 1;
+}
