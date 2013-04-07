@@ -374,7 +374,7 @@ void syntax_changed(void)
 		s->count = 1;
 	}
 
-	mark_all_lines_changed();
+	mark_all_lines_changed(buffer);
 }
 
 static void restore_cursor_from_history(void)

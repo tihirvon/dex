@@ -268,7 +268,7 @@ void calculate_line_numbers(struct window *win)
 		win->line_numbers.width = w;
 		win->line_numbers.first = 0;
 		win->line_numbers.last = 0;
-		mark_all_lines_changed();
+		mark_all_lines_changed(win->view->buffer);
 	}
 	set_edit_size(win);
 }

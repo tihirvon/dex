@@ -1031,7 +1031,7 @@ static void cmd_select(const char *pf, char **args)
 			return;
 		}
 		view->selection = sel;
-		mark_all_lines_changed();
+		mark_all_lines_changed(buffer);
 		return;
 	}
 

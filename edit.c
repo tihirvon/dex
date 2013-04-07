@@ -82,7 +82,7 @@ void select_block(void)
 	view->sel_eo = UINT_MAX;
 	view->selection = SELECT_LINES;
 
-	mark_all_lines_changed();
+	mark_all_lines_changed(buffer);
 }
 
 static int get_indent_of_matching_brace(void)
@@ -110,7 +110,7 @@ void unselect(void)
 {
 	if (view->selection) {
 		view->selection = SELECT_NONE;
-		mark_all_lines_changed();
+		mark_all_lines_changed(buffer);
 	}
 }
 

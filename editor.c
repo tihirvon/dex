@@ -300,7 +300,7 @@ char get_confirmation(const char *choices, const char *format, ...)
 	view_update(view);
 
 	// set changed_line_min and changed_line_max before calling update_range()
-	mark_all_lines_changed();
+	mark_all_lines_changed(buffer);
 
 	start_update();
 	update_term_title();
@@ -368,7 +368,7 @@ static void update_screen(struct screen_state *s)
 
 	if (s->id == buffer->id) {
 		if (s->vx != view->vx || s->vy != view->vy) {
-			mark_all_lines_changed();
+			mark_all_lines_changed(buffer);
 		} else {
 			// Because of trailing whitespace highlighting and
 			// highlighting current line in different color
@@ -382,7 +382,7 @@ static void update_screen(struct screen_state *s)
 			mark_buffer_tabbars_changed();
 	} else {
 		window->update_tabbar = true;
-		mark_all_lines_changed();
+		mark_all_lines_changed(buffer);
 	}
 
 	start_update();

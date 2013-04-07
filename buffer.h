@@ -70,10 +70,10 @@ extern struct buffer *buffer;
 extern struct ptr_array buffers;
 extern bool everything_changed;
 
-static inline void mark_all_lines_changed(void)
+static inline void mark_all_lines_changed(struct buffer *b)
 {
-	buffer->changed_line_min = 0;
-	buffer->changed_line_max = INT_MAX;
+	b->changed_line_min = 0;
+	b->changed_line_max = INT_MAX;
 }
 
 static inline void mark_everything_changed(void)
