@@ -339,7 +339,7 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 			nr++;
 
 			/* update selection length */
-			if (selecting()) {
+			if (view->selection) {
 				view->sel_eo += nr_insert;
 				view->sel_eo -= match_len;
 			}
@@ -386,7 +386,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 			return;
 	}
 
-	if (selecting()) {
+	if (view->selection) {
 		struct selection_info info;
 		init_selection(&info);
 		view->cursor = info.si;
@@ -443,7 +443,7 @@ void reg_replace(const char *pattern, const char *format, unsigned int flags)
 		info_msg("Pattern '%s' not found.", pattern);
 	}
 
-	if (selecting()) {
+	if (view->selection) {
 		// undo what init_selection() did
 		if (view->sel_eo)
 			view->sel_eo--;

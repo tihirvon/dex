@@ -237,7 +237,7 @@ static void line_info_init(struct line_info *info, struct block_iter *bi, long l
 	info->line_nr = line_nr;
 	info->offset = block_iter_get_offset(bi);
 
-	if (!selecting()) {
+	if (!view->selection) {
 		info->sel_so = -1;
 		info->sel_eo = -1;
 	} else if (view->sel_eo != UINT_MAX) {

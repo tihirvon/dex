@@ -78,7 +78,7 @@ static const char *format_misc_status(void)
 	if (input_mode == INPUT_SEARCH) {
 		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
 			case_sensitive_search_enum[options.case_sensitive_search]);
-	} else if (selecting()) {
+	} else if (view->selection) {
 		struct selection_info info;
 
 		init_selection(&info);

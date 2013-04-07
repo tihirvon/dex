@@ -103,7 +103,7 @@ char *get_selection(long *size)
 	struct block_iter save = view->cursor;
 	char *buf;
 
-	if (!selecting())
+	if (!view->selection)
 		return NULL;
 
 	*size = prepare_selection();

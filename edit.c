@@ -108,7 +108,7 @@ static int get_indent_of_matching_brace(void)
 
 void unselect(void)
 {
-	if (selecting()) {
+	if (view->selection) {
 		view->selection = SELECT_NONE;
 		mark_all_lines_changed();
 	}
@@ -144,7 +144,7 @@ void insert_text(const char *text, long size)
 {
 	long del_count = 0;
 
-	if (selecting()) {
+	if (view->selection) {
 		del_count = prepare_selection();
 		unselect();
 	}
@@ -159,7 +159,7 @@ void paste(void)
 	if (!copy_buf)
 		return;
 
-	if (selecting()) {
+	if (view->selection) {
 		del_count = prepare_selection();
 		unselect();
 	}
@@ -184,7 +184,7 @@ void delete_ch(void)
 	unsigned int u;
 	long size = 0;
 
-	if (selecting()) {
+	if (view->selection) {
 		size = prepare_selection();
 		unselect();
 	} else {
@@ -202,7 +202,7 @@ void erase(void)
 	unsigned int u;
 	long size = 0;
 
-	if (selecting()) {
+	if (view->selection) {
 		size = prepare_selection();
 		unselect();
 	} else {
@@ -274,7 +274,7 @@ static void insert_nl(void)
 	char *ins = NULL;
 
 	// prepare deleted text (selection or whitespace around cursor)
-	if (selecting()) {
+	if (view->selection) {
 		del_count = prepare_selection();
 		unselect();
 	} else {
@@ -334,7 +334,7 @@ void insert_ch(unsigned int ch)
 	}
 
 	ins = xmalloc(8);
-	if (selecting()) {
+	if (view->selection) {
 		// prepare deleted text (selection)
 		del_count = prepare_selection();
 		unselect();
@@ -442,7 +442,7 @@ void join_lines(void)
 	int count;
 	unsigned int u;
 
-	if (selecting()) {
+	if (view->selection) {
 		join_selection();
 		return;
 	}
@@ -559,7 +559,7 @@ void shift_lines(int count)
 	if (x < 0)
 		x = 0;
 
-	if (selecting()) {
+	if (view->selection) {
 		view->selection = SELECT_LINES;
 		init_selection(&info);
 		view->cursor = info.si;
@@ -574,7 +574,7 @@ void shift_lines(int count)
 		shift_left(nr_lines, -count);
 	end_change_chain();
 
-	if (selecting()) {
+	if (view->selection) {
 		if (info.swapped) {
 			// cursor should be at beginning of selection
 			block_iter_bol(&view->cursor);
@@ -607,7 +607,7 @@ void clear_lines(void)
 		}
 	}
 
-	if (selecting()) {
+	if (view->selection) {
 		view->selection = SELECT_LINES;
 		del_count = prepare_selection();
 		unselect();
@@ -751,7 +751,7 @@ void format_paragraph(int text_width)
 	int indent_width;
 	char *sel;
 
-	if (selecting()) {
+	if (view->selection) {
 		view->selection = SELECT_LINES;
 		len = prepare_selection();
 	} else {
@@ -814,7 +814,7 @@ void change_case(int mode)
 	char *src;
 	GBUF(dst);
 
-	if (selecting()) {
+	if (view->selection) {
 		struct selection_info info;
 
 		init_selection(&info);

@@ -165,7 +165,7 @@ static void cmd_copy(const char *pf, char **args)
 {
 	struct block_iter save = view->cursor;
 
-	if (selecting()) {
+	if (view->selection) {
 		copy(prepare_selection(), view->selection == SELECT_LINES);
 		unselect();
 	} else {
@@ -181,7 +181,7 @@ static void cmd_cut(const char *pf, char **args)
 {
 	int x = view_get_preferred_x(view);
 
-	if (selecting()) {
+	if (view->selection) {
 		cut(prepare_selection(), view->selection == SELECT_LINES);
 		if (view->selection == SELECT_LINES) {
 			move_to_preferred_x(x);
@@ -289,7 +289,7 @@ static void cmd_filter(const char *pf, char **args)
 	struct filter_data data;
 	struct block_iter save = view->cursor;
 
-	if (selecting()) {
+	if (view->selection) {
 		data.in_len = prepare_selection();
 	} else {
 		struct block *blk;
@@ -369,7 +369,7 @@ static void cmd_insert(const char *pf, char **args)
 		long del_len = 0;
 		long ins_len = strlen(str);
 
-		if (selecting()) {
+		if (view->selection) {
 			del_len = prepare_selection();
 			unselect();
 		}
@@ -579,7 +579,7 @@ static void cmd_pass_through(const char *pf, char **args)
 	if (spawn_filter(args, &data))
 		return;
 
-	if (selecting()) {
+	if (view->selection) {
 		del_len = prepare_selection();
 		unselect();
 	}
@@ -1025,7 +1025,7 @@ static void cmd_select(const char *pf, char **args)
 		return;
 	}
 
-	if (selecting()) {
+	if (view->selection) {
 		if (view->selection == sel) {
 			unselect();
 			return;

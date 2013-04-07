@@ -140,11 +140,6 @@ static inline bool buffer_modified(struct buffer *b)
 	return b->saved_change != b->cur_change;
 }
 
-static inline bool selecting(void)
-{
-	return !!view->selection;
-}
-
 void lines_changed(int min, int max);
 const char *buffer_filename(struct buffer *b);
 long count_nl(const char *buf, long size);
