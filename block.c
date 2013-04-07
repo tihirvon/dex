@@ -237,7 +237,7 @@ void do_insert(const char *buf, long len)
 	buffer->nl += nl;
 	sanity_check();
 
-	update_cursor_y();
+	view_update_cursor_y(view);
 	lines_changed(view->cy, nl ? INT_MAX : view->cy);
 	if (buffer->syn)
 		hl_insert(view->cy, nl);
@@ -319,7 +319,7 @@ char *do_delete(long len)
 
 	sanity_check();
 
-	update_cursor_y();
+	view_update_cursor_y(view);
 	lines_changed(view->cy, deleted_nl ? INT_MAX : view->cy);
 	if (buffer->syn)
 		hl_delete(view->cy, deleted_nl);
@@ -372,7 +372,7 @@ char *do_replace(long del, const char *buf, long ins)
 
 	sanity_check();
 
-	update_cursor_y();
+	view_update_cursor_y(view);
 	if (del_nl == ins_nl) {
 		// some line(s) changed but lines after them did not move up or down
 		lines_changed(view->cy, view->cy + del_nl);

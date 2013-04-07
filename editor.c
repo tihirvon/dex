@@ -80,8 +80,8 @@ static void update_command_line(void)
 
 static void update_current_window(void)
 {
-	update_cursor_x();
-	update_cursor_y();
+	view_update_cursor_x(view);
+	view_update_cursor_y(view);
 	update_view();
 	if (options.show_tab_bar)
 		print_tabbar();
@@ -191,8 +191,8 @@ static void update_windows(void)
 				block_iter_goto_offset(&view->cursor, view->saved_cursor_offset);
 
 				// these have already been updated for current view
-				update_cursor_x();
-				update_cursor_y();
+				view_update_cursor_x(view);
+				view_update_cursor_y(view);
 				update_view();
 			}
 			update_window();
@@ -292,8 +292,8 @@ char get_confirmation(const char *choices, const char *format, ...)
 	buf[pos] = 0;
 
 	// update_windows() assumes these have been called for the current view
-	update_cursor_x();
-	update_cursor_y();
+	view_update_cursor_x(view);
+	view_update_cursor_y(view);
 	update_view();
 
 	// set changed_line_min and changed_line_max before calling update_range()
@@ -359,8 +359,8 @@ static void update_screen(struct screen_state *s)
 		return;
 	}
 
-	update_cursor_x();
-	update_cursor_y();
+	view_update_cursor_x(view);
+	view_update_cursor_y(view);
 	update_view();
 
 	if (s->id == buffer->id) {

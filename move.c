@@ -113,7 +113,7 @@ void move_eol(void)
 
 void move_up(int count)
 {
-	int x = get_preferred_x();
+	int x = view_get_preferred_x(view);
 
 	while (count > 0) {
 		if (!block_iter_prev_line(&view->cursor))
@@ -125,7 +125,7 @@ void move_up(int count)
 
 void move_down(int count)
 {
-	int x = get_preferred_x();
+	int x = view_get_preferred_x(view);
 
 	while (count > 0) {
 		if (!block_iter_eat_line(&view->cursor))

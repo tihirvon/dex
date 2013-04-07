@@ -178,7 +178,7 @@ static void cmd_copy(const char *pf, char **args)
 
 static void cmd_cut(const char *pf, char **args)
 {
-	int x = get_preferred_x();
+	int x = view_get_preferred_x(view);
 
 	if (selecting()) {
 		cut(prepare_selection(), view->selection == SELECT_LINES);
@@ -396,7 +396,7 @@ static void cmd_left(const char *pf, char **args)
 
 static void cmd_line(const char *pf, char **args)
 {
-	int x = get_preferred_x();
+	int x = view_get_preferred_x(view);
 	int line;
 
 	line = atoi(args[0]);
@@ -1040,7 +1040,7 @@ static void cmd_select(const char *pf, char **args)
 
 	// need to mark current line changed because cursor might
 	// move up or down before screen is updated
-	update_cursor_y();
+	view_update_cursor_y(view);
 	lines_changed(view->cy, view->cy);
 }
 

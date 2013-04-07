@@ -3,15 +3,16 @@
 
 struct view *view;
 
-void update_cursor_y(void)
+void view_update_cursor_y(struct view *v)
 {
+	struct buffer *b = v->buffer;
 	struct block *blk;
 	unsigned int nl = 0;
 
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (blk == view->cursor.blk) {
-			nl += count_nl(blk->data, view->cursor.offset);
-			view->cy = nl;
+	list_for_each_entry(blk, &b->blocks, node) {
+		if (blk == v->cursor.blk) {
+			nl += count_nl(blk->data, v->cursor.offset);
+			v->cy = nl;
 			return;
 		}
 		nl += blk->nl;
@@ -19,16 +20,16 @@ void update_cursor_y(void)
 	BUG_ON(1);
 }
 
-void update_cursor_x(void)
+void view_update_cursor_x(struct view *v)
 {
-	unsigned int tw = buffer->options.tab_width;
+	unsigned int tw = v->buffer->options.tab_width;
 	long idx = 0;
 	struct lineref lr;
 	int c = 0;
 	int w = 0;
 
-	view->cx = fetch_this_line(&view->cursor, &lr);
-	while (idx < view->cx) {
+	v->cx = fetch_this_line(&v->cursor, &lr);
+	while (idx < v->cx) {
 		unsigned int u = lr.line[idx++];
 
 		c++;
@@ -46,17 +47,17 @@ void update_cursor_x(void)
 			w += u_char_width(u);
 		}
 	}
-	view->cx_char = c;
-	view->cx_display = w;
+	v->cx_char = c;
+	v->cx_display = w;
 }
 
-int get_preferred_x(void)
+int view_get_preferred_x(struct view *v)
 {
-	if (view->preferred_x < 0) {
-		update_cursor_x();
-		view->preferred_x = view->cx_display;
+	if (v->preferred_x < 0) {
+		view_update_cursor_x(v);
+		v->preferred_x = v->cx_display;
 	}
-	return view->preferred_x;
+	return v->preferred_x;
 }
 
 bool view_can_close(struct view *v)
