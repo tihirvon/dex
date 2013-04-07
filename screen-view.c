@@ -327,6 +327,7 @@ static void print_line(struct line_info *info)
 
 void update_range(int y1, int y2)
 {
+	struct view *v = view;
 	struct line_info info;
 	struct block_iter bi = view->cursor;
 	int i, got_line;
@@ -347,7 +348,7 @@ void update_range(int y1, int y2)
 	y2 -= view->vy;
 
 	got_line = !block_iter_is_eof(&bi);
-	hl_fill_start_states(info.line_nr);
+	hl_fill_start_states(v->buffer, info.line_nr);
 	for (i = y1; got_line && i < y2; i++) {
 		struct lineref lr;
 		struct hl_color **colors;
@@ -357,7 +358,7 @@ void update_range(int y1, int y2)
 		buf_move_cursor(window->edit_x, window->edit_y + i);
 
 		fill_line_nl_ref(&bi, &lr);
-		colors = hl_line(lr.line, lr.size, info.line_nr, &next_changed);
+		colors = hl_line(v->buffer, lr.line, lr.size, info.line_nr, &next_changed);
 		line_info_set_line(&info, &lr, colors);
 		print_line(&info);
 

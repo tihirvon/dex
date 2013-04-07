@@ -59,7 +59,7 @@ static bool in_hash(struct string_list *list, const char *str, int len)
 	return false;
 }
 
-static struct state *handle_heredoc(struct state *state, const char *delim, int len)
+static struct state *handle_heredoc(struct syntax *syn, struct state *state, const char *delim, int len)
 {
 	struct heredoc_state *s;
 	struct syntax_merge m;
@@ -77,7 +77,7 @@ static struct state *handle_heredoc(struct state *state, const char *delim, int 
 	m.delim_len = len;
 
 	s = xnew0(struct heredoc_state, 1);
-	s->state = merge_syntax(buffer->syn, &m);
+	s->state = merge_syntax(syn, &m);
 	s->delim = xmemdup(delim, len);
 	s->len = len;
 	ptr_array_add(&state->heredoc.states, s);
@@ -85,7 +85,7 @@ static struct state *handle_heredoc(struct state *state, const char *delim, int 
 }
 
 // line should be terminated with \n unless it's the last line
-static struct hl_color **highlight_line(struct state *state, const char *line, int len, struct state **ret)
+static struct hl_color **highlight_line(struct syntax *syn, struct state *state, const char *line, int len, struct state **ret)
 {
 	static struct hl_color **colors;
 	static int alloc;
@@ -219,7 +219,7 @@ static struct hl_color **highlight_line(struct state *state, const char *line, i
 		case STATE_HEREDOCBEGIN:
 			if (sidx < 0)
 				sidx = i;
-			state = handle_heredoc(state, line + sidx, i - sidx);
+			state = handle_heredoc(syn, state, line + sidx, i - sidx);
 			break;
 		}
 	}
@@ -248,9 +248,9 @@ static void block_iter_move_down(struct block_iter *bi, int count)
 		block_iter_eat_line(bi);
 }
 
-static int fill_hole(struct block_iter *bi, int sidx, int eidx)
+static int fill_hole(struct buffer *b, struct block_iter *bi, int sidx, int eidx)
 {
-	void **ptrs = buffer->line_start_states.ptrs;
+	void **ptrs = b->line_start_states.ptrs;
 	int idx = sidx;
 
 	while (idx < eidx) {
@@ -259,7 +259,7 @@ static int fill_hole(struct block_iter *bi, int sidx, int eidx)
 
 		fill_line_nl_ref(bi, &lr);
 		block_iter_eat_line(bi);
-		highlight_line(ptrs[idx++], lr.line, lr.size, &st);
+		highlight_line(b->syn, ptrs[idx++], lr.line, lr.size, &st);
 
 		if (ptrs[idx] == st) {
 			// was not invalidated and didn't change
@@ -279,16 +279,16 @@ static int fill_hole(struct block_iter *bi, int sidx, int eidx)
 	return idx - sidx;
 }
 
-void hl_fill_start_states(int line_nr)
+void hl_fill_start_states(struct buffer *b, int line_nr)
 {
-	BLOCK_ITER(bi, &buffer->blocks);
-	struct ptr_array *s = &buffer->line_start_states;
+	BLOCK_ITER(bi, &b->blocks);
+	struct ptr_array *s = &b->line_start_states;
 	struct state **states;
 	int current_line = 0;
 	int idx = 0;
 	int last;
 
-	if (!buffer->syn)
+	if (b->syn == NULL)
 		return;
 
 	// NOTE: "+ 2" so that you don't have to worry about overflow in fill_hole()
@@ -313,7 +313,7 @@ void hl_fill_start_states(int line_nr)
 		current_line = idx;
 
 		// NOTE: might not fill entire hole which is ok
-		count = fill_hole(&bi, idx, last);
+		count = fill_hole(b, &bi, idx, last);
 		idx += count;
 		current_line += count;
 	}
@@ -324,24 +324,24 @@ void hl_fill_start_states(int line_nr)
 		struct lineref lr;
 
 		fill_line_nl_ref(&bi, &lr);
-		highlight_line(states[s->count - 1], lr.line, lr.size, &states[s->count]);
+		highlight_line(b->syn, states[s->count - 1], lr.line, lr.size, &states[s->count]);
 		s->count++;
 		block_iter_eat_line(&bi);
 	}
 }
 
-struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_changed)
+struct hl_color **hl_line(struct buffer *b, const char *line, int len, int line_nr, int *next_changed)
 {
-	struct ptr_array *s = &buffer->line_start_states;
+	struct ptr_array *s = &b->line_start_states;
 	struct hl_color **colors;
 	struct state *next;
 
 	*next_changed = 0;
-	if (!buffer->syn)
+	if (b->syn == NULL)
 		return NULL;
 
 	BUG_ON(line_nr >= s->count);
-	colors = highlight_line(s->ptrs[line_nr++], line, len, &next);
+	colors = highlight_line(b->syn, s->ptrs[line_nr++], line, len, &next);
 
 	if (line_nr == s->count) {
 		resize_line_states(s, s->count + 1);
@@ -364,9 +364,9 @@ struct hl_color **hl_line(const char *line, int len, int line_nr, int *next_chan
 }
 
 // called after text have been inserted to rehighlight changed lines
-void hl_insert(int first, int lines)
+void hl_insert(struct buffer *b, int first, int lines)
 {
-	struct ptr_array *s = &buffer->line_start_states;
+	struct ptr_array *s = &b->line_start_states;
 	int i, last = first + lines;
 
 	if (first >= s->count) {
@@ -396,9 +396,9 @@ void hl_insert(int first, int lines)
 }
 
 // called after text have been deleted to rehighlight changed lines
-void hl_delete(int first, int deleted_nl)
+void hl_delete(struct buffer *b, int first, int deleted_nl)
 {
-	struct ptr_array *s = &buffer->line_start_states;
+	struct ptr_array *s = &b->line_start_states;
 	int last = first + deleted_nl;
 
 	if (s->count == 1)

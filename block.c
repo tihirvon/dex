@@ -241,7 +241,7 @@ void do_insert(const char *buf, long len)
 	view_update_cursor_y(view);
 	lines_changed(view->cy, nl ? INT_MAX : view->cy);
 	if (buffer->syn)
-		hl_insert(view->cy, nl);
+		hl_insert(buffer, view->cy, nl);
 }
 
 static int only_block(struct block *blk)
@@ -323,7 +323,7 @@ char *do_delete(long len)
 	view_update_cursor_y(view);
 	lines_changed(view->cy, deleted_nl ? INT_MAX : view->cy);
 	if (buffer->syn)
-		hl_delete(view->cy, deleted_nl);
+		hl_delete(buffer, view->cy, deleted_nl);
 	return buf;
 }
 
@@ -381,8 +381,8 @@ char *do_replace(long del, const char *buf, long ins)
 		lines_changed(view->cy, INT_MAX);
 	}
 	if (buffer->syn) {
-		hl_delete(view->cy, del_nl);
-		hl_insert(view->cy, ins_nl);
+		hl_delete(buffer, view->cy, del_nl);
+		hl_insert(buffer, view->cy, ins_nl);
 	}
 	return deleted;
 slow:
