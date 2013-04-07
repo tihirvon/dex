@@ -32,6 +32,20 @@
 #include "input-special.h"
 #include "git-open.h"
 
+// go to compiler error saving position if file changed or cursor moved
+static void activate_current_message_save(void)
+{
+	struct file_location *loc = create_file_location(view);
+	struct block_iter save = view->cursor;
+
+	activate_current_message();
+	if (view->cursor.blk != save.blk || view->cursor.offset != save.offset) {
+		push_file_location(loc);
+	} else {
+		file_location_free(loc);
+	}
+}
+
 static void cmd_alias(const char *pf, char **args)
 {
 	add_alias(args[0], args[1]);

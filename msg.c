@@ -1,7 +1,7 @@
 #include "msg.h"
-#include "window.h"
 #include "ptr-array.h"
 #include "error.h"
+#include "common.h"
 
 static PTR_ARRAY(msgs);
 static int msg_pos;
@@ -57,36 +57,21 @@ void add_message(struct message *m)
 	}
 }
 
-bool activate_current_message(void)
+void activate_current_message(void)
 {
 	struct message *m;
-	bool moved = false;
 
 	if (msg_pos == msgs.count) {
-		return moved;
+		return;
 	}
 	m = msgs.ptrs[msg_pos];
 	if (m->loc != NULL) {
-		bool err = false;
-		moved = file_location_go(m->loc, &err);
-		if (err) {
+		if (!file_location_go(m->loc)) {
 			// error message is visible
-			return moved;
+			return;
 		}
 	}
 	info_msg("[%d/%ld] %s", msg_pos + 1, msgs.count, m->msg);
-	return moved;
-}
-
-void activate_current_message_save(void)
-{
-	struct file_location *loc = create_file_location();
-
-	if (activate_current_message()) {
-		push_file_location(loc);
-	} else {
-		file_location_free(loc);
-	}
 }
 
 void activate_next_message(void)

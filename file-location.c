@@ -6,15 +6,15 @@
 
 static PTR_ARRAY(file_locations);
 
-struct file_location *create_file_location(void)
+struct file_location *create_file_location(struct view *v)
 {
 	struct file_location *loc;
 
 	loc = xnew0(struct file_location, 1);
-	loc->filename = buffer->abs_filename ? xstrdup(buffer->abs_filename) : NULL;
-	loc->buffer_id = buffer->id;
-	loc->line = view->cy + 1;
-	loc->column = view->cx_char + 1;
+	loc->filename = v->buffer->abs_filename ? xstrdup(v->buffer->abs_filename) : NULL;
+	loc->buffer_id = v->buffer->id;
+	loc->line = v->cy + 1;
+	loc->column = v->cx_char + 1;
 	return loc;
 }
 
@@ -45,35 +45,31 @@ bool file_location_equals(const struct file_location *a, const struct file_locat
 	return true;
 }
 
-// returns true if file or cursor position changed
-bool file_location_go(struct file_location *loc, bool *err)
+bool file_location_go(struct file_location *loc)
 {
 	struct view *v = open_buffer(loc->filename, true, NULL);
-	bool ret = false;
+	bool ok = true;
 
 	if (!v) {
 		// failed to open file. error message should be visible
-		*err = true;
-		return ret;
+		return false;
 	}
 	if (view != v) {
 		set_view(v);
 		// force centering view to the cursor because file changed
-		view->force_center = true;
-		ret = true;
+		v->force_center = true;
 	}
 	if (loc->pattern != NULL) {
-		if (search_tag(loc->pattern, err)) {
-			// cursor moved
-			ret = true;
-		}
+		bool err = false;
+		search_tag(loc->pattern, &err);
+		ok = !err;
 	} else if (loc->line > 0) {
 		move_to_line(loc->line);
 		if (loc->column > 0) {
 			move_to_column(loc->column);
 		}
 	}
-	return ret;
+	return ok;
 }
 
 bool file_location_return(struct file_location *loc)
