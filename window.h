@@ -43,7 +43,6 @@ void set_view(struct view *v);
 struct view *open_new_file(void);
 struct view *open_file(const char *filename, const char *encoding);
 void open_files(char **filenames, const char *encoding);
-void view_update(struct view *v);
 void mark_buffer_tabbars_changed(void);
 int vertical_tabbar_width(struct window *win);
 void calculate_line_numbers(struct window *win);

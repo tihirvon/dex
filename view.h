@@ -65,6 +65,7 @@ static inline void view_reset_preferred_x(struct view *v)
 
 void view_update_cursor_y(struct view *v);
 void view_update_cursor_x(struct view *v);
+void view_update(struct view *v);
 int view_get_preferred_x(struct view *v);
 bool view_can_close(struct view *v);
 

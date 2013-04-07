@@ -1,5 +1,5 @@
 #include "view.h"
-#include "buffer.h"
+#include "window.h"
 #include "uchar.h"
 
 struct view *view;
@@ -50,6 +50,69 @@ void view_update_cursor_x(struct view *v)
 	}
 	v->cx_char = c;
 	v->cx_display = w;
+}
+
+static int view_is_cursor_visible(struct view *v)
+{
+	return v->cy < v->vy || v->cy > v->vy + v->window->edit_h - 1;
+}
+
+static void view_center_to_cursor(struct view *v)
+{
+	struct window *w = v->window;
+	unsigned int hh = w->edit_h / 2;
+
+	if (w->edit_h >= buffer->nl || v->cy < hh) {
+		v->vy = 0;
+		return;
+	}
+
+	v->vy = v->cy - hh;
+	if (v->vy + w->edit_h > buffer->nl) {
+		/* -1 makes one ~ line visible so that you know where the EOF is */
+		v->vy -= v->vy + w->edit_h - buffer->nl - 1;
+	}
+}
+
+static void view_update_vx(struct view *v)
+{
+	struct window *w = v->window;
+	unsigned int c = 8;
+
+	if (v->cx_display - v->vx >= w->edit_w)
+		v->vx = (v->cx_display - w->edit_w + c) / c * c;
+	if (v->cx_display < v->vx)
+		v->vx = v->cx_display / c * c;
+}
+
+static void view_update_vy(struct view *v)
+{
+	struct window *w = v->window;
+	int margin = window_get_scroll_margin(w);
+	int max_y = v->vy + w->edit_h - 1 - margin;
+
+	if (v->cy < v->vy + margin) {
+		v->vy = v->cy - margin;
+		if (v->vy < 0)
+			v->vy = 0;
+	} else if (v->cy > max_y) {
+		v->vy += v->cy - max_y;
+		max_y = buffer->nl - w->edit_h + 1;
+		if (v->vy > max_y && max_y >= 0)
+			v->vy = max_y;
+	}
+}
+
+void view_update(struct view *v)
+{
+	view_update_vx(v);
+	if (v->force_center || (v->center_on_scroll && view_is_cursor_visible(v))) {
+		view_center_to_cursor(v);
+	} else {
+		view_update_vy(v);
+	}
+	v->force_center = false;
+	v->center_on_scroll = false;
 }
 
 int view_get_preferred_x(struct view *v)
