@@ -856,7 +856,7 @@ static void cmd_save(const char *pf, char **args)
 		/* allow chmod 755 etc. */
 		buffer->st.st_mode = st.st_mode;
 	}
-	if (save_buffer(absolute, encoding, newline))
+	if (save_buffer(buffer, absolute, encoding, newline))
 		goto error;
 
 	buffer->saved_change = buffer->cur_change;

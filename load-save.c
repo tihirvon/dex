@@ -255,7 +255,7 @@ static mode_t get_umask(void)
 	return old;
 }
 
-static int write_buffer(struct file_encoder *enc, const struct byte_order_mark *bom)
+static int write_buffer(struct buffer *b, struct file_encoder *enc, const struct byte_order_mark *bom)
 {
 	ssize_t size = 0;
 	struct block *blk;
@@ -265,7 +265,7 @@ static int write_buffer(struct file_encoder *enc, const struct byte_order_mark *
 		if (xwrite(enc->fd, bom->bytes, size) < 0)
 			goto write_error;
 	}
-	list_for_each_entry(blk, &buffer->blocks, node) {
+	list_for_each_entry(blk, &b->blocks, node) {
 		ssize_t rc = file_encoder_write(enc, blk->data, blk->size);
 
 		if (rc < 0)
@@ -288,7 +288,7 @@ write_error:
 	return -1;
 }
 
-int save_buffer(const char *filename, const char *encoding, enum newline_sequence newline)
+int save_buffer(struct buffer *b, const char *filename, const char *encoding, enum newline_sequence newline)
 {
 	// try to use temporary file first, safer
 	char *tmp = tmp_filename(filename);
@@ -301,7 +301,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 			// No write permission to the directory?
 			free(tmp);
 			tmp = NULL;
-		} else if (buffer->st.st_mode) {
+		} else if (b->st.st_mode) {
 			// Preserve ownership and mode of the original file if possible.
 
 			// "ignoring return value of 'fchown', declared with attribute warn_unused_result"
@@ -309,9 +309,9 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 			// Casting to void does not hide this warning when
 			// using GCC and clang does not like this:
 			//     int ignore = fchown(...); ignore = ignore;
-			if (fchown(fd, buffer->st.st_uid, buffer->st.st_gid)) {
+			if (fchown(fd, b->st.st_uid, b->st.st_gid)) {
 			}
-			fchmod(fd, buffer->st.st_mode);
+			fchmod(fd, b->st.st_mode);
 		} else {
 			// new file
 			fchmod(fd, 0666 & ~get_umask());
@@ -320,7 +320,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 	if (tmp == NULL) {
 		// Overwrite the original file (if exists) directly.
 		// Ownership is preserved automatically if the file exists.
-		mode_t mode = buffer->st.st_mode;
+		mode_t mode = b->st.st_mode;
 		if (mode == 0) {
 			// New file.
 			mode = 0666 & ~get_umask();
@@ -339,7 +339,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 		close(fd);
 		goto error;
 	}
-	if (write_buffer(enc, get_bom_for_encoding(encoding))) {
+	if (write_buffer(b, enc, get_bom_for_encoding(encoding))) {
 		close(fd);
 		goto error;
 	}
@@ -353,7 +353,7 @@ int save_buffer(const char *filename, const char *encoding, enum newline_sequenc
 	}
 	free_file_encoder(enc);
 	free(tmp);
-	stat(filename, &buffer->st);
+	stat(filename, &b->st);
 	return 0;
 error:
 	if (enc != NULL)
@@ -365,7 +365,7 @@ error:
 		// Not using temporary file therefore mtime may have changed.
 		// Update stat to avoid "File has been modified by someone else"
 		// error later when saving the file again.
-		stat(filename, &buffer->st);
+		stat(filename, &b->st);
 	}
 	return -1;
 }
