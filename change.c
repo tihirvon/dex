@@ -210,7 +210,7 @@ bool undo(void)
 {
 	struct change *change = buffer->cur_change;
 
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 	if (!change->next)
 		return false;
 
@@ -237,7 +237,7 @@ bool redo(unsigned int change_id)
 {
 	struct change *change = buffer->cur_change;
 
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 	if (!change->prev) {
 		/* don't complain if change_id is 0 */
 		if (change_id)
@@ -303,7 +303,7 @@ void buffer_insert_bytes(const char *buf, long len)
 {
 	long rec_len = len;
 
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 	if (len == 0)
 		return;
 
@@ -342,7 +342,7 @@ static bool would_delete_last_bytes(long count)
 
 static void buffer_delete_bytes_internal(long len, bool move_after)
 {
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 	if (len == 0)
 		return;
 
@@ -379,7 +379,7 @@ void buffer_replace_bytes(long del_count, const char *inserted, long ins_count)
 {
 	char *deleted = NULL;
 
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 	if (del_count == 0) {
 		buffer_insert_bytes(inserted, ins_count);
 		return;

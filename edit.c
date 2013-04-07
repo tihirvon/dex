@@ -173,7 +173,7 @@ void paste(void)
 		// try to keep cursor column
 		move_to_preferred_x(x);
 		// new preferred_x
-		reset_preferred_x();
+		view_reset_preferred_x(view);
 	} else {
 		buffer_replace_bytes(del_count, copy_buf, copy_len);
 	}

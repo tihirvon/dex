@@ -169,9 +169,9 @@ bool guess_filetype(void);
 void syntax_changed(void);
 void filetype_changed(void);
 
-static inline void reset_preferred_x(void)
+static inline void view_reset_preferred_x(struct view *v)
 {
-	view->preferred_x = -1;
+	v->preferred_x = -1;
 }
 
 #endif

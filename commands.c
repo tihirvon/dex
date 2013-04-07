@@ -1286,14 +1286,14 @@ static void cmd_word_bwd(const char *pf, char **args)
 {
 	bool skip_non_word = *pf == 's';
 	word_bwd(&view->cursor, skip_non_word);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 static void cmd_word_fwd(const char *pf, char **args)
 {
 	bool skip_non_word = *pf == 's';
 	word_fwd(&view->cursor, skip_non_word);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 static void cmd_wprev(const char *pf, char **args)

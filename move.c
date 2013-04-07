@@ -74,13 +74,13 @@ void move_cursor_left(void)
 		int size = get_indent_level_bytes_left();
 		if (size) {
 			block_iter_back_bytes(&view->cursor, size);
-			reset_preferred_x();
+			view_reset_preferred_x(view);
 			return;
 		}
 	}
 
 	buffer_prev_char(&view->cursor, &u);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 void move_cursor_right(void)
@@ -91,25 +91,25 @@ void move_cursor_right(void)
 		int size = get_indent_level_bytes_right();
 		if (size) {
 			block_iter_skip_bytes(&view->cursor, size);
-			reset_preferred_x();
+			view_reset_preferred_x(view);
 			return;
 		}
 	}
 
 	buffer_next_char(&view->cursor, &u);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 void move_bol(void)
 {
 	block_iter_bol(&view->cursor);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 void move_eol(void)
 {
 	block_iter_eol(&view->cursor);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 void move_up(int count)
@@ -139,13 +139,13 @@ void move_down(int count)
 void move_bof(void)
 {
 	block_iter_bof(&view->cursor);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 void move_eof(void)
 {
 	block_iter_eof(&view->cursor);
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 void move_to_line(int line)
@@ -167,7 +167,7 @@ void move_to_column(int column)
 			break;
 		}
 	}
-	reset_preferred_x();
+	view_reset_preferred_x(view);
 }
 
 static enum char_type get_char_type(unsigned int u)

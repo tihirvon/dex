@@ -43,7 +43,7 @@ static bool do_search_fwd(regex_t *regex, struct block_iter *bi, bool skip)
 			block_iter_skip_bytes(bi, match.rm_so);
 			view->cursor = *bi;
 			view->center_on_scroll = true;
-			reset_preferred_x();
+			view_reset_preferred_x(view);
 			return true;
 		}
 		skip = false; // not at cursor position anymore
@@ -92,7 +92,7 @@ static bool do_search_bwd(regex_t *regex, struct block_iter *bi, int cx, bool sk
 			block_iter_skip_bytes(bi, offset);
 			view->cursor = *bi;
 			view->center_on_scroll = true;
-			reset_preferred_x();
+			view_reset_preferred_x(view);
 			return true;
 		}
 next:
