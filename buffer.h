@@ -95,8 +95,9 @@ char *get_word_under_cursor(void);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);
+struct buffer *find_buffer(const char *abs_filename);
 struct buffer *find_buffer_by_id(unsigned int id);
-struct view *open_buffer(const char *filename, bool must_exist, const char *encoding);
+struct buffer *buffer_new(const char *encoding);
 struct buffer *open_empty_buffer(void);
 void setup_buffer(void);
 void free_buffer(struct buffer *b);

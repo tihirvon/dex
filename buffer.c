@@ -1,9 +1,6 @@
-#include "load-save.h"
 #include "buffer.h"
-#include "window.h"
 #include "view.h"
 #include "editor.h"
-#include "error.h"
 #include "change.h"
 #include "block.h"
 #include "move.h"
@@ -143,7 +140,7 @@ char *get_word_under_cursor(void)
 	return xstrslice(lr.line, si, ei);
 }
 
-static struct buffer *buffer_new(const char *encoding)
+struct buffer *buffer_new(const char *encoding)
 {
 	static int id;
 	struct buffer *b;
@@ -212,7 +209,7 @@ static int same_file(const struct stat *a, const struct stat *b)
 	return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
 }
 
-static struct buffer *find_buffer(const char *abs_filename)
+struct buffer *find_buffer(const char *abs_filename)
 {
 	struct stat st;
 	bool st_ok = stat(abs_filename, &st) == 0;
@@ -281,80 +278,6 @@ void update_short_filename_cwd(struct buffer *b, const char *cwd)
 void update_short_filename(struct buffer *b)
 {
 	set_display_filename(b, short_filename(b->abs_filename));
-}
-
-struct view *open_buffer(const char *filename, bool must_exist, const char *encoding)
-{
-	char *absolute = path_absolute(filename);
-	bool dir_missing = false;
-	struct buffer *b = NULL;
-
-	if (absolute == NULL) {
-		// Let load_buffer() create error message.
-		dir_missing = errno == ENOENT;
-	} else {
-		// already open?
-		b = find_buffer(absolute);
-	}
-	if (b) {
-		if (!streq(absolute, b->abs_filename)) {
-			char *s = short_filename(absolute);
-			info_msg("%s and %s are the same file", s, b->display_filename);
-			free(s);
-		}
-		free(absolute);
-		return window_get_view(window, b);
-	}
-
-	/*
-	/proc/$PID/fd/ contains symbolic links to files that have been opened
-	by process $PID. Some of the files may have been deleted but can still
-	be opened using the symbolic link but not by using the absolute path.
-
-	# create file
-	mkdir /tmp/x
-	echo foo > /tmp/x/file
-
-	# in another shell: keep the file open
-	tail -f /tmp/x/file
-
-	# make the absolute path unavailable
-	rm /tmp/x/file
-	rmdir /tmp/x
-
-	# this should still succeed
-	dex /proc/$(pidof tail)/fd/3
-	*/
-	b = buffer_new(encoding);
-	if (load_buffer(b, must_exist, filename)) {
-		free_buffer(b);
-		return NULL;
-	}
-	if (b->st.st_mode == 0 && dir_missing) {
-		// New file in non-existing directory. This is usually a mistake.
-		error_msg("Error opening %s: Directory does not exist", filename);
-		free_buffer(b);
-		return NULL;
-	}
-	b->abs_filename = absolute;
-	if (b->abs_filename == NULL) {
-		// FIXME: obviously wrong
-		b->abs_filename = xstrdup(filename);
-	}
-	update_short_filename(b);
-
-	if (options.lock_files) {
-		if (lock_file(b->abs_filename)) {
-			b->ro = true;
-		} else {
-			b->locked = true;
-		}
-	}
-	if (b->st.st_mode != 0 && !b->ro && access(filename, W_OK)) {
-		error_msg("No write permission to %s, marking read-only.", filename);
-		b->ro = true;
-	}
-	return window_add_buffer(window, b);
 }
 
 void filetype_changed(void)

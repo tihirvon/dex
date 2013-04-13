@@ -47,7 +47,7 @@ bool file_location_equals(const struct file_location *a, const struct file_locat
 
 bool file_location_go(struct file_location *loc)
 {
-	struct view *v = open_buffer(loc->filename, true, NULL);
+	struct view *v = window_open_buffer(window, loc->filename, true, NULL);
 	bool ok = true;
 
 	if (!v) {
@@ -85,7 +85,7 @@ bool file_location_return(struct file_location *loc)
 			// Try again.
 			return false;
 		}
-		v = open_buffer(loc->filename, true, NULL);
+		v = window_open_buffer(window, loc->filename, true, NULL);
 	}
 	if (v == NULL) {
 		// Open failed. Don't try again.

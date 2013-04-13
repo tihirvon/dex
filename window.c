@@ -1,6 +1,10 @@
 #include "window.h"
 #include "view.h"
 #include "file-history.h"
+#include "path.h"
+#include "lock.h"
+#include "load-save.h"
+#include "error.h"
 
 PTR_ARRAY(windows);
 struct window *window;
@@ -30,6 +34,80 @@ struct view *window_add_buffer(struct window *w, struct buffer *b)
 struct view *window_open_empty_buffer(struct window *w)
 {
 	return window_add_buffer(w, open_empty_buffer());
+}
+
+struct view *window_open_buffer(struct window *w, const char *filename, bool must_exist, const char *encoding)
+{
+	char *absolute = path_absolute(filename);
+	bool dir_missing = false;
+	struct buffer *b = NULL;
+
+	if (absolute == NULL) {
+		// Let load_buffer() create error message.
+		dir_missing = errno == ENOENT;
+	} else {
+		// already open?
+		b = find_buffer(absolute);
+	}
+	if (b) {
+		if (!streq(absolute, b->abs_filename)) {
+			char *s = short_filename(absolute);
+			info_msg("%s and %s are the same file", s, b->display_filename);
+			free(s);
+		}
+		free(absolute);
+		return window_get_view(w, b);
+	}
+
+	/*
+	/proc/$PID/fd/ contains symbolic links to files that have been opened
+	by process $PID. Some of the files may have been deleted but can still
+	be opened using the symbolic link but not by using the absolute path.
+
+	# create file
+	mkdir /tmp/x
+	echo foo > /tmp/x/file
+
+	# in another shell: keep the file open
+	tail -f /tmp/x/file
+
+	# make the absolute path unavailable
+	rm /tmp/x/file
+	rmdir /tmp/x
+
+	# this should still succeed
+	dex /proc/$(pidof tail)/fd/3
+	*/
+	b = buffer_new(encoding);
+	if (load_buffer(b, must_exist, filename)) {
+		free_buffer(b);
+		return NULL;
+	}
+	if (b->st.st_mode == 0 && dir_missing) {
+		// New file in non-existing directory. This is usually a mistake.
+		error_msg("Error opening %s: Directory does not exist", filename);
+		free_buffer(b);
+		return NULL;
+	}
+	b->abs_filename = absolute;
+	if (b->abs_filename == NULL) {
+		// FIXME: obviously wrong
+		b->abs_filename = xstrdup(filename);
+	}
+	update_short_filename(b);
+
+	if (options.lock_files) {
+		if (lock_file(b->abs_filename)) {
+			b->ro = true;
+		} else {
+			b->locked = true;
+		}
+	}
+	if (b->st.st_mode != 0 && !b->ro && access(filename, W_OK)) {
+		error_msg("No write permission to %s, marking read-only.", filename);
+		b->ro = true;
+	}
+	return window_add_buffer(w, b);
 }
 
 struct view *window_get_view(struct window *w, struct buffer *b)
@@ -195,7 +273,7 @@ struct view *open_file(const char *filename, const char *encoding)
 {
 	struct view *prev = view;
 	bool useless = is_useless_empty_view(prev);
-	struct view *v = open_buffer(filename, false, encoding);
+	struct view *v = window_open_buffer(window, filename, false, encoding);
 
 	if (v == NULL)
 		return NULL;
@@ -217,7 +295,7 @@ void open_files(char **filenames, const char *encoding)
 	int i;
 
 	for (i = 0; filenames[i]; i++) {
-		struct view *v = open_buffer(filenames[i], false, encoding);
+		struct view *v = window_open_buffer(window, filenames[i], false, encoding);
 		if (v && first) {
 			set_view(v);
 			first = false;

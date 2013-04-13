@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 	editor_status = EDITOR_RUNNING;
 
 	for (; i < argc; i++)
-		open_buffer(argv[i], false, NULL);
+		window_open_buffer(window, argv[i], false, NULL);
 	if (window->views.count == 0)
 		window_open_empty_buffer(window);
 	set_view(window->views.ptrs[0]);
