@@ -285,17 +285,17 @@ void update_short_filename(struct buffer *b)
 
 struct view *open_buffer(const char *filename, bool must_exist, const char *encoding)
 {
-	struct buffer *b;
-	char *absolute;
+	char *absolute = path_absolute(filename);
+	bool dir_missing = false;
+	struct buffer *b = NULL;
 
-	absolute = path_absolute(filename);
-	if (!absolute) {
-		error_msg("Failed to make absolute path: %s", strerror(errno));
-		return NULL;
+	if (absolute == NULL) {
+		// Let load_buffer() create error message.
+		dir_missing = errno == ENOENT;
+	} else {
+		// already open?
+		b = find_buffer(absolute);
 	}
-
-	// already open?
-	b = find_buffer(absolute);
 	if (b) {
 		if (!streq(absolute, b->abs_filename)) {
 			char *s = short_filename(absolute);
@@ -306,14 +306,40 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 		return window_get_view(window, b);
 	}
 
+	/*
+	/proc/$PID/fd/ contains symbolic links to files that have been opened
+	by process $PID. Some of the files may have been deleted but can still
+	be opened using the symbolic link but not by using the absolute path.
+
+	# create file
+	mkdir /tmp/x
+	echo foo > /tmp/x/file
+
+	# in another shell: keep the file open
+	tail -f /tmp/x/file
+
+	# make the absolute path unavailable
+	rm /tmp/x/file
+	rmdir /tmp/x
+
+	# this should still succeed
+	dex /proc/$(pidof tail)/fd/3
+	*/
 	b = buffer_new(encoding);
 	b->abs_filename = absolute;
+	if (b->abs_filename == NULL) {
+		// FIXME: obviously wrong
+		b->abs_filename = xstrdup(filename);
+	}
 	update_short_filename(b);
 
-	// /proc/$PID/fd/ contains symbolic links to files that have been opened
-	// by process $PID. Some of the files may have been deleted but can still
-	// be opened using the symbolic link but not by using the absolute path.
 	if (load_buffer(b, must_exist, filename)) {
+		free_buffer(b);
+		return NULL;
+	}
+	if (b->st.st_mode == 0 && dir_missing) {
+		// New file in non-existing directory. This is usually a mistake.
+		error_msg("Error opening %s: Directory does not exist", filename);
 		free_buffer(b);
 		return NULL;
 	}
