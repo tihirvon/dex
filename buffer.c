@@ -326,13 +326,6 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 	dex /proc/$(pidof tail)/fd/3
 	*/
 	b = buffer_new(encoding);
-	b->abs_filename = absolute;
-	if (b->abs_filename == NULL) {
-		// FIXME: obviously wrong
-		b->abs_filename = xstrdup(filename);
-	}
-	update_short_filename(b);
-
 	if (load_buffer(b, must_exist, filename)) {
 		free_buffer(b);
 		return NULL;
@@ -342,6 +335,24 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 		error_msg("Error opening %s: Directory does not exist", filename);
 		free_buffer(b);
 		return NULL;
+	}
+	b->abs_filename = absolute;
+	if (b->abs_filename == NULL) {
+		// FIXME: obviously wrong
+		b->abs_filename = xstrdup(filename);
+	}
+	update_short_filename(b);
+
+	if (options.lock_files) {
+		if (lock_file(b->abs_filename)) {
+			b->ro = true;
+		} else {
+			b->locked = true;
+		}
+	}
+	if (b->st.st_mode != 0 && !b->ro && access(filename, W_OK)) {
+		error_msg("No write permission to %s, marking read-only.", filename);
+		b->ro = true;
 	}
 	return window_add_buffer(window, b);
 }

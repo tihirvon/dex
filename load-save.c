@@ -2,7 +2,6 @@
 #include "editor.h"
 #include "buffer.h"
 #include "block.h"
-#include "lock.h"
 #include "wbuf.h"
 #include "decoder.h"
 #include "encoder.h"
@@ -168,17 +167,8 @@ static int read_blocks(struct buffer *b, int fd)
 
 int load_buffer(struct buffer *b, bool must_exist, const char *filename)
 {
-	int fd;
+	int fd = open(filename, O_RDONLY);
 
-	if (options.lock_files) {
-		if (lock_file(b->abs_filename)) {
-			b->ro = true;
-		} else {
-			b->locked = true;
-		}
-	}
-
-	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
 		if (errno != ENOENT) {
 			error_msg("Error opening %s: %s", filename, strerror(errno));
@@ -202,11 +192,6 @@ int load_buffer(struct buffer *b, bool must_exist, const char *filename)
 			return -1;
 		}
 		close(fd);
-
-		if (!b->ro && access(filename, W_OK)) {
-			error_msg("No write permission to %s, marking read-only.", filename);
-			b->ro = true;
-		}
 	}
 	if (list_empty(&b->blocks)) {
 		struct block *blk = block_new(1);
