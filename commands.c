@@ -641,7 +641,7 @@ static void cmd_quit(const char *pf, char **args)
 	for (i = 0; i < buffers.count; i++) {
 		struct buffer *b = buffers.ptrs[i];
 		if (buffer_modified(b)) {
-			set_view(buffer_get_view(b));
+			set_view(window_get_view(window, b));
 			error_msg("Save modified files or run 'quit -f' to quit without saving.");
 			return;
 		}

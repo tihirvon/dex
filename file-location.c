@@ -78,7 +78,7 @@ bool file_location_return(struct file_location *loc)
 	struct view *v;
 
 	if (b != NULL) {
-		v = buffer_get_view(b);
+		v = window_get_view(window, b);
 	} else {
 		if (loc->filename == NULL) {
 			// Can't restore closed buffer which had no filename.

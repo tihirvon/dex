@@ -207,24 +207,6 @@ void free_buffer(struct buffer *b)
 	free(b);
 }
 
-struct view *buffer_get_view(struct buffer *b)
-{
-	struct view *v;
-	int i;
-
-	for (i = 0; i < b->views.count; i++) {
-		v = b->views.ptrs[i];
-		if (v->window == window) {
-			// the file was already open in current window
-			return v;
-		}
-	}
-	// open the buffer in other window to current window
-	v = window_add_buffer(window, b);
-	v->cursor = ((struct view *)b->views.ptrs[0])->cursor;
-	return v;
-}
-
 static int same_file(const struct stat *a, const struct stat *b)
 {
 	return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
@@ -321,7 +303,7 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 			free(s);
 		}
 		free(absolute);
-		return buffer_get_view(b);
+		return window_get_view(window, b);
 	}
 
 	b = buffer_new(encoding);
