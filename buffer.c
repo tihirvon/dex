@@ -166,7 +166,7 @@ static struct buffer *buffer_new(const char *encoding)
 	return b;
 }
 
-struct view *open_empty_buffer(void)
+struct buffer *open_empty_buffer(void)
 {
 	struct buffer *b = buffer_new(charset);
 	struct block *blk;
@@ -176,7 +176,7 @@ struct view *open_empty_buffer(void)
 	list_add_before(&blk->node, &b->blocks);
 
 	set_display_filename(b, xstrdup("(No name)"));
-	return window_add_buffer(window, b);
+	return b;
 }
 
 void free_buffer(struct buffer *b)

@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 	for (; i < argc; i++)
 		open_buffer(argv[i], false, NULL);
 	if (window->views.count == 0)
-		open_empty_buffer();
+		window_open_empty_buffer(window);
 	set_view(window->views.ptrs[0]);
 
 	if (command || tag)

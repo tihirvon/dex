@@ -1265,7 +1265,7 @@ static void cmd_wclose(const char *pf, char **args)
 	if (windows.count == 1) {
 		// don't close last window
 		window_remove_views(window);
-		set_view(open_empty_buffer());
+		set_view(window_open_empty_buffer(window));
 		return;
 	}
 

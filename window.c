@@ -27,6 +27,11 @@ struct view *window_add_buffer(struct window *w, struct buffer *b)
 	return v;
 }
 
+struct view *window_open_empty_buffer(struct window *w)
+{
+	return window_add_buffer(w, open_empty_buffer());
+}
+
 struct view *window_get_view(struct window *w, struct buffer *b)
 {
 	struct view *v;
@@ -115,7 +120,7 @@ void close_current_view(void)
 		return;
 	}
 	if (window->views.count == 0)
-		open_empty_buffer();
+		window_open_empty_buffer(window);
 	if (window->views.count == idx)
 		idx--;
 	set_view(window->views.ptrs[idx]);
@@ -161,7 +166,7 @@ void set_view(struct view *v)
 struct view *open_new_file(void)
 {
 	struct view *prev = view;
-	struct view *v = open_empty_buffer();
+	struct view *v = window_open_empty_buffer(window);
 
 	set_view(v);
 	prev_view = prev;
