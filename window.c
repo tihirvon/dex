@@ -12,18 +12,18 @@ struct window *new_window(void)
 	return xnew0(struct window, 1);
 }
 
-struct view *window_add_buffer(struct buffer *b)
+struct view *window_add_buffer(struct window *w, struct buffer *b)
 {
 	struct view *v = xnew0(struct view, 1);
 
 	v->buffer = b;
-	v->window = window;
+	v->window = w;
 	v->cursor.head = &b->blocks;
 	v->cursor.blk = BLOCK(b->blocks.next);
 
 	ptr_array_add(&b->views, v);
-	ptr_array_add(&window->views, v);
-	window->update_tabbar = true;
+	ptr_array_add(&w->views, v);
+	w->update_tabbar = true;
 	return v;
 }
 

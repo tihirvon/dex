@@ -176,7 +176,7 @@ struct view *open_empty_buffer(void)
 	list_add_before(&blk->node, &b->blocks);
 
 	set_display_filename(b, xstrdup("(No name)"));
-	return window_add_buffer(b);
+	return window_add_buffer(window, b);
 }
 
 void free_buffer(struct buffer *b)
@@ -220,7 +220,7 @@ struct view *buffer_get_view(struct buffer *b)
 		}
 	}
 	// open the buffer in other window to current window
-	v = window_add_buffer(b);
+	v = window_add_buffer(window, b);
 	v->cursor = ((struct view *)b->views.ptrs[0])->cursor;
 	return v;
 }
@@ -335,7 +335,7 @@ struct view *open_buffer(const char *filename, bool must_exist, const char *enco
 		free_buffer(b);
 		return NULL;
 	}
-	return window_add_buffer(b);
+	return window_add_buffer(window, b);
 }
 
 void filetype_changed(void)

@@ -1398,7 +1398,7 @@ static void cmd_wsplit(const char *pf, char **args)
 	if (*args) {
 		open_files(args, NULL);
 	} else {
-		struct view *new = window_add_buffer(save->buffer);
+		struct view *new = window_add_buffer(window, save->buffer);
 		new->cursor = save->cursor;
 		set_view(new);
 	}
