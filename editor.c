@@ -361,7 +361,7 @@ static void update_screen(struct screen_state *s)
 			// to be updated.
 			//
 			// Always update at least current line.
-			lines_changed(s->cy, view->cy);
+			buffer_mark_lines_changed(view->buffer, s->cy, view->cy);
 		}
 		if (s->is_modified != buffer_modified(buffer))
 			mark_buffer_tabbars_changed();

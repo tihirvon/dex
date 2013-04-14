@@ -86,7 +86,7 @@ static inline bool buffer_modified(struct buffer *b)
 	return b->saved_change != b->cur_change;
 }
 
-void lines_changed(int min, int max);
+void buffer_mark_lines_changed(struct buffer *b, int min, int max);
 const char *buffer_filename(struct buffer *b);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);

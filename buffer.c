@@ -33,18 +33,17 @@ static void set_display_filename(struct buffer *b, char *name)
  * Syntax highlighter has different logic. It cares about contents of the
  * lines, not about selection or if the lines have been moved up or down.
  */
-void lines_changed(int min, int max)
+void buffer_mark_lines_changed(struct buffer *b, int min, int max)
 {
 	if (min > max) {
 		int tmp = min;
 		min = max;
 		max = tmp;
 	}
-
-	if (min < buffer->changed_line_min)
-		buffer->changed_line_min = min;
-	if (max > buffer->changed_line_max)
-		buffer->changed_line_max = max;
+	if (min < b->changed_line_min)
+		b->changed_line_min = min;
+	if (max > b->changed_line_max)
+		b->changed_line_max = max;
 }
 
 const char *buffer_filename(struct buffer *b)
