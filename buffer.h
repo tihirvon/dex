@@ -88,7 +88,6 @@ static inline bool buffer_modified(struct buffer *b)
 
 void lines_changed(int min, int max);
 const char *buffer_filename(struct buffer *b);
-char *get_word_under_cursor(void);
 
 void update_short_filename_cwd(struct buffer *b, const char *cwd);
 void update_short_filename(struct buffer *b);

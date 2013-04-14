@@ -29,7 +29,7 @@ static void expand_word(struct gbuf *buf)
 	if (str) {
 		gbuf_add_buf(buf, str, size);
 	} else {
-		str = get_word_under_cursor();
+		str = view_get_word_under_cursor(view);
 		if (str)
 			gbuf_add_str(buf, str);
 	}

@@ -132,3 +132,33 @@ bool view_can_close(struct view *v)
 	// open in another window?
 	return v->buffer->views.count > 1;
 }
+
+char *view_get_word_under_cursor(struct view *v)
+{
+	struct lineref lr;
+	long i, ei, si = fetch_this_line(&v->cursor, &lr);
+
+	while (si < lr.size) {
+		i = si;
+		if (u_is_word_char(u_get_char(lr.line, lr.size, &i)))
+			break;
+		si = i;
+	}
+	if (si == lr.size)
+		return NULL;
+
+	ei = si;
+	while (si > 0) {
+		i = si;
+		if (!u_is_word_char(u_prev_char(lr.line, &i)))
+			break;
+		si = i;
+	}
+	while (ei < lr.size) {
+		i = ei;
+		if (!u_is_word_char(u_get_char(lr.line, lr.size, &i)))
+			break;
+		ei = i;
+	}
+	return xstrslice(lr.line, si, ei);
+}

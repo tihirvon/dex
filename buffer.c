@@ -52,36 +52,6 @@ const char *buffer_filename(struct buffer *b)
 	return b->display_filename;
 }
 
-char *get_word_under_cursor(void)
-{
-	struct lineref lr;
-	long i, ei, si = fetch_this_line(&view->cursor, &lr);
-
-	while (si < lr.size) {
-		i = si;
-		if (u_is_word_char(u_get_char(lr.line, lr.size, &i)))
-			break;
-		si = i;
-	}
-	if (si == lr.size)
-		return NULL;
-
-	ei = si;
-	while (si > 0) {
-		i = si;
-		if (!u_is_word_char(u_prev_char(lr.line, &i)))
-			break;
-		si = i;
-	}
-	while (ei < lr.size) {
-		i = ei;
-		if (!u_is_word_char(u_get_char(lr.line, lr.size, &i)))
-			break;
-		ei = i;
-	}
-	return xstrslice(lr.line, si, ei);
-}
-
 struct buffer *buffer_new(const char *encoding)
 {
 	static int id;

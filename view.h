@@ -68,5 +68,6 @@ void view_update_cursor_x(struct view *v);
 void view_update(struct view *v);
 int view_get_preferred_x(struct view *v);
 bool view_can_close(struct view *v);
+char *view_get_word_under_cursor(struct view *v);
 
 #endif

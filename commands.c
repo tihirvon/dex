@@ -985,7 +985,7 @@ static void cmd_search(const char *pf, char **args)
 	}
 
 	if (w) {
-		char *word = get_word_under_cursor();
+		char *word = view_get_word_under_cursor(view);
 		if (word == NULL) {
 			// error message would not be very useful here
 			return;
@@ -1152,7 +1152,7 @@ static void cmd_tag(const char *pf, char **args)
 	}
 
 	if (!name) {
-		word = get_word_under_cursor();
+		word = view_get_word_under_cursor(view);
 		if (!word)
 			return;
 		name = word;
