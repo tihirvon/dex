@@ -314,7 +314,7 @@ static void cmd_filter(const char *pf, char **args)
 		move_bof();
 	}
 
-	data.in = buffer_get_bytes(data.in_len);
+	data.in = block_iter_get_bytes(&view->cursor, data.in_len);
 	if (spawn_filter(args, &data)) {
 		free(data.in);
 		view->cursor = save;

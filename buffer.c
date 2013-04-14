@@ -52,33 +52,6 @@ const char *buffer_filename(struct buffer *b)
 	return b->display_filename;
 }
 
-char *buffer_get_bytes(long len)
-{
-	struct block *blk = view->cursor.blk;
-	long offset = view->cursor.offset;
-	long pos = 0;
-	char *buf;
-
-	if (!len)
-		return NULL;
-
-	buf = xnew(char, len);
-	while (pos < len) {
-		long avail = blk->size - offset;
-		long count = len - pos;
-
-		if (count > avail)
-			count = avail;
-		memcpy(buf + pos, blk->data + offset, count);
-		pos += count;
-
-		BUG_ON(pos < len && blk->node.next == &buffer->blocks);
-		blk = BLOCK(blk->node.next);
-		offset = 0;
-	}
-	return buf;
-}
-
 char *get_selection(long *size)
 {
 	struct block_iter save = view->cursor;
@@ -88,7 +61,7 @@ char *get_selection(long *size)
 		return NULL;
 
 	*size = prepare_selection(view);
-	buf = buffer_get_bytes(*size);
+	buf = block_iter_get_bytes(&view->cursor, *size);
 	view->cursor = save;
 	return buf;
 }

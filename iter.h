@@ -59,8 +59,8 @@ void block_iter_skip_bytes(struct block_iter *bi, long count);
 void block_iter_goto_offset(struct block_iter *bi, long offset);
 void block_iter_goto_line(struct block_iter *bi, long line);
 long block_iter_get_offset(const struct block_iter *bi);
-
 bool block_iter_is_bol(const struct block_iter *bi);
+char *block_iter_get_bytes(const struct block_iter *bi, long len);
 
 static inline bool block_iter_is_eof(struct block_iter *bi)
 {

@@ -1,6 +1,5 @@
 #include "iter.h"
-
-#include <string.h>
+#include "common.h"
 
 void block_iter_normalize(struct block_iter *bi)
 {
@@ -217,6 +216,33 @@ bool block_iter_is_bol(const struct block_iter *bi)
 	if (!offset)
 		return true;
 	return bi->blk->data[offset - 1] == '\n';
+}
+
+char *block_iter_get_bytes(const struct block_iter *bi, long len)
+{
+	struct block *blk = bi->blk;
+	long offset = bi->offset;
+	long pos = 0;
+	char *buf;
+
+	if (!len)
+		return NULL;
+
+	buf = xnew(char, len);
+	while (pos < len) {
+		long avail = blk->size - offset;
+		long count = len - pos;
+
+		if (count > avail)
+			count = avail;
+		memcpy(buf + pos, blk->data + offset, count);
+		pos += count;
+
+		BUG_ON(pos < len && blk->node.next == bi->head);
+		blk = BLOCK(blk->node.next);
+		offset = 0;
+	}
+	return buf;
 }
 
 // bi should be at bol

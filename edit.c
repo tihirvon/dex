@@ -126,7 +126,7 @@ static void record_copy(char *buf, long len, bool is_lines)
 void cut(long len, bool is_lines)
 {
 	if (len) {
-		char *buf = buffer_get_bytes(len);
+		char *buf = block_iter_get_bytes(&view->cursor, len);
 		record_copy(buf, len, is_lines);
 		buffer_delete_bytes(len);
 	}
@@ -135,7 +135,7 @@ void cut(long len, bool is_lines)
 void copy(long len, bool is_lines)
 {
 	if (len) {
-		char *buf = buffer_get_bytes(len);
+		char *buf = block_iter_get_bytes(&view->cursor, len);
 		record_copy(buf, len, is_lines);
 	}
 }
@@ -760,7 +760,7 @@ void format_paragraph(int text_width)
 	if (!len)
 		return;
 
-	sel = buffer_get_bytes(len);
+	sel = block_iter_get_bytes(&view->cursor, len);
 	indent_width = get_indent_width(sel, len);
 
 	gbuf_init(&pf.buf);
@@ -832,7 +832,7 @@ void change_case(int mode)
 		text_len = u_char_size(u);
 	}
 
-	src = buffer_get_bytes(text_len);
+	src = block_iter_get_bytes(&view->cursor, text_len);
 	i = 0;
 	while (i < text_len) {
 		unsigned int u = u_get_char(src, text_len, &i);
