@@ -893,7 +893,7 @@ static void cmd_save(const char *pf, char **args)
 		update_short_filename(buffer);
 
 		// filename change is not detected (only buffer_modified() change)
-		mark_buffer_tabbars_changed();
+		mark_buffer_tabbars_changed(buffer);
 	}
 	if (!old_mode && streq(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */

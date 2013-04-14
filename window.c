@@ -321,11 +321,11 @@ void open_files(char **filenames, const char *encoding)
 	}
 }
 
-void mark_buffer_tabbars_changed(void)
+void mark_buffer_tabbars_changed(struct buffer *b)
 {
 	long i;
-	for (i = 0; i < buffer->views.count; i++) {
-		struct view *v = buffer->views.ptrs[i];
+	for (i = 0; i < b->views.count; i++) {
+		struct view *v = b->views.ptrs[i];
 		v->window->update_tabbar = true;
 	}
 }
