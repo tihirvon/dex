@@ -52,21 +52,6 @@ const char *buffer_filename(struct buffer *b)
 	return b->display_filename;
 }
 
-long count_nl(const char *buf, long size)
-{
-	const char *end = buf + size;
-	long nl = 0;
-
-	while (buf < end) {
-		buf = memchr(buf, '\n', end - buf);
-		if (!buf)
-			break;
-		buf++;
-		nl++;
-	}
-	return nl;
-}
-
 char *buffer_get_bytes(long len)
 {
 	struct block *blk = view->cursor.blk;

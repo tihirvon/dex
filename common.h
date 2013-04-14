@@ -60,6 +60,7 @@ static inline bool str_has_prefix(const char *str, const char *prefix)
 	return !strncmp(str, prefix, strlen(prefix));
 }
 
+long count_nl(const char *buf, long size);
 int count_strings(char **strings);
 void free_strings(char **strings);
 int number_width(long n);
