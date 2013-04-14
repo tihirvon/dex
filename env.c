@@ -2,6 +2,7 @@
 #include "gbuf.h"
 #include "completion.h"
 #include "buffer.h"
+#include "selection.h"
 #include "editor.h"
 
 struct builtin_env {
@@ -23,7 +24,7 @@ static void expand_pkgdatadir(struct gbuf *buf)
 static void expand_word(struct gbuf *buf)
 {
 	long size;
-	char *str = get_selection(&size);
+	char *str = view_get_selection(view, &size);
 
 	if (str) {
 		gbuf_add_buf(buf, str, size);

@@ -44,6 +44,20 @@ long prepare_selection(struct view *v)
 	return info.eo - info.so;
 }
 
+char *view_get_selection(struct view *v, long *size)
+{
+	char *buf = NULL;
+
+	*size = 0;
+	if (v->selection) {
+		struct block_iter save = v->cursor;
+		*size = prepare_selection(v);
+		buf = block_iter_get_bytes(&v->cursor, *size);
+		v->cursor = save;
+	}
+	return buf;
+}
+
 int get_nr_selected_lines(struct selection_info *info)
 {
 	struct block_iter bi = info->si;

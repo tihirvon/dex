@@ -52,20 +52,6 @@ const char *buffer_filename(struct buffer *b)
 	return b->display_filename;
 }
 
-char *get_selection(long *size)
-{
-	struct block_iter save = view->cursor;
-	char *buf;
-
-	if (!view->selection)
-		return NULL;
-
-	*size = prepare_selection(view);
-	buf = block_iter_get_bytes(&view->cursor, *size);
-	view->cursor = save;
-	return buf;
-}
-
 char *get_word_under_cursor(void)
 {
 	struct lineref lr;
