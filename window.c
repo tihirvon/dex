@@ -187,20 +187,21 @@ void remove_view(struct view *v)
 	free(v);
 }
 
-void close_current_view(void)
+void window_close_current_view(struct window *w)
 {
-	long idx = ptr_array_idx(&window->views, view);
+	long idx = ptr_array_idx(&w->views, w->view);
 
-	remove_view(view);
-	if (window->prev_view != NULL) {
-		set_view(window->prev_view);
+	remove_view(w->view);
+	if (w->prev_view != NULL) {
+		w->view = w->prev_view;
+		w->prev_view = NULL;
 		return;
 	}
-	if (window->views.count == 0)
-		window_open_empty_buffer(window);
-	if (window->views.count == idx)
+	if (w->views.count == 0)
+		window_open_empty_buffer(w);
+	if (w->views.count == idx)
 		idx--;
-	set_view(window->views.ptrs[idx]);
+	w->view = w->views.ptrs[idx];
 }
 
 static void restore_cursor_from_history(struct view *v)
