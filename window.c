@@ -10,8 +10,6 @@
 PTR_ARRAY(windows);
 struct window *window;
 
-static struct view *prev_view;
-
 struct window *new_window(void)
 {
 	return xnew0(struct window, 1);
@@ -166,19 +164,19 @@ void window_free(struct window *w)
 // Remove view from v->window and v->buffer->views and free it.
 void remove_view(struct view *v)
 {
+	struct window *w = v->window;
 	struct buffer *b = v->buffer;
 
-	// stupid globals
-	if (v == prev_view) {
-		prev_view = NULL;
+	if (v == w->prev_view) {
+		w->prev_view = NULL;
 	}
 	if (v == view) {
 		view = NULL;
 		buffer = NULL;
 	}
 
-	ptr_array_remove(&v->window->views, v);
-	v->window->update_tabbar = true;
+	ptr_array_remove(&w->views, v);
+	w->update_tabbar = true;
 
 	ptr_array_remove(&b->views, v);
 	if (b->views.count == 0) {
@@ -194,8 +192,8 @@ void close_current_view(void)
 	long idx = ptr_array_idx(&window->views, view);
 
 	remove_view(view);
-	if (prev_view) {
-		set_view(prev_view);
+	if (window->prev_view != NULL) {
+		set_view(window->prev_view);
 		return;
 	}
 	if (window->views.count == 0)
@@ -223,7 +221,9 @@ void set_view(struct view *v)
 		return;
 
 	/* forget previous view when changing view using any other command but open */
-	prev_view = NULL;
+	if (window != NULL) {
+		window->prev_view = NULL;
+	}
 
 	view = v;
 	buffer = v->buffer;
@@ -262,7 +262,7 @@ struct view *open_new_file(void)
 	struct view *v = window_open_empty_buffer(window);
 
 	set_view(v);
-	prev_view = prev;
+	window->prev_view = prev;
 	return v;
 }
 
@@ -297,7 +297,7 @@ struct view *open_file(const char *filename, const char *encoding)
 	if (useless) {
 		remove_view(prev);
 	} else {
-		prev_view = prev;
+		window->prev_view = prev;
 	}
 	return v;
 }

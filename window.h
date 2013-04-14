@@ -10,6 +10,9 @@ struct window {
 	// Current view
 	struct view *view;
 
+	// Previous view if set
+	struct view *prev_view;
+
 	// Coordinates and size of entire window including tabbar and status line
 	int x, y;
 	int w, h;
