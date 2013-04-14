@@ -99,15 +99,13 @@ struct buffer *find_buffer(const char *abs_filename);
 struct buffer *find_buffer_by_id(unsigned int id);
 struct buffer *buffer_new(const char *encoding);
 struct buffer *open_empty_buffer(void);
-void setup_buffer(void);
 void free_buffer(struct buffer *b);
+bool buffer_detect_filetype(struct buffer *b);
+void buffer_update_syntax(struct buffer *b);
+void buffer_setup(struct buffer *b);
 
 long buffer_get_char(struct block_iter *bi, unsigned int *up);
 long buffer_next_char(struct block_iter *bi, unsigned int *up);
 long buffer_prev_char(struct block_iter *bi, unsigned int *up);
-
-bool guess_filetype(void);
-void syntax_changed(void);
-void filetype_changed(void);
 
 #endif

@@ -1,6 +1,7 @@
 #include "options.h"
 #include "buffer.h"
 #include "completion.h"
+#include "file-option.h"
 #include "filetype.h"
 #include "common.h"
 #include "regexp.h"
@@ -141,6 +142,19 @@ struct option_ops {
 #define L(member) OLG(offsetof(struct local_options, member), true, false)
 #define G(member) OLG(offsetof(struct global_options, member), false, true)
 #define C(member) OLG(offsetof(struct common_options, member), true, true)
+
+static void filetype_changed(void)
+{
+	set_file_options(buffer);
+	buffer_update_syntax(buffer);
+}
+
+static void syntax_changed(void)
+{
+	if (buffer != NULL) {
+		buffer_update_syntax(buffer);
+	}
+}
 
 static bool validate_statusline_format(const char *value)
 {

@@ -148,26 +148,26 @@ void move_eof(void)
 	view_reset_preferred_x(view);
 }
 
-void move_to_line(int line)
+void move_to_line(struct view *v, int line)
 {
-	block_iter_goto_line(&view->cursor, line - 1);
-	view->center_on_scroll = true;
+	block_iter_goto_line(&v->cursor, line - 1);
+	v->center_on_scroll = true;
 }
 
-void move_to_column(int column)
+void move_to_column(struct view *v, int column)
 {
-	block_iter_bol(&view->cursor);
+	block_iter_bol(&v->cursor);
 	while (column-- > 1) {
 		unsigned int u;
 
-		if (!buffer_next_char(&view->cursor, &u))
+		if (!buffer_next_char(&v->cursor, &u))
 			break;
 		if (u == '\n') {
-			buffer_prev_char(&view->cursor, &u);
+			buffer_prev_char(&v->cursor, &u);
 			break;
 		}
 	}
-	view_reset_preferred_x(view);
+	view_reset_preferred_x(v);
 }
 
 static enum char_type get_char_type(unsigned int u)

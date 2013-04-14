@@ -3,11 +3,9 @@
 #include "editor.h"
 #include "change.h"
 #include "block.h"
-#include "move.h"
 #include "filetype.h"
 #include "state.h"
 #include "syntax.h"
-#include "file-history.h"
 #include "file-option.h"
 #include "lock.h"
 #include "selection.h"
@@ -239,25 +237,25 @@ struct buffer *find_buffer_by_id(unsigned int id)
 	return NULL;
 }
 
-bool guess_filetype(void)
+bool buffer_detect_filetype(struct buffer *b)
 {
-	char *interpreter = detect_interpreter(buffer);
+	char *interpreter = detect_interpreter(b);
 	const char *ft = NULL;
 
-	if (BLOCK(buffer->blocks.next)->size) {
-		BLOCK_ITER(bi, &buffer->blocks);
+	if (BLOCK(b->blocks.next)->size) {
+		BLOCK_ITER(bi, &b->blocks);
 		struct lineref lr;
 
 		fill_line_ref(&bi, &lr);
-		ft = find_ft(buffer->abs_filename, interpreter, lr.line, lr.size);
-	} else if (buffer->abs_filename) {
-		ft = find_ft(buffer->abs_filename, interpreter, NULL, 0);
+		ft = find_ft(b->abs_filename, interpreter, lr.line, lr.size);
+	} else if (b->abs_filename) {
+		ft = find_ft(b->abs_filename, interpreter, NULL, 0);
 	}
 	free(interpreter);
 
-	if (ft && !streq(ft, buffer->options.filetype)) {
-		free(buffer->options.filetype);
-		buffer->options.filetype = xstrdup(ft);
+	if (ft && !streq(ft, b->options.filetype)) {
+		free(b->options.filetype);
+		b->options.filetype = xstrdup(ft);
 		return true;
 	}
 	return false;
@@ -280,34 +278,23 @@ void update_short_filename(struct buffer *b)
 	set_display_filename(b, short_filename(b->abs_filename));
 }
 
-void filetype_changed(void)
-{
-	set_file_options(buffer);
-	syntax_changed();
-}
-
-void syntax_changed(void)
+void buffer_update_syntax(struct buffer *b)
 {
 	struct syntax *syn = NULL;
 
-	if (!buffer) {
-		// syntax option was changed in config file
-		return;
-	}
-
-	if (buffer->options.syntax) {
+	if (b->options.syntax) {
 		/* even "none" can have syntax */
-		syn = find_syntax(buffer->options.filetype);
+		syn = find_syntax(b->options.filetype);
 		if (!syn)
-			syn = load_syntax_by_filetype(buffer->options.filetype);
+			syn = load_syntax_by_filetype(b->options.filetype);
 	}
-	if (syn == buffer->syn)
+	if (syn == b->syn)
 		return;
 
-	buffer->syn = syn;
+	b->syn = syn;
 	if (syn) {
 		// start state of first line is constant
-		struct ptr_array *s = &buffer->line_start_states;
+		struct ptr_array *s = &b->line_start_states;
 		if (!s->alloc) {
 			s->alloc = 64;
 			s->ptrs = xnew(void *, s->alloc);
@@ -316,28 +303,16 @@ void syntax_changed(void)
 		s->count = 1;
 	}
 
-	mark_all_lines_changed(buffer);
+	mark_all_lines_changed(b);
 }
 
-static void restore_cursor_from_history(void)
+void buffer_setup(struct buffer *b)
 {
-	int row, col;
-
-	if (!find_file_in_history(buffer->abs_filename, &row, &col))
-		return;
-
-	move_to_line(row);
-	move_to_column(col);
-}
-
-void setup_buffer(void)
-{
-	buffer->setup = true;
-	guess_filetype();
-	filetype_changed();
-	if (buffer->options.detect_indent && buffer->abs_filename) {
-		detect_indent(buffer);
+	b->setup = true;
+	buffer_detect_filetype(b);
+	set_file_options(b);
+	buffer_update_syntax(b);
+	if (b->options.detect_indent && b->abs_filename != NULL) {
+		detect_indent(b);
 	}
-	if (buffer->options.file_history && buffer->abs_filename)
-		restore_cursor_from_history();
 }

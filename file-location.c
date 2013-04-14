@@ -64,9 +64,9 @@ bool file_location_go(struct file_location *loc)
 		search_tag(loc->pattern, &err);
 		ok = !err;
 	} else if (loc->line > 0) {
-		move_to_line(loc->line);
+		move_to_line(v, loc->line);
 		if (loc->column > 0) {
-			move_to_column(loc->column);
+			move_to_column(v, loc->column);
 		}
 	}
 	return ok;
@@ -92,8 +92,8 @@ bool file_location_return(struct file_location *loc)
 		return true;
 	}
 	set_view(v);
-	move_to_line(loc->line);
-	move_to_column(loc->column);
+	move_to_line(v, loc->line);
+	move_to_column(v, loc->column);
 	return true;
 }
 

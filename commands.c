@@ -416,7 +416,7 @@ static void cmd_line(const char *pf, char **args)
 
 	line = atoi(args[0]);
 	if (line > 0) {
-		move_to_line(line);
+		move_to_line(view, line);
 		move_to_preferred_x(x);
 	}
 }
@@ -897,8 +897,10 @@ static void cmd_save(const char *pf, char **args)
 	}
 	if (!old_mode && streq(buffer->options.filetype, "none")) {
 		/* new file and most likely user has not changed the filetype */
-		if (guess_filetype())
-			filetype_changed();
+		if (buffer_detect_filetype(buffer)) {
+			set_file_options(buffer);
+			buffer_update_syntax(buffer);
+		}
 	}
 	return;
 error:

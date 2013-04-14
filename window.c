@@ -5,6 +5,7 @@
 #include "lock.h"
 #include "load-save.h"
 #include "error.h"
+#include "move.h"
 
 PTR_ARRAY(windows);
 struct window *window;
@@ -204,6 +205,16 @@ void close_current_view(void)
 	set_view(window->views.ptrs[idx]);
 }
 
+static void restore_cursor_from_history(struct view *v)
+{
+	int row, col;
+
+	if (find_file_in_history(v->buffer->abs_filename, &row, &col)) {
+		move_to_line(v, row);
+		move_to_column(v, col);
+	}
+}
+
 void set_view(struct view *v)
 {
 	int i;
@@ -220,8 +231,12 @@ void set_view(struct view *v)
 
 	window->view = v;
 
-	if (!buffer->setup)
-		setup_buffer();
+	if (!v->buffer->setup) {
+		buffer_setup(v->buffer);
+		if (v->buffer->options.file_history && v->buffer->abs_filename != NULL) {
+			restore_cursor_from_history(v);
+		}
+	}
 
 	// view.cursor can be invalid if same buffer was modified from another view
 	if (view->restore_cursor) {
