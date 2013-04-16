@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
 	exec_builtin_rc(builtin_rc);
 	fill_builtin_colors();
 
+	// NOTE: syntax_changed() uses window. should possibly create window after reading rc
 	window = new_window();
 	ptr_array_add(&windows, window);
 	root_frame = new_root_frame(window);

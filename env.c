@@ -1,7 +1,7 @@
 #include "env.h"
 #include "gbuf.h"
 #include "completion.h"
-#include "buffer.h"
+#include "window.h"
 #include "selection.h"
 #include "editor.h"
 
@@ -12,8 +12,10 @@ struct builtin_env {
 
 static void expand_file(struct gbuf *buf)
 {
-	if (buffer->abs_filename)
-		gbuf_add_str(buf, buffer->abs_filename);
+	struct view *v = window->view;
+
+	if (v->buffer->abs_filename)
+		gbuf_add_str(buf, v->buffer->abs_filename);
 }
 
 static void expand_pkgdatadir(struct gbuf *buf)
@@ -23,13 +25,14 @@ static void expand_pkgdatadir(struct gbuf *buf)
 
 static void expand_word(struct gbuf *buf)
 {
+	struct view *v = window->view;
 	long size;
-	char *str = view_get_selection(view, &size);
+	char *str = view_get_selection(v, &size);
 
 	if (str) {
 		gbuf_add_buf(buf, str, size);
 	} else {
-		str = view_get_word_under_cursor(view);
+		str = view_get_word_under_cursor(v);
 		if (str)
 			gbuf_add_str(buf, str);
 	}

@@ -521,7 +521,7 @@ static void cmd_open(const char *pf, char **args)
 	}
 
 	if (!args[0]) {
-		open_new_file();
+		window_open_new_file(window);
 		if (encoding) {
 			free(buffer->encoding);
 			buffer->encoding = encoding;
@@ -530,10 +530,10 @@ static void cmd_open(const char *pf, char **args)
 	}
 	if (!args[1]) {
 		// previous view is remembered when opening single file
-		open_file(args[0], encoding);
+		window_open_file(window, args[0], encoding);
 	} else {
 		// it makes no sense to remember previous view when opening multiple files
-		open_files(args, encoding);
+		window_open_files(window, args, encoding);
 	}
 	free(encoding);
 }
@@ -1399,7 +1399,7 @@ static void cmd_wsplit(const char *pf, char **args)
 	mark_everything_changed();
 
 	if (*args) {
-		open_files(args, NULL);
+		window_open_files(window, args, NULL);
 	} else {
 		struct view *new = window_add_buffer(window, save->buffer);
 		new->cursor = save->cursor;

@@ -189,6 +189,7 @@ void update_separators(void)
 void update_line_numbers(struct window *win, bool force)
 {
 	struct view *v = win->view;
+	long lines = v->buffer->nl;
 	int i, first, last;
 	int x = win->x + vertical_tabbar_width(win);
 
@@ -196,8 +197,8 @@ void update_line_numbers(struct window *win, bool force)
 
 	first = v->vy + 1;
 	last = v->vy + win->edit_h;
-	if (last > v->buffer->nl)
-		last = v->buffer->nl;
+	if (last > lines)
+		last = lines;
 
 	if (!force && win->line_numbers.first == first && win->line_numbers.last == last)
 		return;
@@ -212,7 +213,7 @@ void update_line_numbers(struct window *win, bool force)
 		int w = win->line_numbers.width - 1;
 		char buf[32];
 
-		if (line > buffer->nl) {
+		if (line > lines) {
 			snprintf(buf, sizeof(buf), "%*s ", w, "");
 		} else {
 			snprintf(buf, sizeof(buf), "%*d ", w, line);

@@ -170,6 +170,7 @@ void remove_view(struct view *v)
 	if (v == w->prev_view) {
 		w->prev_view = NULL;
 	}
+	// FIXME: globals
 	if (v == view) {
 		view = NULL;
 		buffer = NULL;
@@ -240,30 +241,31 @@ void set_view(struct view *v)
 	}
 
 	// view.cursor can be invalid if same buffer was modified from another view
-	if (view->restore_cursor) {
-		view->cursor.blk = BLOCK(view->buffer->blocks.next);
-		block_iter_goto_offset(&view->cursor, view->saved_cursor_offset);
-		view->restore_cursor = false;
-		view->saved_cursor_offset = 0;
+	if (v->restore_cursor) {
+		v->cursor.blk = BLOCK(v->buffer->blocks.next);
+		block_iter_goto_offset(&v->cursor, v->saved_cursor_offset);
+		v->restore_cursor = false;
+		v->saved_cursor_offset = 0;
 	}
 
 	// save cursor states of views sharing same buffer
-	for (i = 0; i < buffer->views.count; i++) {
-		v = buffer->views.ptrs[i];
-		if (v != view) {
-			v->saved_cursor_offset = block_iter_get_offset(&v->cursor);
-			v->restore_cursor = true;
+	for (i = 0; i < v->buffer->views.count; i++) {
+		struct view *other = v->buffer->views.ptrs[i];
+		if (other != v) {
+			other->saved_cursor_offset = block_iter_get_offset(&other->cursor);
+			other->restore_cursor = true;
 		}
 	}
 }
 
-struct view *open_new_file(void)
+struct view *window_open_new_file(struct window *w)
 {
-	struct view *prev = view;
-	struct view *v = window_open_empty_buffer(window);
+	struct view *prev = w->view;
+	struct view *v = window_open_empty_buffer(w);
 
+	// FIXME: should not call set_view()
 	set_view(v);
-	window->prev_view = prev;
+	w->prev_view = prev;
 	return v;
 }
 
@@ -285,39 +287,41 @@ static bool is_useless_empty_view(struct view *v)
 	return true;
 }
 
-struct view *open_file(const char *filename, const char *encoding)
+struct view *window_open_file(struct window *w, const char *filename, const char *encoding)
 {
-	struct view *prev = view;
+	struct view *prev = w->view;
 	bool useless = is_useless_empty_view(prev);
-	struct view *v = window_open_buffer(window, filename, false, encoding);
+	struct view *v = window_open_buffer(w, filename, false, encoding);
 
 	if (v == NULL)
 		return NULL;
 
+	// FIXME: should not call set_view()
 	set_view(v);
 	if (useless) {
 		remove_view(prev);
 	} else {
-		window->prev_view = prev;
+		w->prev_view = prev;
 	}
 	return v;
 }
 
-void open_files(char **filenames, const char *encoding)
+void window_open_files(struct window *w, char **filenames, const char *encoding)
 {
-	struct view *empty = view;
+	struct view *empty = w->view;
 	bool useless = is_useless_empty_view(empty);
 	bool first = true;
 	int i;
 
 	for (i = 0; filenames[i]; i++) {
-		struct view *v = window_open_buffer(window, filenames[i], false, encoding);
+		struct view *v = window_open_buffer(w, filenames[i], false, encoding);
 		if (v && first) {
+			// FIXME: should not call set_view()
 			set_view(v);
 			first = false;
 		}
 	}
-	if (useless && view != empty) {
+	if (useless && w->view != empty) {
 		remove_view(empty);
 	}
 }

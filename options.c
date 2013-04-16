@@ -1,5 +1,6 @@
 #include "options.h"
-#include "buffer.h"
+#include "window.h"
+#include "view.h"
 #include "completion.h"
 #include "file-option.h"
 #include "filetype.h"
@@ -145,14 +146,15 @@ struct option_ops {
 
 static void filetype_changed(void)
 {
-	set_file_options(buffer);
-	buffer_update_syntax(buffer);
+	struct buffer *b = window->view->buffer;
+	set_file_options(b);
+	buffer_update_syntax(b);
 }
 
 static void syntax_changed(void)
 {
-	if (buffer != NULL) {
-		buffer_update_syntax(buffer);
+	if (window->view != NULL) {
+		buffer_update_syntax(window->view->buffer);
 	}
 }
 

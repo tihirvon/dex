@@ -31,7 +31,7 @@ static void update_first_tab_idx(struct window *win)
 	w = 0;
 	for (min_first_idx = win->views.count; min_first_idx > 0; min_first_idx--) {
 		struct view *v = win->views.ptrs[min_first_idx - 1];
-		if (w || v == view)
+		if (w || v == win->view)
 			w += v->tt_truncated_width;
 		if (w > win->w)
 			break;
@@ -50,7 +50,7 @@ void calculate_tabbar(struct window *win)
 	for (i = 0; i < win->views.count; i++) {
 		struct view *v = win->views.ptrs[i];
 
-		if (v == view) {
+		if (v == win->view) {
 			// make sure current tab is visible
 			if (win->first_tab_idx > i)
 				win->first_tab_idx = i;

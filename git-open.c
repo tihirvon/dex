@@ -1,6 +1,7 @@
 #include "git-open.h"
 #include "spawn.h"
 #include "window.h"
+#include "view.h"
 #include "term.h"
 #include "cmdline.h"
 #include "editor.h"
@@ -161,8 +162,9 @@ static void down(int count)
 static void open_selected(void)
 {
 	const char *sel = selected_file();
-	if (sel)
-		open_file(sel, NULL);
+	if (sel != NULL) {
+		window_open_file(window, sel, NULL);
+	}
 }
 
 static void git_open_key(enum term_key_type type, unsigned int key)
@@ -239,7 +241,7 @@ void git_open_keypress(enum term_key_type type, unsigned int key)
 static void git_open_update(void)
 {
 	buf_hide_cursor();
-	update_term_title(buffer);
+	update_term_title(window->view->buffer);
 	update_git_open();
 	buf_move_cursor(cmdline_x, 0);
 	buf_show_cursor();

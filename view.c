@@ -59,18 +59,19 @@ static int view_is_cursor_visible(struct view *v)
 
 static void view_center_to_cursor(struct view *v)
 {
+	long lines = v->buffer->nl;
 	struct window *w = v->window;
 	unsigned int hh = w->edit_h / 2;
 
-	if (w->edit_h >= buffer->nl || v->cy < hh) {
+	if (w->edit_h >= lines || v->cy < hh) {
 		v->vy = 0;
 		return;
 	}
 
 	v->vy = v->cy - hh;
-	if (v->vy + w->edit_h > buffer->nl) {
+	if (v->vy + w->edit_h > lines) {
 		/* -1 makes one ~ line visible so that you know where the EOF is */
-		v->vy -= v->vy + w->edit_h - buffer->nl - 1;
+		v->vy -= v->vy + w->edit_h - lines - 1;
 	}
 }
 
@@ -97,7 +98,7 @@ static void view_update_vy(struct view *v)
 			v->vy = 0;
 	} else if (v->cy > max_y) {
 		v->vy += v->cy - max_y;
-		max_y = buffer->nl - w->edit_h + 1;
+		max_y = v->buffer->nl - w->edit_h + 1;
 		if (v->vy > max_y && max_y >= 0)
 			v->vy = max_y;
 	}

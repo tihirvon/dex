@@ -23,14 +23,15 @@ int cmdline_x;
 
 static void sanity_check(void)
 {
+	struct view *v = window->view;
 	struct block *blk;
 
 	if (!DEBUG)
 		return;
 
-	list_for_each_entry(blk, &buffer->blocks, node) {
-		if (blk == view->cursor.blk) {
-			BUG_ON(view->cursor.offset > view->cursor.blk->size);
+	list_for_each_entry(blk, &v->buffer->blocks, node) {
+		if (blk == v->cursor.blk) {
+			BUG_ON(v->cursor.offset > v->cursor.blk->size);
 			return;
 		}
 	}
@@ -96,11 +97,12 @@ static void update_window_full(struct window *w)
 
 static void restore_cursor(void)
 {
+	struct view *v = window->view;
 	switch (input_mode) {
 	case INPUT_NORMAL:
 		buf_move_cursor(
-			window->edit_x + view->cx_display - view->vx,
-			window->edit_y + view->cy - view->vy);
+			window->edit_x + v->cx_display - v->vx,
+			window->edit_y + v->cy - v->vy);
 		break;
 	case INPUT_COMMAND:
 	case INPUT_SEARCH:
@@ -124,8 +126,8 @@ static void end_update(void)
 	buf_show_cursor();
 	buf_flush();
 
-	buffer->changed_line_min = INT_MAX;
-	buffer->changed_line_max = -1;
+	window->view->buffer->changed_line_min = INT_MAX;
+	window->view->buffer->changed_line_max = -1;
 	for (i = 0; i < windows.count; i++) {
 		struct window *w = windows.ptrs[i];
 		w->update_tabbar = false;
@@ -176,7 +178,7 @@ static void update_buffer_windows(struct buffer *b)
 		struct view *v = b->views.ptrs[i];
 		if (v->window->view == v) {
 			// visible view
-			if (v != view) {
+			if (v != window->view) {
 				// restore cursor
 				v->cursor.blk = BLOCK(v->buffer->blocks.next);
 				block_iter_goto_offset(&v->cursor, v->saved_cursor_offset);
@@ -194,7 +196,7 @@ static void update_buffer_windows(struct buffer *b)
 void normal_update(void)
 {
 	start_update();
-	update_term_title(buffer);
+	update_term_title(window->view->buffer);
 	update_all_windows();
 	update_command_line();
 	end_update();
@@ -256,6 +258,7 @@ char *editor_file(const char *name)
 
 char get_confirmation(const char *choices, const char *format, ...)
 {
+	struct view *v = window->view;
 	char buf[4096];
 	unsigned int key;
 	int pos, i, count = strlen(choices);
@@ -280,16 +283,16 @@ char get_confirmation(const char *choices, const char *format, ...)
 	buf[pos] = 0;
 
 	// update_windows() assumes these have been called for the current view
-	view_update_cursor_x(view);
-	view_update_cursor_y(view);
-	view_update(view);
+	view_update_cursor_x(v);
+	view_update_cursor_y(v);
+	view_update(v);
 
 	// set changed_line_min and changed_line_max before calling update_range()
-	mark_all_lines_changed(buffer);
+	mark_all_lines_changed(v->buffer);
 
 	start_update();
-	update_term_title(buffer);
-	update_buffer_windows(buffer);
+	update_term_title(v->buffer);
+	update_buffer_windows(v->buffer);
 	show_message(buf, false);
 	end_update();
 
@@ -330,50 +333,53 @@ struct screen_state {
 	int vy;
 };
 
-static void save_state(struct screen_state *s)
+static void save_state(struct screen_state *s, struct view *v)
 {
-	s->is_modified = buffer_modified(buffer);
-	s->id = buffer->id;
-	s->cy = view->cy;
-	s->vx = view->vx;
-	s->vy = view->vy;
+	s->is_modified = buffer_modified(v->buffer);
+	s->id = v->buffer->id;
+	s->cy = v->cy;
+	s->vx = v->vx;
+	s->vy = v->vy;
 }
 
 static void update_screen(struct screen_state *s)
 {
+	struct view *v = window->view;
+	struct buffer *b = v->buffer;
+
 	if (everything_changed) {
 		modes[input_mode]->update();
 		everything_changed = false;
 		return;
 	}
 
-	view_update_cursor_x(view);
-	view_update_cursor_y(view);
-	view_update(view);
+	view_update_cursor_x(v);
+	view_update_cursor_y(v);
+	view_update(v);
 
-	if (s->id == buffer->id) {
-		if (s->vx != view->vx || s->vy != view->vy) {
-			mark_all_lines_changed(buffer);
+	if (s->id == b->id) {
+		if (s->vx != v->vx || s->vy != v->vy) {
+			mark_all_lines_changed(b);
 		} else {
 			// Because of trailing whitespace highlighting and
 			// highlighting current line in different color
-			// the lines cy (old cursor y) and view->cy need
+			// the lines cy (old cursor y) and v->cy need
 			// to be updated.
 			//
 			// Always update at least current line.
-			buffer_mark_lines_changed(view->buffer, s->cy, view->cy);
+			buffer_mark_lines_changed(b, s->cy, v->cy);
 		}
-		if (s->is_modified != buffer_modified(buffer))
-			mark_buffer_tabbars_changed(buffer);
+		if (s->is_modified != buffer_modified(b))
+			mark_buffer_tabbars_changed(b);
 	} else {
 		window->update_tabbar = true;
-		mark_all_lines_changed(buffer);
+		mark_all_lines_changed(b);
 	}
 
 	start_update();
 	if (window->update_tabbar)
-		update_term_title(buffer);
-	update_buffer_windows(buffer);
+		update_term_title(b);
+	update_buffer_windows(b);
 	update_command_line();
 	end_update();
 }
@@ -405,7 +411,7 @@ void main_loop(void)
 			modes[input_mode]->update();
 		} else {
 			struct screen_state s;
-			save_state(&s);
+			save_state(&s, window->view);
 			modes[input_mode]->keypress(type, key);
 			sanity_check();
 			update_screen(&s);

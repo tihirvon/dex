@@ -1,5 +1,5 @@
 #include "modes.h"
-#include "buffer.h"
+#include "window.h"
 #include "view.h"
 #include "edit.h"
 #include "change.h"
@@ -31,7 +31,7 @@ static void normal_mode_keypress(enum term_key_type type, unsigned int key)
 			begin_change(CHANGE_MERGE_NONE);
 			buffer_insert_bytes(buf, count);
 			end_change();
-			block_iter_skip_bytes(&view->cursor, count);
+			block_iter_skip_bytes(&window->view->cursor, count);
 		}
 		return;
 	}
