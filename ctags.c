@@ -34,7 +34,7 @@ static int parse_excmd(struct tag *t, const char *buf, int size)
 		int j = 0;
 
 		for (i = 1; i < size; i++) {
-			if (buf[i] == '\\' && i + i < size) {
+			if (buf[i] == '\\' && i + 1 < size) {
 				i++;
 				if (buf[i] == '\\')
 					pattern[j++] = '\\';
