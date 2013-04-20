@@ -85,12 +85,14 @@ struct view *window_open_buffer(struct window *w, const char *filename, bool mus
 	b = buffer_new(encoding);
 	if (load_buffer(b, must_exist, filename)) {
 		free_buffer(b);
+		free(absolute);
 		return NULL;
 	}
 	if (b->st.st_mode == 0 && dir_missing) {
 		// New file in non-existing directory. This is usually a mistake.
 		error_msg("Error opening %s: Directory does not exist", filename);
 		free_buffer(b);
+		free(absolute);
 		return NULL;
 	}
 	b->abs_filename = absolute;
