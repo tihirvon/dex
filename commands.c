@@ -782,7 +782,13 @@ static void cmd_save(const char *pf, char **args)
 	}
 
 	if (args[0]) {
-		char *tmp = path_absolute(args[0]);
+		char *tmp;
+
+		if (args[0][0] == 0) {
+			error_msg("Empty filename not allowed");
+			return;
+		}
+		tmp = path_absolute(args[0]);
 		if (!tmp) {
 			error_msg("Failed to make absolute path: %s", strerror(errno));
 			return;

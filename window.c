@@ -37,10 +37,15 @@ struct view *window_open_empty_buffer(struct window *w)
 
 struct view *window_open_buffer(struct window *w, const char *filename, bool must_exist, const char *encoding)
 {
-	char *absolute = path_absolute(filename);
+	char *absolute;
 	bool dir_missing = false;
 	struct buffer *b = NULL;
 
+	if (filename[0] == 0) {
+		error_msg("Empty filename not allowed");
+		return NULL;
+	}
+	absolute = path_absolute(filename);
 	if (absolute == NULL) {
 		// Let load_buffer() create error message.
 		dir_missing = errno == ENOENT;
