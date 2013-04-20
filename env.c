@@ -1,5 +1,4 @@
 #include "env.h"
-#include "gbuf.h"
 #include "completion.h"
 #include "window.h"
 #include "selection.h"
@@ -7,36 +6,40 @@
 
 struct builtin_env {
 	const char *name;
-	void (*expand)(struct gbuf *buf);
+	char *(*expand)(void);
 };
 
-static void expand_file(struct gbuf *buf)
+static char *expand_file(void)
 {
 	struct view *v = window->view;
 
-	if (v->buffer->abs_filename)
-		gbuf_add_str(buf, v->buffer->abs_filename);
+	if (v->buffer->abs_filename == NULL) {
+		return xstrdup("");
+	}
+	return xstrdup(v->buffer->abs_filename);
 }
 
-static void expand_pkgdatadir(struct gbuf *buf)
+static char *expand_pkgdatadir(void)
 {
-	gbuf_add_str(buf, pkgdatadir);
+	return xstrdup(pkgdatadir);
 }
 
-static void expand_word(struct gbuf *buf)
+static char *expand_word(void)
 {
 	struct view *v = window->view;
 	long size;
 	char *str = view_get_selection(v, &size);
 
-	if (str) {
-		gbuf_add_buf(buf, str, size);
+	if (str != NULL) {
+		xrenew(str, size + 1);
+		str[size] = 0;
 	} else {
 		str = view_get_word_under_cursor(v);
-		if (str)
-			gbuf_add_str(buf, str);
+		if (str == NULL) {
+			str = xstrdup("");
+		}
 	}
-	free(str);
+	return str;
 }
 
 static const struct builtin_env builtin[] = {
@@ -45,27 +48,27 @@ static const struct builtin_env builtin[] = {
 	{ "WORD",	expand_word },
 };
 
-void collect_builtin_env(const char *prefix, int len)
+void collect_builtin_env(const char *prefix)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
-		if (!strncmp(builtin[i].name, prefix, len))
-			add_completion(xstrdup(builtin[i].name));
+		const char *name = builtin[i].name;
+		if (str_has_prefix(name, prefix))
+			add_completion(xstrdup(name));
 	}
 }
 
-bool expand_builtin_env(struct gbuf *buf, const char *name, int len)
+// returns NULL only if name isn't in builtin array
+char *expand_builtin_env(const char *name)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
 		const struct builtin_env *be = &builtin[i];
-
-		if (len == strlen(be->name) && !memcmp(name, be->name, len)) {
-			be->expand(buf);
-			return true;
+		if (streq(be->name, name)) {
+			return be->expand();
 		}
 	}
-	return false;
+	return NULL;
 }

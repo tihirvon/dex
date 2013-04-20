@@ -150,37 +150,38 @@ static void parse_dq(const char *cmd, int *posp)
 
 static void parse_var(const char *cmd, int *posp)
 {
-	int len, pos = *posp;
-	const char *value, *var = cmd + pos;
-	char *name;
+	int si = *posp;
+	int ei = si;
+	char *name, *value;
 
 	while (1) {
-		char ch = cmd[pos];
+		char ch = cmd[ei];
 
 		if (isalpha(ch) || ch == '_') {
-			pos++;
+			ei++;
 			continue;
 		}
-		if (pos > *posp && isdigit(ch)) {
-			pos++;
+		if (ei > si && isdigit(ch)) {
+			ei++;
 			continue;
 		}
 		break;
 	}
-
-	len = pos - *posp;
-	*posp = pos;
-
-	if (!len)
+	*posp = ei;
+	if (ei == si) {
 		return;
-
-	if (expand_builtin_env(&arg, var, len))
-		return;
-
-	name = xstrslice(var, 0, len);
-	value = getenv(name);
-	if (value)
+	}
+	name = xstrslice(cmd, si, ei);
+	value = expand_builtin_env(name);
+	if (value != NULL) {
 		gbuf_add_str(&arg, value);
+		free(value);
+	} else {
+		const char *val = getenv(name);
+		if (val != NULL) {
+			gbuf_add_str(&arg, val);
+		}
+	}
 	free(name);
 }
 

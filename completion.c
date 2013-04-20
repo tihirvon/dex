@@ -173,7 +173,7 @@ static void collect_files(bool directories_only)
 	}
 }
 
-static void collect_env(const char *name, int len)
+static void collect_env(const char *prefix)
 {
 	extern char **environ;
 	int i;
@@ -181,13 +181,13 @@ static void collect_env(const char *name, int len)
 	for (i = 0; environ[i]; i++) {
 		const char *e = environ[i];
 
-		if (strncmp(e, name, len) == 0) {
+		if (str_has_prefix(e, prefix)) {
 			const char *end = strchr(e, '=');
 			if (end)
 				add_completion(xstrslice(e, 0, end - e));
 		}
 	}
-	collect_builtin_env(name, len);
+	collect_builtin_env(prefix);
 }
 
 static void collect_completions(char **args, int argc)
@@ -328,13 +328,15 @@ static void init_completion(void)
 			break;
 		}
 		if (var) {
+			char *name = xstrslice(str, 1, len);
 			completion_pos++;
 			completion.escaped = NULL;
 			completion.parsed = NULL;
 			completion.head = xstrslice(cmd, 0, completion_pos);
 			completion.tail = xstrdup(cmd + cmdline.pos);
-			collect_env(str + 1, len - 1);
+			collect_env(name);
 			sort_completions();
+			free(name);
 			ptr_array_free(&array);
 			return;
 		}
