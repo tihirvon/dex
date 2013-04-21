@@ -618,12 +618,30 @@ static void cmd_paste(const char *pf, char **args)
 
 static void cmd_pgdown(const char *pf, char **args)
 {
-	move_down(window->edit_h - 1 - window_get_scroll_margin(window) * 2);
+	long margin = window_get_scroll_margin(window);
+	long bottom = view->vy + window->edit_h - 1 - margin;
+	long count;
+
+	if (view->cy < bottom) {
+		count = bottom - view->cy;
+	} else {
+		count = window->edit_h - 1 - margin * 2;
+	}
+	move_down(count);
 }
 
 static void cmd_pgup(const char *pf, char **args)
 {
-	move_up(window->edit_h - 1 - window_get_scroll_margin(window) * 2);
+	long margin = window_get_scroll_margin(window);
+	long top = view->vy + margin;
+	long count;
+
+	if (view->cy > top) {
+		count = view->cy - top;
+	} else {
+		count = window->edit_h - 1 - margin * 2;
+	}
+	move_up(count);
 }
 
 static void cmd_prev(const char *pf, char **args)
