@@ -937,6 +937,8 @@ static void cmd_scroll_pgdown(const char *pf, char **args)
 			count = max - view->vy;
 		view->vy += count;
 		move_down(count);
+	} else if (view->cy < buffer->nl) {
+		move_down(buffer->nl - view->cy);
 	}
 }
 
@@ -949,6 +951,8 @@ static void cmd_scroll_pgup(const char *pf, char **args)
 			count = view->vy;
 		view->vy -= count;
 		move_up(count);
+	} else if (view->cy > 0) {
+		move_up(view->cy);
 	}
 }
 
