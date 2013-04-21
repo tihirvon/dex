@@ -344,7 +344,7 @@ pgdown
 	Move cursor page down. See also *scroll-pgdown*.
 
 pgup
-	Move cursor page down. See also *scroll-pgup*.
+	Move cursor page up. See also *scroll-pgup*.
 
 prev
 	Display previous file.
