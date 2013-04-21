@@ -11,7 +11,7 @@ static int process_exists(int pid)
 	return !kill(pid, 0);
 }
 
-static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bool lock)
+static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename)
 {
 	int filename_len = strlen(filename);
 	int my_pid = getpid();
@@ -58,10 +58,6 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bo
 			pos = next_bol;
 		}
 	}
-	if (lock && other_pid == 0) {
-		sprintf(buf + size, "%d %s\n", my_pid, filename);
-		size += strlen(buf + size);
-	}
 	*sizep = size;
 	return other_pid;
 }
@@ -69,8 +65,8 @@ static int rewrite_lock_file(char *buf, ssize_t *sizep, const char *filename, bo
 static int lock_or_unlock(const char *filename, bool lock)
 {
 	int tries = 0;
-	int wfd, rfd, pid;
-	ssize_t size;
+	int wfd, pid;
+	long size;
 	char *buf = NULL;
 
 	if (!file_locks) {
@@ -106,36 +102,23 @@ static int lock_or_unlock(const char *filename, bool lock)
 		}
 	}
 
-	rfd = open(file_locks, O_RDONLY);
-	if (rfd < 0) {
-		if (errno != ENOENT) {
-			error_msg("Error opening %s: %s", file_locks, strerror(errno));
-			goto error;
-		}
-		size = 0;
-		buf = xmalloc(strlen(filename) + 32);
-	} else {
-		struct stat st;
-
-		fstat(rfd, &st);
-		size = st.st_size;
-		buf = xmalloc(size + strlen(filename) + 32);
-
-		if (size > 0)
-			size = xread(rfd, buf, size);
-		close(rfd);
-		if (size < 0) {
-			error_msg("Error reading %s: %s", file_locks, strerror(errno));
-			goto error;
-		}
+	size = read_file(file_locks, &buf);
+	if (size < 0 && errno != ENOENT) {
+		error_msg("Error reading %s: %s", file_locks, strerror(errno));
+		goto error;
 	}
-
-	if (size && buf[size - 1] != '\n')
+	if (size > 0 && buf[size - 1] != '\n') {
 		buf[size++] = '\n';
-
-	pid = rewrite_lock_file(buf, &size, filename, lock);
-	if (lock && pid) {
-		error_msg("File is locked (%s) by process %d", file_locks, pid);
+	}
+	pid = rewrite_lock_file(buf, &size, filename);
+	if (lock) {
+		if (pid == 0) {
+			xrenew(buf, size + strlen(filename) + 32);
+			sprintf(buf + size, "%d %s\n", getpid(), filename);
+			size += strlen(buf + size);
+		} else {
+			error_msg("File is locked (%s) by process %d", file_locks, pid);
+		}
 	}
 	if (xwrite(wfd, buf, size) < 0) {
 		error_msg("Error writing %s: %s", file_locks_lock, strerror(errno));
