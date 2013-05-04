@@ -2,16 +2,6 @@
 #include "window.h"
 #include "view.h"
 #include "uchar.h"
-#include "editor.h"
-#include "input-special.h"
-#include "selection.h"
-
-struct formatter {
-	char *buf;
-	long size;
-	long pos;
-	bool separator;
-};
 
 static void add_ch(struct formatter *f, char ch)
 {
@@ -49,11 +39,11 @@ static void add_status_format(struct formatter *f, const char *format, ...)
 	add_status_str(f, buf);
 }
 
-static void add_status_pos(struct window *win, struct formatter *f)
+static void add_status_pos(struct formatter *f)
 {
-	long lines = win->view->buffer->nl;
-	int h = win->edit_h;
-	int pos = win->view->vy;
+	long lines = f->win->view->buffer->nl;
+	int h = f->win->edit_h;
+	int pos = f->win->view->vy;
 
 	if (lines <= h) {
 		if (pos)
@@ -70,117 +60,96 @@ static void add_status_pos(struct window *win, struct formatter *f)
 	}
 }
 
-static const char *format_misc_status(struct window *win)
+void sf_init(struct formatter *f, struct window *win)
 {
-	static char misc_status[32];
-
-	if (special_input_misc_status(misc_status))
-		return misc_status;
-
-	if (input_mode == INPUT_SEARCH) {
-		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
-			case_sensitive_search_enum[options.case_sensitive_search]);
-	} else if (win->view->selection) {
-		struct selection_info info;
-
-		init_selection(win->view, &info);
-		if (win->view->selection == SELECT_LINES) {
-			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
-		} else {
-			snprintf(misc_status, sizeof(misc_status), "[%d chars]", get_nr_selected_chars(&info));
-		}
-	} else {
-		misc_status[0] = 0;
-	}
-	return misc_status;
+	clear(f);
+	f->win = win;
 }
 
-void format_status(struct window *win, char *buf, int size, const char *format)
+void sf_format(struct formatter *f, char *buf, long size, const char *format)
 {
-	struct view *v = win->view;
-	struct formatter f;
+	struct view *v = f->win->view;
 	bool got_char;
 	unsigned int u;
 
-	f.buf = buf;
-	f.size = size - 5; // max length of char and terminating NUL
-	f.pos = 0;
-	f.separator = false;
+	f->buf = buf;
+	f->size = size - 5; // max length of char and terminating NUL
+	f->pos = 0;
+	f->separator = false;
 
 	got_char = buffer_get_char(&v->cursor, &u) > 0;
-	while (f.pos < f.size && *format) {
+	while (f->pos < f->size && *format) {
 		char ch = *format++;
 		if (ch != '%') {
-			add_separator(&f);
-			add_ch(&f, ch);
+			add_separator(f);
+			add_ch(f, ch);
 		} else {
 			ch = *format++;
 			switch (ch) {
 			case 'f':
-				add_status_str(&f, buffer_filename(v->buffer));
+				add_status_str(f, buffer_filename(v->buffer));
 				break;
 			case 'm':
 				if (buffer_modified(v->buffer))
-					add_status_str(&f, "*");
+					add_status_str(f, "*");
 				break;
 			case 'r':
 				if (v->buffer->ro)
-					add_status_str(&f, "RO");
+					add_status_str(f, "RO");
 				break;
 			case 'y':
-				add_status_format(&f, "%d", v->cy + 1);
+				add_status_format(f, "%d", v->cy + 1);
 				break;
 			case 'x':
-				add_status_format(&f, "%d", v->cx_display + 1);
+				add_status_format(f, "%d", v->cx_display + 1);
 				break;
 			case 'X':
-				add_status_format(&f, "%d", v->cx_char + 1);
+				add_status_format(f, "%d", v->cx_char + 1);
 				if (v->cx_display != v->cx_char)
-					add_status_format(&f, "-%d", v->cx_display + 1);
+					add_status_format(f, "-%d", v->cx_display + 1);
 				break;
 			case 'p':
-				add_status_pos(win, &f);
+				add_status_pos(f);
 				break;
 			case 'E':
-				add_status_str(&f, v->buffer->encoding);
+				add_status_str(f, v->buffer->encoding);
 				break;
 			case 'M': {
-				const char *misc_status = format_misc_status(win);
-				if (misc_status[0])
-					add_status_str(&f, misc_status);
+				if (f->misc_status != NULL)
+					add_status_str(f, f->misc_status);
 				break;
 			}
 			case 'n':
 				switch (v->buffer->newline) {
 				case NEWLINE_UNIX:
-					add_status_str(&f, "LF");
+					add_status_str(f, "LF");
 					break;
 				case NEWLINE_DOS:
-					add_status_str(&f, "CRLF");
+					add_status_str(f, "CRLF");
 					break;
 				}
 				break;
 			case 's':
-				f.separator = true;
+				f->separator = true;
 				break;
 			case 't':
-				add_status_str(&f, v->buffer->options.filetype);
+				add_status_str(f, v->buffer->options.filetype);
 				break;
 			case 'u':
 				if (got_char) {
 					if (u_is_unicode(u)) {
-						add_status_format(&f, "U+%04X", u);
+						add_status_format(f, "U+%04X", u);
 					} else {
-						add_status_str(&f, "Invalid");
+						add_status_str(f, "Invalid");
 					}
 				}
 				break;
 			case '%':
-				add_separator(&f);
-				add_ch(&f, ch);
+				add_separator(f);
+				add_ch(f, ch);
 				break;
 			}
 		}
 	}
-	f.buf[f.pos] = 0;
+	f->buf[f->pos] = 0;
 }

@@ -9,6 +9,8 @@
 #include "frame.h"
 #include "git-open.h"
 #include "path.h"
+#include "input-special.h"
+#include "selection.h"
 
 void set_color(struct term_color *color)
 {
@@ -27,17 +29,46 @@ void set_builtin_color(enum builtin_color c)
 	set_color(builtin_colors[c]);
 }
 
+static const char *format_misc_status(struct window *win)
+{
+	static char misc_status[32];
+
+	if (special_input_misc_status(misc_status))
+		return misc_status;
+
+	if (input_mode == INPUT_SEARCH) {
+		snprintf(misc_status, sizeof(misc_status), "[case-sensitive = %s]",
+			case_sensitive_search_enum[options.case_sensitive_search]);
+	} else if (win->view->selection) {
+		struct selection_info info;
+
+		init_selection(win->view, &info);
+		if (win->view->selection == SELECT_LINES) {
+			snprintf(misc_status, sizeof(misc_status), "[%d lines]", get_nr_selected_lines(&info));
+		} else {
+			snprintf(misc_status, sizeof(misc_status), "[%d chars]", get_nr_selected_chars(&info));
+		}
+	} else {
+		return NULL;
+	}
+	return misc_status;
+}
+
 void update_status_line(struct window *win)
 {
+	struct formatter f;
 	char lbuf[256];
 	char rbuf[256];
 	int lw, rw;
 
+	sf_init(&f, win);
+	f.misc_status = format_misc_status(win);
+	sf_format(&f, lbuf, sizeof(lbuf), options.statusline_left);
+	sf_format(&f, rbuf, sizeof(rbuf), options.statusline_right);
+
 	buf_reset(win->x, win->w, 0);
 	buf_move_cursor(win->x, win->y + win->h - 1);
 	set_builtin_color(BC_STATUSLINE);
-	format_status(win, lbuf, sizeof(lbuf), options.statusline_left);
-	format_status(win, rbuf, sizeof(rbuf), options.statusline_right);
 	lw = u_str_width(lbuf);
 	rw = u_str_width(rbuf);
 	if (lw + rw <= win->w) {
