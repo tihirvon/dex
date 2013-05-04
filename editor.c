@@ -38,6 +38,11 @@ static void sanity_check(void)
 	BUG("cursor not seen\n");
 }
 
+void set_input_mode(enum input_mode mode)
+{
+	input_mode = mode;
+}
+
 void any_key(void)
 {
 	unsigned int key;

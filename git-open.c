@@ -175,7 +175,7 @@ static void git_open_key(enum term_key_type type, unsigned int key)
 		case '\r':
 			open_selected();
 			cmdline_clear(&cmdline);
-			input_mode = INPUT_NORMAL;
+			set_input_mode(INPUT_NORMAL);
 			break;
 		case CTRL('O'):
 			open_selected();
@@ -232,7 +232,7 @@ void git_open_keypress(enum term_key_type type, unsigned int key)
 		git_open_filter();
 		break;
 	case CMDLINE_CANCEL:
-		input_mode = INPUT_NORMAL;
+		set_input_mode(INPUT_NORMAL);
 		break;
 	}
 	mark_everything_changed();

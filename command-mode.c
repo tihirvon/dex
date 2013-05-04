@@ -13,7 +13,7 @@ static void command_line_enter(void)
 	bool ok;
 
 	reset_completion();
-	input_mode = INPUT_NORMAL;
+	set_input_mode(INPUT_NORMAL);
 	ok = parse_commands(&array, cmdline.buf.buffer, &err);
 
 	/* Need to do this before executing the command because
@@ -63,7 +63,7 @@ static void command_mode_keypress(enum term_key_type type, unsigned int key)
 		reset_completion();
 		break;
 	case CMDLINE_CANCEL:
-		input_mode = INPUT_NORMAL;
+		set_input_mode(INPUT_NORMAL);
 		break;
 	}
 }

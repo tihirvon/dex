@@ -138,7 +138,7 @@ static void cmd_close(const char *pf, char **args)
 
 static void cmd_command(const char *pf, char **args)
 {
-	input_mode = INPUT_COMMAND;
+	set_input_mode(INPUT_COMMAND);
 	if (args[0])
 		cmdline_set_text(&cmdline, args[0]);
 }
@@ -344,7 +344,7 @@ static void cmd_format_paragraph(const char *pf, char **args)
 
 static void cmd_git_open(const char *pf, char **args)
 {
-	input_mode = INPUT_GIT_OPEN;
+	set_input_mode(INPUT_GIT_OPEN);
 	git_open_reload();
 }
 
@@ -1042,7 +1042,7 @@ static void cmd_search(const char *pf, char **args)
 	} else if (cmd == 'p') {
 		search_prev();
 	} else {
-		input_mode = INPUT_SEARCH;
+		set_input_mode(INPUT_SEARCH);
 		search_set_direction(dir);
 	}
 }

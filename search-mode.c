@@ -19,7 +19,7 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 				search_next();
 			}
 			cmdline_clear(&cmdline);
-			input_mode = INPUT_NORMAL;
+			set_input_mode(INPUT_NORMAL);
 			break;
 		}
 		break;
@@ -49,7 +49,7 @@ static void search_mode_keypress(enum term_key_type type, unsigned int key)
 	case CMDLINE_KEY_HANDLED:
 		break;
 	case CMDLINE_CANCEL:
-		input_mode = INPUT_NORMAL;
+		set_input_mode(INPUT_NORMAL);
 		break;
 	}
 }

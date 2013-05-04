@@ -31,6 +31,7 @@ extern const char *pkgdatadir;
 
 char *editor_file(const char *name);
 char get_confirmation(const char *choices, const char *format, ...) FORMAT(2);
+void set_input_mode(enum input_mode mode);
 void any_key(void);
 void normal_update(void);
 void resize(void);
