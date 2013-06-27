@@ -419,7 +419,11 @@ void main_loop(void)
 			save_state(&s, window->view);
 			modes[input_mode]->keypress(type, key);
 			sanity_check();
-			update_screen(&s);
+			if (input_mode == INPUT_GIT_OPEN) {
+				modes[input_mode]->update();
+			} else {
+				update_screen(&s);
+			}
 		}
 	}
 }
