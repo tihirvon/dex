@@ -126,14 +126,32 @@ static void cmd_clear(const char *pf, char **args)
 
 static void cmd_close(const char *pf, char **args)
 {
-	bool force = !!*pf;
+	bool force = false;
+	bool allow_quit = false;
+
+	while (*pf) {
+		switch (*pf) {
+		case 'f':
+			force = true;
+			break;
+		case 'q':
+			allow_quit = true;
+			break;
+		}
+		pf++;
+	}
 
 	if (!view_can_close(view) && !force) {
 		error_msg("The buffer is modified. Save or run 'close -f' to close without saving.");
 		return;
 	}
-	window_close_current_view(window);
-	set_view(window->view);
+
+	if (allow_quit && buffers.count == 1) {
+		editor_status = EDITOR_EXITING;
+	} else {
+		window_close_current_view(window);
+		set_view(window->view);
+	}
 }
 
 static void cmd_command(const char *pf, char **args)
@@ -1476,7 +1494,7 @@ const struct command commands[] = {
 	{ "cd",			"",	1,  1, cmd_cd },
 	{ "center-view",	"",	0,  0, cmd_center_view },
 	{ "clear",		"",	0,  0, cmd_clear },
-	{ "close",		"f",	0,  0, cmd_close },
+	{ "close",		"fq",	0,  0, cmd_close },
 	{ "command",		"",	0,  1, cmd_command },
 	{ "compile",		"-1ps",	2, -1, cmd_compile },
 	{ "copy",		"",	0,  0, cmd_copy },
