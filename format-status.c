@@ -100,6 +100,9 @@ void sf_format(struct formatter *f, char *buf, long size, const char *format)
 			case 'y':
 				add_status_format(f, "%d", v->cy + 1);
 				break;
+			case 'Y':
+				add_status_format(f, "%ld", v->buffer->nl);
+				break;
 			case 'x':
 				add_status_format(f, "%d", v->cx_display + 1);
 				break;
