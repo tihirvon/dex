@@ -160,7 +160,7 @@ static void syntax_changed(void)
 
 static bool validate_statusline_format(const char *value)
 {
-	static const char chars[] = "fmryxXpEMnstu%";
+	static const char chars[] = "fmryYxXpEMnstu%";
 	int i = 0;
 
 	while (value[i]) {

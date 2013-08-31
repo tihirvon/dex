@@ -719,6 +719,9 @@ statusline-left [" %f%s%m%r%s%M"]
 	@li %y
 	Cursor row.
 
+	@li %Y
+	Total rows in file.
+
 	@li %x
 	Cursor display column.
 
