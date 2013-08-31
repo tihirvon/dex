@@ -66,7 +66,7 @@ static int lock_or_unlock(const char *filename, bool lock)
 {
 	int tries = 0;
 	int wfd, pid;
-	long size;
+	ssize_t size;
 	char *buf = NULL;
 
 	if (!file_locks) {
