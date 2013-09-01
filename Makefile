@@ -169,6 +169,7 @@ binding	:=	 		\
 color	:=			\
 	color/darkgray		\
 	color/light		\
+	color/light256		\
 	# end
 
 compiler :=			\
