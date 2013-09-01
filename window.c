@@ -118,20 +118,29 @@ struct view *window_open_buffer(struct window *w, const char *filename, bool mus
 
 struct view *window_get_view(struct window *w, struct buffer *b)
 {
+	struct view *v = window_find_view(w, b);
+
+	if (v == NULL) {
+		// open the buffer in other window to this window
+		v = window_add_buffer(w, b);
+		v->cursor = ((struct view *)b->views.ptrs[0])->cursor;
+	}
+	return v;
+}
+
+struct view *window_find_view(struct window *w, struct buffer *b)
+{
 	struct view *v;
 	int i;
 
 	for (i = 0; i < b->views.count; i++) {
 		v = b->views.ptrs[i];
 		if (v->window == w) {
-			// already open in this window
 			return v;
 		}
 	}
-	// open the buffer in other window to this window
-	v = window_add_buffer(w, b);
-	v->cursor = ((struct view *)b->views.ptrs[0])->cursor;
-	return v;
+	// buffer isn't open in this window
+	return NULL;
 }
 
 struct view *window_find_unclosable_view(struct window *w, bool (*can_close)(struct view *))

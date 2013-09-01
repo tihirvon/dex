@@ -678,7 +678,17 @@ static void cmd_quit(const char *pf, char **args)
 	for (i = 0; i < buffers.count; i++) {
 		struct buffer *b = buffers.ptrs[i];
 		if (buffer_modified(b)) {
-			set_view(window_get_view(window, b));
+			// activate modified buffer
+			struct view *v = window_find_view(window, b);
+
+			if (v == NULL) {
+				// buffer isn't open in current window
+				// activate first window of the buffer
+				v = b->views.ptrs[0];
+				window = v->window;
+				mark_everything_changed();
+			}
+			set_view(v);
 			error_msg("Save modified files or run 'quit -f' to quit without saving.");
 			return;
 		}

@@ -40,6 +40,7 @@ struct view *window_add_buffer(struct window *w, struct buffer *b);
 struct view *window_open_empty_buffer(struct window *w);
 struct view *window_open_buffer(struct window *w, const char *filename, bool must_exist, const char *encoding);
 struct view *window_get_view(struct window *w, struct buffer *b);
+struct view *window_find_view(struct window *w, struct buffer *b);
 struct view *window_find_unclosable_view(struct window *w, bool (*can_close)(struct view *));
 void window_remove_views(struct window *w);
 void window_free(struct window *w);
