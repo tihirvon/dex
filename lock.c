@@ -103,9 +103,12 @@ static int lock_or_unlock(const char *filename, bool lock)
 	}
 
 	size = read_file(file_locks, &buf);
-	if (size < 0 && errno != ENOENT) {
-		error_msg("Error reading %s: %s", file_locks, strerror(errno));
-		goto error;
+	if (size < 0) {
+		if (errno != ENOENT) {
+			error_msg("Error reading %s: %s", file_locks, strerror(errno));
+			goto error;
+		}
+		size = 0;
 	}
 	if (size > 0 && buf[size - 1] != '\n') {
 		buf[size++] = '\n';
