@@ -196,6 +196,7 @@ syntax	:=			\
 	syntax/html+smarty	\
 	syntax/java		\
 	syntax/javascript	\
+	syntax/lua		\
 	syntax/mail		\
 	syntax/make		\
 	syntax/php		\

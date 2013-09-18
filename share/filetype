@@ -5,6 +5,7 @@ ft -i python python
 ft -i perl perl
 ft -i php php
 ft -i awk awk gawk nawk
+ft -i lua lua luajit
 
 # first line
 ft -c xml '^<\?xml(\s|$)'
@@ -35,6 +36,7 @@ ft go go
 ft html html htm xhtml
 ft java java
 ft javascript js
+ft lua lua
 ft make mk mak
 ft perl perl pl
 ft php php php3 php4 inc
