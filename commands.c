@@ -128,6 +128,7 @@ static void cmd_close(const char *pf, char **args)
 {
 	bool force = false;
 	bool allow_quit = false;
+	bool allow_wclose = false;
 
 	while (*pf) {
 		switch (*pf) {
@@ -136,6 +137,9 @@ static void cmd_close(const char *pf, char **args)
 			break;
 		case 'q':
 			allow_quit = true;
+			break;
+		case 'w':
+			allow_wclose = true;
 			break;
 		}
 		pf++;
@@ -146,12 +150,18 @@ static void cmd_close(const char *pf, char **args)
 		return;
 	}
 
-	if (allow_quit && buffers.count == 1) {
+	if (allow_quit && windows.count == 1 && buffers.count == 1) {
 		editor_status = EDITOR_EXITING;
-	} else {
-		window_close_current_view(window);
-		set_view(window->view);
+		return;
 	}
+
+	if (allow_wclose && window->views.count <= 1) {
+		window_close_current();
+		return;
+	}
+
+	window_close_current_view(window);
+	set_view(window->view);
 }
 
 static void cmd_command(const char *pf, char **args)
@@ -1312,34 +1322,15 @@ static void cmd_view(const char *pf, char **args)
 static void cmd_wclose(const char *pf, char **args)
 {
 	struct view *v = window_find_unclosable_view(window, view_can_close);
-	long idx;
 	bool force = !!*pf;
-	struct window *w;
 
 	if (v != NULL && !force) {
 		set_view(v);
 		error_msg("Save modified files or run 'wclose -f' to close window without saving.");
 		return;
 	}
-	if (windows.count == 1) {
-		// don't close last window
-		window_remove_views(window);
-		set_view(window_open_empty_buffer(window));
-		return;
-	}
 
-	idx = ptr_array_idx(&windows, window);
-	w = ptr_array_remove_idx(&windows, idx);
-	remove_frame(w->frame);
-	window_free(w);
-
-	if (idx == windows.count)
-		idx = windows.count - 1;
-	window = windows.ptrs[idx];
-	set_view(window->view);
-
-	mark_everything_changed();
-	debug_frames();
+	window_close_current();
 }
 
 static void cmd_wflip(const char *pf, char **args)
@@ -1504,7 +1495,7 @@ const struct command commands[] = {
 	{ "cd",			"",	1,  1, cmd_cd },
 	{ "center-view",	"",	0,  0, cmd_center_view },
 	{ "clear",		"",	0,  0, cmd_clear },
-	{ "close",		"fq",	0,  0, cmd_close },
+	{ "close",		"fqw",	0,  0, cmd_close },
 	{ "command",		"",	0,  1, cmd_command },
 	{ "compile",		"-1ps",	2, -1, cmd_compile },
 	{ "copy",		"",	0,  0, cmd_copy },

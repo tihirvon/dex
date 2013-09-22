@@ -120,12 +120,14 @@ center-view
 clear
 	Clear current line.
 
-close [-fq]
+close [-fqw]
 	Close file.
 
 	-f close file even if it hasn't been saved after last modification
 
 	-q quit if closing the last open file
+
+	-w close parent window if closing it's last contained file
 
 command [text]
 	Enter command line. If text is given then it is written to the

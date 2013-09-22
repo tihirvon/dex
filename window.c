@@ -6,6 +6,7 @@
 #include "load-save.h"
 #include "error.h"
 #include "move.h"
+#include "frame.h"
 
 PTR_ARRAY(windows);
 struct window *window;
@@ -202,6 +203,32 @@ void remove_view(struct view *v)
 		free_buffer(b);
 	}
 	free(v);
+}
+
+void window_close_current(void)
+{
+	long idx;
+	struct window *w;
+
+	if (windows.count == 1) {
+		// don't close last window
+		window_remove_views(window);
+		set_view(window_open_empty_buffer(window));
+		return;
+	}
+
+	idx = ptr_array_idx(&windows, window);
+	w = ptr_array_remove_idx(&windows, idx);
+	remove_frame(w->frame);
+	window_free(w);
+
+	if (idx == windows.count)
+		idx = windows.count - 1;
+	window = windows.ptrs[idx];
+	set_view(window->view);
+
+	mark_everything_changed();
+	debug_frames();
 }
 
 void window_close_current_view(struct window *w)

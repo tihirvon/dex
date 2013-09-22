@@ -45,6 +45,7 @@ struct view *window_find_unclosable_view(struct window *w, bool (*can_close)(str
 void window_remove_views(struct window *w);
 void window_free(struct window *w);
 void remove_view(struct view *v);
+void window_close_current(void);
 void window_close_current_view(struct window *w);
 void set_view(struct view *v);
 struct view *window_open_new_file(struct window *w);
