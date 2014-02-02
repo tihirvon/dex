@@ -52,6 +52,9 @@ static inline bool xstreq(const char *a, const char *b)
 	if (a == NULL) {
 		return false;
 	}
+	if (b == NULL) {
+		return false;
+	}
 	return streq(a, b);
 }
 
