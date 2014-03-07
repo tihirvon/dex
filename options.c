@@ -27,12 +27,11 @@ struct global_options options = {
 	.newline = NEWLINE_UNIX,
 	.scroll_margin = 0,
 	.show_line_numbers = 0,
-	.show_tab_bar = 1,
 	.statusline_left = NULL,
 	.statusline_right = NULL,
+	.tab_bar = TAB_BAR_HORIZONTAL,
 	.tab_bar_max_components = 0,
 	.tab_bar_width = 25,
-	.vertical_tab_bar = 0,
 };
 
 enum option_type {
@@ -374,6 +373,7 @@ static const struct option_ops option_ops[] = {
 static const char *bool_enum[] = { "false", "true", NULL };
 static const char *newline_enum[] = { "unix", "dos", NULL };
 const char *case_sensitive_search_enum[] = { "false", "true", "auto", NULL };
+static const char *tab_bar_enum[] = { "hidden", "horizontal", "vertical", "auto", NULL };
 static const char *ws_error_values[] = {
 	"trailing",
 	"space-indent",
@@ -403,15 +403,14 @@ static const struct option_desc option_desc[] = {
 	ENUM_OPT("newline", G(newline), newline_enum, NULL),
 	INT_OPT("scroll-margin", G(scroll_margin), 0, 100, NULL),
 	BOOL_OPT("show-line-numbers", G(show_line_numbers), NULL),
-	BOOL_OPT("show-tab-bar", G(show_tab_bar), NULL),
 	STR_OPT("statusline-left", G(statusline_left), validate_statusline_format, NULL),
 	STR_OPT("statusline-right", G(statusline_right), validate_statusline_format, NULL),
 	BOOL_OPT("syntax", C(syntax), syntax_changed),
+	ENUM_OPT("tab-bar", G(tab_bar), tab_bar_enum, NULL),
 	INT_OPT("tab-bar-max-components", G(tab_bar_max_components), 0, 10, NULL),
 	INT_OPT("tab-bar-width", G(tab_bar_width), TAB_BAR_MIN_WIDTH, 100, NULL),
 	INT_OPT("tab-width", C(tab_width), 1, 8, NULL),
 	INT_OPT("text-width", C(text_width), 1, 1000, NULL),
-	BOOL_OPT("vertical-tab-bar", G(vertical_tab_bar), NULL),
 	FLAG_OPT("ws-error", C(ws_error), ws_error_values, NULL),
 };
 

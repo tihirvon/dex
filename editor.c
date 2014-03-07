@@ -92,8 +92,7 @@ static void update_window_full(struct window *w)
 	view_update_cursor_x(v);
 	view_update_cursor_y(v);
 	view_update(v);
-	if (options.show_tab_bar)
-		print_tabbar(w);
+	print_tabbar(w);
 	if (options.show_line_numbers)
 		update_line_numbers(w, true);
 	update_range(v, v->vy, v->vy + w->edit_h);
@@ -155,7 +154,7 @@ static void update_window(struct window *w)
 	struct view *v = w->view;
 	int y1, y2;
 
-	if (w->update_tabbar && options.show_tab_bar)
+	if (w->update_tabbar)
 		print_tabbar(w);
 
 	if (options.show_line_numbers) {

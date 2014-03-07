@@ -152,9 +152,14 @@ static void print_vertical_tabbar(struct window *win)
 
 void print_tabbar(struct window *win)
 {
-	if (options.vertical_tab_bar) {
-		print_vertical_tabbar(win);
-	} else {
+	switch (tabbar_visibility(win)) {
+	case TAB_BAR_HORIZONTAL:
 		print_horizontal_tabbar(win);
+		break;
+	case TAB_BAR_VERTICAL:
+		print_vertical_tabbar(win);
+		break;
+	default:
+		break;
 	}
 }

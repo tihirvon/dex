@@ -39,6 +39,13 @@ enum case_sensitive_search {
 	CSS_AUTO,
 };
 
+enum tab_bar {
+	TAB_BAR_HIDDEN,
+	TAB_BAR_HORIZONTAL,
+	TAB_BAR_VERTICAL,
+	TAB_BAR_AUTO,
+};
+
 struct common_options {
 	int auto_indent;
 	int detect_indent;
@@ -92,12 +99,11 @@ struct global_options {
 	enum newline_sequence newline; // default value for new files
 	int scroll_margin;
 	int show_line_numbers;
-	int show_tab_bar;
 	char *statusline_left;
 	char *statusline_right;
+	enum tab_bar tab_bar;
 	int tab_bar_max_components;
 	int tab_bar_width;
-	int vertical_tab_bar;
 };
 
 extern struct global_options options;

@@ -378,19 +378,47 @@ void mark_buffer_tabbars_changed(struct buffer *b)
 	}
 }
 
-int vertical_tabbar_width(struct window *win)
+static int calc_vertical_tabbar_width(struct window *win)
 {
 	// line numbers are included in min_edit_w
 	int min_edit_w = 80;
-	int w = 0;
+	int w = options.tab_bar_width;
 
-	if (options.show_tab_bar && options.vertical_tab_bar)
-		w = options.tab_bar_width;
 	if (win->w - w < min_edit_w)
 		w = win->w - min_edit_w;
 	if (w < TAB_BAR_MIN_WIDTH)
 		w = 0;
 	return w;
+}
+
+enum tab_bar tabbar_visibility(struct window *win)
+{
+	switch (options.tab_bar) {
+	case TAB_BAR_HIDDEN:
+	case TAB_BAR_HORIZONTAL:
+		return options.tab_bar;
+	case TAB_BAR_VERTICAL:
+		if (calc_vertical_tabbar_width(win) == 0) {
+			// not enough space
+			return TAB_BAR_HIDDEN;
+		}
+		return TAB_BAR_VERTICAL;
+	case TAB_BAR_AUTO:
+		if (calc_vertical_tabbar_width(win) == 0) {
+			// not enough space
+			return TAB_BAR_HORIZONTAL;
+		}
+		return TAB_BAR_VERTICAL;
+	}
+	return 0;
+}
+
+int vertical_tabbar_width(struct window *win)
+{
+	if (tabbar_visibility(win) == TAB_BAR_VERTICAL) {
+		return calc_vertical_tabbar_width(win);
+	}
+	return 0;
 }
 
 static int line_numbers_width(struct window *win)
@@ -412,8 +440,9 @@ static int edit_x_offset(struct window *win)
 
 static int edit_y_offset(struct window *win)
 {
-	if (options.show_tab_bar && !options.vertical_tab_bar)
+	if (tabbar_visibility(win) == TAB_BAR_HORIZONTAL) {
 		return 1;
+	}
 	return 0;
 }
 

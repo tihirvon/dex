@@ -52,6 +52,7 @@ struct view *window_open_new_file(struct window *w);
 struct view *window_open_file(struct window *w, const char *filename, const char *encoding);
 void window_open_files(struct window *w, char **filenames, const char *encoding);
 void mark_buffer_tabbars_changed(struct buffer *b);
+enum tab_bar tabbar_visibility(struct window *win);
 int vertical_tabbar_width(struct window *win);
 void calculate_line_numbers(struct window *win);
 void set_window_coordinates(struct window *win, int x, int y);

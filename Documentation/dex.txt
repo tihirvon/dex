@@ -703,9 +703,6 @@ scroll-margin [0]
 show-line-numbers [false]
 	Show line numbers.
 
-show-tab-bar [true]
-	Show tab bar. See also the *tab-bar-width* and *vertical-tab-bar* options.
-
 statusline-left [" %f%s%m%r%s%M"]
 	Format string for the left aligned part of status line.
 
@@ -758,6 +755,16 @@ statusline-left [" %f%s%m%r%s%M"]
 statusline-right [" %y,%X   %u   %E %n %t   %p "]
 	Format string for the right aligned part of status line.
 
+tab-bar [horizontal]
+	hidden
+		Hide tab bar.
+	horizontal
+		Show tab bar on top.
+	vertical
+		Show tab bar on left if there's enough space, hide otherwise.
+	auto
+		Show tab bar on left if there's enough space, on top otherwise.
+
 tab-bar-max-components [0]
 	Maximum number of path components displayed in vertical tab bar.
 	Set to 0 to disable.
@@ -765,13 +772,8 @@ tab-bar-max-components [0]
 tab-bar-width [25]
 	Width of vertical tab bar. Note that width of tab bar is
 	automatically reduced to keep editing area at least 80
-	characters wide. Tab bar will be hidden completely if it would
-	become too narrow.
-
-vertical-tab-bar [false]
-	Show tab bar on the left side instead of on top of the screen.
-	Note that tab bar isn't shown if there's not enought space. See
-	also the *tab-bar-width* option.
+	characters wide. Vertical tab bar is shown only if there's
+	enough space.
 
 @h1 COMMAND SYNTAX
 
