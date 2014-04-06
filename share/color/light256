@@ -1,8 +1,10 @@
+# This color theme should be used with black on white terminal.
+
 # reset colors
 hi
 
 # builtin colors
-hi default 0/0/0 5/5/5
+hi default
 hi nontext 0/0/5 keep
 hi noline 0/0/5
 hi wserror default 5/5/0
