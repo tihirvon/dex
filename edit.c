@@ -395,11 +395,11 @@ static void join_selection(void)
 	bi = view->cursor;
 
 	begin_change_chain();
-	while (count) {
+	while (count > 0) {
 		if (!len)
 			view->cursor = bi;
 
-		buffer_next_char(&bi, &ch);
+		count -= buffer_next_char(&bi, &ch);
 		if (ch == '\t' || ch == ' ') {
 			len++;
 		} else if (ch == '\n') {
@@ -416,7 +416,6 @@ static void join_selection(void)
 			len = 0;
 			join = 0;
 		}
-		count--;
 	}
 
 	/* don't replace last \n which is at end of the selection */
