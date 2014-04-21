@@ -28,6 +28,7 @@ void gbuf_grow(struct gbuf *buf, size_t more);
 void gbuf_free(struct gbuf *buf);
 void gbuf_add_byte(struct gbuf *buf, unsigned char byte);
 long gbuf_add_ch(struct gbuf *buf, unsigned int u);
+long gbuf_insert_ch(struct gbuf *buf, long pos, unsigned int u);
 void gbuf_add_str(struct gbuf *buf, const char *str);
 void gbuf_add_buf(struct gbuf *buf, const char *ptr, size_t len);
 char *gbuf_steal(struct gbuf *buf);

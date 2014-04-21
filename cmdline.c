@@ -6,18 +6,6 @@
 #include "uchar.h"
 #include "input-special.h"
 
-static void cmdline_insert(struct cmdline *c, unsigned int u)
-{
-	unsigned int len = u_char_size(u);
-
-	gbuf_make_space(&c->buf, c->pos, len);
-	if (len > 1) {
-		u_set_char_raw(c->buf.buffer, &c->pos, u);
-	} else {
-		c->buf.buffer[c->pos++] = u;
-	}
-}
-
 static void cmdline_delete(struct cmdline *c)
 {
 	long pos = c->pos;
@@ -189,7 +177,7 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 		default:
 			// don't insert control characters
 			if (key >= 0x20 && key != 0x7f) {
-				cmdline_insert(c, key);
+				c->pos += gbuf_insert_ch(&c->buf, c->pos, key);
 				return 1;
 			}
 			return 0;

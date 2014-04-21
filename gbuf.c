@@ -37,6 +37,15 @@ long gbuf_add_ch(struct gbuf *buf, unsigned int u)
 	return len;
 }
 
+long gbuf_insert_ch(struct gbuf *buf, long pos, unsigned int u)
+{
+	unsigned int len = u_char_size(u);
+
+	gbuf_make_space(buf, pos, len);
+	u_set_char_raw(buf->buffer, &pos, u);
+	return len;
+}
+
 void gbuf_add_str(struct gbuf *buf, const char *str)
 {
 	gbuf_add_buf(buf, str, strlen(str));
