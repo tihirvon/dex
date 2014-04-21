@@ -212,7 +212,7 @@ char *parse_command_arg(const char *cmd, bool tilde)
 			gbuf_add_ch(&arg, ch);
 		}
 	}
-	return gbuf_steal(&arg);
+	return gbuf_steal_cstring(&arg);
 }
 
 int find_end(const char *cmd, int pos, struct error **err)

@@ -104,13 +104,13 @@ int print_command(char prefix)
 	// width of characters up to and including cursor position
 	w = 1; // ":" (prefix)
 	i = 0;
-	while (i <= cmdline.pos && cmdline.buf.buffer[i]) {
+	while (i <= cmdline.pos && i < cmdline.buf.len) {
 		u = u_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
 		w += u_char_width(u);
 	}
-	if (!cmdline.buf.buffer[cmdline.pos])
+	if (cmdline.pos == cmdline.buf.len) {
 		w++;
-
+	}
 	if (w > screen_w)
 		obuf.scroll_x = w - screen_w;
 
@@ -118,7 +118,7 @@ int print_command(char prefix)
 	i = 0;
 	buf_put_char(prefix);
 	x = obuf.x - obuf.scroll_x;
-	while (cmdline.buf.buffer[i]) {
+	while (i < cmdline.buf.len) {
 		BUG_ON(obuf.x > obuf.scroll_x + obuf.width);
 		u = u_get_char(cmdline.buf.buffer, cmdline.buf.len, &i);
 		if (!buf_put_char(u))

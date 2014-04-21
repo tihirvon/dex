@@ -11,10 +11,12 @@ static void search_mode_key(enum term_key_type type, unsigned int key)
 	case KEY_NORMAL:
 		switch (key) {
 		case '\r':
-			if (cmdline.buf.buffer[0]) {
-				search_set_regexp(cmdline.buf.buffer);
+			if (cmdline.buf.len > 0) {
+				char *str = gbuf_cstring(&cmdline.buf);
+				search_set_regexp(str);
 				search_next();
-				history_add(&search_history, cmdline.buf.buffer, search_history_size);
+				history_add(&search_history, str, search_history_size);
+				free(str);
 			} else {
 				search_next();
 			}

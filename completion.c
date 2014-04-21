@@ -248,7 +248,8 @@ static void collect_completions(char **args, int argc)
 
 static void init_completion(void)
 {
-	const char *str, *cmd = cmdline.buf.buffer;
+	char *cmd = gbuf_cstring(&cmdline.buf);
+	const char *str;
 	PTR_ARRAY(array);
 	int semicolon = -1;
 	int completion_pos = -1;
@@ -338,6 +339,7 @@ static void init_completion(void)
 			sort_completions();
 			free(name);
 			ptr_array_free(&array);
+			free(cmd);
 			return;
 		}
 	}
@@ -351,6 +353,7 @@ static void init_completion(void)
 	collect_completions((char **)array.ptrs + semicolon + 1, array.count - semicolon - 1);
 	sort_completions();
 	ptr_array_free(&array);
+	free(cmd);
 }
 
 static char *escape(const char *str)
@@ -384,7 +387,7 @@ static char *escape(const char *str)
 			gbuf_add_ch(&buf, ch);
 		}
 	}
-	return gbuf_steal(&buf);
+	return gbuf_steal_cstring(&buf);
 }
 
 void complete_command(void)

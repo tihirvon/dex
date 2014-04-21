@@ -120,7 +120,7 @@ static const char *selected_file(void)
 
 static void git_open_filter(void)
 {
-	char *str = cmdline.buf.buffer;
+	char *str = gbuf_cstring(&cmdline.buf);
 	char *ptr = git_open.all_files;
 	char *end = git_open.all_files + git_open.size;
 	bool (*match)(const char *, struct ptr_array *) = words_match_icase;
@@ -130,6 +130,7 @@ static void git_open_filter(void)
 	if (contains_upper(str))
 		match = words_match;
 	split(&words, str);
+	free(str);
 
 	git_open.files.count = 0;
 	while (ptr < end) {

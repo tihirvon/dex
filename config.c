@@ -48,6 +48,7 @@ static bool has_line_continuation(const char *str, int len)
 void exec_config(const struct command *cmds, const char *buf, size_t size)
 {
 	const char *ptr = buf;
+	char *cmd;
 	GBUF(line);
 
 	while (ptr < buf + size) {
@@ -62,15 +63,20 @@ void exec_config(const struct command *cmds, const char *buf, size_t size)
 				gbuf_add_buf(&line, ptr, n - 1);
 			} else {
 				gbuf_add_buf(&line, ptr, n);
-				handle_command(cmds, line.buffer);
+				cmd = gbuf_cstring(&line);
+				handle_command(cmds, cmd);
+				free(cmd);
 				gbuf_clear(&line);
 			}
 		}
 		config_line++;
 		ptr += n + 1;
 	}
-	if (line.len)
-		handle_command(cmds, line.buffer);
+	if (line.len) {
+		cmd = gbuf_cstring(&line);
+		handle_command(cmds, cmd);
+		free(cmd);
+	}
 	gbuf_free(&line);
 }
 

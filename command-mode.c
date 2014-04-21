@@ -9,17 +9,19 @@
 static void command_line_enter(void)
 {
 	PTR_ARRAY(array);
+	char *str = gbuf_cstring(&cmdline.buf);
 	struct error *err = NULL;
 	bool ok;
 
 	reset_completion();
 	set_input_mode(INPUT_NORMAL);
-	ok = parse_commands(&array, cmdline.buf.buffer, &err);
+	ok = parse_commands(&array, str, &err);
 
 	/* Need to do this before executing the command because
 	 * "command" can modify contents of command line.
 	 */
-	history_add(&command_history, cmdline.buf.buffer, command_history_size);
+	history_add(&command_history, str, command_history_size);
+	free(str);
 	cmdline_clear(&cmdline);
 
 	if (ok) {

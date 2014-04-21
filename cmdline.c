@@ -72,7 +72,6 @@ static void cmdline_delete_bol(struct cmdline *c)
 
 static void cmdline_delete_eol(struct cmdline *c)
 {
-	c->buf.buffer[c->pos] = 0;
 	c->buf.len = c->pos;
 }
 
@@ -179,7 +178,7 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 			cmdline_prev_char(c);
 			return 1;
 		case CTRL('E'):
-			c->pos = strlen(c->buf.buffer);
+			c->pos = c->buf.len;
 			return 1;
 		case CTRL('F'):
 			cmdline_next_char(c);
@@ -214,14 +213,14 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 			c->pos = 0;
 			return 1;
 		case SKEY_END:
-			c->pos = strlen(c->buf.buffer);
+			c->pos = c->buf.len;
 			return 1;
 		case SKEY_UP:
 			if (history == NULL)
 				return 0;
 			if (c->search_pos < 0) {
 				free(c->search_text);
-				c->search_text = xstrdup(c->buf.buffer);
+				c->search_text = gbuf_cstring(&c->buf);
 				c->search_pos = history->count;
 			}
 			if (history_search_forward(history, &c->search_pos, c->search_text))
