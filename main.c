@@ -224,9 +224,12 @@ int main(int argc, char *argv[])
 	if (command)
 		handle_command(commands, command);
 	if (tag) {
-		const char *ptrs[3] = { "tag", tag, NULL };
-		struct ptr_array array = { (void **)ptrs, 3, 3 };
+		PTR_ARRAY(array);
+		ptr_array_add(&array, xstrdup("tag"));
+		ptr_array_add(&array, xstrdup(tag));
+		ptr_array_add(&array, NULL);
 		run_commands(commands, &array);
+		ptr_array_free(&array);
 	}
 	resize();
 	main_loop();
