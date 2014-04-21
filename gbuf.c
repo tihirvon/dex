@@ -4,6 +4,7 @@
 
 #include "gbuf.h"
 #include "common.h"
+#include "uchar.h"
 
 void gbuf_grow(struct gbuf *buf, size_t more)
 {
@@ -21,10 +22,19 @@ void gbuf_free(struct gbuf *buf)
 	gbuf_init(buf);
 }
 
-void gbuf_add_ch(struct gbuf *buf, char ch)
+void gbuf_add_byte(struct gbuf *buf, unsigned char byte)
 {
 	gbuf_grow(buf, 1);
-	buf->buffer[buf->len++] = ch;
+	buf->buffer[buf->len++] = byte;
+}
+
+long gbuf_add_ch(struct gbuf *buf, unsigned int u)
+{
+	unsigned int len = u_char_size(u);
+
+	gbuf_grow(buf, len);
+	u_set_char_raw(buf->buffer, &buf->len, u);
+	return len;
 }
 
 void gbuf_add_str(struct gbuf *buf, const char *str)

@@ -54,7 +54,7 @@ static void parse_sq(const char *cmd, int *posp)
 		}
 		if (!cmd[pos])
 			break;
-		gbuf_add_ch(&arg, cmd[pos++]);
+		gbuf_add_byte(&arg, cmd[pos++]);
 	}
 	*posp = pos;
 }
@@ -71,10 +71,7 @@ static int unicode_escape(const char *str, int count)
 		u = u << 4 | x;
 	}
 	if (u_is_unicode(u)) {
-		long idx = 0;
-		char buf[4];
-		u_set_char_raw(buf, &idx, u);
-		gbuf_add_buf(&arg, buf, idx);
+		gbuf_add_ch(&arg, u);
 	}
 	return i;
 }
@@ -94,7 +91,7 @@ static void parse_dq(const char *cmd, int *posp)
 			switch (ch) {
 			case '\\':
 			case '"':
-				gbuf_add_ch(&arg, ch);
+				gbuf_add_byte(&arg, ch);
 				break;
 			case 'a':
 				gbuf_add_ch(&arg, '\a');
@@ -125,7 +122,7 @@ static void parse_dq(const char *cmd, int *posp)
 						x2 = hex_decode(cmd[pos]);
 						if (x2 >= 0) {
 							pos++;
-							gbuf_add_ch(&arg, x1 << 4 | x2);
+							gbuf_add_byte(&arg, x1 << 4 | x2);
 						}
 					}
 				}
@@ -138,11 +135,11 @@ static void parse_dq(const char *cmd, int *posp)
 				break;
 			default:
 				gbuf_add_ch(&arg, '\\');
-				gbuf_add_ch(&arg, ch);
+				gbuf_add_byte(&arg, ch);
 				break;
 			}
 		} else {
-			gbuf_add_ch(&arg, ch);
+			gbuf_add_byte(&arg, ch);
 		}
 	}
 	*posp = pos;
@@ -207,9 +204,9 @@ char *parse_command_arg(const char *cmd, bool tilde)
 		} else if (ch == '\\') {
 			if (!cmd[pos])
 				break;
-			gbuf_add_ch(&arg, cmd[pos++]);
+			gbuf_add_byte(&arg, cmd[pos++]);
 		} else {
-			gbuf_add_ch(&arg, ch);
+			gbuf_add_byte(&arg, ch);
 		}
 	}
 	return gbuf_steal_cstring(&arg);

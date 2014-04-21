@@ -835,8 +835,6 @@ void change_case(int mode)
 	i = 0;
 	while (i < text_len) {
 		unsigned int u = u_get_char(src, text_len, &i);
-		long idx = 0;
-		char buf[4];
 
 		switch (mode) {
 		case 't':
@@ -852,9 +850,7 @@ void change_case(int mode)
 			u = towupper(u);
 			break;
 		}
-
-		u_set_char_raw(buf, &idx, u);
-		gbuf_add_buf(&dst, buf, idx);
+		gbuf_add_ch(&dst, u);
 	}
 
 	buffer_replace_bytes(text_len, dst.buffer, dst.len);

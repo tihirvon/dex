@@ -381,10 +381,10 @@ static char *escape(const char *str)
 		case '\\':
 		case '{':
 			gbuf_add_ch(&buf, '\\');
-			gbuf_add_ch(&buf, ch);
+			gbuf_add_byte(&buf, ch);
 			break;
 		default:
-			gbuf_add_ch(&buf, ch);
+			gbuf_add_byte(&buf, ch);
 		}
 	}
 	return gbuf_steal_cstring(&buf);

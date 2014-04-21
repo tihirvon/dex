@@ -263,14 +263,14 @@ static void build_replacement(struct gbuf *buf, const char *line, const char *fo
 				if (len > 0)
 					gbuf_add_buf(buf, line + m[n].rm_so, len);
 			} else {
-				gbuf_add_ch(buf, format[i++]);
+				gbuf_add_byte(buf, format[i++]);
 			}
 		} else if (ch == '&') {
 			int len = m[0].rm_eo - m[0].rm_so;
 			if (len > 0)
 				gbuf_add_buf(buf, line + m[0].rm_so, len);
 		} else {
-			gbuf_add_ch(buf, ch);
+			gbuf_add_byte(buf, ch);
 		}
 	}
 }
