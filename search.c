@@ -249,9 +249,8 @@ void search_next_word(void)
 	do_search_next(true);
 }
 
-static char *build_replace(const char *line, const char *format, regmatch_t *m)
+static void build_replacement(struct gbuf *buf, const char *line, const char *format, regmatch_t *m)
 {
-	GBUF(buf);
 	int i = 0;
 
 	while (format[i]) {
@@ -262,19 +261,18 @@ static char *build_replace(const char *line, const char *format, regmatch_t *m)
 				int n = format[i++] - '0';
 				int len = m[n].rm_eo - m[n].rm_so;
 				if (len > 0)
-					gbuf_add_buf(&buf, line + m[n].rm_so, len);
+					gbuf_add_buf(buf, line + m[n].rm_so, len);
 			} else {
-				gbuf_add_ch(&buf, format[i++]);
+				gbuf_add_ch(buf, format[i++]);
 			}
 		} else if (ch == '&') {
 			int len = m[0].rm_eo - m[0].rm_so;
 			if (len > 0)
-				gbuf_add_buf(&buf, line + m[0].rm_so, len);
+				gbuf_add_buf(buf, line + m[0].rm_so, len);
 		} else {
-			gbuf_add_ch(&buf, ch);
+			gbuf_add_ch(buf, ch);
 		}
 	}
-	return gbuf_steal(&buf);
 }
 
 /*
@@ -328,25 +326,26 @@ static int replace_on_line(struct lineref *lr, regex_t *re, const char *format,
 			/* move cursor after the matched text */
 			block_iter_skip_bytes(&view->cursor, match_len);
 		} else {
-			char *str = build_replace(buf + pos, format, m);
-			long nr_insert = strlen(str);
+			GBUF(b);
+
+			build_replacement(&b, buf + pos, format, m);
 
 			/* lineref is invalidated by modification */
 			if (buf == lr->line)
 				buf = xmemdup(buf, lr->size);
 
-			buffer_replace_bytes(match_len, str, nr_insert);
-			free(str);
+			buffer_replace_bytes(match_len, b.buffer, b.len);
 			nr++;
 
 			/* update selection length */
 			if (view->selection) {
-				view->sel_eo += nr_insert;
+				view->sel_eo += b.len;
 				view->sel_eo -= match_len;
 			}
 
 			/* move cursor after the replaced text */
-			block_iter_skip_bytes(&view->cursor, nr_insert);
+			block_iter_skip_bytes(&view->cursor, b.len);
+			gbuf_free(&b);
 		}
 		*bi = view->cursor;
 
