@@ -241,7 +241,10 @@ static void collect_completions(char **args, int argc)
 		return;
 	}
 	if (streq(cmd->name, "tag") && argc == 1) {
-		collect_tags(completion.parsed);
+		struct tag_file *tf = load_tag_file();
+		if (tf != NULL) {
+			collect_tags(tf, completion.parsed);
+		}
 		return;
 	}
 }

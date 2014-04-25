@@ -1,26 +1,6 @@
 #include "ctags.h"
 #include "common.h"
 
-struct tag_file *open_tag_file(const char *filename)
-{
-	struct tag_file *tf = xnew0(struct tag_file, 1);
-	struct stat st;
-
-	tf->size = stat_read_file(filename, &tf->map, &st);
-	if (tf->size < 0) {
-		free(tf);
-		return NULL;
-	}
-	tf->mtime = st.st_mtime;
-	return tf;
-}
-
-void close_tag_file(struct tag_file *tf)
-{
-	free(tf->map);
-	free(tf);
-}
-
 static int parse_excmd(struct tag *t, const char *buf, int size)
 {
 	char ch = *buf;
@@ -146,7 +126,7 @@ bool next_tag(struct tag_file *tf, size_t *posp, const char *prefix, int exact, 
 
 	while (pos < tf->size) {
 		size_t len = tf->size - pos;
-		char *line = tf->map + pos;
+		char *line = tf->buf + pos;
 		char *end = memchr(line, '\n', len);
 
 		if (end)

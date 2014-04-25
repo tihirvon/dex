@@ -489,6 +489,9 @@ tag [-r] [tag]
 
 	-r return back
 
+	Tag files are searched from current working directory and its
+	parent directories.
+
 	See also *msg* command.
 
 toggle [-gv] <option> [value...]

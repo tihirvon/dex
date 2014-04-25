@@ -1197,9 +1197,9 @@ static void cmd_suspend(const char *pf, char **args)
 
 static void cmd_tag(const char *pf, char **args)
 {
+	struct tag_file *tf;
 	PTR_ARRAY(tags);
 	const char *name = args[0];
-	const char *cur_filename;
 	char *word = NULL;
 	bool pop = false;
 
@@ -1217,6 +1217,13 @@ static void cmd_tag(const char *pf, char **args)
 		return;
 	}
 
+	clear_messages();
+	tf = load_tag_file();
+	if (tf == NULL) {
+		error_msg("No tag file.");
+		return;
+	}
+
 	if (!name) {
 		word = view_get_word_under_cursor(view);
 		if (!word)
@@ -1224,16 +1231,9 @@ static void cmd_tag(const char *pf, char **args)
 		name = word;
 	}
 
-	clear_messages();
-
 	// filename helps to find correct tags
-	cur_filename = NULL;
-	if (buffer->abs_filename != NULL) {
-		cur_filename = strrchr(buffer->abs_filename, '/') + 1;
-	}
-	if (!find_tags(cur_filename, name, &tags)) {
-		error_msg("No tag file.");
-	} else if (!tags.count) {
+	tag_file_find_tags(tf, buffer->abs_filename, name, &tags);
+	if (tags.count == 0) {
 		error_msg("Tag %s not found.", name);
 	} else {
 		int i;
@@ -1245,8 +1245,7 @@ static void cmd_tag(const char *pf, char **args)
 			snprintf(buf, sizeof(buf), "Tag %s", name);
 			m = new_message(buf);
 			m->loc = xnew0(struct file_location, 1);
-			m->loc->filename = t->filename;
-			t->filename = NULL;
+			m->loc->filename = tag_file_get_tag_filename(tf, t);
 			if (t->pattern) {
 				m->loc->pattern = t->pattern;
 				t->pattern = NULL;

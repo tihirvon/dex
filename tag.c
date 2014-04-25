@@ -2,10 +2,11 @@
 #include "ctags.h"
 #include "ptr-array.h"
 #include "completion.h"
+#include "path.h"
 #include "common.h"
 
-static struct tag_file *tag_file;
-static const char *current_filename; // for sorting tags
+static struct tag_file *current_tag_file;
+static char *current_filename; // for sorting tags
 
 static int visibility_cmp(const struct tag *a, const struct tag *b)
 {
@@ -85,24 +86,86 @@ static int tag_cmp(const void *ap, const void *bp)
 	return kind_cmp(a, b);
 }
 
-static int tag_file_changed(const char *filename, struct tag_file *tf)
+// find "tags" file from directory path and its parent directories
+static int open_tag_file(char *path)
 {
-	struct stat st;
-	stat(filename, &st);
-	return st.st_mtime != tf->mtime;
+	const char tags[] = "tags";
+
+	while (*path) {
+		int fd, len = strlen(path);
+		char *slash = strrchr(path, '/');
+
+		if (slash != path + len - 1) {
+			path[len++] = '/';
+		}
+		memcpy(path + len, tags, sizeof(tags));
+		fd = open(path, O_RDONLY);
+		if (fd >= 0) {
+			return fd;
+		}
+		if (errno != ENOENT) {
+			return -1;
+		}
+		*slash = 0;
+	}
+	errno = ENOENT;
+	return -1;
 }
 
-static bool load_tag_file(void)
+static bool tag_file_changed(struct tag_file *tf, const char *filename, struct stat *st)
 {
-	if (tag_file && tag_file_changed("tags", tag_file)) {
-		close_tag_file(tag_file);
-		tag_file = NULL;
-	}
-	if (tag_file)
+	if (tf->mtime != st->st_mtime) {
 		return true;
+	}
+	return !streq(tf->filename, filename);
+}
 
-	tag_file = open_tag_file("tags");
-	return !!tag_file;
+static void tag_file_free(struct tag_file *tf)
+{
+	free(tf->filename);
+	free(tf->buf);
+	free(tf);
+}
+
+struct tag_file *load_tag_file(void)
+{
+	struct tag_file *tf;
+	struct stat st;
+	char path[4096];
+	char *buf;
+	long size;
+	int fd;
+
+	// 5 = length of "/tags"
+	if (!getcwd(path, sizeof(path) - 5)) {
+		return NULL;
+	}
+	fd = open_tag_file(path);
+	if (fd < 0) {
+		return NULL;
+	}
+	fstat(fd, &st);
+	if (current_tag_file != NULL && tag_file_changed(current_tag_file, path, &st)) {
+		tag_file_free(current_tag_file);
+		current_tag_file = NULL;
+	}
+	if (current_tag_file != NULL) {
+		close(fd);
+		return current_tag_file;
+	}
+	buf = xnew(char, st.st_size);
+	size = xread(fd, buf, st.st_size);
+	if (size < 0) {
+		close(fd);
+		return NULL;
+	}
+	tf = xnew0(struct tag_file, 1);
+	tf->filename = xstrdup(path);
+	tf->buf = buf;
+	tf->size = size;
+	tf->mtime = st.st_mtime;
+	current_tag_file = tf;
+	return current_tag_file;
 }
 
 void free_tags(struct ptr_array *tags)
@@ -117,37 +180,69 @@ void free_tags(struct ptr_array *tags)
 	clear(tags);
 }
 
-bool find_tags(const char *filename, const char *name, struct ptr_array *tags)
+// both parameters must be absolute and clean
+static char *path_relative(const char *filename, const char *dir)
+{
+	int dlen = strlen(dir);
+
+	if (!str_has_prefix(filename, dir)) {
+		return NULL;
+	}
+	if (filename[dlen] == 0) {
+		// equal strings
+		return xstrdup(".");
+	}
+	if (filename[dlen] != '/') {
+		return NULL;
+	}
+	return xstrdup(filename + dlen + 1);
+}
+
+void tag_file_find_tags(struct tag_file *tf, const char *filename, const char *name, struct ptr_array *tags)
 {
 	struct tag *t;
 	size_t pos = 0;
 
-	if (!load_tag_file())
-		return false;
-
 	t = xnew(struct tag, 1);
-	while (next_tag(tag_file, &pos, name, 1, t)) {
+	while (next_tag(tf, &pos, name, 1, t)) {
 		ptr_array_add(tags, t);
 		t = xnew(struct tag, 1);
 	}
 	free(t);
 
-	// FIXME: this is ugly
-	current_filename = filename;
+	if (filename == NULL) {
+		current_filename = NULL;
+	} else {
+		char *dir = path_dirname(tf->filename);
+		current_filename = path_relative(filename, dir);
+		free(dir);
+	}
 	qsort(tags->ptrs, tags->count, sizeof(tags->ptrs[0]), tag_cmp);
-	return true;
+	free(current_filename);
+	current_filename = NULL;
 }
 
-void collect_tags(const char *prefix)
+char *tag_file_get_tag_filename(struct tag_file *tf, struct tag *t)
+{
+	char *dir = path_dirname(tf->filename);
+	int a = strlen(dir);
+	int b = strlen(t->filename);
+	char *filename = xnew(char, a + b + 2);
+
+	memcpy(filename, dir, a);
+	filename[a] = '/';
+	memcpy(filename + a + 1, t->filename, b + 1);
+	free(dir);
+	return filename;
+}
+
+void collect_tags(struct tag_file *tf, const char *prefix)
 {
 	struct tag t;
 	size_t pos = 0;
 	char *prev = NULL;
 
-	if (!load_tag_file())
-		return;
-
-	while (next_tag(tag_file, &pos, prefix, 0, &t)) {
+	while (next_tag(tf, &pos, prefix, 0, &t)) {
 		if (!prev || !streq(prev, t.name)) {
 			add_completion(t.name);
 			prev = t.name;
