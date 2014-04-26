@@ -282,6 +282,18 @@ char *filename_to_utf8(const char *filename)
 	return str;
 }
 
+char *path_dirname(const char *filename)
+{
+	char *slash = strrchr(filename, '/');
+	if (slash == NULL) {
+		return xstrdup(".");
+	}
+	if (slash == filename) {
+		return xstrdup("/");
+	}
+	return xstrcut(filename, slash - filename);
+}
+
 // filename must not contain trailing slashes (but it can be "/")
 const char *path_basename(const char *filename)
 {
