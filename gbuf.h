@@ -31,7 +31,7 @@ long gbuf_add_ch(struct gbuf *buf, unsigned int u);
 long gbuf_insert_ch(struct gbuf *buf, long pos, unsigned int u);
 void gbuf_add_str(struct gbuf *buf, const char *str);
 void gbuf_add_buf(struct gbuf *buf, const char *ptr, size_t len);
-char *gbuf_steal(struct gbuf *buf);
+char *gbuf_steal(struct gbuf *buf, long *len);
 char *gbuf_steal_cstring(struct gbuf *buf);
 char *gbuf_cstring(struct gbuf *buf);
 void gbuf_make_space(struct gbuf *buf, size_t pos, size_t len);

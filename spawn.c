@@ -127,14 +127,7 @@ static void filter(int rfd, int wfd, struct filter_data *fdata)
 			}
 		}
 	}
-
-	if (buf.len) {
-		fdata->out_len = buf.len;
-		fdata->out = gbuf_steal(&buf);
-	} else {
-		fdata->out_len = 0;
-		fdata->out = NULL;
-	}
+	fdata->out = gbuf_steal(&buf, &fdata->out_len);
 }
 
 static int open_dev_null(int flags)

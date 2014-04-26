@@ -60,17 +60,21 @@ void gbuf_add_buf(struct gbuf *buf, const char *ptr, size_t len)
 	buf->len += len;
 }
 
-char *gbuf_steal(struct gbuf *buf)
+char *gbuf_steal(struct gbuf *buf, long *len)
 {
 	char *b = buf->buffer;
+	*len = buf->len;
 	gbuf_init(buf);
 	return b;
 }
 
 char *gbuf_steal_cstring(struct gbuf *buf)
 {
-	gbuf_add_ch(buf, 0);
-	return gbuf_steal(buf);
+	char *b;
+	gbuf_add_byte(buf, 0);
+	b = buf->buffer;
+	gbuf_init(buf);
+	return b;
 }
 
 char *gbuf_cstring(struct gbuf *buf)
