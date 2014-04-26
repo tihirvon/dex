@@ -127,14 +127,13 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 
 static void collect_files(bool directories_only)
 {
-	const char *slash;
 	char *str = parse_command_arg(completion.escaped, false);
 
 	if (!streq(completion.parsed, str)) {
 		// ~ was expanded
+		const char *str_slash = strrchr(str, '/');
 		completion.tilde_expanded = true;
-		slash = strrchr(str, '/');
-		if (!slash) {
+		if (str_slash == NULL) {
 			// complete ~ to ~/ or ~user to ~user/
 			int len = strlen(str);
 			char *s = xmalloc(len + 2);
@@ -144,9 +143,9 @@ static void collect_files(bool directories_only)
 			add_completion(s);
 		} else {
 			char *dir;
-			char *dirprefix = xstrslice(str, 0, slash - str + 1);
-			char *fileprefix = xstrdup(slash + 1);
-			slash = strrchr(completion.parsed, '/');
+			char *dirprefix = xstrslice(str, 0, str_slash - str + 1);
+			char *fileprefix = xstrdup(str_slash + 1);
+			const char *slash = strrchr(completion.parsed, '/');
 			dir = xstrslice(completion.parsed, 0, slash - completion.parsed + 1);
 			do_collect_files(dir, dirprefix, fileprefix, directories_only);
 			free(dirprefix);
@@ -154,8 +153,9 @@ static void collect_files(bool directories_only)
 			free(dir);
 		}
 	} else {
-		slash = strrchr(completion.parsed, '/');
-		if (!slash) {
+		const char *slash = strrchr(completion.parsed, '/');
+
+		if (slash == NULL) {
 			do_collect_files("./", "", completion.parsed, directories_only);
 		} else {
 			char *dir = xstrslice(completion.parsed, 0, slash - completion.parsed + 1);
