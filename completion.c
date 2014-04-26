@@ -10,6 +10,7 @@
 #include "common.h"
 #include "color.h"
 #include "env.h"
+#include "path.h"
 
 static struct {
 	// part of string which is to be replaced
@@ -131,9 +132,11 @@ static void collect_files(bool directories_only)
 
 	if (!streq(completion.parsed, str)) {
 		// ~ was expanded
-		const char *str_slash = strrchr(str, '/');
+		const char *fileprefix = path_basename(str);
+
 		completion.tilde_expanded = true;
-		if (str_slash == NULL) {
+		if (fileprefix == str) {
+			// str doesn't contain slashes
 			// complete ~ to ~/ or ~user to ~user/
 			int len = strlen(str);
 			char *s = xmalloc(len + 2);
@@ -142,26 +145,21 @@ static void collect_files(bool directories_only)
 			s[len + 1] = 0;
 			add_completion(s);
 		} else {
-			char *dir;
-			char *dirprefix = xstrslice(str, 0, str_slash - str + 1);
-			char *fileprefix = xstrdup(str_slash + 1);
-			const char *slash = strrchr(completion.parsed, '/');
-			dir = xstrslice(completion.parsed, 0, slash - completion.parsed + 1);
+			char *dir = path_dirname(completion.parsed);
+			char *dirprefix = path_dirname(str);
 			do_collect_files(dir, dirprefix, fileprefix, directories_only);
 			free(dirprefix);
-			free(fileprefix);
 			free(dir);
 		}
 	} else {
-		const char *slash = strrchr(completion.parsed, '/');
+		const char *fileprefix = path_basename(completion.parsed);
 
-		if (slash == NULL) {
-			do_collect_files("./", "", completion.parsed, directories_only);
+		if (fileprefix == completion.parsed) {
+			// completion.parsed doesn't contain slashes
+			do_collect_files(".", "", fileprefix, directories_only);
 		} else {
-			char *dir = xstrslice(completion.parsed, 0, slash - completion.parsed + 1);
-			char *fileprefix = xstrdup(slash + 1);
+			char *dir = path_dirname(completion.parsed);
 			do_collect_files(dir, dir, fileprefix, directories_only);
-			free(fileprefix);
 			free(dir);
 		}
 	}
