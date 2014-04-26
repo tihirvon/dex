@@ -452,12 +452,11 @@ static void cmd_line(const char *pf, char **args)
 
 static void cmd_load_syntax(const char *pf, char **args)
 {
-	const char *slash = strrchr(args[0], '/');
-	const char *filename = slash ? args[0] : NULL;
-	const char *filetype = slash ? slash + 1 : args[0];
+	const char *filename = args[0];
+	const char *filetype = path_basename(filename);
 	int err;
 
-	if (filename) {
+	if (filename != filetype) {
 		if (find_syntax(filetype)) {
 			error_msg("Syntax for filetype %s already loaded", filetype);
 		} else {

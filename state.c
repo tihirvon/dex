@@ -6,6 +6,7 @@
 #include "parse-args.h"
 #include "config.h"
 #include "error.h"
+#include "path.h"
 #include "common.h"
 
 static void bitmap_set(unsigned char *bitmap, long idx)
@@ -451,8 +452,6 @@ static const struct command syntax_commands[] = {
 
 struct syntax *load_syntax_file(const char *filename, bool must_exist, int *err)
 {
-	const char *slash = strrchr(filename, '/');
-	const char *name = slash ? slash + 1 : filename;
 	const char *saved_config_file = config_file;
 	int saved_config_line = config_line;
 	struct syntax *syn;
@@ -470,7 +469,7 @@ struct syntax *load_syntax_file(const char *filename, bool must_exist, int *err)
 	config_file = saved_config_file;
 	config_line = saved_config_line;
 
-	syn = find_syntax(name);
+	syn = find_syntax(path_basename(filename));
 	if (syn && editor_status != EDITOR_INITIALIZING)
 		update_syntax_colors(syn);
 	if (syn == NULL)

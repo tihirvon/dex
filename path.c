@@ -281,3 +281,13 @@ char *filename_to_utf8(const char *filename)
 	cconv_free(c);
 	return str;
 }
+
+// filename must not contain trailing slashes (but it can be "/")
+const char *path_basename(const char *filename)
+{
+	const char *slash = strrchr(filename, '/');
+	if (slash == NULL) {
+		return filename;
+	}
+	return slash + 1;
+}
