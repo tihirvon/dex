@@ -6,10 +6,12 @@
 void ptr_array_add(struct ptr_array *array, void *ptr)
 {
 	if (array->count == array->alloc) {
+		// NOTE: if alloc was 1 then new alloc would be 1*3/2 = 1!
 		array->alloc *= 3;
 		array->alloc /= 2;
-		if (!array->alloc)
+		if (array->alloc < 8) {
 			array->alloc = 8;
+		}
 		xrenew(array->ptrs, array->alloc);
 	}
 	array->ptrs[array->count++] = ptr;
