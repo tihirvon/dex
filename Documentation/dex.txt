@@ -112,7 +112,8 @@ case [-lu]
 	-u upper case
 
 cd <directory>
-	Change directory. Updates $PWD and $OLDPWD.
+	Change directory. Updates $PWD and $OLDPWD. "cd -" changes to
+	previous directory ($OLDPWD).
 
 center-view
 	Center view to cursor.

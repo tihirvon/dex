@@ -87,12 +87,20 @@ static void cmd_case(const char *pf, char **args)
 
 static void cmd_cd(const char *pf, char **args)
 {
+	char *dir = args[0];
 	char cwd[8192];
 	char *cwdp = NULL;
 	bool got_cwd = !!getcwd(cwd, sizeof(cwd));
 	int i;
 
-	if (chdir(args[0])) {
+	if (streq(dir, "-")) {
+		dir = getenv("OLDPWD");
+		if (dir == NULL || dir[0] == 0) {
+			error_msg("cd: OLDPWD not set");
+			return;
+		}
+	}
+	if (chdir(dir)) {
 		error_msg("cd: %s", strerror(errno));
 		return;
 	}
