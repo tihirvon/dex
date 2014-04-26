@@ -64,7 +64,6 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 {
 	char path[8192];
 	int plen = strlen(dirname);
-	int dlen = strlen(dirprefix);
 	int flen = strlen(fileprefix);
 	struct dirent *de;
 	DIR *dir;
@@ -82,10 +81,10 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 
 	while ((de = readdir(dir))) {
 		const char *name = de->d_name;
+		GBUF(buf);
 		struct stat st;
 		int len;
 		bool is_dir;
-		char *c;
 
 		if (flen) {
 			if (strncmp(name, fileprefix, flen))
@@ -111,14 +110,17 @@ static void do_collect_files(const char *dirname, const char *dirprefix, const c
 		if (!is_dir && directories_only)
 			continue;
 
-		c = xnew(char, dlen + len + 2);
-		memcpy(c, dirprefix, dlen);
-		memcpy(c + dlen, name, len + 1);
-		if (is_dir) {
-			c[dlen + len] = '/';
-			c[dlen + len + 1] = 0;
+		if (dirprefix[0]) {
+			gbuf_add_str(&buf, dirprefix);
+			if (!str_has_suffix(dirprefix, "/")) {
+				gbuf_add_byte(&buf, '/');
+			}
 		}
-		add_completion(c);
+		gbuf_add_str(&buf, name);
+		if (is_dir) {
+			gbuf_add_byte(&buf, '/');
+		}
+		add_completion(gbuf_steal_cstring(&buf));
 	}
 	closedir(dir);
 }

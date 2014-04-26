@@ -63,6 +63,17 @@ static inline bool str_has_prefix(const char *str, const char *prefix)
 	return !strncmp(str, prefix, strlen(prefix));
 }
 
+static inline bool str_has_suffix(const char *str, const char *suffix)
+{
+	int l1 = strlen(str);
+	int l2 = strlen(suffix);
+
+	if (l2 > l1) {
+		return false;
+	}
+	return memcmp(str + l1 - l2, suffix, l2) == 0;
+}
+
 long count_nl(const char *buf, long size);
 int count_strings(char **strings);
 void free_strings(char **strings);
