@@ -1,7 +1,3 @@
-/*
- * This code is largely based on strbuf in the GIT version control system.
- */
-
 #include "gbuf.h"
 #include "common.h"
 #include "uchar.h"
