@@ -6,9 +6,9 @@
 #include "common.h"
 #include "uchar.h"
 
-void gbuf_grow(struct gbuf *buf, size_t more)
+void gbuf_grow(struct gbuf *buf, long more)
 {
-	size_t alloc = ROUND_UP(buf->len + more, 16);
+	long alloc = ROUND_UP(buf->len + more, 16);
 
 	if (alloc > buf->alloc) {
 		buf->alloc = alloc;
@@ -51,7 +51,7 @@ void gbuf_add_str(struct gbuf *buf, const char *str)
 	gbuf_add_buf(buf, str, strlen(str));
 }
 
-void gbuf_add_buf(struct gbuf *buf, const char *ptr, size_t len)
+void gbuf_add_buf(struct gbuf *buf, const char *ptr, long len)
 {
 	if (!len)
 		return;
@@ -85,7 +85,7 @@ char *gbuf_cstring(struct gbuf *buf)
 	return b;
 }
 
-void gbuf_make_space(struct gbuf *buf, size_t pos, size_t len)
+void gbuf_make_space(struct gbuf *buf, long pos, long len)
 {
 	BUG_ON(pos > buf->len);
 	gbuf_grow(buf, len);
@@ -93,7 +93,7 @@ void gbuf_make_space(struct gbuf *buf, size_t pos, size_t len)
 	buf->len += len;
 }
 
-void gbuf_remove(struct gbuf *buf, size_t pos, size_t len)
+void gbuf_remove(struct gbuf *buf, long pos, long len)
 {
 	BUG_ON(pos + len > buf->len);
 	memmove(buf->buffer + pos, buf->buffer + pos + len, buf->len - pos - len);
