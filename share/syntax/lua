@@ -97,18 +97,40 @@ state code
 	char \" double-quote
 	char \- dash
 	char \[ bracket
-	char =/+\*#<>^% code operator
+	char -b : colon
 	str "~=" code operator
+	char =/+\*#<>^%|&~ code operator
 	str "..." code special
 	str ".." code operator
 	char . dot
-	char !|&@`$\? bad-char
+	char !@`$\? bad-char
 	eat code
 
 state bracket string
 	char \[ .lua-long-string:code string
 	char -b = bracket-equals
 	recolor default 1
+	noeat code
+
+state colon
+	char -b : colon-colon
+	noeat code
+
+state colon-colon
+	char -b a-zA-Z_ colon-colon-name
+	eat code error
+
+state colon-colon-name
+	char -b a-zA-Z0-9_ colon-colon-name
+	char -b : colon-colon-name-colon
+	eat code error
+
+state colon-colon-name-colon
+	char -b : label
+	eat code error
+
+state label
+	recolor label
 	noeat code
 
 state bracket-equals string
@@ -192,13 +214,13 @@ state identifier
 state single-quote string
 	char \' code string
 	char "\n" code
-	char "\\" .lua-escape:single-quote
+	char "\\" .lua-escape:single-quote special
 	eat single-quote
 
 state double-quote string
 	char \" code string
 	char "\n" code
-	char "\\" .lua-escape:double-quote
+	char "\\" .lua-escape:double-quote special
 	eat double-quote
 
 state bad-char error
