@@ -190,7 +190,7 @@ static bool read_special(unsigned int *key, enum term_key_type *type)
 	int i;
 
 	for (i = 0; i < NR_SKEYS; i++) {
-		const char *keycode = term_cap.strings[NR_STR_CAP_CMDS + i];
+		const char *keycode = term_cap.keys[i];
 		int len;
 
 		if (!keycode)

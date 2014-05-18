@@ -29,7 +29,7 @@ enum {
 	STR_CAP_CMD_ve, // show cursor
 	STR_CAP_CMD_vi, // hide cursor
 
-	NR_STR_CAP_CMDS
+	NR_STR_CAPS
 };
 
 enum {
@@ -63,7 +63,7 @@ enum {
 	NR_SKEYS
 };
 
-#define NR_STR_CAPS (NR_STR_CAP_CMDS + NR_SKEYS)
+#define NR_KEY_CAPS (SKEY_SHIFT_RIGHT + 1)
 
 enum {
 	COLOR_DEFAULT = -1,
@@ -97,6 +97,9 @@ struct term_cap {
 
 	/* string caps */
 	char *strings[NR_STR_CAPS];
+
+	/* string caps (keys) */
+	char *keys[NR_KEY_CAPS];
 };
 
 struct term_color {

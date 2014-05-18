@@ -13,7 +13,9 @@ static unsigned char string_cap_map[NR_STR_CAPS] = {
 	tcs_enter_ca_mode,
 	tcs_cursor_normal,
 	tcs_cursor_invisible,
+};
 
+static unsigned char key_cap_map[NR_KEY_CAPS] = {
 	tcs_key_ic,
 	tcs_key_dc,
 	tcs_key_home,
@@ -216,9 +218,12 @@ int terminfo_get_caps(const char *filename)
 	/* now get only the interesting caps, ignore other crap */
 	term_cap.ut = get_bool(&ti, tcb_back_color_erase);
 	term_cap.colors = get_num(&ti, tcn_max_colors);
-	for (i = 0; i < NR_STR_CAPS; i++)
+	for (i = 0; i < NR_STR_CAPS; i++) {
 		term_cap.strings[i] = get_str(&ti, string_cap_map[i]);
-
+	}
+	for (i = 0; i < NR_KEY_CAPS; i++) {
+		term_cap.keys[i] = get_str(&ti, key_cap_map[i]);
+	}
 	free(buf);
 	return 0;
 corrupt:
