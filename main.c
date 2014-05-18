@@ -93,11 +93,6 @@ int main(int argc, char *argv[])
 	bool read_rc = true;
 	int i;
 
-	if (!isatty(1)) {
-		fprintf(stderr, "stdout doesn't refer to a terminal\n");
-		return 1;
-	}
-
 	if (!home)
 		home = "";
 	home_dir = xstrdup(home);
@@ -134,6 +129,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (!isatty(1)) {
+		fprintf(stderr, "stdout doesn't refer to a terminal\n");
+		return 1;
+	}
 	if (term == NULL || term[0] == 0) {
 		fprintf(stderr, "TERM not set\n");
 		return 1;
