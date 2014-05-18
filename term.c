@@ -80,6 +80,27 @@ static void buffer_num(unsigned int num)
 	} while (pos);
 }
 
+static char *escape_key(const char *key, int len)
+{
+	static char buf[1024];
+	int i, j = 0;
+
+	for (i = 0; i < len && i < sizeof(buf) - 1; i++) {
+		unsigned char ch = key[i];
+
+		if (ch < 0x20) {
+			buf[j++] = '^';
+			ch |= 0x40;
+		} else if (ch == 0x7f) {
+			buf[j++] = '^';
+			ch = '?';
+		}
+		buf[j++] = ch;
+	}
+	buf[j] = 0;
+	return buf;
+}
+
 static int load_terminfo_caps(const char *path, const char *term)
 {
 	char filename[512];
@@ -249,6 +270,9 @@ static bool read_special(unsigned int *key, enum term_key_type *type)
 	bool possibly_truncated = false;
 	int i;
 
+	if (DEBUG > 2) {
+		d_print("key: '%s'\n", escape_key(input_buf, input_buf_fill));
+	}
 	for (i = 0; i < NR_KEY_CAPS; i++) { // NOTE: not NR_SKEYS
 		const char *keycode = term_cap.keys[i];
 		int len;
