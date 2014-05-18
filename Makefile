@@ -147,7 +147,6 @@ dex_objects :=	 		\
 	tabbar.o		\
 	tag.o			\
 	term.o			\
-	termcap.o		\
 	terminfo.o		\
 	uchar.o			\
 	unicode.o		\

@@ -110,7 +110,7 @@ extern struct term_cap term_cap;
 // control key
 #define CTRL(x) ((x) & ~0x40)
 
-int term_init(bool use_terminfo, bool use_termcap);
+int term_init(void);
 
 void term_raw(void);
 void term_cooked(void);
@@ -126,8 +126,6 @@ const char *term_set_color(const struct term_color *color);
 /* move cursor (x and y are zero based) */
 const char *term_move_cursor(int x, int y);
 
-/* private - don't use */
-int termcap_get_caps(const char *filename, const char *term);
 int terminfo_get_caps(const char *filename);
 
 #endif

@@ -89,8 +89,6 @@ int main(int argc, char *argv[])
 	char *command_history_filename;
 	char *search_history_filename;
 	char *editor_dir;
-	bool use_terminfo = true;
-	bool use_termcap = true;
 	bool read_rc = true;
 	int i;
 
@@ -110,12 +108,6 @@ int main(int argc, char *argv[])
 			break;
 		if (!opt[2]) {
 			switch (opt[1]) {
-			case 'C':
-				use_termcap = false;
-				continue;
-			case 'I':
-				use_terminfo = false;
-				continue;
 			case 'R':
 				read_rc = false;
 				continue;
@@ -151,7 +143,7 @@ int main(int argc, char *argv[])
 	if (streq(charset, "UTF-8"))
 		term_utf8 = true;
 
-	if (term_init(use_terminfo, use_termcap))
+	if (term_init())
 		error_msg("No terminal entry found.");
 
 	exec_builtin_rc(builtin_rc);
