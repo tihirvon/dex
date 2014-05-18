@@ -113,7 +113,7 @@ extern struct term_cap term_cap;
 // control key
 #define CTRL(x) ((x) & ~0x40)
 
-int term_init(void);
+int read_terminfo(const char *term);
 
 void term_raw(void);
 void term_cooked(void);

@@ -36,7 +36,7 @@ static int load_terminfo_caps(const char *path, const char *term)
 	return terminfo_get_caps(filename);
 }
 
-static int read_terminfo(const char *term)
+int read_terminfo(const char *term)
 {
 	static const char *paths[] = {
 		NULL, // $HOME/.terminfo
@@ -63,16 +63,6 @@ static int read_terminfo(const char *term)
 			return 0;
 	}
 	return rc;
-}
-
-int term_init(void)
-{
-	const char *term = getenv("TERM");
-
-	if (term == NULL || term[0] == 0) {
-		term = "linux";
-	}
-	return read_terminfo(term);
 }
 
 void term_raw(void)

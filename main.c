@@ -82,6 +82,7 @@ static const char *opt_arg(const char *opt, const char *arg)
 
 int main(int argc, char *argv[])
 {
+	const char *term = getenv("TERM");
 	const char *home = getenv("HOME");
 	const char *tag = NULL;
 	const char *rc = NULL;
@@ -133,6 +134,19 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (term == NULL || term[0] == 0) {
+		fprintf(stderr, "TERM not set\n");
+		return 1;
+	}
+	switch (read_terminfo(term)) {
+	case -1:
+		fprintf(stderr, "loading terminfo file: %s\n", strerror(errno));
+		return 1;
+	case -2:
+		fprintf(stderr, "terminfo file seems to be corrupt\n");
+		return 1;
+	}
+
 	// create this early. needed if lock-files is true
 	editor_dir = editor_file("");
 	mkdir(editor_dir, 0755);
@@ -142,9 +156,6 @@ int main(int argc, char *argv[])
 	charset = nl_langinfo(CODESET);
 	if (streq(charset, "UTF-8"))
 		term_utf8 = true;
-
-	if (term_init())
-		error_msg("No terminal entry found.");
 
 	exec_builtin_rc(builtin_rc);
 	fill_builtin_colors();
