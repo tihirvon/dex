@@ -92,10 +92,9 @@ bind <key> [command]
 
 	Special keys:
 		insert delete home end pgup pgdown left right up down f1
-		f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 sleft sright
+		f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12
 
-		sleft is shifted left arrow and sright is shifted right
-		arrow.
+		sleft sright sup sdown (shifted arrow keys)
 
 bof
 	Move to beginning of file.

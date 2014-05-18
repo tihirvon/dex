@@ -12,21 +12,51 @@ struct keymap {
 	enum term_key_type type;
 	unsigned int key;
 	const char *code;
+	unsigned int terms;
+};
+
+enum {
+	T_RXVT = 1,
+	T_SCREEN = 2,
+	T_ST = 4,
+	T_XTERM = 8,
+	T_ALL = 16 - 1,
+};
+
+// prefixes, st-256color matches st
+const char *terms[] = {
+	"rxvt",
+	"screen",
+	"st",
+	"xterm",
 };
 
 static const struct keymap builtin_keys[] = {
-	{ KEY_SPECIAL, SKEY_LEFT,	"\033[D" },
-	{ KEY_SPECIAL, SKEY_RIGHT,	"\033[C" },
-	{ KEY_SPECIAL, SKEY_UP,		"\033[A" },
-	{ KEY_SPECIAL, SKEY_DOWN,	"\033[B" },
-	// keypad
-	{ KEY_SPECIAL, SKEY_HOME,	"\033[1~" },
-	{ KEY_SPECIAL, SKEY_END,	"\033[4~" },
-	{ KEY_NORMAL, '/',		"\033Oo" },
-	{ KEY_NORMAL, '*',		"\033Oj" },
-	{ KEY_NORMAL, '-',		"\033Om" },
-	{ KEY_NORMAL, '+',		"\033Ok" },
-	{ KEY_NORMAL, '\r',		"\033OM" },
+	// ansi
+	{ KEY_SPECIAL, SKEY_LEFT,	"\033[D", T_ALL },
+	{ KEY_SPECIAL, SKEY_RIGHT,	"\033[C", T_ALL },
+	{ KEY_SPECIAL, SKEY_UP,		"\033[A", T_ALL },
+	{ KEY_SPECIAL, SKEY_DOWN,	"\033[B", T_ALL },
+
+	// ???
+	{ KEY_SPECIAL, SKEY_HOME,	"\033[1~", T_ALL },
+	{ KEY_SPECIAL, SKEY_END,	"\033[4~", T_ALL },
+
+	// fix keypad when numlock is off
+	{ KEY_NORMAL, '/',		"\033Oo", T_ALL },
+	{ KEY_NORMAL, '*',		"\033Oj", T_ALL },
+	{ KEY_NORMAL, '-',		"\033Om", T_ALL },
+	{ KEY_NORMAL, '+',		"\033Ok", T_ALL },
+	{ KEY_NORMAL, '\r',		"\033OM", T_ALL },
+
+	{ KEY_SPECIAL, SKEY_SHIFT_LEFT,	"\033[d", T_RXVT },
+	{ KEY_SPECIAL, SKEY_SHIFT_RIGHT,"\033[c", T_RXVT },
+	{ KEY_SPECIAL, SKEY_SHIFT_UP,	"\033[a", T_RXVT },
+	{ KEY_SPECIAL, SKEY_SHIFT_DOWN,	"\033[b", T_RXVT },
+	{ KEY_SPECIAL, SKEY_SHIFT_UP,	"\033[1;2A", T_SCREEN | T_ST | T_XTERM },
+	{ KEY_SPECIAL, SKEY_SHIFT_DOWN,	"\033[1;2B", T_SCREEN | T_ST | T_XTERM },
+	{ KEY_SPECIAL, SKEY_SHIFT_LEFT,	"\033[1;2D", T_SCREEN | T_ST | T_XTERM },
+	{ KEY_SPECIAL, SKEY_SHIFT_RIGHT,"\033[1;2C", T_SCREEN | T_ST | T_XTERM },
 };
 
 struct term_cap term_cap;
@@ -34,6 +64,7 @@ struct term_cap term_cap;
 static struct termios termios_save;
 static char buffer[64];
 static int buffer_pos;
+static unsigned int term_flags; // T_*
 
 static void buffer_num(unsigned int num)
 {
@@ -84,6 +115,18 @@ int read_terminfo(const char *term)
 			return 0;
 	}
 	return rc;
+}
+
+void term_setup_extra_keys(const char *term)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(terms); i++) {
+		if (str_has_prefix(term, terms[i])) {
+			term_flags = 1 << i;
+			break;
+		}
+	}
 }
 
 void term_raw(void)
@@ -183,8 +226,12 @@ static const struct keymap *find_key(bool *possibly_truncated)
 
 	for (i = 0; i < ARRAY_COUNT(builtin_keys); i++) {
 		const struct keymap *entry = &builtin_keys[i];
-		int len = strlen(entry->code);
+		int len;
 
+		if ((entry->terms & term_flags) == 0) {
+			continue;
+		}
+		len = strlen(entry->code);
 		if (len > input_buf_fill) {
 			if (!memcmp(entry->code, input_buf, input_buf_fill)) {
 				*possibly_truncated = true;
@@ -202,7 +249,7 @@ static bool read_special(unsigned int *key, enum term_key_type *type)
 	bool possibly_truncated = false;
 	int i;
 
-	for (i = 0; i < NR_SKEYS; i++) {
+	for (i = 0; i < NR_KEY_CAPS; i++) { // NOTE: not NR_SKEYS
 		const char *keycode = term_cap.keys[i];
 		int len;
 

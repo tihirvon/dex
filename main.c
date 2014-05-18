@@ -145,6 +145,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "terminfo file seems to be corrupt\n");
 		return 1;
 	}
+	term_setup_extra_keys(term);
 
 	// create this early. needed if lock-files is true
 	editor_dir = editor_file("");

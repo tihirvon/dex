@@ -33,6 +33,7 @@ enum {
 };
 
 enum {
+	// keys from terminfo
 	SKEY_INSERT,
 	SKEY_DELETE,
 	SKEY_HOME,
@@ -43,7 +44,6 @@ enum {
 	SKEY_RIGHT,
 	SKEY_UP,
 	SKEY_DOWN,
-
 	SKEY_F1,
 	SKEY_F2,
 	SKEY_F3,
@@ -56,9 +56,12 @@ enum {
 	SKEY_F10,
 	SKEY_F11,
 	SKEY_F12,
-
 	SKEY_SHIFT_LEFT,
 	SKEY_SHIFT_RIGHT,
+
+	// these are not supported by terminfo
+	SKEY_SHIFT_UP,
+	SKEY_SHIFT_DOWN,
 
 	NR_SKEYS
 };
@@ -114,6 +117,7 @@ extern struct term_cap term_cap;
 #define CTRL(x) ((x) & ~0x40)
 
 int read_terminfo(const char *term);
+void term_setup_extra_keys(const char *term);
 
 void term_raw(void);
 void term_cooked(void);

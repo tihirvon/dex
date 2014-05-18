@@ -43,6 +43,8 @@ static const char *special_names[NR_SKEYS] = {
 	"f12",
 	"sleft",
 	"sright",
+	"sup",
+	"sdown",
 };
 
 static bool parse_key(unsigned char *type, unsigned int *key, const char *str)
