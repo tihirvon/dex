@@ -8,6 +8,27 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 
+struct keymap {
+	enum term_key_type type;
+	unsigned int key;
+	const char *code;
+};
+
+static const struct keymap builtin_keys[] = {
+	{ KEY_SPECIAL, SKEY_LEFT,	"\033[D" },
+	{ KEY_SPECIAL, SKEY_RIGHT,	"\033[C" },
+	{ KEY_SPECIAL, SKEY_UP,		"\033[A" },
+	{ KEY_SPECIAL, SKEY_DOWN,	"\033[B" },
+	// keypad
+	{ KEY_SPECIAL, SKEY_HOME,	"\033[1~" },
+	{ KEY_SPECIAL, SKEY_END,	"\033[4~" },
+	{ KEY_NORMAL, '/',		"\033Oo" },
+	{ KEY_NORMAL, '*',		"\033Oj" },
+	{ KEY_NORMAL, '-',		"\033Om" },
+	{ KEY_NORMAL, '+',		"\033Ok" },
+	{ KEY_NORMAL, '\r',		"\033OM" },
+};
+
 struct term_cap term_cap;
 
 static struct termios termios_save;
@@ -156,26 +177,28 @@ static bool input_get_byte(unsigned char *ch)
 	return true;
 }
 
+static const struct keymap *find_key(bool *possibly_truncated)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_COUNT(builtin_keys); i++) {
+		const struct keymap *entry = &builtin_keys[i];
+		int len = strlen(entry->code);
+
+		if (len > input_buf_fill) {
+			if (!memcmp(entry->code, input_buf, input_buf_fill)) {
+				*possibly_truncated = true;
+			}
+		} else if (strncmp(entry->code, input_buf, len) == 0) {
+			return entry;
+		}
+	}
+	return NULL;
+}
+
 static bool read_special(unsigned int *key, enum term_key_type *type)
 {
-	static const struct {
-		enum term_key_type type;
-		unsigned int key;
-		const char *code;
-	} builtin[] = {
-		{ KEY_SPECIAL, SKEY_LEFT,	"\033[D" },
-		{ KEY_SPECIAL, SKEY_RIGHT,	"\033[C" },
-		{ KEY_SPECIAL, SKEY_UP,		"\033[A" },
-		{ KEY_SPECIAL, SKEY_DOWN,	"\033[B" },
-		/* keypad */
-		{ KEY_SPECIAL, SKEY_HOME,	"\033[1~" },
-		{ KEY_SPECIAL, SKEY_END,	"\033[4~" },
-		{ KEY_NORMAL, '/',		"\033Oo" },
-		{ KEY_NORMAL, '*',		"\033Oj" },
-		{ KEY_NORMAL, '-',		"\033Om" },
-		{ KEY_NORMAL, '+',		"\033Ok" },
-		{ KEY_NORMAL, '\r',		"\033OM" },
-	};
+	const struct keymap *entry;
 	bool possibly_truncated = false;
 	int i;
 
@@ -200,20 +223,11 @@ static bool read_special(unsigned int *key, enum term_key_type *type)
 		consume_input(len);
 		return true;
 	}
-	for (i = 0; i < ARRAY_COUNT(builtin); i++) {
-		int len = strlen(builtin[i].code);
-
-		if (len > input_buf_fill) {
-			/* this might be a truncated escape sequence */
-			if (!memcmp(builtin[i].code, input_buf, input_buf_fill))
-				possibly_truncated = true;
-			continue;
-		}
-		if (strncmp(builtin[i].code, input_buf, len))
-			continue;
-		*key = builtin[i].key;
-		*type = builtin[i].type;
-		consume_input(len);
+	entry = find_key(&possibly_truncated);
+	if (entry != NULL) {
+		*key = entry->key;
+		*type = entry->type;
+		consume_input(strlen(entry->code));
 		return true;
 	}
 
