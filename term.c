@@ -538,6 +538,10 @@ const char *term_set_color(const struct term_color *color)
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '2';
 	}
+	if (c.attr & ATTR_ITALIC) {
+		buffer[buffer_pos++] = ';';
+		buffer[buffer_pos++] = '3';
+	}
 	if (c.attr & ATTR_UNDERLINE) {
 		buffer[buffer_pos++] = ';';
 		buffer[buffer_pos++] = '4';

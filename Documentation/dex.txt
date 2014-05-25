@@ -256,7 +256,7 @@ hi <name> [fg-color [bg-color]]  [attribute]...
 	syntax.
 
 	Attributes:
-		bold lowintensity underline blink reverse invisible keep
+		bold lowintensity italic underline blink reverse invisible keep
 
 	The color and attribute value "keep" is useful in selected text
 	to keep fg-color and attributes and change only bg-color.

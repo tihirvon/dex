@@ -14,7 +14,8 @@ static const char * const color_names[] = {
 };
 
 static const char * const attr_names[] = {
-	"bold", "lowintensity", "underline", "blink", "reverse", "invisible", "keep"
+	"bold", "lowintensity", "italic", "underline",
+	"blink", "reverse", "invisible", "keep"
 };
 
 static const char * const builtin_color_names[NR_BC] = {
