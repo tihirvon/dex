@@ -62,6 +62,10 @@ enum {
 	// these are not supported by terminfo
 	SKEY_SHIFT_UP,
 	SKEY_SHIFT_DOWN,
+	SKEY_CTRL_LEFT,
+	SKEY_CTRL_RIGHT,
+	SKEY_CTRL_UP,
+	SKEY_CTRL_DOWN,
 
 	NR_SKEYS
 };

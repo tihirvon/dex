@@ -96,6 +96,8 @@ bind <key> [command]
 
 		sleft sright sup sdown (shifted arrow keys)
 
+		^left ^right ^up ^down (ctrl with arrow keys)
+
 bof
 	Move to beginning of file.
 
