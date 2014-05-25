@@ -14,9 +14,8 @@
 #bind ^H erase
 #bind ^C command
 
-# shift-left, shift-right
-bind sleft word-bwd
-bind sright word-fwd
+bind ^left word-bwd
+bind ^right word-fwd
 
 bind ^A bol
 bind ^B left
