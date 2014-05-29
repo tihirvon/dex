@@ -117,12 +117,12 @@ void cmdline_set_text(struct cmdline *c, const char *text)
 	c->search_pos = -1;
 }
 
-int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_key_type type, unsigned int key)
+int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, int key)
 {
 	char buf[4];
 	int count;
 
-	if (special_input_keypress(type, key, buf, &count)) {
+	if (special_input_keypress(key, buf, &count)) {
 		// \n is not allowed in command line because
 		// command/search history file would break
 		if (count && buf[0] != '\n')
@@ -130,109 +130,96 @@ int cmdline_handle_key(struct cmdline *c, struct ptr_array *history, enum term_k
 		c->search_pos = -1;
 		return 1;
 	}
-	switch (type) {
-	case KEY_NORMAL:
-		switch (key) {
-		case CTRL('['): // ESC
-		case CTRL('C'):
-			cmdline_clear(c);
+	if (key <= KEY_UNICODE_MAX) {
+		c->pos += gbuf_insert_ch(&c->buf, c->pos, key);
+		return 1;
+	}
+	switch (key) {
+	case CTRL('['): // ESC
+	case CTRL('C'):
+		cmdline_clear(c);
+		return CMDLINE_CANCEL;
+	case CTRL('D'):
+		cmdline_delete(c);
+		break;
+	case CTRL('K'):
+		cmdline_delete_eol(c);
+		break;
+	case CTRL('H'):
+	case CTRL('?'):
+		if (c->buf.len == 0)
 			return CMDLINE_CANCEL;
-		case CTRL('D'):
-			cmdline_delete(c);
-			break;
-		case CTRL('K'):
-			cmdline_delete_eol(c);
-			break;
-		case CTRL('H'):
-		case 0x7f: // ^?
-			if (c->buf.len == 0)
-				return CMDLINE_CANCEL;
-			cmdline_backspace(c);
-			break;
-		case CTRL('U'):
-			cmdline_delete_bol(c);
-			break;
-		case CTRL('V'):
-			special_input_activate();
-			break;
-		case CTRL('W'):
-			cmdline_erase_word(c);
-			break;
-
-		case CTRL('A'):
-			c->pos = 0;
-			return 1;
-		case CTRL('B'):
-			cmdline_prev_char(c);
-			return 1;
-		case CTRL('E'):
-			c->pos = c->buf.len;
-			return 1;
-		case CTRL('F'):
-			cmdline_next_char(c);
-			return 1;
-		case CTRL('Z'):
-			suspend();
-			return 1;
-		default:
-			// don't insert control characters
-			if (key >= 0x20 && key != 0x7f) {
-				c->pos += gbuf_insert_ch(&c->buf, c->pos, key);
-				return 1;
-			}
-			return 0;
-		}
+		cmdline_backspace(c);
 		break;
-	case KEY_META:
-		return 0;
-	case KEY_SPECIAL:
-		switch (key) {
-		case SKEY_DELETE:
-			cmdline_delete(c);
-			break;
-
-		case SKEY_LEFT:
-			cmdline_prev_char(c);
-			return 1;
-		case SKEY_RIGHT:
-			cmdline_next_char(c);
-			return 1;
-		case SKEY_HOME:
-			c->pos = 0;
-			return 1;
-		case SKEY_END:
-			c->pos = c->buf.len;
-			return 1;
-		case SKEY_UP:
-			if (history == NULL)
-				return 0;
-			if (c->search_pos < 0) {
-				free(c->search_text);
-				c->search_text = gbuf_cstring(&c->buf);
-				c->search_pos = history->count;
-			}
-			if (history_search_forward(history, &c->search_pos, c->search_text))
-				set_text(c, history->ptrs[c->search_pos]);
-			return 1;
-		case SKEY_DOWN:
-			if (history == NULL)
-				return 0;
-			if (c->search_pos < 0)
-				return 1;
-			if (history_search_backward(history, &c->search_pos, c->search_text)) {
-				set_text(c, history->ptrs[c->search_pos]);
-			} else {
-				set_text(c, c->search_text);
-				c->search_pos = -1;
-			}
-			return 1;
-		default:
-			return 0;
-		}
+	case CTRL('U'):
+		cmdline_delete_bol(c);
 		break;
+	case CTRL('V'):
+		special_input_activate();
+		break;
+	case CTRL('W'):
+		cmdline_erase_word(c);
+		break;
+
+	case CTRL('A'):
+		c->pos = 0;
+		return 1;
+	case CTRL('B'):
+		cmdline_prev_char(c);
+		return 1;
+	case CTRL('E'):
+		c->pos = c->buf.len;
+		return 1;
+	case CTRL('F'):
+		cmdline_next_char(c);
+		return 1;
+	case CTRL('Z'):
+		suspend();
+		return 1;
+	case KEY_DELETE:
+		cmdline_delete(c);
+		break;
+
+	case KEY_LEFT:
+		cmdline_prev_char(c);
+		return 1;
+	case KEY_RIGHT:
+		cmdline_next_char(c);
+		return 1;
+	case KEY_HOME:
+		c->pos = 0;
+		return 1;
+	case KEY_END:
+		c->pos = c->buf.len;
+		return 1;
+	case KEY_UP:
+		if (history == NULL)
+			return 0;
+		if (c->search_pos < 0) {
+			free(c->search_text);
+			c->search_text = gbuf_cstring(&c->buf);
+			c->search_pos = history->count;
+		}
+		if (history_search_forward(history, &c->search_pos, c->search_text))
+			set_text(c, history->ptrs[c->search_pos]);
+		return 1;
+	case KEY_DOWN:
+		if (history == NULL)
+			return 0;
+		if (c->search_pos < 0)
+			return 1;
+		if (history_search_backward(history, &c->search_pos, c->search_text)) {
+			set_text(c, history->ptrs[c->search_pos]);
+		} else {
+			set_text(c, c->search_text);
+			c->search_pos = -1;
+		}
+		return 1;
 	case KEY_PASTE:
 		cmdline_insert_paste(c);
 		break;
+	default:
+		return 0;
 	}
 	c->search_pos = -1;
 	return 1;

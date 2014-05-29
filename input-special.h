@@ -5,7 +5,7 @@
 #include "libc.h"
 
 void special_input_activate(void);
-bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count);
+bool special_input_keypress(int key, char *buf, int *count);
 bool special_input_misc_status(char *status);
 
 #endif

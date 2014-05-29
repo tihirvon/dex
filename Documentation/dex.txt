@@ -79,26 +79,19 @@ bind <key> [command]
 	Bind a key to command. If command is not given then binding for
 	the key is removed.
 
-	A key is one of:
-		Control key, for example "^C"
+	Keys:
+		insert delete home end pgup pgdown left right up down F1
+		F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 enter tab space (or sp)
 
-		Meta-key, for example "M-x" (alt-x) where x is any ASCII
-		character (use "space" or "sp" for space).
+	Modifiers:
+		ctrl: C-X or ^X
 
-		Key chain, for example "^X c" (press ^X and then c).
-		Keys are separated by spaces.
+		meta/alt: M-X
 
-		Special key
+		shift: S-left
 
-	Special keys:
-		insert delete home end pgup pgdown left right up down f1
-		f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12
-
-		sleft sright sup sdown (shift with arrow keys)
-
-		^left ^right ^up ^down (ctrl with arrow keys)
-
-		^sleft ^sright ^sup ^sdown (ctrl and shift with arrow keys)
+	Key chains are supported. For example "^X c" (press ^X and then c).
+	Keys are separated by spaces.
 
 bof
 	Move to beginning of file.

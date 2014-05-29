@@ -45,13 +45,12 @@ void set_input_mode(enum input_mode mode)
 
 void any_key(void)
 {
-	unsigned int key;
-	enum term_key_type type;
+	int key;
 
 	printf("Press any key to continue\n");
-	while (!term_read_key(&key, &type))
+	while (!term_read_key(&key))
 		;
-	if (type == KEY_PASTE)
+	if (key == KEY_PASTE)
 		term_discard_paste();
 }
 
@@ -301,21 +300,21 @@ char get_confirmation(const char *choices, const char *format, ...)
 	end_update();
 
 	while (1) {
-		enum term_key_type type;
-
-		if (term_read_key(&key, &type)) {
-			if (type == KEY_PASTE)
+		if (term_read_key(&key)) {
+			if (key == KEY_PASTE) {
 				term_discard_paste();
-			if (type != KEY_NORMAL)
 				continue;
-
+			}
 			if (key == CTRL('C')) {
 				key = 0;
 				break;
 			}
-			if (key == '\r' && def) {
+			if (key == KEY_ENTER && def) {
 				key = def;
 				break;
+			}
+			if (key > 127) {
+				continue;
 			}
 			key = tolower(key);
 			if (strchr(choices, key))
@@ -401,22 +400,21 @@ void set_signal_handler(int signum, void (*handler)(int))
 void main_loop(void)
 {
 	while (editor_status == EDITOR_RUNNING) {
-		unsigned int key;
-		enum term_key_type type;
+		int key;
 
 		if (resized)
 			resize();
-		if (!term_read_key(&key, &type))
+		if (!term_read_key(&key))
 			continue;
 
 		clear_error();
 		if (input_mode == INPUT_GIT_OPEN) {
-			modes[input_mode]->keypress(type, key);
+			modes[input_mode]->keypress(key);
 			modes[input_mode]->update();
 		} else {
 			struct screen_state s;
 			save_state(&s, window->view);
-			modes[input_mode]->keypress(type, key);
+			modes[input_mode]->keypress(key);
 			sanity_check();
 			if (input_mode == INPUT_GIT_OPEN) {
 				modes[input_mode]->update();

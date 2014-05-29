@@ -35,56 +35,69 @@ void special_input_activate(void)
 	input_special = INPUT_SPECIAL_UNKNOWN;
 }
 
-static void keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
+static void keypress(int key, char *buf, int *count)
 {
-	if (type != KEY_NORMAL) {
-		if (type == KEY_PASTE)
-			term_discard_paste();
+	if (key == KEY_PASTE) {
+		term_discard_paste();
 		input_special = INPUT_SPECIAL_NONE;
 		return;
 	}
 	if (input_special == INPUT_SPECIAL_UNKNOWN) {
 		raw_input.value = 0;
 		raw_input.nr = 0;
-		if (isdigit(key)) {
+		if (key >= '0' && key <= '9') {
 			input_special = INPUT_SPECIAL_DEC;
 			raw_input.base = 10;
 			raw_input.max_chars = 3;
 		} else {
-			switch (tolower(key)) {
+			unsigned char byte;
+			switch (key) {
 			case 'o':
+			case 'O':
 				input_special = INPUT_SPECIAL_OCT;
 				raw_input.base = 8;
 				raw_input.max_chars = 3;
 				break;
 			case 'x':
+			case 'X':
 				input_special = INPUT_SPECIAL_HEX;
 				raw_input.base = 16;
 				raw_input.max_chars = 2;
 				break;
 			case 'u':
+			case 'U':
 				input_special = INPUT_SPECIAL_UNICODE;
 				raw_input.base = 16;
 				raw_input.max_chars = 6;
 				break;
 			default:
-				buf[0] = key;
-				*count = 1;
+				if (key_to_ctrl(key, &byte)) {
+					buf[0] = byte;
+					*count = 1;
+				} else if (u_is_unicode(key)) {
+					long idx = 0;
+					u_set_char_raw(buf, &idx, key);
+					*count = idx;
+				}
 				input_special = INPUT_SPECIAL_NONE;
 			}
 			return;
 		}
 	}
 
-	if (key == 0x08 || key == 0x7f) {
+	if (key == CTRL('H') || key == CTRL('?')) {
 		if (raw_input.nr) {
 			raw_input.value /= raw_input.base;
 			raw_input.nr--;
 		}
 		return;
 	}
+	if (!u_is_unicode(key)) {
+		input_special = INPUT_SPECIAL_NONE;
+		return;
+	}
 
-	if (key != '\r') {
+	if (key != KEY_ENTER) {
 		int n = hex_decode(key);
 
 		if (n < 0 || n >= raw_input.base) {
@@ -109,12 +122,12 @@ static void keypress(enum term_key_type type, unsigned int key, char *buf, int *
 	input_special = INPUT_SPECIAL_NONE;
 }
 
-bool special_input_keypress(enum term_key_type type, unsigned int key, char *buf, int *count)
+bool special_input_keypress(int key, char *buf, int *count)
 {
 	*count = 0;
 	if (input_special == INPUT_SPECIAL_NONE)
 		return false;
-	keypress(type, key, buf, count);
+	keypress(key, buf, count);
 	return true;
 }
 

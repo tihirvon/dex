@@ -33,40 +33,26 @@ static void command_line_enter(void)
 	ptr_array_free(&array);
 }
 
-static void command_mode_key(enum term_key_type type, unsigned int key)
+static void command_mode_keypress(int key)
 {
-	switch (type) {
-	case KEY_NORMAL:
-		switch (key) {
-		case '\r':
-			command_line_enter();
+	switch (key) {
+	case KEY_ENTER:
+		command_line_enter();
+		break;
+	case '\t':
+		complete_command();
+		break;
+	default:
+		switch (cmdline_handle_key(&cmdline, &command_history, key)) {
+		case CMDLINE_UNKNOWN_KEY:
 			break;
-		case '\t':
-			complete_command();
+		case CMDLINE_KEY_HANDLED:
+			reset_completion();
+			break;
+		case CMDLINE_CANCEL:
+			set_input_mode(INPUT_NORMAL);
 			break;
 		}
-		break;
-	case KEY_META:
-		return;
-	case KEY_SPECIAL:
-		return;
-	case KEY_PASTE:
-		return;
-	}
-}
-
-static void command_mode_keypress(enum term_key_type type, unsigned int key)
-{
-	switch (cmdline_handle_key(&cmdline, &command_history, type, key)) {
-	case CMDLINE_UNKNOWN_KEY:
-		command_mode_key(type, key);
-		break;
-	case CMDLINE_KEY_HANDLED:
-		reset_completion();
-		break;
-	case CMDLINE_CANCEL:
-		set_input_mode(INPUT_NORMAL);
-		break;
 	}
 }
 

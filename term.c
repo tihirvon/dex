@@ -9,8 +9,7 @@
 #include <termios.h>
 
 struct keymap {
-	enum term_key_type type;
-	unsigned int key;
+	int key;
 	const char *code;
 	unsigned int terms;
 };
@@ -33,44 +32,44 @@ const char *terms[] = {
 
 static const struct keymap builtin_keys[] = {
 	// ansi
-	{ KEY_SPECIAL, SKEY_LEFT,	"\033[D", T_ALL },
-	{ KEY_SPECIAL, SKEY_RIGHT,	"\033[C", T_ALL },
-	{ KEY_SPECIAL, SKEY_UP,		"\033[A", T_ALL },
-	{ KEY_SPECIAL, SKEY_DOWN,	"\033[B", T_ALL },
+	{ KEY_LEFT,	"\033[D", T_ALL },
+	{ KEY_RIGHT,	"\033[C", T_ALL },
+	{ KEY_UP,	"\033[A", T_ALL },
+	{ KEY_DOWN,	"\033[B", T_ALL },
 
 	// ???
-	{ KEY_SPECIAL, SKEY_HOME,	"\033[1~", T_ALL },
-	{ KEY_SPECIAL, SKEY_END,	"\033[4~", T_ALL },
+	{ KEY_HOME,	"\033[1~", T_ALL },
+	{ KEY_END,	"\033[4~", T_ALL },
 
 	// fix keypad when numlock is off
-	{ KEY_NORMAL, '/',		"\033Oo", T_ALL },
-	{ KEY_NORMAL, '*',		"\033Oj", T_ALL },
-	{ KEY_NORMAL, '-',		"\033Om", T_ALL },
-	{ KEY_NORMAL, '+',		"\033Ok", T_ALL },
-	{ KEY_NORMAL, '\r',		"\033OM", T_ALL },
+	{ '/',		"\033Oo", T_ALL },
+	{ '*',		"\033Oj", T_ALL },
+	{ '-',		"\033Om", T_ALL },
+	{ '+',		"\033Ok", T_ALL },
+	{ '\r',		"\033OM", T_ALL },
 
-	{ KEY_SPECIAL, SKEY_SHIFT_LEFT,	"\033[d", T_RXVT },
-	{ KEY_SPECIAL, SKEY_SHIFT_RIGHT,"\033[c", T_RXVT },
-	{ KEY_SPECIAL, SKEY_SHIFT_UP,	"\033[a", T_RXVT },
-	{ KEY_SPECIAL, SKEY_SHIFT_DOWN,	"\033[b", T_RXVT },
-	{ KEY_SPECIAL, SKEY_SHIFT_UP,	"\033[1;2A", T_SCREEN | T_ST | T_XTERM },
-	{ KEY_SPECIAL, SKEY_SHIFT_DOWN,	"\033[1;2B", T_SCREEN | T_ST | T_XTERM },
-	{ KEY_SPECIAL, SKEY_SHIFT_LEFT,	"\033[1;2D", T_SCREEN | T_ST | T_XTERM },
-	{ KEY_SPECIAL, SKEY_SHIFT_RIGHT,"\033[1;2C", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_SHIFT | KEY_LEFT,	"\033[d", T_RXVT },
+	{ MOD_SHIFT | KEY_RIGHT,"\033[c", T_RXVT },
+	{ MOD_SHIFT | KEY_UP,	"\033[a", T_RXVT },
+	{ MOD_SHIFT | KEY_DOWN,	"\033[b", T_RXVT },
+	{ MOD_SHIFT | KEY_UP,	"\033[1;2A", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_SHIFT | KEY_DOWN,	"\033[1;2B", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_SHIFT | KEY_LEFT,	"\033[1;2D", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_SHIFT | KEY_RIGHT,"\033[1;2C", T_SCREEN | T_ST | T_XTERM },
 
-	{ KEY_SPECIAL, SKEY_CTRL_LEFT,  "\033Od", T_RXVT },
-	{ KEY_SPECIAL, SKEY_CTRL_RIGHT, "\033Oc", T_RXVT },
-	{ KEY_SPECIAL, SKEY_CTRL_UP,    "\033Oa", T_RXVT },
-	{ KEY_SPECIAL, SKEY_CTRL_DOWN,  "\033Ob", T_RXVT },
-	{ KEY_SPECIAL, SKEY_CTRL_LEFT,  "\033[1;5D", T_SCREEN | T_ST | T_XTERM },
-	{ KEY_SPECIAL, SKEY_CTRL_RIGHT, "\033[1;5C", T_SCREEN | T_ST | T_XTERM },
-	{ KEY_SPECIAL, SKEY_CTRL_UP,    "\033[1;5A", T_SCREEN | T_ST | T_XTERM },
-	{ KEY_SPECIAL, SKEY_CTRL_DOWN,  "\033[1;5B", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_CTRL | KEY_LEFT,  "\033Od", T_RXVT },
+	{ MOD_CTRL | KEY_RIGHT, "\033Oc", T_RXVT },
+	{ MOD_CTRL | KEY_UP,    "\033Oa", T_RXVT },
+	{ MOD_CTRL | KEY_DOWN,  "\033Ob", T_RXVT },
+	{ MOD_CTRL | KEY_LEFT,  "\033[1;5D", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_CTRL | KEY_RIGHT, "\033[1;5C", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_CTRL | KEY_UP,    "\033[1;5A", T_SCREEN | T_ST | T_XTERM },
+	{ MOD_CTRL | KEY_DOWN,  "\033[1;5B", T_SCREEN | T_ST | T_XTERM },
 
-	{ KEY_SPECIAL, SKEY_CTRL_SHIFT_LEFT,  "\033[1;6D", T_SCREEN | T_XTERM },
-	{ KEY_SPECIAL, SKEY_CTRL_SHIFT_RIGHT, "\033[1;6C", T_SCREEN | T_XTERM },
-	{ KEY_SPECIAL, SKEY_CTRL_SHIFT_UP,    "\033[1;6A", T_SCREEN | T_XTERM },
-	{ KEY_SPECIAL, SKEY_CTRL_SHIFT_DOWN,  "\033[1;6B", T_SCREEN | T_XTERM },
+	{ MOD_CTRL | MOD_SHIFT | KEY_LEFT,  "\033[1;6D", T_SCREEN | T_XTERM },
+	{ MOD_CTRL | MOD_SHIFT | KEY_RIGHT, "\033[1;6C", T_SCREEN | T_XTERM },
+	{ MOD_CTRL | MOD_SHIFT | KEY_UP,    "\033[1;6A", T_SCREEN | T_XTERM },
+	{ MOD_CTRL | MOD_SHIFT | KEY_DOWN,  "\033[1;6B", T_SCREEN | T_XTERM },
 };
 
 struct term_cap term_cap;
@@ -278,17 +277,18 @@ static const struct keymap *find_key(bool *possibly_truncated)
 	return NULL;
 }
 
-static bool read_special(unsigned int *key, enum term_key_type *type)
+static bool read_special(int *key)
 {
 	const struct keymap *entry;
 	bool possibly_truncated = false;
 	int i;
 
 	if (DEBUG > 2) {
-		d_print("key: '%s'\n", escape_key(input_buf, input_buf_fill));
+		d_print("keycode: '%s'\n", escape_key(input_buf, input_buf_fill));
 	}
-	for (i = 0; i < NR_KEY_CAPS; i++) { // NOTE: not NR_SKEYS
-		const char *keycode = term_cap.keys[i];
+	for (i = 0; i < term_cap.keymap_size; i++) { // NOTE: not NR_SKEYS
+		const struct term_keymap *km = &term_cap.keymap[i];
+		const char *keycode = km->code;
 		int len;
 
 		if (!keycode)
@@ -303,25 +303,23 @@ static bool read_special(unsigned int *key, enum term_key_type *type)
 		}
 		if (strncmp(keycode, input_buf, len))
 			continue;
-		*key = i;
-		*type = KEY_SPECIAL;
+		*key = km->key;
 		consume_input(len);
 		return true;
 	}
 	entry = find_key(&possibly_truncated);
 	if (entry != NULL) {
 		*key = entry->key;
-		*type = entry->type;
 		consume_input(strlen(entry->code));
 		return true;
 	}
 
 	if (possibly_truncated && input_can_be_truncated && fill_buffer())
-		return read_special(key, type);
+		return read_special(key);
 	return false;
 }
 
-static bool read_simple(unsigned int *key, enum term_key_type *type)
+static bool read_simple(int *key)
 {
 	unsigned char ch = 0;
 
@@ -358,9 +356,25 @@ static bool read_simple(unsigned int *key, enum term_key_type *type)
 		} while (--count);
 		*key = u;
 	} else {
-		*key = ch;
+		switch (ch) {
+		case '\t':
+			*key = ch;
+			break;
+		case '\r':
+			*key = KEY_ENTER;
+			break;
+		case 0x7f:
+			*key = MOD_CTRL | '?';
+			break;
+		default:
+			if (ch < 0x20) {
+				// control character
+				*key = MOD_CTRL | ch | 0x40;
+			} else {
+				*key = ch;
+			}
+		}
 	}
-	*type = KEY_NORMAL;
 	return true;
 }
 
@@ -385,20 +399,18 @@ static bool is_text(const char *str, int len)
 	return true;
 }
 
-bool term_read_key(unsigned int *key, enum term_key_type *type)
+static bool read_key(int *key)
 {
 	if (!input_buf_fill && !fill_buffer())
 		return false;
 
 	if (input_buf_fill > 4 && is_text(input_buf, input_buf_fill)) {
-		*key = 0;
-		*type = KEY_PASTE;
+		*key = KEY_PASTE;
 		return true;
 	}
-
 	if (input_buf[0] == '\033') {
 		if (input_buf_fill > 1 || input_can_be_truncated) {
-			if (read_special(key, type))
+			if (read_special(key))
 				return true;
 		}
 		if (input_buf_fill == 1) {
@@ -419,14 +431,13 @@ bool term_read_key(unsigned int *key, enum term_key_type *type)
 				 * This breaks the esc-key == alt-key rule for the
 				 * esc-esc case but it shouldn't matter.
 				 */
-				return read_simple(key, type);
+				return read_simple(key);
 			}
 		}
 		if (input_buf_fill > 1) {
 			if (input_buf_fill == 2 || input_buf[2] == '\033') {
 				/* 'esc key' or 'alt-key' */
-				*key = input_buf[1];
-				*type = KEY_META;
+				*key = MOD_META | input_buf[1];
 				consume_input(2);
 				return true;
 			}
@@ -435,7 +446,20 @@ bool term_read_key(unsigned int *key, enum term_key_type *type)
 			return false;
 		}
 	}
-	return read_simple(key, type);
+	return read_simple(key);
+}
+
+bool term_read_key(int *key)
+{
+	bool ok = read_key(key);
+	int k = *key;
+	if (DEBUG > 2 && ok && k != KEY_PASTE && k > KEY_UNICODE_MAX) {
+		// modifiers and/or special key
+		char *str = key_to_string(k);
+		d_print("key: %s\n", str);
+		free(str);
+	}
+	return ok;
 }
 
 char *term_read_paste(long *size)

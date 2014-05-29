@@ -15,7 +15,7 @@ static unsigned char string_cap_map[NR_STR_CAPS] = {
 	tcs_cursor_invisible,
 };
 
-static unsigned char key_cap_map[NR_KEY_CAPS] = {
+static unsigned char key_cap_map[NR_SPECIAL_KEYS] = {
 	tcs_key_ic,
 	tcs_key_dc,
 	tcs_key_home,
@@ -39,9 +39,6 @@ static unsigned char key_cap_map[NR_KEY_CAPS] = {
 	tcs_key_f10,
 	tcs_key_f11,
 	tcs_key_f12,
-
-	tcs_key_sleft,
-	tcs_key_sright,
 };
 
 struct terminfo {
@@ -173,6 +170,7 @@ int terminfo_get_caps(const char *filename)
 	char *buf;
 	ssize_t size, pos;
 	int i, name_size, total_size;
+	struct term_keymap *km;
 
 	size = read_file(filename, &buf);
 	if (size < 0)
@@ -221,9 +219,22 @@ int terminfo_get_caps(const char *filename)
 	for (i = 0; i < NR_STR_CAPS; i++) {
 		term_cap.strings[i] = get_str(&ti, string_cap_map[i]);
 	}
-	for (i = 0; i < NR_KEY_CAPS; i++) {
-		term_cap.keys[i] = get_str(&ti, key_cap_map[i]);
+
+	term_cap.keymap_size = NR_SPECIAL_KEYS + 2;
+	term_cap.keymap = xnew(struct term_keymap, term_cap.keymap_size);
+	for (i = 0; i < NR_SPECIAL_KEYS; i++) {
+		km = &term_cap.keymap[i];
+		km->key = KEY_SPECIAL_MIN + i;
+		km->code = get_str(&ti, key_cap_map[i]);
 	}
+	km = &term_cap.keymap[i];
+	km->key = MOD_SHIFT | KEY_LEFT;
+	km->code = get_str(&ti, tcs_key_sleft);
+	i++;
+	km = &term_cap.keymap[i];
+	km->key = MOD_SHIFT | KEY_RIGHT;
+	km->code = get_str(&ti, tcs_key_sright);
+
 	free(buf);
 	return 0;
 corrupt:

@@ -168,54 +168,6 @@ static void open_selected(void)
 	}
 }
 
-static void git_open_key(enum term_key_type type, unsigned int key)
-{
-	switch (type) {
-	case KEY_NORMAL:
-		switch (key) {
-		case '\r':
-			open_selected();
-			cmdline_clear(&cmdline);
-			set_input_mode(INPUT_NORMAL);
-			break;
-		case CTRL('O'):
-			open_selected();
-			down(1);
-			break;
-		}
-		break;
-	case KEY_META:
-		switch (key) {
-		case 'e':
-			if (git_open.files.count > 0)
-				git_open.selected = git_open.files.count - 1;
-			break;
-		case 't':
-			git_open.selected = 0;
-			break;
-		}
-		break;
-	case KEY_SPECIAL:
-		switch (key) {
-		case SKEY_UP:
-			up(1);
-			break;
-		case SKEY_DOWN:
-			down(1);
-			break;
-		case SKEY_PAGE_UP:
-			up(screen_h - 2);
-			break;
-		case SKEY_PAGE_DOWN:
-			down(screen_h - 2);
-			break;
-		}
-		break;
-	case KEY_PASTE:
-		break;
-	}
-}
-
 void git_open_reload(void)
 {
 	git_open_clear();
@@ -223,18 +175,48 @@ void git_open_reload(void)
 	git_open_filter();
 }
 
-void git_open_keypress(enum term_key_type type, unsigned int key)
+void git_open_keypress(int key)
 {
-	switch (cmdline_handle_key(&cmdline, NULL, type, key)) {
-	case CMDLINE_UNKNOWN_KEY:
-		git_open_key(type, key);
-		break;
-	case CMDLINE_KEY_HANDLED:
-		git_open_filter();
-		break;
-	case CMDLINE_CANCEL:
+	switch (key) {
+	case KEY_ENTER:
+		open_selected();
+		cmdline_clear(&cmdline);
 		set_input_mode(INPUT_NORMAL);
 		break;
+	case CTRL('O'):
+		open_selected();
+		down(1);
+		break;
+	case MOD_META | 'e':
+		if (git_open.files.count > 0)
+			git_open.selected = git_open.files.count - 1;
+		break;
+	case MOD_META | 't':
+		git_open.selected = 0;
+		break;
+	case KEY_UP:
+		up(1);
+		break;
+	case KEY_DOWN:
+		down(1);
+		break;
+	case KEY_PAGE_UP:
+		up(screen_h - 2);
+		break;
+	case KEY_PAGE_DOWN:
+		down(screen_h - 2);
+		break;
+	default:
+		switch (cmdline_handle_key(&cmdline, NULL, key)) {
+		case CMDLINE_UNKNOWN_KEY:
+			break;
+		case CMDLINE_KEY_HANDLED:
+			git_open_filter();
+			break;
+		case CMDLINE_CANCEL:
+			set_input_mode(INPUT_NORMAL);
+			break;
+		}
 	}
 	mark_everything_changed();
 }

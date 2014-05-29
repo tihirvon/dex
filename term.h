@@ -2,20 +2,7 @@
 #define TERM_H
 
 #include "libc.h"
-
-enum term_key_type {
-	/* key is character encoded in the current locale's encoding */
-	KEY_NORMAL,
-
-	/* same as KEY_NORMAL but with Alt pressed or ESC and KEY_NORMAL */
-	KEY_META,
-
-	/* key is one of SKEY_* */
-	KEY_SPECIAL,
-
-	/* call term_get_paste() to read pasted text */
-	KEY_PASTE,
-};
+#include "key.h"
 
 enum {
 	STR_CAP_CMD_ac, // pairs of block graphic characters to map alternate character set
@@ -31,50 +18,6 @@ enum {
 
 	NR_STR_CAPS
 };
-
-enum {
-	// keys from terminfo
-	SKEY_INSERT,
-	SKEY_DELETE,
-	SKEY_HOME,
-	SKEY_END,
-	SKEY_PAGE_UP,
-	SKEY_PAGE_DOWN,
-	SKEY_LEFT,
-	SKEY_RIGHT,
-	SKEY_UP,
-	SKEY_DOWN,
-	SKEY_F1,
-	SKEY_F2,
-	SKEY_F3,
-	SKEY_F4,
-	SKEY_F5,
-	SKEY_F6,
-	SKEY_F7,
-	SKEY_F8,
-	SKEY_F9,
-	SKEY_F10,
-	SKEY_F11,
-	SKEY_F12,
-	SKEY_SHIFT_LEFT,
-	SKEY_SHIFT_RIGHT,
-
-	// these are not supported by terminfo
-	SKEY_SHIFT_UP,
-	SKEY_SHIFT_DOWN,
-	SKEY_CTRL_LEFT,
-	SKEY_CTRL_RIGHT,
-	SKEY_CTRL_UP,
-	SKEY_CTRL_DOWN,
-	SKEY_CTRL_SHIFT_LEFT,
-	SKEY_CTRL_SHIFT_RIGHT,
-	SKEY_CTRL_SHIFT_UP,
-	SKEY_CTRL_SHIFT_DOWN,
-
-	NR_SKEYS
-};
-
-#define NR_KEY_CAPS (SKEY_SHIFT_RIGHT + 1)
 
 enum {
 	COLOR_DEFAULT = -1,
@@ -99,6 +42,11 @@ enum {
 	ATTR_KEEP		= 0x80,
 };
 
+struct term_keymap {
+	int key;
+	char *code;
+};
+
 // see termcap(5)
 struct term_cap {
 	/* boolean caps */
@@ -111,7 +59,8 @@ struct term_cap {
 	char *strings[NR_STR_CAPS];
 
 	/* string caps (keys) */
-	char *keys[NR_KEY_CAPS];
+	struct term_keymap *keymap;
+	int keymap_size;
 };
 
 struct term_color {
@@ -122,16 +71,13 @@ struct term_color {
 
 extern struct term_cap term_cap;
 
-// control key
-#define CTRL(x) ((x) & ~0x40)
-
 int read_terminfo(const char *term);
 void term_setup_extra_keys(const char *term);
 
 void term_raw(void);
 void term_cooked(void);
 
-bool term_read_key(unsigned int *key, enum term_key_type *type);
+bool term_read_key(int *key);
 char *term_read_paste(long *size);
 void term_discard_paste(void);
 

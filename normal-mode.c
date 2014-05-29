@@ -6,6 +6,7 @@
 #include "bind.h"
 #include "input-special.h"
 #include "editor.h"
+#include "unicode.h"
 
 static void insert_paste(void)
 {
@@ -21,12 +22,12 @@ static void insert_paste(void)
 	free(text);
 }
 
-static void normal_mode_keypress(enum term_key_type type, unsigned int key)
+static void normal_mode_keypress(int key)
 {
 	char buf[4];
 	int count;
 
-	if (special_input_keypress(type, key, buf, &count)) {
+	if (special_input_keypress(key, buf, &count)) {
 		if (count) {
 			begin_change(CHANGE_MERGE_NONE);
 			buffer_insert_bytes(buf, count);
@@ -36,28 +37,15 @@ static void normal_mode_keypress(enum term_key_type type, unsigned int key)
 		return;
 	}
 	if (nr_pressed_keys()) {
-		handle_binding(type, key);
+		handle_binding(key);
 		return;
 	}
-	switch (type) {
-	case KEY_NORMAL:
-		if (key == '\t') {
-			insert_ch('\t');
-		} else if (key == '\r') {
-			insert_ch('\n');
-		} else if (key < 0x20 || key == 0x7f) {
-			handle_binding(type, key);
-		} else {
-			insert_ch(key);
-		}
-		break;
-	case KEY_META:
-	case KEY_SPECIAL:
-		handle_binding(type, key);
-		break;
-	case KEY_PASTE:
+	if (u_is_unicode(key)) {
+		insert_ch(key);
+	} else if (key == KEY_PASTE) {
 		insert_paste();
-		break;
+	} else {
+		handle_binding(key);
 	}
 }
 

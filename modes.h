@@ -4,7 +4,7 @@
 #include "term.h"
 
 struct editor_mode_ops {
-	void (*keypress)(enum term_key_type type, unsigned int key);
+	void (*keypress)(int key);
 	void (*update)(void);
 };
 

@@ -120,6 +120,7 @@ dex_objects :=	 		\
 	indent.o		\
 	input-special.o		\
 	iter.o			\
+	key.o			\
 	load-save.o		\
 	lock.o			\
 	main.o			\
