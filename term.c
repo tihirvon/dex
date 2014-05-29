@@ -435,13 +435,22 @@ static bool read_key(int *key)
 			}
 		}
 		if (input_buf_fill > 1) {
-			if (input_buf_fill == 2 || input_buf[2] == '\033') {
-				/* 'esc key' or 'alt-key' */
-				*key = MOD_META | input_buf[1];
-				consume_input(2);
+			// unknown escape sequence or 'esc key' / 'alt-key'
+			unsigned char ch;
+			bool ok;
+
+			// throw escape away
+			input_get_byte(&ch);
+			ok = read_simple(key);
+			if (!ok) {
+				return false;
+			}
+			if (input_buf_fill == 0 || input_buf[0] == '\033') {
+				// 'esc key' or 'alt-key'
+				*key |= MOD_META;
 				return true;
 			}
-			/* unknown escape sequence, avoid inserting it */
+			// unknown escape sequence, avoid inserting it
 			input_buf_fill = 0;
 			return false;
 		}
