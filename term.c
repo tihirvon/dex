@@ -70,6 +70,8 @@ static const struct keymap builtin_keys[] = {
 	{ MOD_CTRL | MOD_SHIFT | KEY_RIGHT, "\033[1;6C", T_SCREEN | T_XTERM },
 	{ MOD_CTRL | MOD_SHIFT | KEY_UP,    "\033[1;6A", T_SCREEN | T_XTERM },
 	{ MOD_CTRL | MOD_SHIFT | KEY_DOWN,  "\033[1;6B", T_SCREEN | T_XTERM },
+
+	{ MOD_SHIFT | '\t', "\033[Z", T_SCREEN | T_ST | T_XTERM },
 };
 
 struct term_cap term_cap;

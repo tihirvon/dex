@@ -60,6 +60,7 @@ bind M-, "shift -- -1"
 bind M-. "shift 1"
 bind M-< "shift -- -1"
 bind M-> "shift 1"
+bind S-tab "shift -- -1"
 
 bind M-1 "view 1"
 bind M-2 "view 2"
