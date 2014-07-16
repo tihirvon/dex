@@ -50,31 +50,6 @@ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
 uname_R := $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
-ifeq ($(uname_S),Darwin)
-	LIBS += -liconv
-endif
-ifeq ($(uname_O),Cygwin)
-	LIBS += -liconv
-	X = .exe
-endif
-ifeq ($(uname_S),FreeBSD)
-	LIBS += -liconv
-	BASIC_CFLAGS += -I/usr/local/include
-	BASIC_LDFLAGS += -L/usr/local/lib
-endif
-ifeq ($(uname_S),OpenBSD)
-	LIBS += -liconv
-	BASIC_CFLAGS += -I/usr/local/include
-	BASIC_LDFLAGS += -L/usr/local/lib
-endif
-ifeq ($(uname_S),NetBSD)
-	ifeq ($(shell expr "$(uname_R)" : '[01]\.'),2)
-		LIBS += -liconv
-	endif
-	BASIC_CFLAGS += -I/usr/pkg/include
-	BASIC_LDFLAGS += -L/usr/pkg/lib
-endif
-
 # all good names have been taken. make it easy to change
 PROGRAM = dex
 
@@ -218,6 +193,31 @@ OBJECTS := $(dex_objects) $(test_objects)
 
 -include Config.mk
 include Makefile.lib
+
+ifeq ($(uname_S),Darwin)
+	LIBS += -liconv
+endif
+ifeq ($(uname_O),Cygwin)
+	LIBS += -liconv
+	X = .exe
+endif
+ifeq ($(uname_S),FreeBSD)
+	LIBS += -liconv
+	BASIC_CFLAGS += -I/usr/local/include
+	BASIC_LDFLAGS += -L/usr/local/lib
+endif
+ifeq ($(uname_S),OpenBSD)
+	LIBS += -liconv
+	BASIC_CFLAGS += -I/usr/local/include
+	BASIC_LDFLAGS += -L/usr/local/lib
+endif
+ifeq ($(uname_S),NetBSD)
+	ifeq ($(shell expr "$(uname_R)" : '[01]\.'),2)
+		LIBS += -liconv
+	endif
+	BASIC_CFLAGS += -I/usr/pkg/include
+	BASIC_LDFLAGS += -L/usr/pkg/lib
+endif
 
 PKGDATADIR = $(datadir)/$(PROGRAM)
 
