@@ -202,9 +202,12 @@ ifeq ($(uname_O),Cygwin)
 	X = .exe
 endif
 ifeq ($(uname_S),FreeBSD)
-	LIBS += -liconv
-	BASIC_CFLAGS += -I/usr/local/include
-	BASIC_LDFLAGS += -L/usr/local/lib
+	# libc of FreeBSD 10.0 includes iconv
+	ifeq ($(shell expr "$(uname_R)" : '[0-9]\.'),2)
+		LIBS += -liconv
+		BASIC_CFLAGS += -I/usr/local/include
+		BASIC_LDFLAGS += -L/usr/local/lib
+	endif
 endif
 ifeq ($(uname_S),OpenBSD)
 	LIBS += -liconv
