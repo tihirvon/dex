@@ -171,6 +171,30 @@ int read_terminfo(const char *term)
 	return rc;
 }
 
+int read_termcap(const char *term)
+{
+	static const char *paths[] = {
+		"/etc/termcap",
+		"/usr/share/misc/termcap",
+		NULL, // $HOME/.termcap
+	};
+	const char *path = getenv("TERMCAP");
+	char buf[1024];
+	int i, rc = 0;
+
+	if (path && *path)
+		return termcap_get_caps(path, term);
+
+	snprintf(buf, sizeof(buf), "%s/.termcap", home_dir);
+	paths[2] = buf;
+	for (i = 0; i < ARRAY_COUNT(paths); i++) {
+		rc = termcap_get_caps(paths[i], term);
+		if (!rc)
+			return 0;
+	}
+	return rc;
+}
+
 void term_setup_extra_keys(const char *term)
 {
 	int i;

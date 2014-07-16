@@ -139,8 +139,15 @@ int main(int argc, char *argv[])
 	}
 	switch (read_terminfo(term)) {
 	case -1:
-		fprintf(stderr, "loading terminfo file: %s\n", strerror(errno));
-		return 1;
+		if (errno != ENOENT) {
+			fprintf(stderr, "loading terminfo file: %s\n", strerror(errno));
+			return 1;
+		}
+		if (read_termcap(term)) {
+			fprintf(stderr, "terminal entry not found in neither terminfo nor termcap database\n");
+			return 1;
+		}
+		break;
 	case -2:
 		fprintf(stderr, "terminfo file seems to be corrupt\n");
 		return 1;
