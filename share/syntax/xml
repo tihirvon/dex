@@ -79,22 +79,20 @@ state comment
 
 state tag-start tag
 	char / close-tag
-	char -b a-zA-Z0-9_ tag-name
-	char " \t\n" tag-start
+	char -b a-zA-Z_: tag-name
 	char > text tag
 	eat tag-start error
 
 state close-tag tag
-	char -b a-zA-Z0-9_ close-tag-name
-	char " \t\n" close-tag
+	char -b a-zA-Z_: close-tag-name
 	eat text error
 
 state tag-name tag
-	char -b a-zA-Z0-9_ tag-name
+	char -b a-zA-Z0-9_:.- tag-name
 	noeat attrs
 
 state close-tag-name tag
-	char -b a-zA-Z0-9_ close-tag-name
+	char -b a-zA-Z0-9_:.- close-tag-name
 	noeat close-tag-end
 
 state close-tag-end special
