@@ -73,6 +73,7 @@ dex_objects :=	 		\
 	config.o		\
 	ctags.o			\
 	ctype.o			\
+	cursed.o		\
 	decoder.o		\
 	detect.o		\
 	edit.o			\
@@ -123,8 +124,7 @@ dex_objects :=	 		\
 	tabbar.o		\
 	tag.o			\
 	term.o			\
-	termcap.o		\
-	terminfo.o		\
+	term-caps.o		\
 	uchar.o			\
 	unicode.o		\
 	vars.o			\
@@ -193,6 +193,8 @@ OBJECTS := $(dex_objects) $(test_objects)
 
 -include Config.mk
 include Makefile.lib
+
+LIBS += -lcurses
 
 ifeq ($(uname_S),Darwin)
 	LIBS += -liconv

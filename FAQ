@@ -23,8 +23,3 @@ Q: Why the custom build system and not Autotools?
 Because Autotools is absolutely horrible. configure is 10000 (yes, ten
 thousand) line shell script which generates tons of files. In contrast
 the makefiles and scripts in dex are only about 350 lines total.
-
-
-Q: Why dex does not use ncurses?
-
-It is probably the most cryptic library I've ever seen.

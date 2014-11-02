@@ -137,22 +137,17 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "TERM not set\n");
 		return 1;
 	}
-	switch (read_terminfo(term)) {
+	switch (term_init(term)) {
 	case -1:
-		if (errno != ENOENT) {
-			fprintf(stderr, "loading terminfo file: %s\n", strerror(errno));
-			return 1;
-		}
-		if (read_termcap(term)) {
-			fprintf(stderr, "terminal entry not found in neither terminfo nor termcap database\n");
-			return 1;
-		}
-		break;
+		fprintf(stderr, "terminal is hardcopy\n");
+		return 1;
 	case -2:
-		fprintf(stderr, "terminfo file seems to be corrupt\n");
+		fprintf(stderr, "terminal could not be found\n");
+		return 1;
+	case -3:
+		fprintf(stderr, "terminfo database could not be found\n");
 		return 1;
 	}
-	term_setup_extra_keys(term);
 
 	// create this early. needed if lock-files is true
 	editor_dir = editor_file("");

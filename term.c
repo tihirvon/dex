@@ -2,6 +2,7 @@
 #include "common.h"
 #include "editor.h"
 #include "options.h"
+#include "cursed.h"
 
 #undef CTRL
 
@@ -134,68 +135,7 @@ static char *escape_key(const char *key, int len)
 	return buf;
 }
 
-static int load_terminfo_caps(const char *path, const char *term)
-{
-	char filename[512];
-
-	snprintf(filename, sizeof(filename), "%s/%c/%s", path, term[0], term);
-	return terminfo_get_caps(filename);
-}
-
-int read_terminfo(const char *term)
-{
-	static const char *paths[] = {
-		NULL, // $HOME/.terminfo
-		"/etc/terminfo",
-		"/lib/terminfo",
-		"/usr/share/terminfo",
-		"/usr/share/lib/terminfo",
-		"/usr/lib/terminfo",
-		"/usr/local/share/terminfo",
-		"/usr/local/lib/terminfo",
-	};
-	const char *path = getenv("TERMINFO");
-	char buf[1024];
-	int i, rc = 0;
-
-	if (path && *path)
-		return load_terminfo_caps(path, term);
-
-	snprintf(buf, sizeof(buf), "%s/.terminfo", home_dir);
-	paths[0] = buf;
-	for (i = 0; i < ARRAY_COUNT(paths); i++) {
-		rc = load_terminfo_caps(paths[i], term);
-		if (!rc)
-			return 0;
-	}
-	return rc;
-}
-
-int read_termcap(const char *term)
-{
-	static const char *paths[] = {
-		"/etc/termcap",
-		"/usr/share/misc/termcap",
-		NULL, // $HOME/.termcap
-	};
-	const char *path = getenv("TERMCAP");
-	char buf[1024];
-	int i, rc = 0;
-
-	if (path && *path)
-		return termcap_get_caps(path, term);
-
-	snprintf(buf, sizeof(buf), "%s/.termcap", home_dir);
-	paths[2] = buf;
-	for (i = 0; i < ARRAY_COUNT(paths); i++) {
-		rc = termcap_get_caps(paths[i], term);
-		if (!rc)
-			return 0;
-	}
-	return rc;
-}
-
-void term_setup_extra_keys(const char *term)
+static void term_setup_extra_keys(const char *term)
 {
 	int i;
 
@@ -205,6 +145,18 @@ void term_setup_extra_keys(const char *term)
 			break;
 		}
 	}
+}
+
+int term_init(const char *term)
+{
+	int rc = curses_init(term);
+
+	if (rc != 0) {
+		return rc;
+	}
+	term_read_caps();
+	term_setup_extra_keys(term);
+	return 0;
 }
 
 void term_raw(void)

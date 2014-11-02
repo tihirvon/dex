@@ -71,10 +71,7 @@ struct term_color {
 
 extern struct term_cap term_cap;
 
-int read_terminfo(const char *term);
-int read_termcap(const char *term);
-void term_setup_extra_keys(const char *term);
-
+int term_init(const char *term);
 void term_raw(void);
 void term_cooked(void);
 
@@ -89,7 +86,6 @@ const char *term_set_color(const struct term_color *color);
 /* move cursor (x and y are zero based) */
 const char *term_move_cursor(int x, int y);
 
-int termcap_get_caps(const char *filename, const char *term);
-int terminfo_get_caps(const char *filename);
+void term_read_caps(void);
 
 #endif

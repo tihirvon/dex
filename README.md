@@ -19,8 +19,7 @@ can parse compiler errors, but it does not aim to become an IDE.
 Installation
 ------------
 
-The only dependency is libc, no curses or any other libraries are
-required.
+The only dependencies are libc and ncurses.
 
 To compile this program you need GNU make and a modern C-compiler
 (tested with gcc and clang).
