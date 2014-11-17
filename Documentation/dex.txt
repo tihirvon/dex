@@ -124,7 +124,7 @@ close [-fqw]
 
 	-q quit if closing the last open file
 
-	-w close parent window if closing it's last contained file
+	-w close parent window if closing its last contained file
 
 command [text]
 	Enter command line. If text is given then it is written to the
@@ -332,7 +332,7 @@ option [-r] <regexp> <option> <value>...
 	Add automatic options for filenames matching regexp.
 
 pass-through [-ms] <command> [parameter]...
-	Run command and insert it's output.
+	Run command and insert its output.
 
 	-m move after the inserted text
 
