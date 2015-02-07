@@ -232,7 +232,7 @@ long word_fwd(struct block_iter *bi, bool skip_non_word)
 		if (!get_current_char_type(bi, &type))
 			return count;
 
-		if (count && (!skip_non_word || type == CT_WORD))
+		if (count && (!skip_non_word || (type == CT_WORD || type == CT_NEWLINE)))
 			return count;
 
 		count += skip_fwd_char_type(bi, type);
@@ -253,6 +253,6 @@ long word_bwd(struct block_iter *bi, bool skip_non_word)
 		type = get_char_type(u);
 		count += u_char_size(u);
 		count += skip_bwd_char_type(bi, type);
-	} while (skip_non_word && type != CT_WORD);
+	} while (skip_non_word && type != CT_WORD && type != CT_NEWLINE);
 	return count;
 }
