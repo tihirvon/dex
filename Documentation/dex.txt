@@ -838,6 +838,10 @@ Literal \\
 @li \\x0a
 Hexadecimal byte value 0x0a. Note that 0x00 is not supported because
 strings are NUL-terminated.
+@li \\u20ac
+Four hex digit unicode code point U+20AC.
+@li \\U000020ac
+Eight hex digit unicode code point U+20AC.
 
 @h1 COMMAND LINE
 
