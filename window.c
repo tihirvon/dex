@@ -208,7 +208,6 @@ void remove_view(struct view *v)
 void window_close_current(void)
 {
 	long idx;
-	struct window *w;
 
 	if (windows.count == 1) {
 		// don't close last window
@@ -218,9 +217,8 @@ void window_close_current(void)
 	}
 
 	idx = ptr_array_idx(&windows, window);
-	w = ptr_array_remove_idx(&windows, idx);
-	remove_frame(w->frame);
-	window_free(w);
+	remove_frame(window->frame);
+	window = NULL;
 
 	if (idx == windows.count)
 		idx = windows.count - 1;

@@ -415,13 +415,29 @@ struct frame *split_root(bool vertical, bool before)
 	return f;
 }
 
+// NOTE: does not remove f from f->parent->frames
+static void free_frame(struct frame *f)
+{
+	f->parent = NULL;
+	ptr_array_free_cb(&f->frames, FREE_FUNC(free_frame));
+	if (f->window != NULL) {
+		ptr_array_remove(&windows, f->window);
+		window_free(f->window);
+		f->window = NULL;
+	}
+	free(f);
+}
+
 void remove_frame(struct frame *f)
 {
 	struct frame *parent = f->parent;
 
+	if (parent == NULL) {
+		free_frame(f);
+		return;
+	}
 	ptr_array_remove(&parent->frames, f);
-	free(f->frames.ptrs);
-	free(f);
+	free_frame(f);
 
 	if (parent->frames.count == 1) {
 		// replace parent with the only child frame

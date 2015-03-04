@@ -1459,9 +1459,7 @@ static void cmd_wsplit(const char *pf, char **args)
 
 	if (window->views.count == 0) {
 		// open failed, remove new window
-		ptr_array_remove(&windows, window);
 		remove_frame(window->frame);
-		window_free(window);
 
 		view = save;
 		buffer = view->buffer;

@@ -57,20 +57,6 @@ static void handle_sigwinch(int signum)
 	resized = true;
 }
 
-static void record_file_history(void)
-{
-	int i;
-
-	for (i = 0; i < buffers.count; i++) {
-		struct buffer *b = buffers.ptrs[i];
-		if (b->options.file_history && b->abs_filename) {
-			// choose first view
-			struct view *v = b->views.ptrs[0];
-			add_file_history(v->cy + 1, v->cx_char + 1, b->abs_filename);
-		}
-	}
-}
-
 static const char *opt_arg(const char *opt, const char *arg)
 {
 	if (arg == NULL) {
@@ -239,11 +225,14 @@ int main(int argc, char *argv[])
 	resize();
 	main_loop();
 	ui_end();
+
+	// unlock files and add files to file history
+	remove_frame(root_frame);
+
 	history_save(&command_history, command_history_filename);
 	history_save(&search_history, search_history_filename);
 	free(command_history_filename);
 	free(search_history_filename);
-	record_file_history();
 	save_file_history();
 	return 0;
 }
