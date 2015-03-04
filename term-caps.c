@@ -1,5 +1,6 @@
 #include "term.h"
 #include "cursed.h"
+#include "xmalloc.h"
 
 static const char *string_cap_map[NR_STR_CAPS] = {
 	"acsc", // acs_chars,
@@ -51,7 +52,7 @@ void term_read_caps(void)
 	}
 
 	term_cap.keymap_size = NR_SPECIAL_KEYS + 2;
-	term_cap.keymap = malloc(sizeof(struct term_keymap) * term_cap.keymap_size);
+	term_cap.keymap = xnew(struct term_keymap, term_cap.keymap_size);
 	for (i = 0; i < NR_SPECIAL_KEYS; i++) {
 		km = &term_cap.keymap[i];
 		km->key = KEY_SPECIAL_MIN + i;
