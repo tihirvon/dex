@@ -577,21 +577,19 @@ static void cmd_option(const char *pf, char **args)
 {
 	int argc = count_strings(args);
 	char *list, *comma;
-	char **strs;
+	char **strs = args + 1;
+	int count = argc - 1;
 
 	if (argc % 2 == 0) {
 		error_msg("Missing option value");
 		return;
 	}
-	if (!validate_local_options(args + 1)) {
+	if (!validate_local_options(strs)) {
 		return;
 	}
 
-	// NOTE: options and values are shared
-	strs = copy_string_array(args + 1, argc - 1);
-
 	if (*pf) {
-		add_file_options(FILE_OPTIONS_FILENAME, xstrdup(args[0]), strs);
+		add_file_options(FILE_OPTIONS_FILENAME, xstrdup(args[0]), copy_string_array(strs, count));
 		return;
 	}
 
@@ -601,7 +599,7 @@ static void cmd_option(const char *pf, char **args)
 
 		comma = strchr(list, ',');
 		len = comma ? comma - list : strlen(list);
-		add_file_options(FILE_OPTIONS_FILETYPE, xstrslice(list, 0, len), strs);
+		add_file_options(FILE_OPTIONS_FILETYPE, xstrslice(list, 0, len), copy_string_array(strs, count));
 		list = comma + 1;
 	} while (comma);
 }
