@@ -181,13 +181,9 @@ static void free_condition(struct condition *cond)
 
 static void free_state(struct state *s)
 {
-	int i;
-
 	free(s->name);
 	free(s->emit_name);
-	for (i = 0; i < s->conds.count; i++)
-		free_condition(s->conds.ptrs[i]);
-	free(s->conds.ptrs);
+	ptr_array_free_cb(&s->conds, FREE_FUNC(free_condition));
 	free(s->a.emit_name);
 	free(s);
 }
@@ -210,19 +206,9 @@ static void free_string_list(struct string_list *list)
 
 static void free_syntax(struct syntax *syn)
 {
-	int i;
-
-	for (i = 0; i < syn->states.count; i++)
-		free_state(syn->states.ptrs[i]);
-	free(syn->states.ptrs);
-
-	for (i = 0; i < syn->string_lists.count; i++)
-		free_string_list(syn->string_lists.ptrs[i]);
-	free(syn->string_lists.ptrs);
-
-	for (i = 0; i < syn->default_colors.count; i++)
-		free_strings(syn->default_colors.ptrs[i]);
-	free(syn->default_colors.ptrs);
+	ptr_array_free_cb(&syn->states, FREE_FUNC(free_state));
+	ptr_array_free_cb(&syn->string_lists, FREE_FUNC(free_string_list));
+	ptr_array_free_cb(&syn->default_colors, FREE_FUNC(free_strings));
 
 	free(syn->name);
 	free(syn);

@@ -25,13 +25,18 @@ void ptr_array_insert(struct ptr_array *array, void *ptr, long pos)
 	array->ptrs[pos] = ptr;
 }
 
-void ptr_array_free(struct ptr_array *array)
+void ptr_array_free_cb(struct ptr_array *array, free_func free_ptr)
 {
 	int i;
 
-	for (i = 0; i < array->count; i++)
-		free(array->ptrs[i]);
+	for (i = 0; i < array->count; i++) {
+		free_ptr(array->ptrs[i]);
+		array->ptrs[i] = NULL;
+	}
 	free(array->ptrs);
+	array->ptrs = NULL;
+	array->alloc = 0;
+	array->count = 0;
 }
 
 void ptr_array_remove(struct ptr_array *array, void *ptr)

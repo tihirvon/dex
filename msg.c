@@ -90,11 +90,7 @@ void activate_prev_message(void)
 
 void clear_messages(void)
 {
-	int i;
-
-	for (i = 0; i < msgs.count; i++)
-		free_message(msgs.ptrs[i]);
-	msgs.count = 0;
+	ptr_array_free_cb(&msgs, FREE_FUNC(free_message));
 	msg_pos = 0;
 }
 
