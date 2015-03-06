@@ -121,30 +121,26 @@ static void start_update(void)
 	buf_hide_cursor();
 }
 
+static void clear_update_tabbar(struct window *w)
+{
+	w->update_tabbar = false;
+}
+
 static void end_update(void)
 {
-	int i;
-
 	restore_cursor();
 	buf_show_cursor();
 	buf_flush();
 
 	window->view->buffer->changed_line_min = INT_MAX;
 	window->view->buffer->changed_line_max = -1;
-	for (i = 0; i < windows.count; i++) {
-		struct window *w = windows.ptrs[i];
-		w->update_tabbar = false;
-	}
+	for_each_window(clear_update_tabbar);
 }
 
 static void update_all_windows(void)
 {
-	long i;
-
 	update_window_sizes();
-	for (i = 0; i < windows.count; i++) {
-		update_window_full(windows.ptrs[i]);
-	}
+	for_each_window(update_window_full);
 	update_separators();
 }
 

@@ -158,7 +158,7 @@ static void cmd_close(const char *pf, char **args)
 		return;
 	}
 
-	if (allow_quit && windows.count == 1 && buffers.count == 1) {
+	if (allow_quit && buffers.count == 1) {
 		editor_status = EDITOR_EXITING;
 		return;
 	}
@@ -1350,7 +1350,7 @@ static void cmd_wflip(const char *pf, char **args)
 
 static void cmd_wnext(const char *pf, char **args)
 {
-	window = ptr_array_next(&windows, window);
+	window = next_window(window);
 	set_view(window->view);
 	mark_everything_changed();
 	debug_frames();
@@ -1372,7 +1372,7 @@ static void cmd_word_fwd(const char *pf, char **args)
 
 static void cmd_wprev(const char *pf, char **args)
 {
-	window = ptr_array_prev(&windows, window);
+	window = prev_window(window);
 	set_view(window->view);
 	mark_everything_changed();
 	debug_frames();

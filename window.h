@@ -33,7 +33,6 @@ struct window {
 };
 
 extern struct window *window;
-extern struct ptr_array windows;
 
 struct window *new_window(void);
 struct view *window_add_buffer(struct window *w, struct buffer *b);
@@ -58,5 +57,8 @@ void calculate_line_numbers(struct window *win);
 void set_window_coordinates(struct window *win, int x, int y);
 void set_window_size(struct window *win, int w, int h);
 int window_get_scroll_margin(struct window *w);
+void for_each_window(void (*func)(struct window *w));
+struct window *prev_window(struct window *w);
+struct window *next_window(struct window *w);
 
 #endif

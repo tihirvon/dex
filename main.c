@@ -150,7 +150,6 @@ int main(int argc, char *argv[])
 
 	// NOTE: syntax_changed() uses window. should possibly create window after reading rc
 	window = new_window();
-	ptr_array_add(&windows, window);
 	root_frame = new_root_frame(window);
 
 	if (read_rc) {

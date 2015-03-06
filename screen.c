@@ -210,11 +210,8 @@ static void print_separator(struct window *win)
 
 void update_separators(void)
 {
-	int i;
-
 	set_builtin_color(BC_STATUSLINE);
-	for (i = 0; i < windows.count; i++)
-		print_separator(windows.ptrs[i]);
+	for_each_window(print_separator);
 }
 
 void update_line_numbers(struct window *win, bool force)

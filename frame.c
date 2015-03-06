@@ -378,7 +378,6 @@ struct frame *split_frame(struct window *w, bool vertical, bool before)
 	if (!before)
 		idx++;
 	neww = new_window();
-	ptr_array_add(&windows, neww);
 	f = add_frame(parent, neww, idx);
 	parent->equal_size = true;
 
@@ -399,7 +398,6 @@ struct frame *split_root(bool vertical, bool before)
 	f->parent = new_root;
 	f->window = new_window();
 	f->window->frame = f;
-	ptr_array_add(&windows, f->window);
 	if (before) {
 		ptr_array_add(&new_root->frames, f);
 		ptr_array_add(&new_root->frames, root_frame);
@@ -421,7 +419,6 @@ static void free_frame(struct frame *f)
 	f->parent = NULL;
 	ptr_array_free_cb(&f->frames, FREE_FUNC(free_frame));
 	if (f->window != NULL) {
-		ptr_array_remove(&windows, f->window);
 		window_free(f->window);
 		f->window = NULL;
 	}

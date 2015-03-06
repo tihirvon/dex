@@ -8,7 +8,6 @@
 #include "move.h"
 #include "frame.h"
 
-PTR_ARRAY(windows);
 struct window *window;
 
 struct window *new_window(void)
@@ -207,23 +206,19 @@ void remove_view(struct view *v)
 
 void window_close_current(void)
 {
-	long idx;
+	struct window *next;
 
-	if (windows.count == 1) {
+	if (window->frame->parent == NULL) {
 		// don't close last window
 		window_remove_views(window);
 		set_view(window_open_empty_buffer(window));
 		return;
 	}
 
-	idx = ptr_array_idx(&windows, window);
+	next = next_window(window);
 	remove_frame(window->frame);
 	window = NULL;
-
-	if (idx == windows.count)
-		idx = windows.count - 1;
-	window = windows.ptrs[idx];
-	set_view(window->view);
+	set_view(next->view);
 
 	mark_everything_changed();
 	debug_frames();
@@ -489,4 +484,56 @@ int window_get_scroll_margin(struct window *w)
 	if (options.scroll_margin > max)
 		return max;
 	return options.scroll_margin;
+}
+
+static void frame_for_each_window(struct frame *f, void (*func)(struct window *, void *), void *data)
+{
+	int i;
+
+	if (f->window != NULL) {
+		func(f->window, data);
+		return;
+	}
+	for (i = 0; i < f->frames.count; i++) {
+		frame_for_each_window(f->frames.ptrs[i], func, data);
+	}
+}
+
+static void for_each_window_data(void (*func)(struct window *, void *), void *data)
+{
+	frame_for_each_window(root_frame, func, data);
+}
+
+static void call_data(struct window *w, void *data)
+{
+	void (*func)(struct window *) = data;
+	func(w);
+}
+
+void for_each_window(void (*func)(struct window *w))
+{
+	for_each_window_data(call_data, func);
+}
+
+static void collect_window(struct window *w, void *data)
+{
+	ptr_array_add(data, w);
+}
+
+struct window *prev_window(struct window *w)
+{
+	PTR_ARRAY(windows);
+	for_each_window_data(collect_window, &windows);
+	w = ptr_array_prev(&windows, w);
+	free(windows.ptrs);
+	return w;
+}
+
+struct window *next_window(struct window *w)
+{
+	PTR_ARRAY(windows);
+	for_each_window_data(collect_window, &windows);
+	w = ptr_array_next(&windows, w);
+	free(windows.ptrs);
+	return w;
 }
