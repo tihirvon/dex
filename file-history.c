@@ -12,7 +12,7 @@ struct history_entry {
 
 static PTR_ARRAY(history);
 
-#define max_history_size 50
+#define max_history_size 500
 
 void add_file_history(int row, int col, const char *filename)
 {
