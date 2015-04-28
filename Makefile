@@ -52,6 +52,7 @@ uname_R := $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
 # all good names have been taken. make it easy to change
 PROGRAM = dex
+VERSION = 1.0
 
 all: $(PROGRAM)$(X) test man
 
@@ -246,15 +247,6 @@ $(OBJECTS): .CFLAGS
 .CFLAGS: FORCE
 	@./update-option "$(CC) $(CFLAGS) $(BASIC_CFLAGS)" $@
 
-# VERSION file is included in release tarballs
-VERSION	:= $(shell cat VERSION 2>/dev/null)
-ifeq ($(VERSION),)
-# version is derived from annotated git tag
-VERSION	:= $(shell test -d .git && git describe --match "v[0-9]*" --dirty 2>/dev/null | sed 's/^v//')
-endif
-ifeq ($(VERSION),)
-VERSION	:= no-version
-endif
 TARNAME = $(PROGRAM)-$(VERSION)
 
 clean += .VARS
@@ -320,12 +312,6 @@ tags:
 	ctags *.[ch]
 
 dist:
-	git archive --format=tar --prefix=$(TARNAME)/ HEAD > $(TARNAME).tar
-	mkdir -p $(TARNAME)
-	echo $(VERSION) > $(TARNAME)/VERSION
-	tar -rf $(TARNAME).tar $(TARNAME)/VERSION
-	rm $(TARNAME)/VERSION
-	rmdir -p $(TARNAME)
-	gzip -f -9 $(TARNAME).tar
+	git archive --prefix=$(TARNAME)/ -o $(TARNAME).tar.gz HEAD
 
 .PHONY: all man install tags dist FORCE
