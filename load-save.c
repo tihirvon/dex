@@ -8,6 +8,7 @@
 #include "encoding.h"
 #include "error.h"
 #include "cconv.h"
+#include "path.h"
 
 #include <sys/mman.h>
 
@@ -218,17 +219,10 @@ int load_buffer(struct buffer *b, bool must_exist, const char *filename)
 
 static char *tmp_filename(const char *filename)
 {
-	int len = strlen(filename);
-	char *tmp;
-
-	if (str_has_prefix(filename, "/tmp/"))
-		return NULL;
-
-	tmp = xmalloc(len + 8);
-	memcpy(tmp, filename, len);
-	tmp[len] = '.';
-	memset(tmp + len + 1, 'X', 6);
-	tmp[len + 7] = 0;
+	char *tmp, *dir = path_dirname(filename);
+	const char *base = path_basename(filename);
+	tmp = xsprintf("%s/.tmp.%s.XXXXXX", dir, base);
+	free(dir);
 	return tmp;
 }
 
@@ -275,12 +269,15 @@ write_error:
 
 int save_buffer(struct buffer *b, const char *filename, const char *encoding, enum newline_sequence newline)
 {
-	// try to use temporary file first, safer
-	char *tmp = tmp_filename(filename);
 	struct file_encoder *enc;
+	char *tmp = NULL;
 	int fd;
 
-	if (tmp != NULL) {
+	// Don't use temporary file when saving file in /tmp because
+	// crontab command doesn't like the file to be replaced.
+	if (!str_has_prefix(filename, "/tmp/")) {
+		// try to use temporary file first, safer
+		tmp = tmp_filename(filename);
 		fd = mkstemp(tmp);
 		if (fd < 0) {
 			// No write permission to the directory?
